@@ -1,0 +1,20 @@
+# CAFECA Default Config
+
+title = "TideBitEx"
+
+[base]
+folder = "CAFECA-framework"
+static = "./public/"
+debug = false
+
+[blockchain]
+type = "ethereum"
+
+[database]
+
+
+[api]
+pathname = [
+  "get | /version | Static.Utils.readPackageInfo",
+  "get | /lacale, /lacale/:language | Static.Utils.getLocaleData"
+]
