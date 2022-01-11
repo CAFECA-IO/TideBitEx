@@ -5,8 +5,7 @@ class Middleman {
     this.communicator = new Communicator();
   }
   async getTickers() {
-    const result = await this.communicator.tickers();
-    console.log(result);
+    return await this.communicator.tickers();
   }
 }
 
