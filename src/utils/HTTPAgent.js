@@ -36,7 +36,7 @@ class HTTPAgent {
           success: false,
         };
       }
-      console.log(res);
+    //   console.log(res);
       return {
         success: res.status === 200,
         data: res.data.data,
