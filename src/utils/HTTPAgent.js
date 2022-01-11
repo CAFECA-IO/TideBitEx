@@ -36,11 +36,11 @@ class HTTPAgent {
           success: false,
         };
       }
-
+      console.log(res);
       return {
-        success: res.data.success,
-        data: res.data.payload,
-        message: res.data.message,
+        success: res.status === 200,
+        data: res.data.data,
+        message: res.data.msg,
         code: res.data.code,
       };
     });

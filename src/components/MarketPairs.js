@@ -2,7 +2,6 @@ import React from 'react';
 import { Tabs, Tab } from 'react-bootstrap';
 
 export default function MarketPairs() {
-  
   return (
     <>
       <div className="market-pairs">

@@ -10,6 +10,8 @@ const StoreProvider = (props) => {
     try {
       const result = await middleman.getTickers();
       setTickers(result);
+      console.log(`getTickers result`, result);
+
     } catch (error) {
       console.log(`getTickers`, error);
     }
