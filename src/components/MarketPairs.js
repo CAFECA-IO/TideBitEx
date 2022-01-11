@@ -1,7 +1,15 @@
-import React from 'react';
-import { Tabs, Tab } from 'react-bootstrap';
+import React, { useContext, useEffect, useState } from "react";
+import { Tabs, Tab } from "react-bootstrap";
+import StoreContext from "../store/store-context";
 
-export default function MarketPairs() {
+const MarketPairs = (props) => {
+  const storeCtx = useContext(StoreContext);
+  const [tickers, setTickers] = useState([]);
+  useEffect(() => {
+    console.log(storeCtx.tickers)
+    setTickers(storeCtx.tickers);
+    return () => {};
+  }, [storeCtx.tickers]);
   return (
     <>
       <div className="market-pairs">
@@ -1004,4 +1012,6 @@ export default function MarketPairs() {
       </div>
     </>
   );
-}
+};
+
+export default MarketPairs;
