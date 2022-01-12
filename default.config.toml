@@ -22,5 +22,8 @@ passPhrase = ''
 [api]
 pathname = [
   "get | /version | Static.Utils.readPackageInfo",
-  "get | /lacale, /lacale/:language | Static.Utils.getLocaleData"
+  "get | /lacale, /lacale/:language | Static.Utils.getLocaleData",
+
+  # exchange
+  "get | /api/v1/:exchange/market/tickers | Bot.ExchangeHub.getTickers",
 ]
