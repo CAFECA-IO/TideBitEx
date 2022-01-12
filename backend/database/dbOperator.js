@@ -1,34 +1,14 @@
 const path = require('path');
 
-const Sqlite = require(path.resolve(__dirname, "./sqlite"));
+// const Sqlite = require(path.resolve(__dirname, "./sqlite"));
 
 class DBOperator {
   database = null;
   _isInit = false;
 
-  get tokenDao() {
-    return this.database.tokenDao;
-  }
-
-  get tokenPriceDao() {
-    return this.database.tokenPriceDao;
-  }
-
-  get poolDao() {
-    return this.database.poolDao;
-  }
-
-  get poolPriceDao() {
-    return this.database.poolPriceDao;
-  }
-
-  get transactionHistoryDao() {
-    return this.database.transactionHistoryDao;
-  }
-
-  get blockTimestampDao() {
-    return this.database.blockTimestampDao;
-  }
+  // get tokenDao() {
+  //   return this.database.tokenDao;
+  // }
 
   constructor() {
     return this;
@@ -36,10 +16,10 @@ class DBOperator {
 
   async init(dir) {
     if (this._isInit) return;
-    this.database = new Sqlite();
+    // this.database = new Sqlite();
     this._isInit = true;
 
-    return this.database.init(dir);
+    // return this.database.init(dir);
   }
 
   down() {
