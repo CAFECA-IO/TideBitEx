@@ -14,10 +14,10 @@ const BookTile = (props) => {
       </td>
       <td>{formateDecimal(props.book.amount, 8)}</td>
       <td>{formateDecimal(props.book.total, 4)}</td>
-      <div
+      <td
         className={props.type === "asks" ? "red-bg-cover" : "green-bg-cover"}
         style={{ width: props.dataWidth }}
-      ></div>
+      ></td>
     </tr>
   );
 };
