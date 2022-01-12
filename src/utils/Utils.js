@@ -83,7 +83,33 @@ export const toFixed = (x) => {
 };
 
 export const formateNumber = (number, decimalLength = 2) => {
-  const _number = SafeMath.gte(number, 1.0e24)
+  const _number = SafeMath.gte(number, 1.0e63)
+    ? SafeMath.div(number, 1.0e63)
+    : SafeMath.gte(number, 1.0e60)
+    ? SafeMath.div(number, 1.0e60)
+    : SafeMath.gte(number, 1.0e57)
+    ? SafeMath.div(number, 1.0e57)
+    : SafeMath.gte(number, 1.0e54)
+    ? SafeMath.div(number, 1.0e54)
+    : SafeMath.gte(number, 1.0e51)
+    ? SafeMath.div(number, 1.0e51)
+    : SafeMath.gte(number, 1.0e48)
+    ? SafeMath.div(number, 1.0e48)
+    : SafeMath.gte(number, 1.0e45)
+    ? SafeMath.div(number, 1.0e45)
+    : SafeMath.gte(number, 1.0e42)
+    ? SafeMath.div(number, 1.0e42)
+    : SafeMath.gte(number, 1.0e39)
+    ? SafeMath.div(number, 1.0e39)
+    : SafeMath.gte(number, 1.0e36)
+    ? SafeMath.div(number, 1.0e36)
+    : SafeMath.gte(number, 1.0e33)
+    ? SafeMath.div(number, 1.0e33)
+    : SafeMath.gte(number, 1.0e30)
+    ? SafeMath.div(number, 1.0e30)
+    : SafeMath.gte(number, 1.0e27)
+    ? SafeMath.div(number, 1.0e27)
+    : SafeMath.gte(number, 1.0e24)
     ? SafeMath.div(number, 1.0e24)
     : SafeMath.gte(number, 1.0e21)
     ? SafeMath.div(number, 1.0e21)
@@ -102,7 +128,59 @@ export const formateNumber = (number, decimalLength = 2) => {
     : number;
   const splitChunck = _number.toString().split(".");
 
-  return SafeMath.gte(number, 1.0e24) // 24 Zeroes for septillions
+  return SafeMath.gte(number, 1.0e63) // 63 Zeroes for Vigintillion
+    ? `${splitChunck[0]}.${
+        splitChunck[1] ? splitChunck[1].substring(0, decimalLength) : "00"
+      }vt`
+    : SafeMath.gte(number, 1.0e60) // 60 Zeroes for Novemdecillion
+    ? `${splitChunck[0]}.${
+        splitChunck[1] ? splitChunck[1].substring(0, decimalLength) : "00"
+      }ndc`
+    : SafeMath.gte(number, 1.0e57) // 57 Zeroes for Octodecillion
+    ? `${splitChunck[0]}.${
+        splitChunck[1] ? splitChunck[1].substring(0, decimalLength) : "00"
+      }otdc`
+    : SafeMath.gte(number, 1.0e54) // 54 Zeroes for Septendecillion
+    ? `${splitChunck[0]}.${
+        splitChunck[1] ? splitChunck[1].substring(0, decimalLength) : "00"
+      }stdc`
+    : SafeMath.gte(number, 1.0e51) // 51 Zeroes for Sexdecillion
+    ? `${splitChunck[0]}.${
+        splitChunck[1] ? splitChunck[1].substring(0, decimalLength) : "00"
+      }sdc`
+    : SafeMath.gte(number, 1.0e48) // 48 Zeroes for Quindecillion
+    ? `${splitChunck[0]}.${
+        splitChunck[1] ? splitChunck[1].substring(0, decimalLength) : "00"
+      }qdc`
+    : SafeMath.gte(number, 1.0e45) // 45 Zeroes for Quattuordecillion
+    ? `${splitChunck[0]}.${
+        splitChunck[1] ? splitChunck[1].substring(0, decimalLength) : "00"
+      }qtdc`
+    : SafeMath.gte(number, 1.0e42) // 42 Zeroes for Tredecillion
+    ? `${splitChunck[0]}.${
+        splitChunck[1] ? splitChunck[1].substring(0, decimalLength) : "00"
+      }tdc`
+    : SafeMath.gte(number, 1.0e39) // 39 Zeroes for Duodecillion
+    ? `${splitChunck[0]}.${
+        splitChunck[1] ? splitChunck[1].substring(0, decimalLength) : "00"
+      }ddc`
+    : SafeMath.gte(number, 1.0e36) // 36 Zeroes for Undecillion
+    ? `${splitChunck[0]}.${
+        splitChunck[1] ? splitChunck[1].substring(0, decimalLength) : "00"
+      }udc`
+    : SafeMath.gte(number, 1.0e33) // 33 Zeroes for Decillion
+    ? `${splitChunck[0]}.${
+        splitChunck[1] ? splitChunck[1].substring(0, decimalLength) : "00"
+      }dc`
+    : SafeMath.gte(number, 1.0e30) // 30 Zeroes for Nonillion
+    ? `${splitChunck[0]}.${
+        splitChunck[1] ? splitChunck[1].substring(0, decimalLength) : "00"
+      }nn`
+    : SafeMath.gte(number, 1.0e27) // 27 Zeroes for Octillion
+    ? `${splitChunck[0]}.${
+        splitChunck[1] ? splitChunck[1].substring(0, decimalLength) : "00"
+      }ot`
+    : SafeMath.gte(number, 1.0e24) // 24 Zeroes for septillions
     ? `${splitChunck[0]}.${
         splitChunck[1] ? splitChunck[1].substring(0, decimalLength) : "00"
       }sp`

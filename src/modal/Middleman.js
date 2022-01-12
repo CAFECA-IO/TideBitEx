@@ -32,7 +32,7 @@ class Middleman {
           return {
             price: d[0],
             amount: SafeMath.plus(d[2], d[3]),
-            total: (totalBids += d[2] + d[3]),
+            total: totalBids,
           };
         });
       const books = {

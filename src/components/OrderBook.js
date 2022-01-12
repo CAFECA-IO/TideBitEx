@@ -7,13 +7,17 @@ const BookTile = (props) => {
   return (
     <tr
       className={props.type === "asks" ? "red-bg" : "green-bg"}
-      data-width={props.book.total}
+      data-width={props.dataWidth}
     >
       <td className={props.type === "asks" ? "red" : "green"}>
         {formateDecimal(props.book.price, 8)}
       </td>
       <td>{formateDecimal(props.book.amount, 8)}</td>
-      <td>{formateDecimal(props.book.total, 8)}</td>
+      <td>{formateDecimal(props.book.total, 4)}</td>
+      <div
+        className={props.type === "asks" ? "red-bg-cover" : "green-bg-cover"}
+        style={{ width: props.dataWidth }}
+      ></div>
     </tr>
   );
 };
@@ -67,6 +71,12 @@ const OrderBook = (props) => {
                   type="asks"
                   book={book}
                   key={`asks-${selectedTicker.instId}-${index}`}
+                  dataWidth={`${parseFloat(
+                    SafeMath.mult(
+                      SafeMath.div(book.total, books.asks[0].total),
+                      "100"
+                    )
+                  ).toFixed(18)}%`}
                 />
               ))}
           </tbody>
@@ -101,6 +111,15 @@ const OrderBook = (props) => {
                   type="bids"
                   book={book}
                   key={`bids-${selectedTicker.instId}-${index}`}
+                  dataWidth={`${parseFloat(
+                    SafeMath.mult(
+                      SafeMath.div(
+                        book.total,
+                        books.bids[books.bids.length - 1].total
+                      ),
+                      "100"
+                    )
+                  ).toFixed(18)}%`}
                 />
               ))}
           </tbody>

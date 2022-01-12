@@ -31,21 +31,21 @@
   position: relative;
 }
 
-.green-bg:after,
-.red-bg:after {
+.green-bg-cover,
+.red-bg-cover {
   position: absolute;
   content: "";
   right: 0;
   top: 0;
-  width: attr(data-width px, 0);
+  // width: attr(data-width,'');
   height: 45px;
 }
 
-.red-bg:after {
+.red-bg-cover {
   background: #de262663;
 }
 
-.green-bg:after {
+.green-bg-cover {
   background: #26de8163;
 }
 
