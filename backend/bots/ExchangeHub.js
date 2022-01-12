@@ -31,29 +31,11 @@ class ExchangeHub extends Bot {
   }
 
   async getTickers({ params, query }) {
-    const { exchange } = params;
-    switch(exchange) {
-      case 'okex':
-        return this.okexConnector.router('getTickers', { params, query });
-      default:
-        return new ResponseFormat({
-          message: 'Invalid input exange',
-          code: Codes.INVALID_INPUT_EXCHANGE,
-        })
-    }
+    return this.okexConnector.router('getTickers', { params, query });
   }
 
   async getOrderBooks({ params, query }) {
-    const { exchange } = params;
-    switch(exchange) {
-      case 'okex':
-        return this.okexConnector.router('getOrderBooks', { params, query });
-      default:
-        return new ResponseFormat({
-          message: 'Invalid input exange',
-          code: Codes.INVALID_INPUT_EXCHANGE,
-        })
-    }
+    return this.okexConnector.router('getOrderBooks', { params, query });
   }
 }
 

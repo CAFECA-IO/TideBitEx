@@ -25,7 +25,7 @@ pathname = [
   "get | /lacale, /lacale/:language | Static.Utils.getLocaleData",
 
   # exchange
-  "get | /api/v1/:exchange/market/tickers | Bot.ExchangeHub.getTickers",
-  "get | /api/v1/:exchange/market/books | Bot.ExchangeHub.getOrderBooks",
+  "get | /api/v1/market/tickers | Bot.ExchangeHub.getTickers",
+  "get | /api/v1/market/books | Bot.ExchangeHub.getOrderBooks",
 
 ]

@@ -60,14 +60,15 @@ class OkexConnector extends ConnectorBase {
         url: `${this.domain}${path}${qs}`,
         headers: this.getHeaders({ timeString, okAccessSign }),
       });
+      if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
       return new ResponseFormat({
         message: 'getTickers',
-        payload: res.data,
+        payload: res.data.data,
       });
     } catch (error) {
       this.logger.error(error);
       return new ResponseFormat({
-        message: 'getTickers fail',
+        message: error.message,
         code: Codes.API_UNKNOWN_ERROR,
       });
     }
@@ -93,15 +94,15 @@ class OkexConnector extends ConnectorBase {
         url: `${this.domain}${path}${qs}`,
         headers: this.getHeaders({ timeString, okAccessSign }),
       });
-      console.log('getOrderBooks', res);
+      if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
       return new ResponseFormat({
         message: 'getOrderBooks',
-        payload: res.data,
+        payload: res.data.data,
       });
     } catch (error) {
       this.logger.error(error);
       return new ResponseFormat({
-        message: 'getOrderBooks fail',
+        message: error.message,
         code: Codes.API_UNKNOWN_ERROR,
       });
     }
