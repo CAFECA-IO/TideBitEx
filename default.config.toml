@@ -26,4 +26,6 @@ pathname = [
 
   # exchange
   "get | /api/v1/:exchange/market/tickers | Bot.ExchangeHub.getTickers",
+  "get | /api/v1/:exchange/market/books | Bot.ExchangeHub.getOrderBooks",
+
 ]

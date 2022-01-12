@@ -44,7 +44,6 @@ class OkexConnector extends ConnectorBase {
     const method = 'GET';
     const path = '/api/v5/market/tickers';
     const { instType, uly } = query;
-    console.log(query)
 
     const arr = [];
     if (instType) arr.push(`instType=${instType}`);
@@ -61,7 +60,6 @@ class OkexConnector extends ConnectorBase {
         url: `${this.domain}${path}${qs}`,
         headers: this.getHeaders({ timeString, okAccessSign }),
       });
-      console.log('getTickers', res);
       return new ResponseFormat({
         message: 'getTickers',
         payload: res.data,
@@ -70,6 +68,40 @@ class OkexConnector extends ConnectorBase {
       this.logger.error(error);
       return new ResponseFormat({
         message: 'getTickers fail',
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
+  async getOrderBooks({ query }) {
+    const method = 'GET';
+    const path = '/api/v5/market/books';
+    const { instId, sz } = query;
+
+    const arr = [];
+    if (instId) arr.push(`instId=${instId}`);
+    if (sz) arr.push(`sz=${sz}`);
+    const qs = (!!arr) ?  `?${arr.join('&')}` : '';
+
+    const timeString = new Date().toISOString();
+
+    const okAccessSign = await this.okAccessSign({ timeString, method, path: path+qs });
+
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}${qs}`,
+        headers: this.getHeaders({ timeString, okAccessSign }),
+      });
+      console.log('getOrderBooks', res);
+      return new ResponseFormat({
+        message: 'getOrderBooks',
+        payload: res.data,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      return new ResponseFormat({
+        message: 'getOrderBooks fail',
         code: Codes.API_UNKNOWN_ERROR,
       });
     }

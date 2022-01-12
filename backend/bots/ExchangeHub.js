@@ -42,6 +42,19 @@ class ExchangeHub extends Bot {
         })
     }
   }
+
+  async getOrderBooks({ params, query }) {
+    const { exchange } = params;
+    switch(exchange) {
+      case 'okex':
+        return this.okexConnector.router('getOrderBooks', { params, query });
+      default:
+        return new ResponseFormat({
+          message: 'Invalid input exange',
+          code: Codes.INVALID_INPUT_EXCHANGE,
+        })
+    }
+  }
 }
 
 module.exports = ExchangeHub;
