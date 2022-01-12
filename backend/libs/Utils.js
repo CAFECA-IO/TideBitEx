@@ -5,10 +5,10 @@ const url = require('url');
 const toml = require('toml');
 const i18n = require("i18n");
 const dvalue = require('dvalue');
-const ecRequest = require('ecrequest');
+const colors = require('colors');
 
-const SafeMath = require(path.resolve(__dirname, './SafeMath'));
-const DBOperator = require(path.resolve(__dirname, '../database/dbOperator'))
+const DBOperator = require(path.resolve(__dirname, '../database/dbOperator'));
+const Codes = require('../constants/Codes');
 
 class Utils {
   static waterfallPromise(jobs) {
@@ -158,20 +158,6 @@ class Utils {
     return result;
   }
 
-  static ETHRPC({ protocol, port, hostname, path, data }) {
-    const opt = {
-      protocol,
-      port,
-      hostname,
-      path,
-      headers: { 'content-type': 'application/json' },
-      data
-    };
-    return ecRequest.post(opt).then((rs) => {
-      return Promise.resolve(JSON.parse(rs.data));
-    });
-  }
-
   static initialAll({ version, configPath }) {
     const filePath = configPath ? configPath : path.resolve(__dirname, '../../private/config.toml');
     return this.readConfig({ filePath })
@@ -277,7 +263,7 @@ class Utils {
   }
 
   static getLocaleData() {
-    return {}
+    return Promise.resolve({});
   }
 
   static listProcess() {
@@ -431,26 +417,6 @@ class Utils {
     console.log('dbPath', dbPath)
     const dbo = new DBOperator();
     return dbo.init(dbPath)
-    .then(async() => {
-      const ethEntity = dbo.tokenDao.entity({
-        chainId: 1,
-        contract: '0x0000000000000000000000000000000000000000',
-        name: 'Ethereum',
-        symbol: 'ETH',
-        decimals: 18,
-        totalSupply: '0',
-      });
-      await dbo.tokenDao.insertToken(ethEntity);
-      const ethRopstenEntity = dbo.tokenDao.entity({
-        chainId: 3,
-        contract: '0x0000000000000000000000000000000000000000',
-        name: 'Ethereum',
-        symbol: 'ETH',
-        decimals: 18,
-        totalSupply: '0',
-      });
-      await dbo.tokenDao.insertToken(ethRopstenEntity);
-    })
     .then(() => dbo);
   }
 
@@ -458,7 +424,8 @@ class Utils {
     return Promise.resolve({
       log: console.log,
       debug: base.debug ? console.log : () => {},
-      trace: console.trace
+      trace: console.trace,
+      error: console.error
     });
   }
 
@@ -576,6 +543,19 @@ class Utils {
     };
   }
 
+  static objectTimestampGroupByDay(objList) {
+    if (!Array.isArray(objList)) throw new Error('groupByObjectTimestamp input must be array.');
+    if (objList.length === 0 || !objList[0].timestamp) throw new Error('groupByObjectTimestamp input object in array must have timestamp');
+    
+    const byDay = {};
+    objList.forEach(obj => {
+      const d = Math.floor(obj.timestamp / 86400);
+      byDay[d] = byDay[d] || [];
+      byDay[d].push(obj);
+    })
+    return byDay;
+  } 
+
   static dateFormatter(timestamp) {
     const monthNames = [
       "Jan",
@@ -625,82 +605,6 @@ class Utils {
       day: pad(date),
       year: year,
     };
-  };
-
-  static randomDates(startDate, endDate) {
-    const dates = [];
-    let currentDate = startDate;
-    const addDays = function (days) {
-      const date = new Date(this.valueOf());
-      date.setDate(date.getDate() + days);
-      return date;
-    };
-    while (currentDate <= endDate) {
-      const date = this.dateFormatter(currentDate.valueOf());
-      // dates.push(`${date.month} ${date.day}`);
-      dates.push(currentDate.getTime());
-      currentDate = addDays.call(currentDate, 1);
-    }
-    return dates;
-  };
-  
-  static randomData(startTime, endTime) {
-    const dates = this.randomDates(startTime, endTime);
-    const data = dates.map((date) => ({
-      date,
-      value: `${(Math.random() * 10).toFixed(2)}`,
-    }));
-    return data;
-  };
-  
-  static randomFixedDirectionData(startTime, endTime) {
-    const dates = this.randomDates(startTime, endTime);
-    const data = [];
-    dates.forEach((date, index) =>
-      data.push({
-        date,
-        value:
-          index === 0
-            ? `${(Math.random() * 100).toFixed(2)}`
-            : Math.random() * 1 > 0.5
-            ? SafeMath.plus(data[index - 1].value, (Math.random() * 1).toFixed(2))
-            : SafeMath.minus(
-                data[index - 1].value,
-                (Math.random() * 1).toFixed(2)
-              ),
-      })
-    );
-    return data;
-  };
-  
-  static randomCandleStickData() {
-    const data = [];
-    const endTime = new Date().valueOf();
-    const length = 24 * 2.5;
-    const interval = 1800000;
-    const startTime = endTime - interval * length;
-  
-    for (let i = 0; i < length; i++) {
-      const direction = Math.random() * 1 > 0.5;
-      const open =
-        i === 0 ? `${(Math.random() * 10000).toFixed(2)}` : data[i - 1].y[3];
-      const close = direction
-        ? SafeMath.plus(open, `${(Math.random() * 2000).toFixed(2)}`)
-        : SafeMath.minus(open, `${(Math.random() * 2000).toFixed(2)}`);
-      const high = SafeMath.plus(
-        direction ? open : close,
-        `${(Math.random() * 3000).toFixed(2)}`
-      );
-      const low = SafeMath.minus(
-        !direction ? open : close,
-        `${(Math.random() * 3000).toFixed(2)}`
-      );
-      data.push({
-        x: new Date(startTime + i * interval).getTime(),
-        y: [open, high, low, close],
-      });
-    }
-    return data;
   };
 }
 

@@ -3,15 +3,12 @@ const fs = require('fs');
 const sqlite3 = require('sqlite3').verbose();
 
 const Entity = require('../entity');
+const sqlType = require('../sqlType');
+const {attribute, dataType} = sqlType.sqlite3
 
 const DB_DEFAULT_DIR = "tidebitswap";
 
-const TBL_TOKEN = 'token';
-const TBL_TOKEN_PRICE = 'token_price';
-const TBL_POOL = 'pool';
-const TBL_POOL_PRICE = 'pool_price';
-const TBL_TRANSACTION = 'transactionHistory';
-const TBL_BLOCK_TIMESTAMP = 'block_timestamp';
+// const TBL_TOKEN = 'token';
 
 class sqliteDB {
   constructor(dbPath) {
@@ -67,14 +64,9 @@ class Sqlite {
   constructor() {}
   db = null;
   _tokenDao = null;
-  _tokenPriceDao = null;
-  _poolDao = null;
-  _poolPriceDao = null;
-  _transactionHistoryDao = null;
-  _blockTimestampDao = null;
 
   init(dir) {
-    return this._createDB(dir);
+    // return this._createDB(dir);
   }
 
   async _createDB(dbDir = DB_DEFAULT_DIR) {
@@ -84,143 +76,10 @@ class Sqlite {
     if (await !fs.existsSync(dbDir)) { await fs.mkdirSync(dbDir, { recursive: true }); }
     this.db = new sqliteDB(dbPath);
 
-    this._tokenDao = new TokenDao(this.db, TBL_TOKEN);
-    this._tokenPriceDao = new TokenPriceDao(this.db, TBL_TOKEN_PRICE);
-    this._poolDao = new PoolDao(this.db, TBL_POOL);
-    this._poolPriceDao = new PoolPriceDao(this.db, TBL_POOL_PRICE);
-    this._transactionHistoryDao = new TransactionHistoryDao(this.db, TBL_TRANSACTION);
-    this._blockTimestampDao = new BlockTimestampDao(this.db, TBL_BLOCK_TIMESTAMP);
+    // this._tokenDao = new TokenDao(this.db, TBL_TOKEN);
 
-    await this._createTable();
-    await this._createIndex();
+    await this._runMigration();
     return this.db;
-  }
-
-  async _createTable() {
-    const tokenSQL = `CREATE TABLE IF NOT EXISTS ${TBL_TOKEN} (
-      id TEXT PRIMARY KEY,
-      chainId TEXT,
-      contract TEXT,
-      name TEXT,
-      symbol TEXT,
-      decimals INTEGER,
-      totalSupply TEXT,
-      priceToEth TEXT,
-      timestamp INTEGER
-    )`;
-
-    const tokenPriceSQL = `CREATE TABLE IF NOT EXISTS ${TBL_TOKEN_PRICE}(
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      chainId TEXT,
-      contract TEXT,
-      priceToEth TEXT,
-      timestamp INTEGER
-    )`;
-
-    const poolSQL = `CREATE TABLE IF NOT EXISTS ${TBL_POOL} (
-      id TEXT PRIMARY KEY,
-      chainId TEXT,
-      contract TEXT,
-      factoryContract TEXT,
-      factoryIndex INTEGER,
-      decimals INTEGER,
-      totalSupply TEXT,
-      token0Contract TEXT,
-      token1Contract TEXT,
-      timestamp INTEGER
-    )`;
-
-    const poolPriceSQL = `CREATE TABLE IF NOT EXISTS ${TBL_POOL_PRICE} (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      chainId TEXT,
-      contract TEXT,
-      transactionHash TEXT,
-      timestamp INTEGER,
-      token0Amount TEXT,
-      token1Amount TEXT
-    )`;
-
-    const transactionSQL = `CREATE TABLE IF NOT EXISTS ${TBL_TRANSACTION} (
-      id TEXT PRIMARY KEY,
-      chainId TEXT,
-      transactionHash TEXT,
-      type INTEGER,
-      callerAddress TEXT,
-      poolContract TEXT,
-      token0Contract TEXT,
-      token1Contract TEXT,
-      token0AmountIn TEXT,
-      token0AmountOut TEXT,
-      token1AmountIn TEXT,
-      token1AmountOut TEXT,
-      share TEXT,
-      timestamp INTEGER
-    )`;
-
-    const blockTimestampSQL = `CREATE TABLE IF NOT EXISTS ${TBL_BLOCK_TIMESTAMP} (
-      id TEXT PRIMARY KEY,
-      chainId TEXT,
-      blockNumber TEXT,
-      timestamp INTEGER,
-      isParsed INTEGER
-    )`;
-    
-    try {
-      await this.db.runDB(tokenSQL);
-      await this.db.runDB(tokenPriceSQL);
-      await this.db.runDB(poolSQL);
-      await this.db.runDB(poolPriceSQL);
-      await this.db.runDB(transactionSQL);
-      await this.db.runDB(blockTimestampSQL);
-    } catch (error) {
-      console.log('create table error:', error);
-    }
-  }
-
-  async _createIndex() {
-    const indexTokenPriceChainIdContractTimestamp = `CREATE INDEX IF NOT EXISTS idx_token_price_chainId_contract_timestamp ON ${TBL_TOKEN_PRICE}(
-      chainId,
-      contract,
-      timestamp
-    )`;
-
-    const indexPoolPriceChainIdContractTimestamp = `CREATE INDEX IF NOT EXISTS idx_pool_price_chainId_contract_timestamp ON ${TBL_POOL_PRICE}(
-      chainId,
-      contract,
-      timestamp
-    )`;
-
-    const uniqueIndexPoolPriceChainIdContractTransactionHash = `CREATE UNIQUE INDEX IF NOT EXISTS idx_pool_price_chainId_contract_transactionHash ON ${TBL_POOL_PRICE}(
-      chainId,
-      contract,
-      transactionHash
-    )`;
-
-    const indexTransactionChainIdCallerAddress = `CREATE INDEX IF NOT EXISTS idx_chainId_callerAddress ON ${TBL_TRANSACTION}(
-      chainId,
-      callerAddress
-    )`;
-
-    const indexBlockTimestampChainIdIsParsed = `CREATE INDEX IF NOT EXISTS idx_block_timestamp_chainId_isParsed ON ${TBL_BLOCK_TIMESTAMP}(
-      chainId,
-      isParsed
-    )`;
-
-    const indexBlockTimestampChainIdTimestamp = `CREATE INDEX IF NOT EXISTS idx_block_timestamp_chainId_timestamp ON ${TBL_BLOCK_TIMESTAMP}(
-      chainId,
-      timestamp
-    )`;
-
-    try {
-      await this.db.runDB(indexTokenPriceChainIdContractTimestamp);
-      await this.db.runDB(indexPoolPriceChainIdContractTimestamp);
-      await this.db.runDB(uniqueIndexPoolPriceChainIdContractTransactionHash);
-      await this.db.runDB(indexTransactionChainIdCallerAddress);
-      await this.db.runDB(indexBlockTimestampChainIdIsParsed);
-      await this.db.runDB(indexBlockTimestampChainIdTimestamp);
-    } catch (error) {
-      console.log('create table error:', error);
-    }
   }
 
   close() {
@@ -231,25 +90,158 @@ class Sqlite {
     return this._tokenDao;
   }
 
-  get tokenPriceDao() {
-    return this._tokenPriceDao;
+  // migration
+
+  async _runMigration() {
+    const migrationTBLSQL = `CREATE TABLE IF NOT EXISTS ${TBL_MIGRATIONS} (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      file_name VARCHAR,
+      run_on DATETIME
+    )`;
+    await this.db.runDB(migrationTBLSQL);
+    const mgPath = path.resolve(__dirname, '../migrations');
+    const dirMigrations = (fs.readdirSync(mgPath)).map(fileName => {
+      const arr = fileName.split('.');
+      arr.pop();
+      return arr.join('.');
+    });
+    const dbMigrations = (await this.migrationsDao.listMigrations()).map(mg => mg.file_name);
+    const newMigrations = dirMigrations.filter((mg) => !dbMigrations.includes(mg));
+    try {
+      for (const newMigration of newMigrations) {
+        await this.db.runDB('BEGIN TRANSACTION');
+        const entity = this.migrationsDao.entity({
+          file_name: newMigration,
+        });
+        const mgUp = require(`${mgPath}/${newMigration}`).up;
+        console.log(`[Run migration] ${newMigration}`);
+
+        await this.migrationsDao.insertMigration(entity);
+        await mgUp(this, dataType);
+        await this.db.runDB('COMMIT');
+      }
+    } catch (error) {
+      console.log('[Migration error]', error);
+      await this.db.runDB('ROLLBACK');
+      throw error;
+    }
+
+    if (newMigrations.length === 0) {
+      console.log('[There is not have new migrations]');
+    }
   }
 
-  get poolDao() {
-    return this._poolDao;
+  _parseAttribute(attr) {
+    const cloneAttr = {...attr};
+    delete cloneAttr.type;
+    const keys = Object.keys(cloneAttr);
+    let sqlArr = [];
+    keys.forEach(key => {
+      let sql;
+      switch (key) {
+        case attribute.primaryKey:
+          if (cloneAttr.primaryKey) { sql = 'PRIMARY KEY'; }
+          break;
+        case attribute.autoIncrement:
+          if (cloneAttr.autoIncrement) { sql = 'AUTOINCREMENT'; }
+          break;
+        case attribute.allowNull:
+          if (!cloneAttr.allowNull) { sql = 'NOT NULL'; }
+          break;
+        case attribute.defaultValue:
+          sql = `DEFAULT ${cloneAttr.defaultValue}`;
+          break;
+        default:
+      }
+
+      if (sql) sqlArr.push(sql);
+    });
+    return sqlArr.join(' ');
   }
 
-  get poolPriceDao() {
-    return this._poolPriceDao;
+  async createTable(tableName, attributes) {
+    const columeNames = Object.keys(attributes);
+    let schemaSqlArr = [];
+    columeNames.forEach(name => {
+      const attr = attributes[name];
+      if (typeof attr === 'string') {
+        const columnSql = `${name} ${attr}`;
+        schemaSqlArr.push(columnSql);
+      } else {
+        const columnSql = `${name} ${attr.type} ${this._parseAttribute(attr)}`;
+        schemaSqlArr.push(columnSql);
+      }
+    });
+
+    const sql = `CREATE TABLE ${tableName} (${schemaSqlArr.join(', ')})`;
+    console.log(`[Run migration] ${sql}`);
+    return this.db.runDB(sql);
   }
 
-  get transactionHistoryDao() {
-    return this._transactionHistoryDao;
+  async addColumn(tableName, columnName, attribute) {
+    let columnSql = '';
+    if (typeof attribute === 'string') {
+      columnSql = `${columnName} ${attribute}`;
+    } else {
+      columnSql = `${columnName} ${attribute.type} ${this._parseAttribute(attribute)}`;
+    }
+
+    const sql = `ALTER TABLE ${tableName} ADD COLUMN ${columnSql}`;
+    console.log(`[Run migration] ${sql}`);
+    return this.db.runDB(sql);
   }
 
-  get blockTimestampDao() {
-    return this._blockTimestampDao;
+  async renameTable(oriTableName, newTableName) {
+    const sql = `ALTER TABLE ${oriTableName} RENAME TO ${newTableName}`;
+    console.log(`[Run migration] ${sql}`);
+    return this.db.runDB(sql);
   }
+
+  async dropTable(tableName) {
+    const sql = `DROP TABLE ${tableName}`;
+    console.log(`[Run migration] ${sql}`);
+    return this.db.runDB(sql);
+  }
+
+  async renameColumn(tableName, oriColumnName, newColumnName) {
+    const sql = `ALTER TABLE ${tableName} RENAME COLUMN ${oriColumnName} TO ${newColumnName}`;
+    console.log(`[Run migration] ${sql}`);
+    return this.db.runDB(sql);
+  }
+
+  async addIndex(tableName, attributes, options = {}) {
+    const indexName = options.name ? options.name : `idx_${tableName}_${attributes.join('_')}`;
+    const isUnique = options.unique ? 'UNIQUE' : '';
+    const sql = `CREATE ${isUnique} INDEX ${indexName} ON ${tableName} (${attributes.join(', ')})`;
+    console.log(`[Run migration] ${sql}`);
+    return this.db.runDB(sql);
+  }
+
+  async dropIndex(indexName) {
+    const sql = `DROP INDEX IF EXISTS ${indexName};`;
+    console.log(`[Run migration] ${sql}`);
+    return this.db.runDB(sql);
+  }
+
+  // 為了DB降版用，未完成
+  // async removeColumn(tableName, columnName) {
+  //   const tempTableName = `${tableName}_${Date.now()}`;
+  //   const oriTableCreateSql = await this.db.get(`SELECT sql FROM sqlite_master WHERE name=?`, tableName);
+  //   console.log('!!!oriTableCreateSql', oriTableCreateSql) // --
+  //   const arrSql = oriTableCreateSql.sql.split(/\(|\)/);
+  //   console.log('!!!arrSql', arrSql); // --
+  //   const arrColumn = arrSql[1].split(', ');
+  //   const newArrColumn = arrColumn.filter(str => {
+  //     const arr = str.split(' ');
+  //     if (arr[0] === columnName) return false;
+  //     return true;
+  //   });
+  //   const newTableSql = `CREATR TABLE ${tempTableName} (${newArrColumn.join(', ')})`;
+  //   console.log('!!!newTableSql', newTableSql); // --
+  //   await this.db.runDB(newTableSql);
+
+  //   throw new Error ('stop migrate')
+  // }
 }
 
 class DAO {
@@ -289,18 +281,17 @@ class DAO {
   }
 
   _read(value = null, index, option = {}) {
-    const where = index ? index.map(i => `${i} = ?`).join(' AND ') : `${this._pk} = ?`;
+    const where = index ? index.map(i => `${i}= ?`).join(' AND ') : `${this._pk} = ?`;
     const order = (option && option.orderBy) ? ` ORDER BY ${option.orderBy.join(', ')}` : '';
     const findOne = `SELECT * FROM ${this._name} WHERE ${where} ${order}`;
     return this._db.get(findOne, value);
   }
 
-  _readAll(value = [], index) {
-    const where = value.length ? (index ? index.map(i => `${i} = ?`).join(' AND ') : `${this._pk} = ?`) : '';
-    const find = where ? `
-      SELECT * FROM ${this._name} WHERE ${where}
-    `
-    : `SELECT * FROM ${this._name}`;
+  _readAll(value = [], index, option = {}) {
+    const where = value.length ? (index ? `WHERE ${index.map(i => `${i}= ?`).join(' AND ')}` : `WHERE ${this._pk} = ?`) : '';
+    const order = (option && option.orderBy) ? ` ORDER BY ${option.orderBy.join(', ')}` : '';
+    const limit = (option && option.limit) ? ` LIMIT ${option.limit.join(', ')}` : '';
+    const find = `SELECT * FROM ${this._name} ${where} ${order} ${limit}`;
     return this._db.all(find, value);
   }
 
@@ -350,175 +341,6 @@ class TokenDao extends DAO {
 
   updateToken(tokenEntity) {
     return this._write(tokenEntity);
-  }
-}
-
-class TokenPriceDao extends DAO {
-  constructor(db, name) {
-    super(db, name, 'id');
-  }
-
-  /**
-   * @override
-   */
-  entity(param) {
-    return Entity.TokenPriceDao(param);
-  }
-
-  findTokenPrice(chainId, contract) {
-    return this._read([chainId, contract], ['chainId', 'contract']);
-  }
-
-  listTokenPrice(chainId, contract) {
-    return this._readAll([chainId, contract], ['chainId', 'contract'])
-  }
-
-  insertToken(tokenPriceEntity) {
-    return this._write(tokenPriceEntity);
-  }
-
-  insertTokens(tokenPriceEntitys) {
-    return this._writeAll(tokenPriceEntitys);
-  }
-
-  updateToken(tokenPriceEntity) {
-    return this._write(tokenPriceEntity);
-  }
-}
-
-class PoolDao extends DAO {
-  constructor(db, name) {
-    super(db, name, 'id');
-  }
-
-  /**
-   * @override
-   */
-  entity(param) {
-    return Entity.PoolDao(param);
-  }
-
-  findPool(chainId, contract) {
-    return this._read(`${chainId}-${contract}`);
-  }
-
-  listPool(chainId) {
-    return this._readAll(chainId, ['chainId'])
-  }
-
-  insertPool(poolEntity) {
-    return this._write(poolEntity);
-  }
-
-  insertPools(poolEntitys) {
-    return this._writeAll(poolEntitys);
-  }
-
-  updatePool(poolEntity) {
-    return this._write(poolEntity);
-  }
-}
-
-class PoolPriceDao extends DAO {
-  constructor(db, name) {
-    super(db, name, 'id');
-  }
-
-  /**
-   * @override
-   */
-  entity(param) {
-    return Entity.PoolPriceDao(param);
-  }
-
-  findPoolPrice(chainId, contract) {
-    return this._read([chainId, contract], ['chainId', 'contract'], { orderBy: ['timestamp DESC'] });
-  }
-
-  listPoolPrice(chainId, contract) {
-    return this._readAll([chainId, contract], ['chainId', 'contract'])
-  }
-
-  insertPoolPrice(poolPriceEntity) {
-    return this._write(poolPriceEntity);
-  }
-
-  insertPoolPrices(poolPriceEntitys) {
-    return this._writeAll(poolPriceEntitys);
-  }
-
-  updatePoolPrice(poolPriceEntity) {
-    return this._write(poolPriceEntity);
-  }
-}
-
-class TransactionHistoryDao extends DAO {
-  constructor(db, name) {
-    super(db, name, 'id');
-  }
-
-  /**
-   * @override
-   */
-  entity(param) {
-    return Entity.TransactionHistoryDao(param);
-  }
-
-  findTx(chainId, callerAddress) {
-    return this._read([chainId, callerAddress], ['chainId', 'callerAddress']);
-  }
-
-  listTx(chainId, callerAddress) {
-    return this._readAll([chainId, callerAddress], ['chainId', 'callerAddress']);
-  }
-
-  insertTx(txEntity) {
-    return this._write(txEntity);
-  }
-
-  insertTxs(txEntitys) {
-    return this._writeAll(txEntitys);
-  }
-
-  updateTx(txEntity) {
-    return this._write(txEntity);
-  }
-}
-
-class BlockTimestampDao extends DAO {
-  constructor(db, name) {
-    super(db, name, 'id');
-  }
-
-  /**
-   * @override
-   */
-  entity(param) {
-    return Entity.BlockTimestampDao(param);
-  }
-
-  findTimestamp(chainId, blockNumber) {
-    return this._read(`${chainId}-${blockNumber}`);
-  }
-
-  findUnparsed(chainId) {
-    return this._read([chainId, 0], ['chainId', 'isParsed']);
-  }
-
-  findLastBlock(chainId) {
-    return this._read([chainId], ['chainId'], {orderBy: ['timestamp DESC']});
-  }
-
-  listBlockTimestamp(chainId) {
-    return this._readAll([chainId], ['chainId']);
-  }
-
-  insertBlockTimestamp(entity) {
-    return this._write(entity);
-  }
-
-  updateBlockTimestamp(entity) {
-    return this._write(entity);
   }
 }
 
