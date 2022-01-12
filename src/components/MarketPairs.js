@@ -62,7 +62,6 @@ const MarketPairs = (props) => {
     setETHBasedTickers(tickers.filter((ticker) => ticker.quoteCcy === "ETH"));
     setUSDTBasedTickers(tickers.filter((ticker) => ticker.quoteCcy === "USDT"));
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storeCtx.tickers]);
 
   useEffect(() => {
