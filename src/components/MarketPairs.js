@@ -13,7 +13,7 @@ import { formateDecimal } from "../utils/Utils";
 
 const PairTile = (props) => {
   return (
-    <tr>
+    <tr onClick={() => props.onClick(props.ticker)}>
       <td>
         <i className="icon ion-md-star"></i> {props.ticker.pair}
       </td>
@@ -36,10 +36,12 @@ const MarketPairs = (props) => {
   const [starTickers, setStarTickers] = useState([]);
 
   const filterTickers = useCallback(() => {
+    console.log(`filterTickers`);
     const tickers = storeCtx.tickers
       .map((ticker) => ({
         ...ticker,
-        bccy: ticker.instId.split("-")[1],
+        baseCcy: ticker.instId.split("-")[0],
+        quoteCcy: ticker.instId.split("-")[1],
         pair: ticker.instId.replace("-", "/"),
         // pair: ticker.instId
         //   .split("-")
@@ -56,9 +58,14 @@ const MarketPairs = (props) => {
             ?.toLowerCase()
             .includes(inputRef.current.value.toLowerCase())
       );
-    setBTCBasedTickers(tickers.filter((ticker) => ticker.bccy === "BTC"));
-    setETHBasedTickers(tickers.filter((ticker) => ticker.bccy === "ETH"));
-    setUSDTBasedTickers(tickers.filter((ticker) => ticker.bccy === "USDT"));
+    if (tickers.length > 0) {
+      const btcBased = tickers.filter((ticker) => ticker.quoteCcy === "BTC");
+      setBTCBasedTickers(btcBased);
+      setETHBasedTickers(tickers.filter((ticker) => ticker.quoteCcy === "ETH"));
+      setUSDTBasedTickers(tickers.filter((ticker) => ticker.quoteCcy === "USDT"));
+      props.onClick(btcBased[0]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storeCtx.tickers]);
 
   useEffect(() => {
@@ -84,7 +91,7 @@ const MarketPairs = (props) => {
             onChange={filterTickers}
           />
         </div>
-        <Tabs defaultActiveKey="star">
+        <Tabs defaultActiveKey="btc">
           <Tab eventKey="star" title="★">
             <table className="table star-active">
               <thead>
@@ -99,6 +106,7 @@ const MarketPairs = (props) => {
                   <PairTile
                     ticker={ticker}
                     key={`${ticker.instId}-${ticker.instType}-${index}-star`}
+                    onClick={props.onClick}
                   />
                 ))}
               </tbody>
@@ -118,6 +126,7 @@ const MarketPairs = (props) => {
                   <PairTile
                     ticker={ticker}
                     key={`${ticker.instId}-${ticker.instType}-${index}-BTC`}
+                    onClick={props.onClick}
                   />
                 ))}
               </tbody>
@@ -137,6 +146,7 @@ const MarketPairs = (props) => {
                   <PairTile
                     ticker={ticker}
                     key={`${ticker.instId}-${ticker.instType}-${index}-ETH`}
+                    onClick={props.onClick}
                   />
                 ))}
               </tbody>
@@ -156,6 +166,7 @@ const MarketPairs = (props) => {
                   <PairTile
                     ticker={ticker}
                     key={`${ticker.instId}-${ticker.instType}-${index}-USDT`}
+                    onClick={props.onClick}
                   />
                 ))}
               </tbody>

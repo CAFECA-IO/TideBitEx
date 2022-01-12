@@ -9,13 +9,24 @@ const StoreProvider = (props) => {
   const getTickers = useCallback(async () => {
     try {
       const result = await middleman.getTickers();
+      //   console.log(`getTickers result`, result);
       setTickers(result);
-    //   console.log(`getTickers result`, result);
-
     } catch (error) {
       console.log(`getTickers`, error);
     }
   }, [middleman]);
+
+  const getBooks = useCallback(
+    async (instId) => {
+      try {
+        const result = await middleman.getBooks(instId);
+        return result;
+      } catch (error) {
+        console.log(`getBooks`, error);
+      }
+    },
+    [middleman]
+  );
 
   useEffect(() => {
     if (!tickers.length) {
@@ -28,6 +39,7 @@ const StoreProvider = (props) => {
       value={{
         tickers,
         getTickers,
+        getBooks,
       }}
     >
       {props.children}

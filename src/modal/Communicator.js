@@ -3,7 +3,6 @@ import { EXPIRED_ACCESS_TOKEN } from "../constant/Codes";
 import { Config } from "../constant/Config";
 import HTTPAgent from "../utils/HTTPAgent";
 
-
 class Communicator {
   constructor() {
     this.httpAgent = new HTTPAgent({
@@ -51,12 +50,10 @@ class Communicator {
    * ...
    * }]
    */
-  async instruments(instType='SPOT') {
+  async instruments(instType = "SPOT") {
     try {
       if (!instType) return { message: "instType cannot be null" };
-      const res = await this._get(
-        `/public/instruments?instType=${instType}`
-      );
+      const res = await this._get(`/public/instruments?instType=${instType}`);
       if (res.success) {
         return res.data;
       }
@@ -66,7 +63,7 @@ class Communicator {
     }
   }
 
-    // Market
+  // Market
   /**
    * tickers
    * @param {String} instType SPOT,MARGIN,SWAP,FUTURES,OPTION
@@ -74,7 +71,7 @@ class Communicator {
    * ...
    * }]
    */
-   async tickers(instType='SPOT',from = 0, limit = 100) {
+  async tickers(instType = "SPOT", from = 0, limit = 100) {
     try {
       if (!instType) return { message: "instType cannot be null" };
       const res = await this._get(
@@ -89,6 +86,26 @@ class Communicator {
     }
   }
 
+  // Market
+  /**
+   * tickers
+   * @param {String} instType SPOT,MARGIN,SWAP,FUTURES,OPTION
+   * @returns [{
+   * ...
+   * }]
+   */
+  async books(instId, sz = 400) {
+    try {
+      if (!instId) return { message: "instId cannot be null" };
+      const res = await this._get(`/market/books?instId=${instId}&sz=${sz}`);
+      if (res.success) {
+        return res.data;
+      }
+      return Promise.reject({ message: res.message, code: res.code });
+    } catch (error) {
+      return Promise.reject({ message: error });
+    }
+  }
 
   // use for need jwt request
   async _get(url) {
