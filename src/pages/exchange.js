@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import HistoryOrder from "../components/HistoryOrder";
 import MarketHistory from "../components/MarketHistory";
 import MarketNews from "../components/MarketNews";
@@ -6,15 +6,23 @@ import MarketPairs from "../components/MarketPairs";
 import MarketTrade from "../components/MarketTrade";
 import OrderBook from "../components/OrderBook";
 import TradingChart from "../components/TradingChart";
-import TradingChartDark from "../components/TradingChartDark";
 import { ThemeConsumer } from "../context/ThemeContext";
+import StoreContext from "../store/store-context";
 
 const Exchange = (props) => {
+  const storeCtx = useContext(StoreContext);
   const [selectedTicker, setSelectedTicker] = useState(null);
+
   const handleSelectedTicker = (ticker) => {
-    console.log(`ticker`, ticker)
+    console.log(`ticker`, ticker);
     setSelectedTicker(ticker);
   };
+
+  useEffect(() => {
+    console.log(`init`);
+    if (storeCtx.tickers.length > 0) setSelectedTicker(storeCtx.tickers[0]);
+    return () => {};
+  }, [storeCtx.tickers]);
 
   return (
     <>
@@ -25,19 +33,18 @@ const Exchange = (props) => {
           </div>
           <div className="col-sm-12 col-md-6">
             <ThemeConsumer>
-              {({ data }) => {
-                return data.theme === "light" ? (
-                  <TradingChart />
-                ) : (
-                  <TradingChartDark />
-                );
-              }}
+              {({ data }) => (
+                <TradingChart
+                  selectedTicker={selectedTicker}
+                  theme={data.theme}
+                />
+              )}
             </ThemeConsumer>
-            <MarketTrade />
+            <MarketTrade selectedTicker={selectedTicker}/>
           </div>
           <div className="col-md-3">
             <OrderBook selectedTicker={selectedTicker} />
-            <MarketHistory />
+            <MarketHistory selectedTicker={selectedTicker} />
           </div>
           <div className="col-md-3">
             <MarketNews />

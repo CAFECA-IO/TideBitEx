@@ -54,13 +54,13 @@ const OrderBook = (props) => {
           <thead>
             <tr>
               <th>{`Price(${
-                selectedTicker ? selectedTicker.baseCcy : "--"
+                selectedTicker ? selectedTicker.quoteCcy : "--"
               })`}</th>
               <th>{`Amount(${
-                selectedTicker ? selectedTicker.quoteCcy : "--"
+                selectedTicker ? selectedTicker.baseCcy : "--"
               })`}</th>
               <th>{`Total(${
-                selectedTicker ? selectedTicker.quoteCcy : "--"
+                selectedTicker ? selectedTicker.baseCcy : "--"
               })`}</th>
             </tr>
           </thead>

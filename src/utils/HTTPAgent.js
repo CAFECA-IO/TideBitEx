@@ -38,8 +38,8 @@ class HTTPAgent {
       }
         // console.log(res);
       return {
-        success: res.status === 200,
-        data: res.data.data,
+        success: res.data.success,
+        data: res.data.payload,
         message: res.data.msg,
         code: res.data.code,
       };
