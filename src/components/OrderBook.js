@@ -64,7 +64,7 @@ const OrderBook = (props) => {
               })`}</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="order-book-asks">
             {books &&
               books.asks.map((book, index) => (
                 <BookTile
