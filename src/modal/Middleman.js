@@ -44,7 +44,7 @@ class Middleman {
         })
         .sort((a, b) => +b.price - +a.price);
       const bids = rawBooks[0].bids
-        .sort((a, b) => +a[0] - +b[0])
+        .sort((a, b) => +b[0] - +a[0])
         .map((d) => {
           totalBids = SafeMath.plus(SafeMath.plus(d[2], d[3]), totalBids);
           return {
