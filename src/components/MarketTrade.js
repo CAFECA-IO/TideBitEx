@@ -1,7 +1,25 @@
-import React from 'react';
-import { Tabs, Tab } from 'react-bootstrap';
+import React, {
+  useEffect,
+  useState,
+  // useContext
+} from "react";
+// import StoreContext from "../store/store-context";
+import { Tabs, Tab } from "react-bootstrap";
 
-export default function MarketTrade() {
+const MarketTrade = (props) => {
+  // const storeCtx = useContext(StoreContext);
+  const [selectedTicker, setSelectedTicker] = useState(null);
+
+  useEffect(() => {
+    if (
+      (!selectedTicker && props.selectedTicker) ||
+      props.selectedTicker?.instId !== selectedTicker?.instId
+    ) {
+      setSelectedTicker(props.selectedTicker);
+    }
+    return () => {};
+  }, [selectedTicker, props.selectedTicker]);
+
   return (
     <>
       <div className="market-trade">
@@ -18,7 +36,9 @@ export default function MarketTrade() {
                       required
                     />
                     <div className="input-group-append">
-                      <span className="input-group-text">BTC</span>
+                      <span className="input-group-text">
+                        {selectedTicker ? selectedTicker.quoteCcy : "--"}
+                      </span>
                     </div>
                   </div>
                   <div className="input-group">
@@ -29,7 +49,9 @@ export default function MarketTrade() {
                       required
                     />
                     <div className="input-group-append">
-                      <span className="input-group-text">ETH</span>
+                      <span className="input-group-text">
+                        {selectedTicker ? selectedTicker.baseCcy : "--"}
+                      </span>
                     </div>
                   </div>
                   <ul className="market-trade-list">
@@ -47,16 +69,32 @@ export default function MarketTrade() {
                     </li>
                   </ul>
                   <p>
-                    Available: <span>0 BTC = 0 USD</span>
+                    Available:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Volume: <span>0 BTC = 0 USD</span>
+                    Volume:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Margin: <span>0 BTC = 0 USD</span>
+                    Margin:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Fee: <span>0 BTC = 0 USD</span>
+                    Fee:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <button type="submit" className="btn buy">
                     Buy
@@ -73,7 +111,9 @@ export default function MarketTrade() {
                       required
                     />
                     <div className="input-group-append">
-                      <span className="input-group-text">BTC</span>
+                      <span className="input-group-text">
+                        {selectedTicker ? selectedTicker.quoteCcy : "--"}
+                      </span>
                     </div>
                   </div>
                   <div className="input-group">
@@ -84,7 +124,9 @@ export default function MarketTrade() {
                       required
                     />
                     <div className="input-group-append">
-                      <span className="input-group-text">ETH</span>
+                      <span className="input-group-text">
+                        {selectedTicker ? selectedTicker.baseCcy : "--"}
+                      </span>
                     </div>
                   </div>
                   <ul className="market-trade-list">
@@ -102,16 +144,32 @@ export default function MarketTrade() {
                     </li>
                   </ul>
                   <p>
-                    Available: <span>0 BTC = 0 USD</span>
+                    Available:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Volume: <span>0 BTC = 0 USD</span>
+                    Volume:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Margin: <span>0 BTC = 0 USD</span>
+                    Margin:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Fee: <span>0 BTC = 0 USD</span>
+                    Fee:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <button className="btn sell">Sell</button>
                 </form>
@@ -130,7 +188,9 @@ export default function MarketTrade() {
                       required
                     />
                     <div className="input-group-append">
-                      <span className="input-group-text">BTC</span>
+                      <span className="input-group-text">
+                        {selectedTicker ? selectedTicker.quoteCcy : "--"}
+                      </span>
                     </div>
                   </div>
                   <div className="input-group">
@@ -141,7 +201,9 @@ export default function MarketTrade() {
                       required
                     />
                     <div className="input-group-append">
-                      <span className="input-group-text">ETH</span>
+                      <span className="input-group-text">
+                        {selectedTicker ? selectedTicker.baseCcy : "--"}
+                      </span>
                     </div>
                   </div>
                   <ul className="market-trade-list">
@@ -159,16 +221,32 @@ export default function MarketTrade() {
                     </li>
                   </ul>
                   <p>
-                    Available: <span>0 BTC = 0 USD</span>
+                    Available:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Volume: <span>0 BTC = 0 USD</span>
+                    Volume:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Margin: <span>0 BTC = 0 USD</span>
+                    Margin:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Fee: <span>0 BTC = 0 USD</span>
+                    Fee:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <button type="submit" className="btn buy">
                     Buy
@@ -185,7 +263,9 @@ export default function MarketTrade() {
                       required
                     />
                     <div className="input-group-append">
-                      <span className="input-group-text">BTC</span>
+                      <span className="input-group-text">
+                        {selectedTicker ? selectedTicker.quoteCcy : "--"}
+                      </span>
                     </div>
                   </div>
                   <div className="input-group">
@@ -196,7 +276,9 @@ export default function MarketTrade() {
                       required
                     />
                     <div className="input-group-append">
-                      <span className="input-group-text">ETH</span>
+                      <span className="input-group-text">
+                        {selectedTicker ? selectedTicker.baseCcy : "--"}
+                      </span>
                     </div>
                   </div>
                   <ul className="market-trade-list">
@@ -214,16 +296,32 @@ export default function MarketTrade() {
                     </li>
                   </ul>
                   <p>
-                    Available: <span>0 BTC = 0 USD</span>
+                    Available:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Volume: <span>0 BTC = 0 USD</span>
+                    Volume:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Margin: <span>0 BTC = 0 USD</span>
+                    Margin:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Fee: <span>0 BTC = 0 USD</span>
+                    Fee:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <button className="btn sell">Sell</button>
                 </form>
@@ -242,7 +340,9 @@ export default function MarketTrade() {
                       required
                     />
                     <div className="input-group-append">
-                      <span className="input-group-text">BTC</span>
+                      <span className="input-group-text">
+                        {selectedTicker ? selectedTicker.quoteCcy : "--"}
+                      </span>
                     </div>
                   </div>
                   <div className="input-group">
@@ -253,7 +353,9 @@ export default function MarketTrade() {
                       required
                     />
                     <div className="input-group-append">
-                      <span className="input-group-text">ETH</span>
+                      <span className="input-group-text">
+                        {selectedTicker ? selectedTicker.baseCcy : "--"}
+                      </span>
                     </div>
                   </div>
                   <ul className="market-trade-list">
@@ -271,16 +373,32 @@ export default function MarketTrade() {
                     </li>
                   </ul>
                   <p>
-                    Available: <span>0 BTC = 0 USD</span>
+                    Available:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Volume: <span>0 BTC = 0 USD</span>
+                    Volume:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Margin: <span>0 BTC = 0 USD</span>
+                    Margin:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Fee: <span>0 BTC = 0 USD</span>
+                    Fee:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <button type="submit" className="btn buy">
                     Buy
@@ -297,7 +415,9 @@ export default function MarketTrade() {
                       required
                     />
                     <div className="input-group-append">
-                      <span className="input-group-text">BTC</span>
+                      <span className="input-group-text">
+                        {selectedTicker ? selectedTicker.quoteCcy : "--"}
+                      </span>
                     </div>
                   </div>
                   <div className="input-group">
@@ -308,7 +428,9 @@ export default function MarketTrade() {
                       required
                     />
                     <div className="input-group-append">
-                      <span className="input-group-text">ETH</span>
+                      <span className="input-group-text">
+                        {selectedTicker ? selectedTicker.baseCcy : "--"}
+                      </span>
                     </div>
                   </div>
                   <ul className="market-trade-list">
@@ -326,16 +448,32 @@ export default function MarketTrade() {
                     </li>
                   </ul>
                   <p>
-                    Available: <span>0 BTC = 0 USD</span>
+                    Available:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Volume: <span>0 BTC = 0 USD</span>
+                    Volume:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Margin: <span>0 BTC = 0 USD</span>
+                    Margin:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Fee: <span>0 BTC = 0 USD</span>
+                    Fee:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <button className="btn sell">Sell</button>
                 </form>
@@ -354,7 +492,9 @@ export default function MarketTrade() {
                       required
                     />
                     <div className="input-group-append">
-                      <span className="input-group-text">BTC</span>
+                      <span className="input-group-text">
+                        {selectedTicker ? selectedTicker.quoteCcy : "--"}
+                      </span>
                     </div>
                   </div>
                   <div className="input-group">
@@ -365,7 +505,9 @@ export default function MarketTrade() {
                       required
                     />
                     <div className="input-group-append">
-                      <span className="input-group-text">ETH</span>
+                      <span className="input-group-text">
+                        {selectedTicker ? selectedTicker.baseCcy : "--"}
+                      </span>
                     </div>
                   </div>
                   <ul className="market-trade-list">
@@ -383,16 +525,32 @@ export default function MarketTrade() {
                     </li>
                   </ul>
                   <p>
-                    Available: <span>0 BTC = 0 USD</span>
+                    Available:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Volume: <span>0 BTC = 0 USD</span>
+                    Volume:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Margin: <span>0 BTC = 0 USD</span>
+                    Margin:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Fee: <span>0 BTC = 0 USD</span>
+                    Fee:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <button type="submit" className="btn buy">
                     Buy
@@ -409,7 +567,9 @@ export default function MarketTrade() {
                       required
                     />
                     <div className="input-group-append">
-                      <span className="input-group-text">BTC</span>
+                      <span className="input-group-text">
+                        {selectedTicker ? selectedTicker.quoteCcy : "--"}
+                      </span>
                     </div>
                   </div>
                   <div className="input-group">
@@ -420,7 +580,9 @@ export default function MarketTrade() {
                       required
                     />
                     <div className="input-group-append">
-                      <span className="input-group-text">ETH</span>
+                      <span className="input-group-text">
+                        {selectedTicker ? selectedTicker.baseCcy : "--"}
+                      </span>
                     </div>
                   </div>
                   <ul className="market-trade-list">
@@ -438,16 +600,32 @@ export default function MarketTrade() {
                     </li>
                   </ul>
                   <p>
-                    Available: <span>0 BTC = 0 USD</span>
+                    Available:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Volume: <span>0 BTC = 0 USD</span>
+                    Volume:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Margin: <span>0 BTC = 0 USD</span>
+                    Margin:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <p>
-                    Fee: <span>0 BTC = 0 USD</span>
+                    Fee:{" "}
+                    <span>
+                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
+                      USD
+                    </span>
                   </p>
                   <button className="btn sell">Sell</button>
                 </form>
@@ -458,4 +636,6 @@ export default function MarketTrade() {
       </div>
     </>
   );
-}
+};
+
+export default MarketTrade;

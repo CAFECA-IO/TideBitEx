@@ -71,11 +71,13 @@ class Communicator {
    * ...
    * }]
    */
-  async tickers(instType = "SPOT", from = 0, limit = 100) {
+  async tickers(instType, from, limit) {
     try {
       if (!instType) return { message: "instType cannot be null" };
       const res = await this._get(
-        `/market/tickers?instType=${instType}&from=${from}&limit=${limit}`
+        `/market/tickers?instType=${instType}${from ? `&from=${from}` : ""}${
+          limit ? `&limit=${limit}` : ""
+        }`
       );
       if (res.success) {
         return res.data;
@@ -90,14 +92,17 @@ class Communicator {
   /**
    * books
    * @param {String} instId BTC-USDT
+   * @param {String} sz defalt 1, max 400
    * @returns [{
    * ...
    * }]
    */
-  async books(instId, sz = 100) {
+  async books(instId, sz) {
     try {
       if (!instId) return { message: "instId cannot be null" };
-      const res = await this._get(`/market/books?instId=${instId}&sz=${sz}`);
+      const res = await this._get(
+        `/market/books?instId=${instId}${sz ? `&sz=${sz}` : ""}`
+      );
       if (res.success) {
         return res.data;
       }
@@ -107,19 +112,50 @@ class Communicator {
     }
   }
 
-    // Market
+  // Market
   /**
    * trades
    * @param {String} instId BTC-USDT
-   * @param {Number} limit max 500, default 100
+   * @param {String} limit max 500, default 100
    * @returns [{
    * ...
    * }]
    */
-   async trades(instId, limit = 100) {
+  async trades(instId, limit) {
     try {
       if (!instId) return { message: "instId cannot be null" };
-      const res = await this._get(`/market/trades?instId=${instId}&limit=${limit}`);
+      const res = await this._get(
+        `/market/trades?instId=${instId}${limit ? `&limit=${limit}` : ""}`
+      );
+      if (res.success) {
+        return res.data;
+      }
+      return Promise.reject({ message: res.message, code: res.code });
+    } catch (error) {
+      return Promise.reject({ message: error });
+    }
+  }
+
+  // Market
+  /**
+   * candles
+   * @param {String} instId BTC-USDT
+   * @param {String} bar 1m/3m/5m/15m/30m/1H/2H/4H/6H/12H/1D/1W/1M/3M/6M/1Y, default 1m
+   * @param {String} after 
+   * @param {String} before 
+   * @param {String} limit The maximum is 300. The default is 100.
+   * @returns [{
+   * ...
+   * }]
+   */
+  async candles(instId, bar, after, before, limit) {
+    try {
+      if (!instId) return { message: "instId cannot be null" };
+      const res = await this._get(
+        `/market/candles?instId=${instId}&bar=${bar}${
+          after ? `&after=${after}` : ""
+        }${before ? `&before=${before}` : ""}${limit ? `&limit=${limit}` : ""}`
+      );
       if (res.success) {
         return res.data;
       }

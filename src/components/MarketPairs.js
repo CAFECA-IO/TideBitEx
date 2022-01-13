@@ -36,39 +36,23 @@ const MarketPairs = (props) => {
   const [starTickers, setStarTickers] = useState([]);
 
   const filterTickers = useCallback(() => {
-    const tickers = storeCtx.tickers
-      .map((ticker) => ({
-        ...ticker,
-        baseCcy: ticker.instId.split("-")[0],
-        quoteCcy: ticker.instId.split("-")[1],
-        pair: ticker.instId.replace("-", "/"),
-        // pair: ticker.instId
-        //   .split("-")
-        //   .reduce((acc, curr, i) => (i === 0 ? `${curr}` : `${acc}/${curr}`), ""),
-        change: SafeMath.div(
-          SafeMath.minus(ticker.last, ticker.open24h),
-          ticker.open24h
-        ),
-      }))
-      .filter(
-        (ticker) =>
-          !inputRef.current ||
-          ticker.instId
-            ?.toLowerCase()
-            .includes(inputRef.current.value.toLowerCase())
-      );
+    const tickers = storeCtx.tickers.filter(
+      (ticker) =>
+        !inputRef.current ||
+        ticker.instId
+          ?.toLowerCase()
+          .includes(inputRef.current.value.toLowerCase())
+    );
 
     setBTCBasedTickers(tickers.filter((ticker) => ticker.quoteCcy === "BTC"));
     setETHBasedTickers(tickers.filter((ticker) => ticker.quoteCcy === "ETH"));
     setUSDTBasedTickers(tickers.filter((ticker) => ticker.quoteCcy === "USDT"));
-
   }, [storeCtx.tickers]);
 
   useEffect(() => {
-    if (storeCtx.tickers.length > 0) props.onClick(storeCtx.tickers[0]);
     filterTickers();
     return () => {};
-  }, [filterTickers, props, storeCtx.tickers]);
+  }, [filterTickers]);
 
   return (
     <>

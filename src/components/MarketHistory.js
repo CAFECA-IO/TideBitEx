@@ -24,7 +24,7 @@ const MarketHistory = (props) => {
     async (selectedTicker) => {
       setSelectedTicker(selectedTicker);
       const trades = await storeCtx.getTrades(selectedTicker.instId);
-      console.log(`trades`, trades);
+      // console.log(`trades`, trades);
       setTrades(trades);
     },
     [storeCtx]
@@ -49,8 +49,12 @@ const MarketHistory = (props) => {
               <thead>
                 <tr>
                   <th>Time</th>
-                  <th>Price(BTC)</th>
-                  <th>Amount(ETH)</th>
+                  <th>{`Price(${
+                    selectedTicker ? selectedTicker.quoteCcy : "--"
+                  })`}</th>
+                  <th>{`Amount(${
+                    selectedTicker ? selectedTicker.baseCcy : "--"
+                  })`}</th>
                 </tr>
               </thead>
               <tbody>
