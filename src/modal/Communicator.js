@@ -88,8 +88,8 @@ class Communicator {
 
   // Market
   /**
-   * tickers
-   * @param {String} instType SPOT,MARGIN,SWAP,FUTURES,OPTION
+   * books
+   * @param {String} instId BTC-USDT
    * @returns [{
    * ...
    * }]
@@ -98,6 +98,28 @@ class Communicator {
     try {
       if (!instId) return { message: "instId cannot be null" };
       const res = await this._get(`/market/books?instId=${instId}&sz=${sz}`);
+      if (res.success) {
+        return res.data;
+      }
+      return Promise.reject({ message: res.message, code: res.code });
+    } catch (error) {
+      return Promise.reject({ message: error });
+    }
+  }
+
+    // Market
+  /**
+   * trades
+   * @param {String} instId BTC-USDT
+   * @param {Number} limit max 500, default 100
+   * @returns [{
+   * ...
+   * }]
+   */
+   async trades(instId, limit = 100) {
+    try {
+      if (!instId) return { message: "instId cannot be null" };
+      const res = await this._get(`/market/trades?instId=${instId}&limit=${limit}`);
       if (res.success) {
         return res.data;
       }

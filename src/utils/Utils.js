@@ -300,6 +300,7 @@ export const dateFormatter = (timestamp) => {
   const year = dateTime.getFullYear();
   let hours = dateTime.getHours();
   const minutes = dateTime.getMinutes();
+  const seconds = dateTime.getSeconds();
   let suffix = "AM";
   if (hours - 12 > 0) {
     hours -= 12;
@@ -320,7 +321,7 @@ export const dateFormatter = (timestamp) => {
   return {
     text: mmddyyyykkmm,
     date: monthNames[month] + " " + pad(date) + ", " + year,
-    time: hours + ":" + pad(minutes) + " " + suffix,
+    time: hours + ":" + pad(minutes) + ":" + pad(seconds) + " ",// + suffix,
     month: monthNames[month],
     day: pad(date),
     year: year,

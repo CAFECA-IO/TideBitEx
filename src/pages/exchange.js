@@ -12,7 +12,7 @@ import { ThemeConsumer } from "../context/ThemeContext";
 const Exchange = (props) => {
   const [selectedTicker, setSelectedTicker] = useState(null);
   const handleSelectedTicker = (ticker) => {
-    console.log(`ticker`, ticker)
+    console.log(`ticker`, ticker);
     setSelectedTicker(ticker);
   };
 
@@ -37,7 +37,7 @@ const Exchange = (props) => {
           </div>
           <div className="col-md-3">
             <OrderBook selectedTicker={selectedTicker} />
-            <MarketHistory />
+            <MarketHistory selectedTicker={selectedTicker}/>
           </div>
           <div className="col-md-3">
             <MarketNews />

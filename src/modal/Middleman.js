@@ -47,6 +47,9 @@ class Middleman {
       throw error;
     }
   }
+  async getTrades(instId) {
+    return await this.communicator.trades(instId);
+  }
 }
 
 export default Middleman;
