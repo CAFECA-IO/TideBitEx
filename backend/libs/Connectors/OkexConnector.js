@@ -45,6 +45,7 @@ class OkexConnector extends ConnectorBase {
     return headers;
   }
 
+  // market api
   async getTickers({ query }) {
     const method = 'GET';
     const path = '/api/v5/market/tickers';
@@ -137,5 +138,36 @@ class OkexConnector extends ConnectorBase {
       });
     }
   }
+
+  async getTrades({ query }) {
+    const method = 'GET';
+    const path = '/api/v5/market/trades';
+    const { instId, limit } = query;
+
+    const arr = [];
+    if (instId) arr.push(`instId=${instId}`);
+    if (limit) arr.push(`limit=${limit}`);
+    const qs = (!!arr) ?  `?${arr.join('&')}` : '';
+
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}${qs}`,
+        headers: this.getHeaders(false),
+      });
+      if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
+      return new ResponseFormat({
+        message: 'getTrades',
+        payload: res.data.data,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      return new ResponseFormat({
+        message: error.message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+  // market api end
 }
 module.exports = OkexConnector;

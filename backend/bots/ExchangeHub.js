@@ -42,6 +42,10 @@ class ExchangeHub extends Bot {
   async getCandlesticks({ params, query }) {
     return this.okexConnector.router('getCandlesticks', { params, query });
   }
+
+  async getTrades({ params, query }) {
+    return this.okexConnector.router('getTrades', { params, query });
+  }
   // market api end
 }
 
