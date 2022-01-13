@@ -8,7 +8,7 @@ class ResponseFormat extends Error {
     super();
 
     return {
-      powerby: `TideBitSwap api ${pjson.version}`,
+      powerby: `TideBitEx api ${pjson.version}`,
       success: code === Codes.SUCCESS,
       code,
       message,

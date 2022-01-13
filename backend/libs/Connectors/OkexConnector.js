@@ -30,14 +30,19 @@ class OkexConnector extends ConnectorBase {
     return signMsg;
   }
 
-  getHeaders({timeString, okAccessSign}) {
-    return {
+  getHeaders(needAuth, params = {}) {
+    const headers = {
       'Content-Type': 'application/json',
-      'OK-ACCESS-KEY': this.apiKey,
-      'OK-ACCESS-SIGN': okAccessSign,
-      'OK-ACCESS-TIMESTAMP': timeString,
-      'OK-ACCESS-PASSPHRASE': this.passPhrase,
+    };
+
+    if (needAuth) {
+      const {timeString, okAccessSign} = params;
+      headers['OK-ACCESS-KEY'] = this.apiKey;
+      headers['OK-ACCESS-SIGN'] = okAccessSign;
+      headers['OK-ACCESS-TIMESTAMP'] = timeString;
+      headers['OK-ACCESS-PASSPHRASE'] = this.passPhrase;
     }
+    return headers;
   }
 
   async getTickers({ query }) {
@@ -50,15 +55,11 @@ class OkexConnector extends ConnectorBase {
     if (uly) arr.push(`uly=${uly}`);
     const qs = (!!arr) ?  `?${arr.join('&')}` : '';
 
-    const timeString = new Date().toISOString();
-
-    const okAccessSign = await this.okAccessSign({ timeString, method, path: path+qs });
-
     try {
       const res = await axios({
         method: method.toLocaleLowerCase(),
         url: `${this.domain}${path}${qs}`,
-        headers: this.getHeaders({ timeString, okAccessSign }),
+        headers: this.getHeaders(false),
       });
       if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
       return new ResponseFormat({
@@ -84,19 +85,48 @@ class OkexConnector extends ConnectorBase {
     if (sz) arr.push(`sz=${sz}`);
     const qs = (!!arr) ?  `?${arr.join('&')}` : '';
 
-    const timeString = new Date().toISOString();
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}${qs}`,
+        headers: this.getHeaders(false),
+      });
+      if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
+      return new ResponseFormat({
+        message: 'getOrderBooks',
+        payload: res.data.data,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      return new ResponseFormat({
+        message: error.message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
 
-    const okAccessSign = await this.okAccessSign({ timeString, method, path: path+qs });
+  async getCandlesticks({ query }) {
+    const method = 'GET';
+    const path = '/api/v5/market/candles';
+    const { instId, bar, after, before, limit } = query;
+
+    const arr = [];
+    if (instId) arr.push(`instId=${instId}`);
+    if (bar) arr.push(`bar=${bar}`);
+    if (after) arr.push(`after=${after}`);
+    if (before) arr.push(`before=${before}`);
+    if (limit) arr.push(`limit=${limit}`);
+    const qs = (!!arr) ?  `?${arr.join('&')}` : '';
 
     try {
       const res = await axios({
         method: method.toLocaleLowerCase(),
         url: `${this.domain}${path}${qs}`,
-        headers: this.getHeaders({ timeString, okAccessSign }),
+        headers: this.getHeaders(false),
       });
       if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
       return new ResponseFormat({
-        message: 'getOrderBooks',
+        message: 'getCandlestick',
         payload: res.data.data,
       });
     } catch (error) {
