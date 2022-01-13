@@ -29,4 +29,7 @@ pathname = [
   "get | /api/v1/market/books | Bot.ExchangeHub.getOrderBooks",
   "get | /api/v1/market/candles | Bot.ExchangeHub.getCandlesticks",
   "get | /api/v1/market/trades | Bot.ExchangeHub.getTrades",
+
+  # exchange - trade
+  "post | /api/v1/trade/order | Bot.ExchangeHub.postPlaceOrder",
 ]

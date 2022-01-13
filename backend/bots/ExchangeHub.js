@@ -47,6 +47,11 @@ class ExchangeHub extends Bot {
     return this.okexConnector.router('getTrades', { params, query });
   }
   // market api end
+  // trade api
+  async postPlaceOrder ({ params, query, body }) {
+    return this.okexConnector.router('postPlaceOrder', { params, query, body });
+  }
+  // trade api end
 }
 
 module.exports = ExchangeHub;

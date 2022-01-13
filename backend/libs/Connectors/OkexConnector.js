@@ -21,7 +21,7 @@ class OkexConnector extends ConnectorBase {
   };
 
   async okAccessSign({ timeString, method, path, body }) {
-    const msg = timeString + method + path + (body || '');
+    const msg = timeString + method + path + (JSON.stringify(body) || '');
     this.logger.debug('okAccessSign msg', msg);
 
     const cr = crypto.createHmac('sha256', this.secretKey);
@@ -169,5 +169,37 @@ class OkexConnector extends ConnectorBase {
     }
   }
   // market api end
+  // trade api
+  async postPlaceOrder({ params, query, body }) {
+    console.log('postPlaceOrder', body)
+    const method = 'POST';
+    const path = '/api/v5/trade/order';
+
+    const timeString = new Date().toISOString();
+
+    const okAccessSign = await this.okAccessSign({ timeString, method, path: path, body });
+    console.log('okAccessSign', okAccessSign)
+
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}`,
+        headers: this.getHeaders(true, {timeString, okAccessSign}),
+        data: body,
+      });
+      if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
+      return new ResponseFormat({
+        message: 'postPlaceOrder',
+        payload: res.data.data,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      return new ResponseFormat({
+        message: error.message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+  // trade api end
 }
 module.exports = OkexConnector;
