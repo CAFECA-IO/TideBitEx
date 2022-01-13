@@ -108,3 +108,5 @@ private
 private.*
 *.private
 config.toml
+
+build

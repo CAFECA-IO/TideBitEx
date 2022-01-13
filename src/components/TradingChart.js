@@ -44,6 +44,8 @@ const TradingChart = (props) => {
             interval="D"
             timezone="America/New_York"
             library_path="charting_library/"
+            allow_symbol_change={false}
+            hide_legend={true}
           />
         )}
       </div>
