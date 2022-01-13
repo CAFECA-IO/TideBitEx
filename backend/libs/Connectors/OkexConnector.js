@@ -21,7 +21,7 @@ class OkexConnector extends ConnectorBase {
   };
 
   async okAccessSign({ timeString, method, path, body }) {
-    const msg = timeString + method + path + (body || '');
+    const msg = timeString + method + path + (JSON.stringify(body) || '');
     this.logger.debug('okAccessSign msg', msg);
 
     const cr = crypto.createHmac('sha256', this.secretKey);
@@ -30,16 +30,22 @@ class OkexConnector extends ConnectorBase {
     return signMsg;
   }
 
-  getHeaders({timeString, okAccessSign}) {
-    return {
+  getHeaders(needAuth, params = {}) {
+    const headers = {
       'Content-Type': 'application/json',
-      'OK-ACCESS-KEY': this.apiKey,
-      'OK-ACCESS-SIGN': okAccessSign,
-      'OK-ACCESS-TIMESTAMP': timeString,
-      'OK-ACCESS-PASSPHRASE': this.passPhrase,
+    };
+
+    if (needAuth) {
+      const {timeString, okAccessSign} = params;
+      headers['OK-ACCESS-KEY'] = this.apiKey;
+      headers['OK-ACCESS-SIGN'] = okAccessSign;
+      headers['OK-ACCESS-TIMESTAMP'] = timeString;
+      headers['OK-ACCESS-PASSPHRASE'] = this.passPhrase;
     }
+    return headers;
   }
 
+  // market api
   async getTickers({ query }) {
     const method = 'GET';
     const path = '/api/v5/market/tickers';
@@ -50,15 +56,11 @@ class OkexConnector extends ConnectorBase {
     if (uly) arr.push(`uly=${uly}`);
     const qs = (!!arr) ?  `?${arr.join('&')}` : '';
 
-    const timeString = new Date().toISOString();
-
-    const okAccessSign = await this.okAccessSign({ timeString, method, path: path+qs });
-
     try {
       const res = await axios({
         method: method.toLocaleLowerCase(),
         url: `${this.domain}${path}${qs}`,
-        headers: this.getHeaders({ timeString, okAccessSign }),
+        headers: this.getHeaders(false),
       });
       if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
       return new ResponseFormat({
@@ -84,15 +86,11 @@ class OkexConnector extends ConnectorBase {
     if (sz) arr.push(`sz=${sz}`);
     const qs = (!!arr) ?  `?${arr.join('&')}` : '';
 
-    const timeString = new Date().toISOString();
-
-    const okAccessSign = await this.okAccessSign({ timeString, method, path: path+qs });
-
     try {
       const res = await axios({
         method: method.toLocaleLowerCase(),
         url: `${this.domain}${path}${qs}`,
-        headers: this.getHeaders({ timeString, okAccessSign }),
+        headers: this.getHeaders(false),
       });
       if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
       return new ResponseFormat({
@@ -107,5 +105,114 @@ class OkexConnector extends ConnectorBase {
       });
     }
   }
+
+  async getCandlesticks({ query }) {
+    const method = 'GET';
+    const path = '/api/v5/market/candles';
+    const { instId, bar, after, before, limit } = query;
+
+    const arr = [];
+    if (instId) arr.push(`instId=${instId}`);
+    if (bar) arr.push(`bar=${bar}`);
+    if (after) arr.push(`after=${after}`);
+    if (before) arr.push(`before=${before}`);
+    if (limit) arr.push(`limit=${limit}`);
+    const qs = (!!arr) ?  `?${arr.join('&')}` : '';
+
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}${qs}`,
+        headers: this.getHeaders(false),
+      });
+      if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
+      return new ResponseFormat({
+        message: 'getCandlestick',
+        payload: res.data.data,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      return new ResponseFormat({
+        message: error.message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
+  async getTrades({ query }) {
+    const method = 'GET';
+    const path = '/api/v5/market/trades';
+    const { instId, limit } = query;
+
+    const arr = [];
+    if (instId) arr.push(`instId=${instId}`);
+    if (limit) arr.push(`limit=${limit}`);
+    const qs = (!!arr) ?  `?${arr.join('&')}` : '';
+
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}${qs}`,
+        headers: this.getHeaders(false),
+      });
+      if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
+      return new ResponseFormat({
+        message: 'getTrades',
+        payload: res.data.data,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      return new ResponseFormat({
+        message: error.message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+  // market api end
+  // trade api
+  async postPlaceOrder({ params, query, body }) {
+    const method = 'POST';
+    const path = '/api/v5/trade/order';
+
+    const timeString = new Date().toISOString();
+
+    const filterBody = {
+      instId: body.instId,
+      tdMode: body.tdMode,
+      ccy: body.ccy,
+      clOrdId: body.clOrdId,
+      tag: body.tag,
+      side: body.side,
+      posSide: body.posSide,
+      ordType: body.ordType,
+      sz: body.sz,
+      px: body.px,
+      reduceOnly: body.reduceOnly,
+      tgtCcy: body.tgtCcy,
+    }
+
+    const okAccessSign = await this.okAccessSign({ timeString, method, path: path, body: filterBody });
+
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}`,
+        headers: this.getHeaders(true, {timeString, okAccessSign}),
+        data: filterBody,
+      });
+      if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
+      return new ResponseFormat({
+        message: 'postPlaceOrder',
+        payload: res.data.data,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      return new ResponseFormat({
+        message: error.message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+  // trade api end
 }
 module.exports = OkexConnector;
