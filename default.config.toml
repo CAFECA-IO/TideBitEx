@@ -4,7 +4,7 @@ title = "TideBitEx"
 
 [base]
 folder = "CAFECA-framework"
-static = "./static/"
+static = "./build/"
 debug = false
 
 [blockchain]
