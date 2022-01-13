@@ -16,7 +16,7 @@ const TradingChart = (props) => {
         selectedTicker.instId,
         selectedBar
       );
-      // setData(data);
+      setData(data);
       console.log(`data:`, data);
     },
     [storeCtx, selectedBar]

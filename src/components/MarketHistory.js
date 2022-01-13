@@ -8,9 +8,9 @@ const TradeTile = (props) => {
     <tr>
       <td>{dateFormatter(parseInt(props.trade.ts)).time}</td>
       <td className={props.trade.side === "buy" ? "red" : "green"}>
-        {formateDecimal(props.trade.sz, 8)}
+        {formateDecimal(props.trade.px, 8)}
       </td>
-      <td>{formateDecimal(props.trade.px, 8)}</td>
+      <td>{formateDecimal(props.trade.sz, 8)}</td>
     </tr>
   );
 };
