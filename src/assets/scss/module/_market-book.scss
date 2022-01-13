@@ -25,6 +25,9 @@
   border: 1px solid #e0e3eb;
   border-radius: 2px;
 }
+.order-book-asks{
+  flex-direction: column-reverse;
+}
 
 .red-bg,
 .green-bg {
