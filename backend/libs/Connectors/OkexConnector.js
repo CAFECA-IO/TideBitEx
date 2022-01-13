@@ -171,21 +171,34 @@ class OkexConnector extends ConnectorBase {
   // market api end
   // trade api
   async postPlaceOrder({ params, query, body }) {
-    console.log('postPlaceOrder', body)
     const method = 'POST';
     const path = '/api/v5/trade/order';
 
     const timeString = new Date().toISOString();
 
-    const okAccessSign = await this.okAccessSign({ timeString, method, path: path, body });
-    console.log('okAccessSign', okAccessSign)
+    const filterBody = {
+      instId: body.instId,
+      tdMode: body.tdMode,
+      ccy: body.ccy,
+      clOrdId: body.clOrdId,
+      tag: body.tag,
+      side: body.side,
+      posSide: body.posSide,
+      ordType: body.ordType,
+      sz: body.sz,
+      px: body.px,
+      reduceOnly: body.reduceOnly,
+      tgtCcy: body.tgtCcy,
+    }
+
+    const okAccessSign = await this.okAccessSign({ timeString, method, path: path, body: filterBody });
 
     try {
       const res = await axios({
         method: method.toLocaleLowerCase(),
         url: `${this.domain}${path}`,
         headers: this.getHeaders(true, {timeString, okAccessSign}),
-        data: body,
+        data: filterBody,
       });
       if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
       return new ResponseFormat({
