@@ -17,7 +17,8 @@ const TradeForm = (props) => {
           placeholder="Price"
           value={props.px}
           onInput={props.onPxInput}
-          required
+          required={!props.readyOnly}
+          disabled={!!props.readyOnly}
           step="any"
         />
         <div className="input-group-append">
@@ -140,6 +141,7 @@ const TradePannel = (props) => {
     try {
       const result = await storeCtx.postOrder(order);
       console.log(`result`, result);
+      window.reload();
     } catch (error) {
       console.log(`error`, error);
     }
@@ -148,9 +150,9 @@ const TradePannel = (props) => {
   // -- TEST
   useEffect(() => {
     if (storeCtx.selectedTicker) {
-      setBuyPx(storeCtx.selectedTicker.bidPx);
+      setBuyPx(storeCtx.selectedTicker.askPx);
       setBuySz("1");
-      setSellPx(storeCtx.selectedTicker.askPx);
+      setSellPx(storeCtx.selectedTicker.bidPx);
       setSellSz("1");
     }
     return () => {};
@@ -168,6 +170,7 @@ const TradePannel = (props) => {
           percentageHandler={buyPctHandler}
           onSubmit={onSubmit}
           side="buy"
+          readyOnly={!!props.readyOnly}
         />
       </div>
       <div className="market-trade-sell">
@@ -180,6 +183,7 @@ const TradePannel = (props) => {
           percentageHandler={sellPctHandler}
           onSubmit={onSubmit}
           side="sell"
+          readyOnly={!!props.readyOnly}
         />
       </div>
     </div>
@@ -195,14 +199,14 @@ const MarketTrade = (props) => {
             <TradePannel orderType="limit" />
           </Tab>
           <Tab eventKey="market" title="Market">
-            <TradePannel orderType="market" />
+            <TradePannel orderType="market" readyOnly={true} />
           </Tab>
-          <Tab eventKey="stop-limit" title="Stop Limit">
+          {/* <Tab eventKey="stop-limit" title="Stop Limit">
             <TradePannel orderType="stop-limit" />
-          </Tab>
-          <Tab eventKey="stop-market" title="Stop Market">
+          </Tab> */}
+          {/* <Tab eventKey="stop-market" title="Stop Market">
             <TradePannel orderType="stop-market" />
-          </Tab>
+          </Tab> */}
         </Tabs>
       </div>
     </>

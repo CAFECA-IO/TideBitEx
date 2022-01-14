@@ -130,6 +130,7 @@ const StoreContext = React.createContext({
    * @returns {Promise<Array<PendingOrder>>}
    */
   getPendingOrders: async (options) => {},
+  getCloseOrders: async (options) => {},
   /**
    * @typedef {Object} BalanceDetail
    * @property {string} availBal 可用余额

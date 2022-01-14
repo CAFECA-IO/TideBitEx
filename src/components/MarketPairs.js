@@ -92,7 +92,6 @@ const MarketPairs = (props) => {
               <tbody>
                 {starTickers.map((ticker, index) => (
                   <PairTile
-                    selectedTicker={props.selectedTicker}
                     ticker={ticker}
                     key={`${ticker.instId}-${ticker.instType}-${index}-star`}
                     onClick={props.onClick}

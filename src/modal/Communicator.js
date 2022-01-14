@@ -153,6 +153,29 @@ class Communicator {
     }
   }
 
+  // Trade
+  async closeOrders(options) {
+    try {
+      const url = `/trade/orders-history?${
+        options?.instId ? `&instId=${options.instId}` : ""
+      }${options?.instType ? `&instType=${options.instType}` : "&instType=SPOT"}${
+        options?.ordType ? `&ordType=${options.ordType}` : ""
+      }${options?.state ? `&state=${options.state}` : ""}${
+        options?.after ? `&after=${options.after}` : ""
+      }${options?.before ? `&before=${options.before}` : ""}${
+        options?.limit ? `&limit=${options.limit}` : ""
+      }`;
+      console.log(`closeOrders url`, url);
+      const res = await this._get(url);
+      if (res.success) {
+        return res.data;
+      }
+      return Promise.reject({ message: res.message, code: res.code });
+    } catch (error) {
+      return Promise.reject({ message: error });
+    }
+  }
+
   // Account
   async balance(ccy) {
     try {

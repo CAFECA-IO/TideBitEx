@@ -88,12 +88,27 @@ const StoreProvider = (props) => {
     [middleman]
   );
 
+  const getCloseOrders = useCallback(
+    async (options) => {
+      try {
+        const result = await middleman.getCloseOrders(options);
+        console.log(`getCloseOrders result`, result);
+        if (!options) setCloseOrders(result);
+        return result;
+      } catch (error) {
+        console.log(`getCloseOrders error`, error);
+        return Promise.reject({ message: error });
+      }
+    },
+    [middleman]
+  );
+
   const getBalances = useCallback(
     async (ccy) => {
       try {
         const result = await middleman.getBalances(ccy);
         console.log(`getBalances result`, result);
-        setBalances(result[0].details)
+        setBalances(result[0].details);
         return result;
       } catch (error) {
         console.log(`getBalances error`, error);
@@ -119,9 +134,11 @@ const StoreProvider = (props) => {
     if (!tickers.length) {
       getTickers();
       getPendingOrders();
-      getBalances("BTC,ETH,USDT");
+      getCloseOrders();
+      // getBalances("BTC,ETH,USDT");
+      getBalances();
     }
-  }, [tickers, getTickers, getPendingOrders, getBalances]);
+  }, [tickers, getTickers, getPendingOrders, getCloseOrders, getBalances]);
 
   return (
     <StoreContext.Provider
@@ -138,6 +155,7 @@ const StoreProvider = (props) => {
         getTrades,
         getCandles,
         getPendingOrders,
+        getCloseOrders,
         getBalances,
         postOrder,
       }}
