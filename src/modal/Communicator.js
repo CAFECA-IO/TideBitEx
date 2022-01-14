@@ -64,13 +64,6 @@ class Communicator {
   }
 
   // Market
-  /**
-   * tickers
-   * @param {String} instType SPOT,MARGIN,SWAP,FUTURES,OPTION
-   * @returns [{
-   * ...
-   * }]
-   */
   async tickers(instType, from, limit) {
     try {
       if (!instType) return { message: "instType cannot be null" };
@@ -89,14 +82,6 @@ class Communicator {
   }
 
   // Market
-  /**
-   * books
-   * @param {String} instId BTC-USDT
-   * @param {String} sz defalt 1, max 400
-   * @returns [{
-   * ...
-   * }]
-   */
   async books(instId, sz) {
     try {
       if (!instId) return { message: "instId cannot be null" };
@@ -113,14 +98,6 @@ class Communicator {
   }
 
   // Market
-  /**
-   * trades
-   * @param {String} instId BTC-USDT
-   * @param {String} limit max 500, default 100
-   * @returns [{
-   * ...
-   * }]
-   */
   async trades(instId, limit) {
     try {
       if (!instId) return { message: "instId cannot be null" };
@@ -137,17 +114,6 @@ class Communicator {
   }
 
   // Market
-  /**
-   * candles
-   * @param {String} instId BTC-USDT
-   * @param {String} bar 1m/3m/5m/15m/30m/1H/2H/4H/6H/12H/1D/1W/1M/3M/6M/1Y, default 1m
-   * @param {String} after 
-   * @param {String} before 
-   * @param {String} limit The maximum is 300. The default is 100.
-   * @returns [{
-   * ...
-   * }]
-   */
   async candles(instId, bar, after, before, limit) {
     try {
       if (!instId) return { message: "instId cannot be null" };
@@ -156,6 +122,79 @@ class Communicator {
           after ? `&after=${after}` : ""
         }${before ? `&before=${before}` : ""}${limit ? `&limit=${limit}` : ""}`
       );
+      if (res.success) {
+        return res.data;
+      }
+      return Promise.reject({ message: res.message, code: res.code });
+    } catch (error) {
+      return Promise.reject({ message: error });
+    }
+  }
+  // Trade
+  async ordersPending(options) {
+    try {
+      const url = `/trade/orders-pending?${
+        options?.instId ? `&instId=${options.instId}` : ""
+      }${options?.instType ? `&instType=${options.instType}` : ""}${
+        options?.ordType ? `&ordType=${options.ordType}` : ""
+      }${options?.state ? `&state=${options.state}` : ""}${
+        options?.after ? `&after=${options.after}` : ""
+      }${options?.before ? `&before=${options.before}` : ""}${
+        options?.limit ? `&limit=${options.limit}` : ""
+      }`;
+      console.log(`getPendingOrders url`, url);
+      const res = await this._get(url);
+      if (res.success) {
+        return res.data;
+      }
+      return Promise.reject({ message: res.message, code: res.code });
+    } catch (error) {
+      return Promise.reject({ message: error });
+    }
+  }
+
+  // Trade
+  async closeOrders(options) {
+    try {
+      const url = `/trade/orders-history?${
+        options?.instId ? `&instId=${options.instId}` : ""
+      }${options?.instType ? `&instType=${options.instType}` : "&instType=SPOT"}${
+        options?.ordType ? `&ordType=${options.ordType}` : ""
+      }${options?.state ? `&state=${options.state}` : ""}${
+        options?.after ? `&after=${options.after}` : ""
+      }${options?.before ? `&before=${options.before}` : ""}${
+        options?.limit ? `&limit=${options.limit}` : ""
+      }`;
+      console.log(`closeOrders url`, url);
+      const res = await this._get(url);
+      if (res.success) {
+        return res.data;
+      }
+      return Promise.reject({ message: res.message, code: res.code });
+    } catch (error) {
+      return Promise.reject({ message: error });
+    }
+  }
+
+  // Account
+  async balance(ccy) {
+    try {
+      const url = `/account/balance?${ccy ? `&ccy=${ccy}` : ""}`;
+      console.log(`getPendingOrders url`, url);
+      const res = await this._get(url);
+      if (res.success) {
+        return res.data;
+      }
+      return Promise.reject({ message: res.message, code: res.code });
+    } catch (error) {
+      return Promise.reject({ message: error });
+    }
+  }
+
+  // Trade
+  async order(order) {
+    try {
+      const res = await this._post(`/trade/order`, order);
       if (res.success) {
         return res.data;
       }

@@ -73,6 +73,22 @@ class Middleman {
   async getCandles(instId, bar, after, before, limit) {
     return await this.communicator.candles(instId, bar, after, before, limit);
   }
+
+  async getPendingOrders(options) {
+    return await this.communicator.ordersPending(options);
+  }
+
+  async getCloseOrders(options) {
+    return await this.communicator.closeOrders(options);
+  }
+
+  async getBalances(ccy) {
+    return await this.communicator.balance(ccy);
+  }
+
+  async postOrder(order) {
+    return await this.communicator.order(order);
+  }
 }
 
 export default Middleman;

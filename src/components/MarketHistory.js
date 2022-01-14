@@ -17,12 +17,10 @@ const TradeTile = (props) => {
 
 const MarketHistory = (props) => {
   const storeCtx = useContext(StoreContext);
-  const [selectedTicker, setSelectedTicker] = useState(null);
   const [trades, setTrades] = useState(null);
 
   const fetchTrades = useCallback(
     async (selectedTicker) => {
-      setSelectedTicker(selectedTicker);
       const trades = await storeCtx.getTrades(selectedTicker.instId);
       // console.log(`trades`, trades);
       setTrades(trades);
@@ -31,14 +29,11 @@ const MarketHistory = (props) => {
   );
 
   useEffect(() => {
-    if (
-      (!selectedTicker && props.selectedTicker) ||
-      props.selectedTicker?.instId !== selectedTicker?.instId
-    ) {
-      fetchTrades(props.selectedTicker);
+    if (storeCtx?.selectedTicker) {
+      fetchTrades(storeCtx.selectedTicker);
     }
     return () => {};
-  }, [selectedTicker, props.selectedTicker, fetchTrades]);
+  }, [storeCtx?.selectedTicker, fetchTrades]);
 
   return (
     <>
@@ -50,10 +45,10 @@ const MarketHistory = (props) => {
                 <tr>
                   <th>Time</th>
                   <th>{`Price(${
-                    selectedTicker ? selectedTicker.quoteCcy : "--"
+                    storeCtx?.selectedTicker?.quoteCcy || "--"
                   })`}</th>
                   <th>{`Amount(${
-                    selectedTicker ? selectedTicker.baseCcy : "--"
+                    storeCtx?.selectedTicker?.baseCcy || "--"
                   })`}</th>
                 </tr>
               </thead>

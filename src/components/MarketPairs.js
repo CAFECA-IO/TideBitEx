@@ -12,8 +12,15 @@ import SafeMath from "../utils/SafeMath";
 import { formateDecimal } from "../utils/Utils";
 
 const PairTile = (props) => {
+  const storeCtx = useContext(StoreContext);
+
   return (
-    <tr onClick={() => props.onClick(props.ticker)}>
+    <tr
+      onClick={(_) => storeCtx.selectTickerHandler(props.ticker)}
+      className={`market-tile ${
+        props.ticker.instId === storeCtx?.selectedTicker?.instId ? "active" : ""
+      }`}
+    >
       <td>
         <i className="icon ion-md-star"></i> {props.ticker.pair}
       </td>

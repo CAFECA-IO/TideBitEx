@@ -4,40 +4,38 @@ import StoreContext from "../store/store-context";
 
 const TradingChart = (props) => {
   const storeCtx = useContext(StoreContext);
-  const [selectedTicker, setSelectedTicker] = useState(null);
   const [selectedBar, setSelectedBar] = useState("1D");
   const [data, setData] = useState(null);
 
   const fetchData = useCallback(
     async (selectedTicker) => {
-      setSelectedTicker(selectedTicker);
-      console.log(`selectedTicker:${selectedTicker.instId}`, selectedTicker);
       const data = await storeCtx.getCandles(
         selectedTicker.instId,
         selectedBar
       );
       setData(data);
-      console.log(`data:`, data);
+      // console.log(`data:`, data);
     },
     [storeCtx, selectedBar]
   );
 
   useEffect(() => {
-    if (
-      (!selectedTicker && props.selectedTicker) ||
-      props.selectedTicker?.instId !== selectedTicker?.instId
-    ) {
-      fetchData(props.selectedTicker);
+    if (storeCtx?.selectedTicker) {
+      console.log(
+        `storeCtx.selectedTicker:${storeCtx?.selectedTicker?.instId}`,
+        storeCtx
+      );
+      fetchData(storeCtx.selectedTicker);
     }
     return () => {};
-  }, [selectedTicker, props.selectedTicker, fetchData]);
+  }, [storeCtx.selectedTicker, fetchData, storeCtx]);
 
   return (
     <>
       <div className="main-chart mb15">
-        {selectedTicker && (
+        {storeCtx?.selectedTicker && (
           <TradingViewWidget
-            symbol={`OKEX:${selectedTicker?.instId?.replace("-", "")}`}
+            symbol={`OKEX:${storeCtx.selectedTicker.instId?.replace("-", "")}`}
             theme={props.theme === "light" ? Themes.LIGHT : Themes.DARK}
             locale="en"
             autosize
