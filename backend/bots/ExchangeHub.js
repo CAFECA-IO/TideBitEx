@@ -30,6 +30,11 @@ class ExchangeHub extends Bot {
     return this;
   }
 
+  // account api
+  async getBalance({ params, query }) {
+    return this.okexConnector.router('getBalance', { params, query });
+  }
+  // account api end
   // market api
   async getTickers({ params, query }) {
     return this.okexConnector.router('getTickers', { params, query });
@@ -50,6 +55,12 @@ class ExchangeHub extends Bot {
   // trade api
   async postPlaceOrder ({ params, query, body }) {
     return this.okexConnector.router('postPlaceOrder', { params, query, body });
+  }
+  async getOrderList ({ params, query }) {
+    return this.okexConnector.router('getOrderList', { params, query });
+  }
+  async getOrderHistory ({ params, query }) {
+    return this.okexConnector.router('getOrderHistory', { params, query });
   }
   // trade api end
 }
