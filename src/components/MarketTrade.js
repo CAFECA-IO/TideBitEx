@@ -130,6 +130,15 @@ const TradePannel = (props) => {
             px: buyPx,
             sz: buySz,
           }
+        : props.orderType === "limit"
+        ? {
+            instId: storeCtx.selectedTicker.instId,
+            tdMode,
+            side,
+            ordType: props.orderType,
+            px: sellPx,
+            sz: sellSz,
+          }
         : {
             instId: storeCtx.selectedTicker.instId,
             tdMode,
@@ -140,8 +149,9 @@ const TradePannel = (props) => {
     console.log(`order`, order);
     try {
       const result = await storeCtx.postOrder(order);
+      await storeCtx.getCloseOrders();
+      await storeCtx.getPendingOrders();
       console.log(`result`, result);
-      window.reload();
     } catch (error) {
       console.log(`error`, error);
     }

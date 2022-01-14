@@ -245,6 +245,7 @@ class OkexConnector extends ConnectorBase {
         headers: this.getHeaders(true, {timeString, okAccessSign}),
         data: filterBody,
       });
+      console.log(res.data.data)
       if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
       return new ResponseFormat({
         message: 'postPlaceOrder',
