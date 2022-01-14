@@ -48,7 +48,7 @@
 .market-trade .nav-tabs {
   border-bottom: 1px solid transparent;
 }
-.market-trade-list li a {
+.market-trade-list li span {
   background: #eff2f6;
   color: #4a4a4a;
   font-weight: 300;
@@ -64,12 +64,14 @@
 .market-trade-list li:last-child {
   margin-right: 0;
 }
-.market-trade-buy .market-trade-list li a:hover {
+.market-trade-buy .market-trade-list li span:hover,
+.market-trade-buy .market-trade-list li.active span {
   text-decoration: none;
   background: #26a69a;
   color: #fff;
 }
-.market-trade-sell .market-trade-list li a:hover {
+.market-trade-sell .market-trade-list li span:hover,
+.market-trade-sell .market-trade-list li.active span {
   text-decoration: none;
   background: #ef5350;
   color: #fff;

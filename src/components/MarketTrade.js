@@ -1,589 +1,168 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import StoreContext from "../store/store-context";
 import { Tabs, Tab } from "react-bootstrap";
 
-const MarketTrade = (props) => {
+const TradeForm = (props) => {
   const storeCtx = useContext(StoreContext);
+  return (
+    <form onSubmit={props.onSubmit}>
+      <div className="input-group">
+        <input
+          type="number"
+          className="form-control"
+          placeholder="Price"
+          value={props.px}
+          onInput={props.onPxInput}
+          required
+        />
+        <div className="input-group-append">
+          <span className="input-group-text">
+            {storeCtx?.selectedTicker?.quoteCcy || "--"}
+          </span>
+        </div>
+      </div>
+      <div className="input-group">
+        <input
+          type="number"
+          className="form-control"
+          placeholder="Amount"
+          value={props.sz}
+          onInput={props.onSzInput}
+          required
+        />
+        <div className="input-group-append">
+          <span className="input-group-text">
+            {storeCtx?.selectedTicker?.baseCcy || "--"}
+          </span>
+        </div>
+      </div>
+      <ul className="market-trade-list">
+        <li className={`${props.selectedPct === "0.25" ? "active" : ""}`}>
+          <span onClick={() => props.percentageHandler("0.25")}>25%</span>
+        </li>
+        <li className={`${props.selectedPct === "0.5" ? "active" : ""}`}>
+          <span onClick={() => props.percentageHandler("0.5")}>50%</span>
+        </li>
+        <li className={`${props.selectedPct === "0.75" ? "active" : ""}`}>
+          <span onClick={() => props.percentageHandler("0.75")}>75%</span>
+        </li>
+        <li className={`${props.selectedPct === "1.0" ? "active" : ""}`}>
+          <span onClick={() => props.percentageHandler("1.0")}>100%</span>
+        </li>
+      </ul>
+      <p>
+        Available:{" "}
+        <span>0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD</span>
+      </p>
+      <p>
+        Volume:{" "}
+        <span>0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD</span>
+      </p>
+      <p>
+        Margin:{" "}
+        <span>0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD</span>
+      </p>
+      <p>
+        Fee: <span>0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD</span>
+      </p>
+      <button
+        type="submit"
+        className={`btn ${props.side === "buy" ? "buy" : "sell"}`}
+      >
+        {props.side === "buy" ? "Buy" : "Sell"}
+      </button>
+    </form>
+  );
+};
 
+const TradePannel = (props) => {
+  const storeCtx = useContext(StoreContext);
+  const [buyPx, setBuyPx] = useState(null);
+  const [buySz, setBuySz] = useState(null);
+  const [tdMode, setTdMode] = useState("cash");
+  const [sellPx, setSellPx] = useState(null);
+  const [sellSz, setSellSz] = useState(null);
+  const [selectedBuyPct, setSelectedBuyPct] = useState(null);
+  const [selectedSellPct, setSelectedSellPct] = useState(null);
+
+  const buyPxHandler = (e) => {
+    setBuyPx(e.target.value);
+  };
+  const buySzHandler = (e) => {
+    setBuySz(e.target.value);
+  };
+  const sellPxHandler = (e) => {
+    setSellPx(e.target.value);
+  };
+  const sellSzHandler = (e) => {
+    setSellSz(e.target.value);
+  };
+
+  const buyPctHandler = (pct) => {
+    setSelectedBuyPct(pct);
+  };
+
+  const sellPctHandler = (pct) => {
+    setSelectedSellPct(pct);
+  };
+
+  const onSubmit = (event) => {
+    event.preventDefault();
+    console.log(`props.side`, props.side);
+    console.log(`tdMode`, tdMode);
+    console.log(`props.orderType`, props.orderType);
+    console.log(`buyPx`, buyPx);
+    console.log(`buySz`, buySz);
+    console.log(`sellPx`, sellPx);
+    console.log(`sellSz`, sellSz);
+  };
+
+  return (
+    <div className="d-flex justify-content-between">
+      <div className="market-trade-buy">
+        <TradeForm
+          px={buyPx}
+          sz={buySz}
+          selectedPct={selectedBuyPct}
+          onPxInput={buyPxHandler}
+          onSzInput={buySzHandler}
+          percentageHandler={buyPctHandler}
+          onSubmit={onSubmit}
+          side="buy"
+        />
+      </div>
+      <div className="market-trade-sell">
+        <TradeForm
+          px={sellPx}
+          sz={sellSz}
+          selectedPct={selectedSellPct}
+          onPxInput={sellPxHandler}
+          onSzInput={sellSzHandler}
+          percentageHandler={sellPctHandler}
+          onSubmit={onSubmit}
+          side="sell"
+        />
+      </div>
+    </div>
+  );
+};
+
+const MarketTrade = (props) => {
   return (
     <>
       <div className="market-trade">
         <Tabs defaultActiveKey="limit">
           <Tab eventKey="limit" title="Limit">
-            <div className="d-flex justify-content-between">
-              <div className="market-trade-buy">
-                <form action="#">
-                  <div className="input-group">
-                    <input
-                      type="number"
-                      className="form-control"
-                      placeholder="Price"
-                      required
-                    />
-                    <div className="input-group-append">
-                      <span className="input-group-text">
-                        {storeCtx?.selectedTicker?.quoteCcy || "--"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="input-group">
-                    <input
-                      type="number"
-                      className="form-control"
-                      placeholder="Amount"
-                      required
-                    />
-                    <div className="input-group-append">
-                      <span className="input-group-text">
-                        {storeCtx?.selectedTicker?.baseCcy || "--"}
-                      </span>
-                    </div>
-                  </div>
-                  <ul className="market-trade-list">
-                    <li>
-                      <a href="#!">25%</a>
-                    </li>
-                    <li>
-                      <a href="#!">50%</a>
-                    </li>
-                    <li>
-                      <a href="#!">75%</a>
-                    </li>
-                    <li>
-                      <a href="#!">100%</a>
-                    </li>
-                  </ul>
-                  <p>
-                    Available:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Volume:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Margin:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Fee:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <button type="submit" className="btn buy">
-                    Buy
-                  </button>
-                </form>
-              </div>
-              <div className="market-trade-sell">
-                <form action="#">
-                  <div className="input-group">
-                    <input
-                      type="number"
-                      className="form-control"
-                      placeholder="Price"
-                      required
-                    />
-                    <div className="input-group-append">
-                      <span className="input-group-text">
-                        {storeCtx?.selectedTicker?.quoteCcy || "--"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="input-group">
-                    <input
-                      type="number"
-                      className="form-control"
-                      placeholder="Amount"
-                      required
-                    />
-                    <div className="input-group-append">
-                      <span className="input-group-text">
-                        {storeCtx?.selectedTicker?.baseCcy || "--"}
-                      </span>
-                    </div>
-                  </div>
-                  <ul className="market-trade-list">
-                    <li>
-                      <a href="#!">25%</a>
-                    </li>
-                    <li>
-                      <a href="#!">50%</a>
-                    </li>
-                    <li>
-                      <a href="#!">75%</a>
-                    </li>
-                    <li>
-                      <a href="#!">100%</a>
-                    </li>
-                  </ul>
-                  <p>
-                    Available:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Volume:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Margin:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Fee:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <button className="btn sell">Sell</button>
-                </form>
-              </div>
-            </div>
+            <TradePannel orderType="limit" />
           </Tab>
           <Tab eventKey="market" title="Market">
-            <div className="d-flex justify-content-between">
-              <div className="market-trade-buy">
-                <form action="#">
-                  <div className="input-group">
-                    <input
-                      type="number"
-                      className="form-control"
-                      placeholder="Price"
-                      required
-                    />
-                    <div className="input-group-append">
-                      <span className="input-group-text">
-                        {storeCtx?.selectedTicker?.quoteCcy || "--"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="input-group">
-                    <input
-                      type="number"
-                      className="form-control"
-                      placeholder="Amount"
-                      required
-                    />
-                    <div className="input-group-append">
-                      <span className="input-group-text">
-                        {storeCtx?.selectedTicker?.baseCcy || "--"}
-                      </span>
-                    </div>
-                  </div>
-                  <ul className="market-trade-list">
-                    <li>
-                      <a href="#!">25%</a>
-                    </li>
-                    <li>
-                      <a href="#!">50%</a>
-                    </li>
-                    <li>
-                      <a href="#!">75%</a>
-                    </li>
-                    <li>
-                      <a href="#!">100%</a>
-                    </li>
-                  </ul>
-                  <p>
-                    Available:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Volume:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Margin:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Fee:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <button type="submit" className="btn buy">
-                    Buy
-                  </button>
-                </form>
-              </div>
-              <div className="market-trade-sell">
-                <form action="#">
-                  <div className="input-group">
-                    <input
-                      type="number"
-                      className="form-control"
-                      placeholder="Price"
-                      required
-                    />
-                    <div className="input-group-append">
-                      <span className="input-group-text">
-                        {storeCtx?.selectedTicker?.quoteCcy || "--"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="input-group">
-                    <input
-                      type="number"
-                      className="form-control"
-                      placeholder="Amount"
-                      required
-                    />
-                    <div className="input-group-append">
-                      <span className="input-group-text">
-                        {storeCtx?.selectedTicker?.baseCcy || "--"}
-                      </span>
-                    </div>
-                  </div>
-                  <ul className="market-trade-list">
-                    <li>
-                      <a href="#!">25%</a>
-                    </li>
-                    <li>
-                      <a href="#!">50%</a>
-                    </li>
-                    <li>
-                      <a href="#!">75%</a>
-                    </li>
-                    <li>
-                      <a href="#!">100%</a>
-                    </li>
-                  </ul>
-                  <p>
-                    Available:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Volume:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Margin:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Fee:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <button className="btn sell">Sell</button>
-                </form>
-              </div>
-            </div>
+            <TradePannel orderType="market" />
           </Tab>
           <Tab eventKey="stop-limit" title="Stop Limit">
-            <div className="d-flex justify-content-between">
-              <div className="market-trade-buy">
-                <form action="#">
-                  <div className="input-group">
-                    <input
-                      type="number"
-                      className="form-control"
-                      placeholder="Price"
-                      required
-                    />
-                    <div className="input-group-append">
-                      <span className="input-group-text">
-                        {storeCtx?.selectedTicker?.quoteCcy || "--"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="input-group">
-                    <input
-                      type="number"
-                      className="form-control"
-                      placeholder="Amount"
-                      required
-                    />
-                    <div className="input-group-append">
-                      <span className="input-group-text">
-                        {storeCtx?.selectedTicker?.baseCcy || "--"}
-                      </span>
-                    </div>
-                  </div>
-                  <ul className="market-trade-list">
-                    <li>
-                      <a href="#!">25%</a>
-                    </li>
-                    <li>
-                      <a href="#!">50%</a>
-                    </li>
-                    <li>
-                      <a href="#!">75%</a>
-                    </li>
-                    <li>
-                      <a href="#!">100%</a>
-                    </li>
-                  </ul>
-                  <p>
-                    Available:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Volume:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Margin:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Fee:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <button type="submit" className="btn buy">
-                    Buy
-                  </button>
-                </form>
-              </div>
-              <div className="market-trade-sell">
-                <form action="#">
-                  <div className="input-group">
-                    <input
-                      type="number"
-                      className="form-control"
-                      placeholder="Price"
-                      required
-                    />
-                    <div className="input-group-append">
-                      <span className="input-group-text">
-                        {storeCtx?.selectedTicker?.quoteCcy || "--"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="input-group">
-                    <input
-                      type="number"
-                      className="form-control"
-                      placeholder="Amount"
-                      required
-                    />
-                    <div className="input-group-append">
-                      <span className="input-group-text">
-                        {storeCtx?.selectedTicker?.baseCcy || "--"}
-                      </span>
-                    </div>
-                  </div>
-                  <ul className="market-trade-list">
-                    <li>
-                      <a href="#!">25%</a>
-                    </li>
-                    <li>
-                      <a href="#!">50%</a>
-                    </li>
-                    <li>
-                      <a href="#!">75%</a>
-                    </li>
-                    <li>
-                      <a href="#!">100%</a>
-                    </li>
-                  </ul>
-                  <p>
-                    Available:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Volume:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Margin:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Fee:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <button className="btn sell">Sell</button>
-                </form>
-              </div>
-            </div>
+            <TradePannel orderType="stop-limit" />
           </Tab>
           <Tab eventKey="stop-market" title="Stop Market">
-            <div className="d-flex justify-content-between">
-              <div className="market-trade-buy">
-                <form action="#">
-                  <div className="input-group">
-                    <input
-                      type="number"
-                      className="form-control"
-                      placeholder="Price"
-                      required
-                    />
-                    <div className="input-group-append">
-                      <span className="input-group-text">
-                        {storeCtx?.selectedTicker?.quoteCcy || "--"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="input-group">
-                    <input
-                      type="number"
-                      className="form-control"
-                      placeholder="Amount"
-                      required
-                    />
-                    <div className="input-group-append">
-                      <span className="input-group-text">
-                        {storeCtx?.selectedTicker?.baseCcy || "--"}
-                      </span>
-                    </div>
-                  </div>
-                  <ul className="market-trade-list">
-                    <li>
-                      <a href="#!">25%</a>
-                    </li>
-                    <li>
-                      <a href="#!">50%</a>
-                    </li>
-                    <li>
-                      <a href="#!">75%</a>
-                    </li>
-                    <li>
-                      <a href="#!">100%</a>
-                    </li>
-                  </ul>
-                  <p>
-                    Available:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Volume:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Margin:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Fee:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <button type="submit" className="btn buy">
-                    Buy
-                  </button>
-                </form>
-              </div>
-              <div className="market-trade-sell">
-                <form action="#">
-                  <div className="input-group">
-                    <input
-                      type="number"
-                      className="form-control"
-                      placeholder="Price"
-                      required
-                    />
-                    <div className="input-group-append">
-                      <span className="input-group-text">
-                        {storeCtx?.selectedTicker?.quoteCcy || "--"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="input-group">
-                    <input
-                      type="number"
-                      className="form-control"
-                      placeholder="Amount"
-                      required
-                    />
-                    <div className="input-group-append">
-                      <span className="input-group-text">
-                        {storeCtx?.selectedTicker?.baseCcy || "--"}
-                      </span>
-                    </div>
-                  </div>
-                  <ul className="market-trade-list">
-                    <li>
-                      <a href="#!">25%</a>
-                    </li>
-                    <li>
-                      <a href="#!">50%</a>
-                    </li>
-                    <li>
-                      <a href="#!">75%</a>
-                    </li>
-                    <li>
-                      <a href="#!">100%</a>
-                    </li>
-                  </ul>
-                  <p>
-                    Available:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Volume:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Margin:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <p>
-                    Fee:{" "}
-                    <span>
-                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-                    </span>
-                  </p>
-                  <button className="btn sell">Sell</button>
-                </form>
-              </div>
-            </div>
+            <TradePannel orderType="stop-market" />
           </Tab>
         </Tabs>
       </div>
