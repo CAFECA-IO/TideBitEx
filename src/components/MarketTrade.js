@@ -1,11 +1,15 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import StoreContext from "../store/store-context";
 import { Tabs, Tab } from "react-bootstrap";
 
 const TradeForm = (props) => {
   const storeCtx = useContext(StoreContext);
   return (
-    <form onSubmit={props.onSubmit}>
+    <form
+      onSubmit={(e) => {
+        props.onSubmit(e, props.side);
+      }}
+    >
       <div className="input-group">
         <input
           type="number"
@@ -14,6 +18,7 @@ const TradeForm = (props) => {
           value={props.px}
           onInput={props.onPxInput}
           required
+          step="any"
         />
         <div className="input-group-append">
           <span className="input-group-text">
@@ -29,6 +34,7 @@ const TradeForm = (props) => {
           value={props.sz}
           onInput={props.onSzInput}
           required
+          step="any"
         />
         <div className="input-group-append">
           <span className="input-group-text">
@@ -110,16 +116,15 @@ const TradePannel = (props) => {
     setSelectedSellPct(pct);
   };
 
-  const onSubmit = async (event) => {
+  const onSubmit = async (event, side) => {
     event.preventDefault();
-
     if (!storeCtx?.selectedTicker) return;
     const order =
-      props.side === "buy"
+      side === "buy"
         ? {
             instId: storeCtx.selectedTicker.instId,
             tdMode,
-            side: props.side,
+            side,
             ordType: props.orderType,
             px: buyPx,
             sz: buySz,
@@ -127,7 +132,7 @@ const TradePannel = (props) => {
         : {
             instId: storeCtx.selectedTicker.instId,
             tdMode,
-            side: props.side,
+            side,
             ordType: props.orderType,
             sz: sellSz,
           };
@@ -139,6 +144,17 @@ const TradePannel = (props) => {
       console.log(`error`, error);
     }
   };
+
+  // -- TEST
+  useEffect(() => {
+    if (storeCtx.selectedTicker) {
+      setBuyPx(storeCtx.selectedTicker.bidPx);
+      setBuySz("1");
+      setSellPx(storeCtx.selectedTicker.askPx);
+      setSellSz("1");
+    }
+    return () => {};
+  }, [storeCtx.selectedTicker]);
 
   return (
     <div className="d-flex justify-content-between">

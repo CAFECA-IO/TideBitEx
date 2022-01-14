@@ -133,17 +133,17 @@ class Communicator {
   // Trade
   async ordersPending(options) {
     try {
-      const res = await this._get(
-        `/trade/orders-pending?instId=${
-          options?.instId ? `&instId=${options.instId}` : ""
-        }${options?.instType ? `&instType=${options.instType}` : ""}${
-          options?.ordType ? `&ordType=${options.ordType}` : ""
-        }${options?.state ? `&state=${options.state}` : ""}${
-          options?.after ? `&after=${options.after}` : ""
-        }${options?.before ? `&before=${options.before}` : ""}${
-          options?.limit ? `&limit=${options.limit}` : ""
-        }`
-      );
+      const url = `/trade/orders-pending?${
+        options?.instId ? `&instId=${options.instId}` : ""
+      }${options?.instType ? `&instType=${options.instType}` : ""}${
+        options?.ordType ? `&ordType=${options.ordType}` : ""
+      }${options?.state ? `&state=${options.state}` : ""}${
+        options?.after ? `&after=${options.after}` : ""
+      }${options?.before ? `&before=${options.before}` : ""}${
+        options?.limit ? `&limit=${options.limit}` : ""
+      }`;
+      console.log(`getPendingOrders url`, url);
+      const res = await this._get(url);
       if (res.success) {
         return res.data;
       }
@@ -156,9 +156,9 @@ class Communicator {
   // Account
   async balance(ccy) {
     try {
-      const res = await this._get(
-        `/account/balance?${ccy ? `&ccy=${ccy}` : ""}`
-      );
+      const url = `/account/balance?${ccy ? `&ccy=${ccy}` : ""}`;
+      console.log(`getPendingOrders url`, url);
+      const res = await this._get(url);
       if (res.success) {
         return res.data;
       }

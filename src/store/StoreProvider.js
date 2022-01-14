@@ -81,6 +81,7 @@ const StoreProvider = (props) => {
         if (!options) setPendingOrders(result);
         return result;
       } catch (error) {
+        console.log(`getPendingOrders error`, error);
         return Promise.reject({ message: error });
       }
     },
@@ -92,9 +93,10 @@ const StoreProvider = (props) => {
       try {
         const result = await middleman.getBalances(ccy);
         console.log(`getBalances result`, result);
-        setBalances(result)
+        setBalances(result[0].details)
         return result;
       } catch (error) {
+        console.log(`getBalances error`, error);
         return Promise.reject({ message: error });
       }
     },
