@@ -5,16 +5,27 @@ import StoreContext from "./store-context";
 const StoreProvider = (props) => {
   const middleman = useMemo(() => new Middleman(), []);
   const [tickers, setTickers] = useState([]);
+  const [selectedTicker, setSelectedTicker] = useState(null);
 
-  const getTickers = useCallback(async (instType = "SPOT", from = 0, limit = 100) => {
-    try {
-      const result = await middleman.getTickers(instType, from, limit);
-      //   console.log(`getTickers result`, result);
-      setTickers(result);
-    } catch (error) {
-      console.log(`getTickers`, error);
-    }
-  }, [middleman]);
+  const selectTickerHandler = useCallback((ticker) => {
+    // if (ticker?.instId !== selectedTicker?.instId) {
+    setSelectedTicker(ticker);
+    // }
+  }, []);
+
+  const getTickers = useCallback(
+    async (instType = "SPOT", from = 0, limit = 100) => {
+      try {
+        const result = await middleman.getTickers(instType, from, limit);
+          console.log(`getTickers result`, result);
+        setTickers(result);
+        if (selectedTicker === null) selectTickerHandler(result[0]);
+      } catch (error) {
+        console.log(`getTickers`, error);
+      }
+    },
+    [middleman, selectTickerHandler, selectedTicker]
+  );
 
   const getBooks = useCallback(
     async (instId, sz = 100) => {
@@ -68,6 +79,8 @@ const StoreProvider = (props) => {
     <StoreContext.Provider
       value={{
         tickers,
+        selectedTicker,
+        selectTickerHandler,
         getTickers,
         getBooks,
         getTrades,

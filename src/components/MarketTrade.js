@@ -1,24 +1,9 @@
-import React, {
-  useEffect,
-  useState,
-  // useContext
-} from "react";
-// import StoreContext from "../store/store-context";
+import React, { useContext } from "react";
+import StoreContext from "../store/store-context";
 import { Tabs, Tab } from "react-bootstrap";
 
 const MarketTrade = (props) => {
-  // const storeCtx = useContext(StoreContext);
-  const [selectedTicker, setSelectedTicker] = useState(null);
-
-  useEffect(() => {
-    if (
-      (!selectedTicker && props.selectedTicker) ||
-      props.selectedTicker?.instId !== selectedTicker?.instId
-    ) {
-      setSelectedTicker(props.selectedTicker);
-    }
-    return () => {};
-  }, [selectedTicker, props.selectedTicker]);
+  const storeCtx = useContext(StoreContext);
 
   return (
     <>
@@ -37,7 +22,7 @@ const MarketTrade = (props) => {
                     />
                     <div className="input-group-append">
                       <span className="input-group-text">
-                        {selectedTicker ? selectedTicker.quoteCcy : "--"}
+                        {storeCtx?.selectedTicker?.quoteCcy || "--"}
                       </span>
                     </div>
                   </div>
@@ -50,7 +35,7 @@ const MarketTrade = (props) => {
                     />
                     <div className="input-group-append">
                       <span className="input-group-text">
-                        {selectedTicker ? selectedTicker.baseCcy : "--"}
+                        {storeCtx?.selectedTicker?.baseCcy || "--"}
                       </span>
                     </div>
                   </div>
@@ -71,29 +56,25 @@ const MarketTrade = (props) => {
                   <p>
                     Available:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Volume:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Margin:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Fee:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <button type="submit" className="btn buy">
@@ -112,7 +93,7 @@ const MarketTrade = (props) => {
                     />
                     <div className="input-group-append">
                       <span className="input-group-text">
-                        {selectedTicker ? selectedTicker.quoteCcy : "--"}
+                        {storeCtx?.selectedTicker?.quoteCcy || "--"}
                       </span>
                     </div>
                   </div>
@@ -125,7 +106,7 @@ const MarketTrade = (props) => {
                     />
                     <div className="input-group-append">
                       <span className="input-group-text">
-                        {selectedTicker ? selectedTicker.baseCcy : "--"}
+                        {storeCtx?.selectedTicker?.baseCcy || "--"}
                       </span>
                     </div>
                   </div>
@@ -146,29 +127,25 @@ const MarketTrade = (props) => {
                   <p>
                     Available:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Volume:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Margin:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Fee:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <button className="btn sell">Sell</button>
@@ -189,7 +166,7 @@ const MarketTrade = (props) => {
                     />
                     <div className="input-group-append">
                       <span className="input-group-text">
-                        {selectedTicker ? selectedTicker.quoteCcy : "--"}
+                        {storeCtx?.selectedTicker?.quoteCcy || "--"}
                       </span>
                     </div>
                   </div>
@@ -202,7 +179,7 @@ const MarketTrade = (props) => {
                     />
                     <div className="input-group-append">
                       <span className="input-group-text">
-                        {selectedTicker ? selectedTicker.baseCcy : "--"}
+                        {storeCtx?.selectedTicker?.baseCcy || "--"}
                       </span>
                     </div>
                   </div>
@@ -223,29 +200,25 @@ const MarketTrade = (props) => {
                   <p>
                     Available:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Volume:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Margin:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Fee:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <button type="submit" className="btn buy">
@@ -264,7 +237,7 @@ const MarketTrade = (props) => {
                     />
                     <div className="input-group-append">
                       <span className="input-group-text">
-                        {selectedTicker ? selectedTicker.quoteCcy : "--"}
+                        {storeCtx?.selectedTicker?.quoteCcy || "--"}
                       </span>
                     </div>
                   </div>
@@ -277,7 +250,7 @@ const MarketTrade = (props) => {
                     />
                     <div className="input-group-append">
                       <span className="input-group-text">
-                        {selectedTicker ? selectedTicker.baseCcy : "--"}
+                        {storeCtx?.selectedTicker?.baseCcy || "--"}
                       </span>
                     </div>
                   </div>
@@ -298,29 +271,25 @@ const MarketTrade = (props) => {
                   <p>
                     Available:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Volume:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Margin:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Fee:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <button className="btn sell">Sell</button>
@@ -341,7 +310,7 @@ const MarketTrade = (props) => {
                     />
                     <div className="input-group-append">
                       <span className="input-group-text">
-                        {selectedTicker ? selectedTicker.quoteCcy : "--"}
+                        {storeCtx?.selectedTicker?.quoteCcy || "--"}
                       </span>
                     </div>
                   </div>
@@ -354,7 +323,7 @@ const MarketTrade = (props) => {
                     />
                     <div className="input-group-append">
                       <span className="input-group-text">
-                        {selectedTicker ? selectedTicker.baseCcy : "--"}
+                        {storeCtx?.selectedTicker?.baseCcy || "--"}
                       </span>
                     </div>
                   </div>
@@ -375,29 +344,25 @@ const MarketTrade = (props) => {
                   <p>
                     Available:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Volume:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Margin:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Fee:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <button type="submit" className="btn buy">
@@ -416,7 +381,7 @@ const MarketTrade = (props) => {
                     />
                     <div className="input-group-append">
                       <span className="input-group-text">
-                        {selectedTicker ? selectedTicker.quoteCcy : "--"}
+                        {storeCtx?.selectedTicker?.quoteCcy || "--"}
                       </span>
                     </div>
                   </div>
@@ -429,7 +394,7 @@ const MarketTrade = (props) => {
                     />
                     <div className="input-group-append">
                       <span className="input-group-text">
-                        {selectedTicker ? selectedTicker.baseCcy : "--"}
+                        {storeCtx?.selectedTicker?.baseCcy || "--"}
                       </span>
                     </div>
                   </div>
@@ -450,29 +415,25 @@ const MarketTrade = (props) => {
                   <p>
                     Available:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Volume:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Margin:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Fee:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <button className="btn sell">Sell</button>
@@ -493,7 +454,7 @@ const MarketTrade = (props) => {
                     />
                     <div className="input-group-append">
                       <span className="input-group-text">
-                        {selectedTicker ? selectedTicker.quoteCcy : "--"}
+                        {storeCtx?.selectedTicker?.quoteCcy || "--"}
                       </span>
                     </div>
                   </div>
@@ -506,7 +467,7 @@ const MarketTrade = (props) => {
                     />
                     <div className="input-group-append">
                       <span className="input-group-text">
-                        {selectedTicker ? selectedTicker.baseCcy : "--"}
+                        {storeCtx?.selectedTicker?.baseCcy || "--"}
                       </span>
                     </div>
                   </div>
@@ -527,29 +488,25 @@ const MarketTrade = (props) => {
                   <p>
                     Available:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Volume:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Margin:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Fee:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <button type="submit" className="btn buy">
@@ -568,7 +525,7 @@ const MarketTrade = (props) => {
                     />
                     <div className="input-group-append">
                       <span className="input-group-text">
-                        {selectedTicker ? selectedTicker.quoteCcy : "--"}
+                        {storeCtx?.selectedTicker?.quoteCcy || "--"}
                       </span>
                     </div>
                   </div>
@@ -581,7 +538,7 @@ const MarketTrade = (props) => {
                     />
                     <div className="input-group-append">
                       <span className="input-group-text">
-                        {selectedTicker ? selectedTicker.baseCcy : "--"}
+                        {storeCtx?.selectedTicker?.baseCcy || "--"}
                       </span>
                     </div>
                   </div>
@@ -602,29 +559,25 @@ const MarketTrade = (props) => {
                   <p>
                     Available:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Volume:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Margin:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <p>
                     Fee:{" "}
                     <span>
-                      0 {selectedTicker ? selectedTicker.quoteCcy : "--"} = 0
-                      USD
+                      0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
                     </span>
                   </p>
                   <button className="btn sell">Sell</button>

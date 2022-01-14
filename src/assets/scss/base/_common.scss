@@ -60,7 +60,8 @@ thead th {
 tbody tr {
   color: #4a4a4a;
 }
-tbody tr:hover {
+tbody tr:hover,
+tbody tr.active {
   background: #f6f8f9;
 }
 .input-group-text,
@@ -105,7 +106,7 @@ tbody tr:hover {
   padding-right: 7.5px;
 }
 .sm-gutters > .col,
-.sm-gutters > [class*='col-'] {
+.sm-gutters > [class*="col-"] {
   padding-right: 7.5px;
   padding-left: 7.5px;
 }

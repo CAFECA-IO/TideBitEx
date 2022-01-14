@@ -24,12 +24,10 @@ const BookTile = (props) => {
 
 const OrderBook = (props) => {
   const storeCtx = useContext(StoreContext);
-  const [selectedTicker, setSelectedTicker] = useState(null);
   const [books, setBooks] = useState(null);
 
   const fetchBooks = useCallback(
     async (selectedTicker) => {
-      setSelectedTicker(selectedTicker);
       const books = await storeCtx.getBooks(selectedTicker.instId);
       setBooks(books);
     },
@@ -37,14 +35,11 @@ const OrderBook = (props) => {
   );
 
   useEffect(() => {
-    if (
-      (!selectedTicker && props.selectedTicker) ||
-      props.selectedTicker?.instId !== selectedTicker?.instId
-    ) {
-      fetchBooks(props.selectedTicker);
+    if (storeCtx?.selectedTicker) {
+      fetchBooks(storeCtx.selectedTicker);
     }
     return () => {};
-  }, [selectedTicker, props.selectedTicker, fetchBooks]);
+  }, [storeCtx?.selectedTicker, fetchBooks]);
 
   return (
     <>
@@ -53,15 +48,9 @@ const OrderBook = (props) => {
         <table className="table">
           <thead>
             <tr>
-              <th>{`Price(${
-                selectedTicker ? selectedTicker.quoteCcy : "--"
-              })`}</th>
-              <th>{`Amount(${
-                selectedTicker ? selectedTicker.baseCcy : "--"
-              })`}</th>
-              <th>{`Total(${
-                selectedTicker ? selectedTicker.baseCcy : "--"
-              })`}</th>
+              <th>{`Price(${storeCtx?.selectedTicker?.quoteCcy || "--"})`}</th>
+              <th>{`Amount(${storeCtx?.selectedTicker?.baseCcy || "--"})`}</th>
+              <th>{`Total(${storeCtx?.selectedTicker?.baseCcy || "--"})`}</th>
             </tr>
           </thead>
           <tbody className="order-book-asks">
@@ -70,7 +59,7 @@ const OrderBook = (props) => {
                 <BookTile
                   type="asks"
                   book={book}
-                  key={`asks-${selectedTicker.instId}-${index}`}
+                  key={`asks-${storeCtx.selectedTicker.instId}-${index}`}
                   dataWidth={`${parseFloat(
                     SafeMath.mult(
                       SafeMath.div(book.total, books.asks[0].total),
@@ -80,12 +69,12 @@ const OrderBook = (props) => {
                 />
               ))}
           </tbody>
-          {selectedTicker && (
+          {storeCtx?.selectedTicker && (
             <tbody className="ob-heading">
               <tr>
                 <td>
                   <span>Last Price</span>
-                  {formateDecimal(selectedTicker.last, 8)}
+                  {formateDecimal(storeCtx.selectedTicker.last, 8)}
                 </td>
                 <td>
                   <span>USD</span>
@@ -93,13 +82,15 @@ const OrderBook = (props) => {
                 </td>
                 <td
                   className={
-                    SafeMath.gt(selectedTicker.change, "0") ? "green" : "red"
+                    SafeMath.gt(storeCtx.selectedTicker.change, "0")
+                      ? "green"
+                      : "red"
                   }
                 >
                   <span>Change</span>
-                  {SafeMath.gt(selectedTicker.change, "0")
-                    ? `+${formateDecimal(selectedTicker.change, 3)}%`
-                    : `${formateDecimal(selectedTicker.change, 3)}%`}
+                  {SafeMath.gt(storeCtx.selectedTicker.change, "0")
+                    ? `+${formateDecimal(storeCtx.selectedTicker.change, 3)}%`
+                    : `${formateDecimal(storeCtx.selectedTicker.change, 3)}%`}
                 </td>
               </tr>
             </tbody>
@@ -110,7 +101,7 @@ const OrderBook = (props) => {
                 <BookTile
                   type="bids"
                   book={book}
-                  key={`bids-${selectedTicker.instId}-${index}`}
+                  key={`bids-${storeCtx.selectedTicker.instId}-${index}`}
                   dataWidth={`${parseFloat(
                     SafeMath.mult(
                       SafeMath.div(
