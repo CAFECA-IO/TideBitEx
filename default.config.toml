@@ -35,4 +35,5 @@ pathname = [
 
   # exchange - trade
   "post | /api/v1/trade/order | Bot.ExchangeHub.postPlaceOrder",
+  "get | /api/v1/trade/orders-pending | Bot.ExchangeHub.getOrderList",
 ]

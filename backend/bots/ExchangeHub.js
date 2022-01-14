@@ -56,6 +56,9 @@ class ExchangeHub extends Bot {
   async postPlaceOrder ({ params, query, body }) {
     return this.okexConnector.router('postPlaceOrder', { params, query, body });
   }
+  async getOrderList ({ params, query }) {
+    return this.okexConnector.router('getOrderList', { params, query });
+  }
   // trade api end
 }
 

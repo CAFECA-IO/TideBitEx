@@ -248,6 +248,48 @@ class OkexConnector extends ConnectorBase {
       });
     }
   }
+
+  async getOrderList({ query }) {
+    const method = 'GET';
+    const path = '/api/v5/trade/orders-pending';
+    const { instType, uly, instId, ordType, state, after, before, limit } = query;
+
+    const arr = [];
+    if (instType) arr.push(`instType=${instType}`);
+    if (uly) arr.push(`uly=${uly}`);
+    if (instId) arr.push(`instId=${instId}`);
+    if (ordType) arr.push(`ordType=${ordType}`);
+    if (state) arr.push(`state=${state}`);
+    if (after) arr.push(`after=${after}`);
+    if (before) arr.push(`before=${before}`);
+    if (limit) arr.push(`limit=${limit}`);
+
+    const qs = (!!arr.length) ?  `?${arr.join('&')}` : '';
+
+    const timeString = new Date().toISOString();
+
+    const okAccessSign = await this.okAccessSign({ timeString, method, path: `${path}${qs}` });
+
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}${qs}`,
+        headers: this.getHeaders(true, {timeString, okAccessSign}),
+      });
+      this.logger.debug(res.data);
+      if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
+      return new ResponseFormat({
+        message: 'getOrderList',
+        payload: res.data.data,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      return new ResponseFormat({
+        message: error.message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
   // trade api end
 }
 module.exports = OkexConnector;
