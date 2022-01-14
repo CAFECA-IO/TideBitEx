@@ -5,6 +5,10 @@ import StoreContext from "./store-context";
 const StoreProvider = (props) => {
   const middleman = useMemo(() => new Middleman(), []);
   const [tickers, setTickers] = useState([]);
+  const [pendingOrders, setPendingOrders] = useState([]);
+  const [closeOrders, setCloseOrders] = useState([]);
+  const [orderHistories, setOrderHistories] = useState([]);
+  const [balances, setBalances] = useState([]);
   const [selectedTicker, setSelectedTicker] = useState(null);
 
   const selectTickerHandler = useCallback((ticker) => {
@@ -73,6 +77,8 @@ const StoreProvider = (props) => {
     async (options) => {
       try {
         const result = await middleman.getPendingOrders(options);
+        console.log(`getPendingOrders result`, result);
+        if (!options) setPendingOrders(result);
         return result;
       } catch (error) {
         return Promise.reject({ message: error });
@@ -81,10 +87,12 @@ const StoreProvider = (props) => {
     [middleman]
   );
 
-  const getBalance = useCallback(
+  const getBalances = useCallback(
     async (ccy) => {
       try {
-        const result = await middleman.getBalance(ccy);
+        const result = await middleman.getBalances(ccy);
+        console.log(`getBalances result`, result);
+        setBalances(result)
         return result;
       } catch (error) {
         return Promise.reject({ message: error });
@@ -108,13 +116,19 @@ const StoreProvider = (props) => {
   useEffect(() => {
     if (!tickers.length) {
       getTickers();
+      getPendingOrders();
+      getBalances("BTC,ETH,USDT");
     }
-  }, [tickers, getTickers]);
+  }, [tickers, getTickers, getPendingOrders, getBalances]);
 
   return (
     <StoreContext.Provider
       value={{
         tickers,
+        pendingOrders,
+        closeOrders,
+        orderHistories,
+        balances,
         selectedTicker,
         selectTickerHandler,
         getTickers,
@@ -122,7 +136,7 @@ const StoreProvider = (props) => {
         getTrades,
         getCandles,
         getPendingOrders,
-        getBalance,
+        getBalances,
         postOrder,
       }}
     >

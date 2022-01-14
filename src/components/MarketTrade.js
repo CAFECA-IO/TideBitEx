@@ -110,15 +110,34 @@ const TradePannel = (props) => {
     setSelectedSellPct(pct);
   };
 
-  const onSubmit = (event) => {
+  const onSubmit = async (event) => {
     event.preventDefault();
-    console.log(`props.side`, props.side);
-    console.log(`tdMode`, tdMode);
-    console.log(`props.orderType`, props.orderType);
-    console.log(`buyPx`, buyPx);
-    console.log(`buySz`, buySz);
-    console.log(`sellPx`, sellPx);
-    console.log(`sellSz`, sellSz);
+
+    if (!storeCtx?.selectedTicker) return;
+    const order =
+      props.side === "buy"
+        ? {
+            instId: storeCtx.selectedTicker.instId,
+            tdMode,
+            side: props.side,
+            ordType: props.orderType,
+            px: buyPx,
+            sz: buySz,
+          }
+        : {
+            instId: storeCtx.selectedTicker.instId,
+            tdMode,
+            side: props.side,
+            ordType: props.orderType,
+            sz: sellSz,
+          };
+    console.log(`order`, order);
+    try {
+      const result = await storeCtx.postOrder(order);
+      console.log(`result`, result);
+    } catch (error) {
+      console.log(`error`, error);
+    }
   };
 
   return (

@@ -3,6 +3,10 @@ import React from "react";
 const StoreContext = React.createContext({
   selectedTicker: null,
   tickers: [],
+  pendingOrders: [],
+  closeOrders: [],
+  orderHistories: [],
+  balances: [],
   /**
    * @typedef {Object} Ticker
    * @property {String} instType
@@ -155,6 +159,14 @@ const StoreContext = React.createContext({
   /**
    * @typedef {Object} Balance
    * @property {string} adjEq 美金层面有效保证金
+   * @property {string} imr
+   * @property {string} isoEq
+   * @property {string} mgnRatio
+   * @property {string} mmr
+   * @property {string} notionalUsd
+   * @property {string} ordFroz
+   * @property {string} totalEq
+   * @property {string} uTime
    * @property {Promise<Array<BalanceDetail>>} details
    */
   /**

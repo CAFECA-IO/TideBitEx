@@ -78,7 +78,7 @@ class Middleman {
     return await this.communicator.ordersPending(options);
   }
 
-  async getBalance(ccy) {
+  async getBalances(ccy) {
     return await this.communicator.balance(ccy);
   }
 
