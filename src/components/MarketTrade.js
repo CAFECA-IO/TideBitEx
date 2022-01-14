@@ -85,17 +85,21 @@ const TradePannel = (props) => {
   const [selectedBuyPct, setSelectedBuyPct] = useState(null);
   const [selectedSellPct, setSelectedSellPct] = useState(null);
 
-  const buyPxHandler = (e) => {
-    setBuyPx(e.target.value);
+  const buyPxHandler = (event) => {
+    let value = +event.target.value < 0 ? "0" : event.target.value;
+    setBuyPx(value);
   };
-  const buySzHandler = (e) => {
-    setBuySz(e.target.value);
+  const buySzHandler = (event) => {
+    let value = +event.target.value < 0 ? "0" : event.target.value;
+    setBuySz(value);
   };
-  const sellPxHandler = (e) => {
-    setSellPx(e.target.value);
+  const sellPxHandler = (event) => {
+    let value = +event.target.value < 0 ? "0" : event.target.value;
+    setSellPx(value);
   };
-  const sellSzHandler = (e) => {
-    setSellSz(e.target.value);
+  const sellSzHandler = (event) => {
+    let value = +event.target.value < 0 ? "0" : event.target.value;
+    setSellSz(value);
   };
 
   const buyPctHandler = (pct) => {
@@ -170,4 +174,27 @@ const MarketTrade = (props) => {
   );
 };
 
+// const MarketTrade = (props) => {
+//   const [key, setKey] = useState("limit");
+//   return (
+//     <>
+//       <div className="market-trade">
+//         <Tabs defaultActiveKey="limit" activeKey={key} onSelect={setKey}>
+//           <Tab eventKey="limit" title="Limit">
+//             {key === "limit" && <TradePannel orderType={key} />}
+//           </Tab>
+//           <Tab eventKey="market" title="Market">
+//             {key === "market" && <TradePannel orderType={key} />}
+//           </Tab>
+//           <Tab eventKey="stop-limit" title="Stop Limit">
+//             {key === "stop-limit" && <TradePannel orderType={key} />}
+//           </Tab>
+//           <Tab eventKey="stop-market" title="Stop Market">
+//             {key === "stop-market" && <TradePannel orderType={key} />}
+//           </Tab>
+//         </Tabs>
+//       </div>
+//     </>
+//   );
+// };
 export default MarketTrade;

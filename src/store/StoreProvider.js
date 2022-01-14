@@ -17,11 +17,11 @@ const StoreProvider = (props) => {
     async (instType = "SPOT", from = 0, limit = 100) => {
       try {
         const result = await middleman.getTickers(instType, from, limit);
-          console.log(`getTickers result`, result);
+        console.log(`getTickers result`, result);
         setTickers(result);
         if (selectedTicker === null) selectTickerHandler(result[0]);
       } catch (error) {
-        console.log(`getTickers`, error);
+        return Promise.reject({ message: error });
       }
     },
     [middleman, selectTickerHandler, selectedTicker]
@@ -33,7 +33,7 @@ const StoreProvider = (props) => {
         const result = await middleman.getBooks(instId, sz);
         return result;
       } catch (error) {
-        console.log(`getBooks`, error);
+        return Promise.reject({ message: error });
       }
     },
     [middleman]
@@ -45,7 +45,7 @@ const StoreProvider = (props) => {
         const result = await middleman.getTrades(instId, limit);
         return result;
       } catch (error) {
-        console.log(`getTrades`, error);
+        return Promise.reject({ message: error });
       }
     },
     [middleman]
@@ -63,7 +63,43 @@ const StoreProvider = (props) => {
         );
         return result;
       } catch (error) {
-        console.log(`getCandles`, error);
+        return Promise.reject({ message: error });
+      }
+    },
+    [middleman]
+  );
+
+  const getPendingOrders = useCallback(
+    async (options) => {
+      try {
+        const result = await middleman.getPendingOrders(options);
+        return result;
+      } catch (error) {
+        return Promise.reject({ message: error });
+      }
+    },
+    [middleman]
+  );
+
+  const getBalance = useCallback(
+    async (ccy) => {
+      try {
+        const result = await middleman.getBalance(ccy);
+        return result;
+      } catch (error) {
+        return Promise.reject({ message: error });
+      }
+    },
+    [middleman]
+  );
+
+  const postOrder = useCallback(
+    async (order) => {
+      try {
+        const result = await middleman.postOrder(order);
+        return result;
+      } catch (error) {
+        return Promise.reject({ message: error });
       }
     },
     [middleman]
@@ -85,6 +121,9 @@ const StoreProvider = (props) => {
         getBooks,
         getTrades,
         getCandles,
+        getPendingOrders,
+        getBalance,
+        postOrder,
       }}
     >
       {props.children}
