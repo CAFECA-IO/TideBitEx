@@ -1,5 +1,6 @@
 const axios = require('axios');
 const crypto = require('crypto');
+const dvalue = require('dvalue');
 
 const ResponseFormat = require('../ResponseFormat');
 const Codes = require('../../constants/Codes');
@@ -11,12 +12,13 @@ class OkexConnector extends ConnectorBase {
     return this;
   }
 
-  async init({ domain, apiKey, secretKey, passPhrase }) {
+  async init({ domain, apiKey, secretKey, passPhrase, brokerId }) {
     await super.init();
     this.domain = domain;
     this.apiKey = apiKey;
     this.secretKey = secretKey;
     this.passPhrase = passPhrase;
+    this.brokerId = brokerId;
     return this;
   };
 
@@ -221,11 +223,14 @@ class OkexConnector extends ConnectorBase {
 
     const timeString = new Date().toISOString();
 
+    const clOrdId = `${this.brokerId}${dvalue.randomID(16)}`;
+    console.log('clOrdId:',clOrdId)
+
     const filterBody = {
       instId: body.instId,
       tdMode: body.tdMode,
       ccy: body.ccy,
-      clOrdId: body.clOrdId,
+      clOrdId,
       tag: body.tag,
       side: body.side,
       posSide: body.posSide,
