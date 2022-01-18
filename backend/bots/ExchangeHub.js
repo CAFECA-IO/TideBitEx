@@ -20,6 +20,7 @@ class ExchangeHub extends Bot {
           apiKey: this.config.okex.apiKey,
           secretKey: this.config.okex.secretKey,
           passPhrase: this.config.okex.passPhrase,
+          brokerId: this.config.okex.brokerId,
         })
       })
       .then(() => this);

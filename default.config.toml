@@ -15,6 +15,7 @@ domain = 'https://www.okex.com'
 apiKey = ''
 secretKey = ''
 passPhrase = ''
+brokerId = ''
 
 [database]
 
