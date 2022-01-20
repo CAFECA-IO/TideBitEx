@@ -11,7 +11,8 @@ debug = false
 type = "ethereum"
 
 [okex]
-domain = 'https://www.okex.com'
+domain = 'https://www.okx.com'
+wss = 'wss://ws.okx.com:8443/ws/v5/private'
 apiKey = ''
 secretKey = ''
 passPhrase = ''
