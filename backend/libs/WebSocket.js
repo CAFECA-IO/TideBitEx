@@ -6,7 +6,7 @@ class WebSocket {
     return this;
   }
 
-  init({ url = 'wss://ws.okx.com:8443/ws/v5/private', heartBeat = 25000 }) {
+  init({ url, heartBeat = 25000 }) {
     if (!url) throw new Error('Invalid input');
     this.url = url;
     this.heartBeatTime = heartBeat;
