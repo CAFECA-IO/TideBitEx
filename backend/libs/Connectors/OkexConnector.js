@@ -5,20 +5,26 @@ const dvalue = require('dvalue');
 const ResponseFormat = require('../ResponseFormat');
 const Codes = require('../../constants/Codes');
 const ConnectorBase = require('../ConnectorBase');
+const WebSocket = require('../WebSocket');
 
 class OkexConnector extends ConnectorBase {
   constructor ({ logger }) {
     super({ logger });
+    this.websocket = new WebSocket({ logger });
     return this;
   }
 
-  async init({ domain, apiKey, secretKey, passPhrase, brokerId }) {
+  async init({ domain, apiKey, secretKey, passPhrase, brokerId, wssPublic }) {
     await super.init();
     this.domain = domain;
     this.apiKey = apiKey;
     this.secretKey = secretKey;
     this.passPhrase = passPhrase;
     this.brokerId = brokerId;
+    this.okexWsChannels = {};
+    await this.websocket.init({ url: wssPublic, heartBeat: 31000});
+    this._okexWsEventListener();
+    this._subscribe();
     return this;
   };
 
@@ -356,5 +362,40 @@ class OkexConnector extends ConnectorBase {
     }
   }
   // trade api end
+
+  _okexWsEventListener() {
+    this.websocket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      // this.logger.log('_okexWsEventListener', data);
+      if (data.event) {
+        if (data.event === 'subscribe' && !this.okexWsChannels[JSON.stringify(data.arg)]) {
+          this.okexWsChannels[JSON.stringify(data.arg)] = {};
+        } else if (data.event === 'unsubscribe') {
+          delete this.okexWsChannels[JSON.stringify(data.arg)];
+        }
+      } else if (data.data) {
+        this.okexWsChannels[JSON.stringify(data.arg)] = data.data;
+      }
+      console.log('!!!this.okexWsChannels:', this.okexWsChannels);
+      this.websocket.heartbeat();
+    };
+  }
+
+  _subscribe() {
+    const spotTricks = {
+      "op": "subscribe",
+      "args": [
+        {
+          "channel": "candle1D",
+          "instId": "ETH-USDT"
+        },
+        {
+          "channel": "candle1D",
+          "instId": "BTC-USDT"
+        },
+      ]
+    };
+    this.websocket.ws.send(JSON.stringify(spotTricks));
+  }
 }
 module.exports = OkexConnector;
