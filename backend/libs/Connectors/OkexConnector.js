@@ -22,9 +22,9 @@ class OkexConnector extends ConnectorBase {
     this.passPhrase = passPhrase;
     this.brokerId = brokerId;
     this.okexWsChannels = {};
-    await this.websocket.init({ url: wssPublic, heartBeat: 31000});
+    await this.websocket.init({ url: wssPublic, heartBeat: 25000});
     this._okexWsEventListener();
-    this._subscribe();
+    this._subscribeInstruments();
     return this;
   };
 
@@ -367,35 +367,74 @@ class OkexConnector extends ConnectorBase {
     this.websocket.onmessage = (event) => {
       const data = JSON.parse(event.data);
       // this.logger.log('_okexWsEventListener', data);
-      if (data.event) {
-        if (data.event === 'subscribe' && !this.okexWsChannels[JSON.stringify(data.arg)]) {
-          this.okexWsChannels[JSON.stringify(data.arg)] = {};
+      if (data.event) { // subscribe return
+        const arg = {...data.arg};
+        const channel = arg.channel;
+        delete arg.channel;
+        const values = Object.values(arg);
+        if (data.event === 'subscribe') {
+          this.okexWsChannels[channel] = this.okexWsChannels[channel] || {};
+          this.okexWsChannels[channel][values[0]] = this.okexWsChannels[channel][values[0]] || {};
         } else if (data.event === 'unsubscribe') {
-          delete this.okexWsChannels[JSON.stringify(data.arg)];
+          delete this.okexWsChannels[channel][values[0]];
+          if (!Object.keys(this.okexWsChannels[channel]).length) {
+            delete this.okexWsChannels[channel];
+          }
         }
-      } else if (data.data) {
-        this.okexWsChannels[JSON.stringify(data.arg)] = data.data;
+      } else if (data.data) { // okex server push data
+        const arg = {...data.arg};
+        const channel = arg.channel;
+        delete arg.channel;
+        const values = Object.values(arg);
+        if (channel === 'instruments'
+        && (!this.okexWsChannels[channel][values[0]] || Object.keys(this.okexWsChannels[channel][values[0]]).length === 0)) {
+          const instIds = [];
+          // subscribe trades of BTC, ETH, USDT
+          data.data.forEach((inst) => {
+            if (
+              (
+                inst.instId.includes('BTC')
+                || inst.instId.includes('ETH')
+                || inst.instId.includes('USDT')
+              ) && (
+                !this.okexWsChannels['trades']
+                || !this.okexWsChannels['trades'][inst.instId]
+              )
+            ) {
+              instIds.push(inst.instId);
+            }
+          });
+          this._subscribeTrades(instIds);
+        }
+        this.okexWsChannels[channel][values[0]] = data.data;
       }
-      console.log('!!!this.okexWsChannels:', this.okexWsChannels);
       this.websocket.heartbeat();
     };
   }
 
-  _subscribe() {
-    const spotTricks = {
+  _subscribeInstruments() {
+    const instruments = {
       "op": "subscribe",
       "args": [
         {
-          "channel": "candle1D",
-          "instId": "ETH-USDT"
-        },
-        {
-          "channel": "candle1D",
-          "instId": "BTC-USDT"
-        },
+          "channel" : "instruments",
+          "instType": "SPOT"
+        }
       ]
     };
-    this.websocket.ws.send(JSON.stringify(spotTricks));
+    this.websocket.ws.send(JSON.stringify(instruments));
+  }
+
+  _subscribeTrades(instIds) {
+    const args = instIds.map(instId => ({
+      channel: 'trades',
+      instId
+    }));
+    this.logger.debug('_subscribeTrades', args)
+    this.websocket.ws.send(JSON.stringify({
+      op: 'subscribe',
+      args
+    }));
   }
 }
 module.exports = OkexConnector;
