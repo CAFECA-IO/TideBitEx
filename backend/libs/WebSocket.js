@@ -1,12 +1,14 @@
 const ws = require('ws');
 
+const HEART_BEAT_TIME = 25000;
+
 class WebSocket {
   constructor({ logger }) {
     this.logger = logger;
     return this;
   }
 
-  init({ url, heartBeat = 25000 }) {
+  init({ url, heartBeat = HEART_BEAT_TIME }) {
     if (!url) throw new Error('Invalid input');
     this.url = url;
     this.heartBeatTime = heartBeat;

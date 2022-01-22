@@ -7,6 +7,8 @@ const Codes = require('../../constants/Codes');
 const ConnectorBase = require('../ConnectorBase');
 const WebSocket = require('../WebSocket');
 
+const HEART_BEAT_TIME = 25000;
+
 class OkexConnector extends ConnectorBase {
   constructor ({ logger }) {
     super({ logger });
@@ -22,7 +24,7 @@ class OkexConnector extends ConnectorBase {
     this.passPhrase = passPhrase;
     this.brokerId = brokerId;
     this.okexWsChannels = {};
-    await this.websocket.init({ url: wssPublic, heartBeat: 25000});
+    await this.websocket.init({ url: wssPublic, heartBeat: HEART_BEAT_TIME});
     this._okexWsEventListener();
     this._subscribeInstruments();
     return this;
