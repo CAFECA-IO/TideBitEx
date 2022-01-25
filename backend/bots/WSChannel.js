@@ -1,11 +1,14 @@
 const path = require('path');
 const url = require('url');
 const WebSocket = require('ws');
+const Codes = require('../constants/Codes');
+const ResponseFormat = require('../libs/ResponseFormat');
 
 const Bot = require(path.resolve(__dirname, 'Bot.js'));
 
 class WSChannel extends Bot {
-  _client = [];
+  _client = {};
+  _channelClients = {};
   constructor() {
     super();
     this.name = 'WSChannel';
@@ -27,7 +30,8 @@ class WSChannel extends Bot {
     })
     .then((servers) => {
       this.WebSocket = new WebSocket.Server({
-        noServer: true
+        noServer: true,
+        clientTracking: true,
       });
       Object.values(servers).map(s => {
         s.on('upgrade', (request, socket, head) => {
@@ -41,35 +45,87 @@ class WSChannel extends Bot {
     })
     .then((wss) => {
       wss.on('connection', (ws, req) => {
-        this._client.push(ws);
-        // console.log(req.headers);
+        ws.id = req.headers['sec-websocket-key'];
+        this._client[ws.id] = {
+          ws,
+          channel: '',
+          isStart: false,
+        };
+        this.logger.debug('ws.id', ws.id);
+        // this.logger.debug(req.headers);
         let ip = req.headers['x-forwarded-for'] ?
           req.headers['x-forwarded-for'].split(/\s*,\s*/)[0] :
           req.headers['host'] ?
             req.headers['host'].split(/\s*,\s*/)[0] :
             'unknown';
 
-        // console.log('HI', ip);
+        this.logger.debug('HI', ip);
         ws.on('message', (message) => {
-          // console.log('received: %s', message);
+          this.logger.debug('received: %s', message);
+          const { op, args } = JSON.parse((message));
+          if (!op || !args || !args.instId) {
+            ws.send(JSON.stringify(new ResponseFormat({
+              message: 'Invalid Input WebSocket Data.',
+              code: Codes.INVALID_INPUT_WEBSOCKET_DATA,
+            })));
+            return;
+          }
+          switch(op) {
+            case 'switchTradingPair':
+              this._onOpSwitchTradingPair(ws, args);
+              break;
+            default:
+              ws.send(JSON.stringify(new ResponseFormat({
+                message: 'Invalid Input WebSocket operatrion.',
+                code: Codes.INVALID_INPUT_WEBSOCKET_OPERATION,
+              })));
+          }
+          this.logger.debug('!!!!this._channelClients', this._channelClients)
         });
         ws.on('close', () => {
-          // console.log('disconnected');
+          this.logger.debug('disconnected');
+          const findClient = this._client[ws.id];
+          delete this._channelClients[findClient.channel][ws.id]
+          delete this._client[ws.id];
+          this.logger.debug('this._channelClients', this._channelClients)
         });
       });
     });
   }
 
-  broadcast({ type, data }) {
-    // new job
-    // job taken
-    // job release
-    // job expired
+  _onOpSwitchTradingPair(ws, args) {
+    const findClient = this._client[ws.id];
+    if (!findClient.isStart) {
+      findClient.channel = args.instId;
+      findClient.isStart = true;
+
+      // add channel-client map
+      if (!this._channelClients[args.instId]) {
+        this._channelClients[args.instId] = {};
+      }
+      this._channelClients[args.instId][ws.id] = ws;
+    } else {
+      const oldChannel = findClient.channel;
+      delete this._channelClients[oldChannel][ws.id];
+
+      findClient.channel = args.instId;
+      if (!this._channelClients[args.instId]) {
+        this._channelClients[args.instId] = {};
+      }
+      this._channelClients[args.instId][ws.id] = ws;
+    }
+  }
+
+  broadcast(isdtId, { type, data }) {
     const msg = JSON.stringify({ type, data });
     // this.WebSocket.send(msg);
-    this._client.map((ws) => {
-      ws.send(msg);
-    });
+    const channel = this._channelClients[isdtId];
+    if (channel) {
+      const clients = Object.values(channel);
+      clients.map((ws) => {
+        ws.send(msg);
+      })
+    }
   }
 }
 
