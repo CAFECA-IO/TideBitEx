@@ -71,9 +71,6 @@ class WSChannel extends Bot {
             return;
           }
           switch(op) {
-            case 'start':
-              this._onOpStart(ws, args);
-              break;
             case 'switchTradingPair':
               this._onOpSwitchTradingPair(ws, args);
               break;
@@ -94,25 +91,6 @@ class WSChannel extends Bot {
         });
       });
     });
-  }
-
-  _onOpStart(ws, args) {
-    const findClient = this._client[ws.id];
-    if (!findClient.isStart) {
-      findClient.channel = args.instId;
-      findClient.isStart = true;
-
-      // add channel-client map
-      if (!this._channelClients[args.instId]) {
-        this._channelClients[args.instId] = {};
-      }
-      this._channelClients[args.instId][ws.id] = ws;
-    } else {
-      ws.send(JSON.stringify(new ResponseFormat({
-        message: 'WebSocket already started.',
-        code: Codes.WEBSOCKET_ALREADY_STARTED,
-      })));
-    }
   }
 
   _onOpSwitchTradingPair(ws, args) {
