@@ -138,17 +138,16 @@ class WSChannel extends Bot {
     }
   }
 
-  broadcast({ type, data }) {
-    // new job
-    // job taken
-    // job release
-    // job expired
+  broadcast(isdtId, { type, data }) {
     const msg = JSON.stringify({ type, data });
     // this.WebSocket.send(msg);
-    const clients = Object.values(this._client);
-    clients.map((ws) => {
-      ws.send(msg);
-    });
+    const channel = this._channelClients[isdtId];
+    if (channel) {
+      const clients = Object.values(channel);
+      clients.map((ws) => {
+        ws.send(msg);
+      })
+    }
   }
 }
 
