@@ -42,14 +42,14 @@ class MockApis extends Bot {
   pairOnUpdate() {
     setInterval(() => {
       const icon = `https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@9ab8d6934b83a4aa8ae5e8711609a70ca0ab1b2b/32/icon/bcd.png`;
-      const newPrice = ((Math.floor(Math.random() * 1000)) / 1000000).toString();
+      const newPrice = ((Math.floor(Math.random() * 1000 + 1)) / 1000000).toString();
       const change = this.lastPrice ? ((1 - parseFloat(newPrice) / parseFloat(this.lastPrice)) * 100).toFixed(8) + '%' : '0.00000000%';
       this.lastPrice = newPrice;
       const pcdl = [
-        ((Math.floor(Math.random() * 1000)) / 1000000).toString(),
-        ((Math.floor(Math.random() * 1000)) / 1000000).toString(),
-        ((Math.floor(Math.random() * 1000)) / 1000000).toString(),
-        ((Math.floor(Math.random() * 1000)) / 1000000).toString(),
+        ((Math.floor(Math.random() * 1000 + 1)) / 1000000).toString(),
+        ((Math.floor(Math.random() * 1000 + 1)) / 1000000).toString(),
+        ((Math.floor(Math.random() * 1000 + 1)) / 1000000).toString(),
+        ((Math.floor(Math.random() * 1000 + 1)) / 1000000).toString(),
         newPrice
       ];
       const high = ([...pcdl].sort((a,b) => b-a))[0];
