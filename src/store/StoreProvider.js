@@ -2,9 +2,14 @@ import React, { useEffect, useCallback, useMemo, useState } from "react";
 import Middleman from "../modal/Middleman";
 import StoreContext from "./store-context";
 
+// const wsServer = "wss://exchange.tidebit.network/ws/v1";
+const wsServer = "ws://127.0.0.1";
+const wsClient = new WebSocket(wsServer);
+
 const StoreProvider = (props) => {
   const middleman = useMemo(() => new Middleman(), []);
   const [tickers, setTickers] = useState([]);
+  const [wsConnected, setWsConnected] = useState(false);
   const [pendingOrders, setPendingOrders] = useState([]);
   const [closeOrders, setCloseOrders] = useState([]);
   const [orderHistories, setOrderHistories] = useState([]);
@@ -131,12 +136,58 @@ const StoreProvider = (props) => {
   );
 
   useEffect(() => {
+    if (wsConnected && selectedTicker) {
+      console.log(`wsClient switchTradingPair`, selectedTicker.instId);
+      wsClient.send(
+        JSON.stringify({
+          op: "switchTradingPair",
+          args: {
+            instId: selectedTicker.instId,
+          },
+        })
+      );
+    }
+  }, [wsConnected, selectedTicker]);
+
+  useEffect(() => {
     if (!tickers.length) {
       getTickers();
       getPendingOrders();
       getCloseOrders();
       // getBalances("BTC,ETH,USDT");
       getBalances();
+      wsClient.addEventListener("open", function () {
+        console.log("連結建立成功。");
+        setWsConnected(true);
+      });
+      wsClient.addEventListener("close", function () {
+        console.log("連結關閉。");
+        setWsConnected(false);
+      });
+      wsClient.addEventListener("message", (msg) => {
+        let metaData = JSON.parse(msg.data);
+        switch (metaData.type) {
+          case "pairOnUpdate":
+            console.log("pairOnUpdate");
+            console.log(metaData.data);
+            break;
+          case "tradeDataOnUpdate":
+            console.log("tradeDataOnUpdate");
+            console.log(metaData.data);
+            break;
+          case "orderOnUpdate":
+            console.log("orderOnUpdate");
+            console.log(metaData.data);
+            break;
+          case "candleOnUpdate":
+            console.log("candleOnUpdate");
+            console.log(metaData.data);
+            break;
+          default:
+            console.log("default");
+            console.log(metaData.data);
+        }
+      });
     }
   }, [tickers, getTickers, getPendingOrders, getCloseOrders, getBalances]);
 

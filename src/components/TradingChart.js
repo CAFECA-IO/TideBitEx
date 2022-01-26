@@ -20,15 +20,14 @@ const TradingChart = (props) => {
   );
 
   useEffect(() => {
-    if (storeCtx?.selectedTicker) {
+    if (storeCtx?.selectedTicker && !data?.length) {
       console.log(
-        `storeCtx.selectedTicker:${storeCtx?.selectedTicker?.instId}`,
-        storeCtx
+        `storeCtx.selectedTicker:${storeCtx?.selectedTicker?.instId}`
       );
       fetchData(storeCtx.selectedTicker);
     }
     return () => {};
-  }, [storeCtx.selectedTicker, fetchData, storeCtx]);
+  }, [storeCtx.selectedTicker, data?.length, fetchData]);
 
   return (
     <>

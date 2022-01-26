@@ -35,11 +35,11 @@ const OrderBook = (props) => {
   );
 
   useEffect(() => {
-    if (storeCtx?.selectedTicker) {
+    if (storeCtx?.selectedTicker && !books?.length) {
       fetchBooks(storeCtx.selectedTicker);
     }
     return () => {};
-  }, [storeCtx?.selectedTicker, fetchBooks]);
+  }, [storeCtx.selectedTicker, books?.length, fetchBooks]);
 
   return (
     <>
