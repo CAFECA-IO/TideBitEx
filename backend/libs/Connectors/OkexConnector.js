@@ -33,6 +33,7 @@ class OkexConnector extends ConnectorBase {
     this._subscribeInstruments();
     this._subscribeBook('BCD-BTC');
     this._subscribeCandle1m('BCD-BTC');
+    this._subscribeTickers('BCD-BTC');
   }
 
   async okAccessSign({ timeString, method, path, body }) {
@@ -380,6 +381,9 @@ class OkexConnector extends ConnectorBase {
         delete arg.channel;
         const values = Object.values(arg);
         if (data.event === 'subscribe') {
+          if (channel === 'tickers') {
+            console.log('data', data)
+          }
           this.okexWsChannels[channel] = this.okexWsChannels[channel] || {};
           this.okexWsChannels[channel][values[0]] = this.okexWsChannels[channel][values[0]] || {};
         } else if (data.event === 'unsubscribe') {
@@ -407,6 +411,9 @@ class OkexConnector extends ConnectorBase {
             break;
           case 'candle1m':
             this._updateCandle1m(values[0], data.data);
+            break;
+          case 'tickers':
+            this._updateTickers(values[0], data.data);
             break;
           default:
         }
@@ -457,6 +464,12 @@ class OkexConnector extends ConnectorBase {
     // this.logger.debug(`[${this.constructor.name}]_updateCandle1m`, instId, candleData);
   }
 
+  _updateTickers(instId, tickerData) {
+    const channel = 'tickers';
+    this.okexWsChannels[channel][instId] = tickerData;
+    // this.logger.debug(`[${this.constructor.name}]_updateTickers`, instId, tickerData);
+  }
+
   _subscribeInstruments() {
     const instruments = {
       "op": "subscribe",
@@ -501,6 +514,18 @@ class OkexConnector extends ConnectorBase {
       instId
     }];
     this.logger.debug(`[${this.constructor.name}]_subscribeCandle1m`, args)
+    this.websocket.ws.send(JSON.stringify({
+      op: 'subscribe',
+      args
+    }));
+  }
+
+  _subscribeTickers(instId) {
+    const args = [{
+      channel: 'tickers',
+      instId
+    }];
+    this.logger.debug(`[${this.constructor.name}]_subscribeTickers`, args)
     this.websocket.ws.send(JSON.stringify({
       op: 'subscribe',
       args
