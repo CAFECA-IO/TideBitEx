@@ -32,6 +32,7 @@ class OkexConnector extends ConnectorBase {
     this._okexWsEventListener();
     this._subscribeInstruments();
     this._subscribeBook('BCD-BTC');
+    this._subscribeCandle1m('BCD-BTC');
   }
 
   async okAccessSign({ timeString, method, path, body }) {
@@ -404,6 +405,9 @@ class OkexConnector extends ConnectorBase {
               this._updateBooks(values[0], data.data);
             }
             break;
+          case 'candle1m':
+            this._updateCandle1m(values[0], data.data);
+            break;
           default:
         }
       }
@@ -447,6 +451,12 @@ class OkexConnector extends ConnectorBase {
     // this.logger.debug(`[${this.constructor.name}]_updateBooks`, instId, bookData);
   }
 
+  _updateCandle1m(instId, candleData) {
+    const channel = 'candle1m';
+    this.okexWsChannels[channel][instId] = candleData;
+    // this.logger.debug(`[${this.constructor.name}]_updateCandle1m`, instId, candleData);
+  }
+
   _subscribeInstruments() {
     const instruments = {
       "op": "subscribe",
@@ -479,6 +489,18 @@ class OkexConnector extends ConnectorBase {
       instId
     }];
     this.logger.debug(`[${this.constructor.name}]_subscribeBook`, args)
+    this.websocket.ws.send(JSON.stringify({
+      op: 'subscribe',
+      args
+    }));
+  }
+
+  _subscribeCandle1m(instId) {
+    const args = [{
+      channel: 'candle1m',
+      instId
+    }];
+    this.logger.debug(`[${this.constructor.name}]_subscribeCandle1m`, args)
     this.websocket.ws.send(JSON.stringify({
       op: 'subscribe',
       args
