@@ -64,40 +64,76 @@ class Middleman {
     }
   }
 
+  handleBooks(books) {
+    let totalAsks = "0",
+      totalBids = "0";
+    const asks = books.asks
+      ?.sort((a, b) => +a[0] - +b[0])
+      ?.map((d) => {
+        totalAsks = SafeMath.plus(SafeMath.plus(d[2], d[3]), totalAsks);
+        return {
+          price: d[0],
+          amount: SafeMath.plus(d[2], d[3]),
+          total: totalAsks,
+        };
+      })
+      ?.sort((a, b) => +b.price - +a.price);
+    const bids = books.bids
+      ?.sort((a, b) => +b[0] - +a[0])
+      ?.map((d) => {
+        totalBids = SafeMath.plus(SafeMath.plus(d[2], d[3]), totalBids);
+        return {
+          price: d[0],
+          amount: SafeMath.plus(d[2], d[3]),
+          total: totalBids,
+        };
+      });
+    const updateBooks = {
+      ...this.books,
+      asks,
+      bids,
+    };
+    return updateBooks;
+  }
+
+  updateBooks(orders) {
+    console.log(`updateBooks this.books`, this.books);
+    console.log(`updateBooks orders`, orders);
+    const asks = orders.asks
+      ?.map((order) => ({
+        ...order,
+        update: true,
+      }))
+      .concat(this.books?.asks || []);
+    const bids = orders.bids
+      ?.map((order) => ({
+        ...order,
+        update: true,
+      }))
+      .concat(this.books?.bids || []);
+    const updateBooks = {
+      ...this.books,
+      asks,
+      bids,
+    };
+    // this.books = this.books = this.handleBooks(updateBooks);
+    // return this.books;
+  }
+
   async getBooks(instId, sz) {
     try {
       const rawBooks = await this.communicator.books(instId, sz);
-      let totalAsks = "0",
-        totalBids = "0";
-      const asks = rawBooks[0].asks
-        .sort((a, b) => +a[0] - +b[0])
-        .map((d) => {
-          totalAsks = SafeMath.plus(SafeMath.plus(d[2], d[3]), totalAsks);
-          return {
-            price: d[0],
-            amount: SafeMath.plus(d[2], d[3]),
-            total: totalAsks,
-          };
-        })
-        .sort((a, b) => +b.price - +a.price);
-      const bids = rawBooks[0].bids
-        .sort((a, b) => +b[0] - +a[0])
-        .map((d) => {
-          totalBids = SafeMath.plus(SafeMath.plus(d[2], d[3]), totalBids);
-          return {
-            price: d[0],
-            amount: SafeMath.plus(d[2], d[3]),
-            total: totalBids,
-          };
-        });
+      console.log(`getBooks rawBooks`, rawBooks)
+      const asks = rawBooks[0].asks;
+      const bids = rawBooks[0].bids;
       const books = {
         asks,
         bids,
         ts: rawBooks[0].ts,
       };
-      console.log(`rawBooks`, rawBooks);
-      console.log(`books`, books);
-      return books;
+      console.log(`getBooks books`, books)
+      this.books = this.handleBooks(books);
+      return this.books;
     } catch (error) {
       throw error;
     }
@@ -109,7 +145,7 @@ class Middleman {
         ...trade,
         px: trade.price,
         sz: trade.size,
-        ts: trade.timestamp.toString(),
+        ts: trade.timestamp,
         tradeId: trade.tradeId.toString(),
         update: true,
       }))

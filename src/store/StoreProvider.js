@@ -199,14 +199,12 @@ const StoreProvider = (props) => {
           if (updateTickers) setTickers(updateTickers);
           break;
         case "tradeDataOnUpdate":
-          // console.log("tradeDataOnUpdate");
-          // console.log(metaData.data);
           const updateTrades = middleman.updateTrades(metaData.data);
           setTrades(updateTrades);
           break;
         case "orderOnUpdate":
-          // console.log("orderOnUpdate");
-          // console.log(metaData.data);
+          const updateBooks = middleman.updateBooks(metaData.data);
+          setBooks(updateBooks);
           break;
         case "candleOnUpdate":
           // console.log("candleOnUpdate");
