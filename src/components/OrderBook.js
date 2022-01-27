@@ -1,4 +1,4 @@
-import React, { useEffect, useContext, useCallback, useState } from "react";
+import React, { useContext, useEffect } from "react";
 import StoreContext from "../store/store-context";
 import SafeMath from "../utils/SafeMath";
 import { formateDecimal } from "../utils/Utils";
@@ -24,22 +24,9 @@ const BookTile = (props) => {
 
 const OrderBook = (props) => {
   const storeCtx = useContext(StoreContext);
-  const [books, setBooks] = useState(null);
-
-  const fetchBooks = useCallback(
-    async (selectedTicker) => {
-      const books = await storeCtx.getBooks(selectedTicker.instId);
-      setBooks(books);
-    },
-    [storeCtx]
-  );
-
   useEffect(() => {
-    if (storeCtx?.selectedTicker) {
-      fetchBooks(storeCtx.selectedTicker);
-    }
-    return () => {};
-  }, [storeCtx?.selectedTicker, fetchBooks]);
+    console.log(`storeCtx.books`, storeCtx.books);
+  }, [storeCtx.books]);
 
   return (
     <>
@@ -54,15 +41,15 @@ const OrderBook = (props) => {
             </tr>
           </thead>
           <tbody className="order-book-asks">
-            {books &&
-              books.asks.map((book, index) => (
+            {storeCtx.books?.asks &&
+              storeCtx.books.asks.map((book, index) => (
                 <BookTile
                   type="asks"
                   book={book}
                   key={`asks-${storeCtx.selectedTicker.instId}-${index}`}
                   dataWidth={`${parseFloat(
                     SafeMath.mult(
-                      SafeMath.div(book.total, books.asks[0].total),
+                      SafeMath.div(book.total, storeCtx.books.asks[0].total),
                       "100"
                     )
                   ).toFixed(18)}%`}
@@ -89,15 +76,21 @@ const OrderBook = (props) => {
                 >
                   <span>Change</span>
                   {SafeMath.gt(storeCtx.selectedTicker.change, "0")
-                    ? `+${formateDecimal(storeCtx.selectedTicker.change, 3)}%`
-                    : `${formateDecimal(storeCtx.selectedTicker.change, 3)}%`}
+                    ? `+${formateDecimal(
+                        storeCtx.selectedTicker.changePct,
+                        3
+                      )}%`
+                    : `${formateDecimal(
+                        storeCtx.selectedTicker.changePct,
+                        3
+                      )}%`}
                 </td>
               </tr>
             </tbody>
           )}
           <tbody>
-            {books &&
-              books.bids.map((book, index) => (
+            {storeCtx.books?.bids &&
+              storeCtx.books.bids.map((book, index) => (
                 <BookTile
                   type="bids"
                   book={book}
@@ -106,7 +99,8 @@ const OrderBook = (props) => {
                     SafeMath.mult(
                       SafeMath.div(
                         book.total,
-                        books.bids[books.bids.length - 1].total
+                        storeCtx.books.bids[storeCtx.books.bids.length - 1]
+                          .total
                       ),
                       "100"
                     )

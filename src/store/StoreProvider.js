@@ -2,34 +2,23 @@ import React, { useEffect, useCallback, useMemo, useState } from "react";
 import Middleman from "../modal/Middleman";
 import StoreContext from "./store-context";
 
+// const wsServer = "wss://exchange.tidebit.network/ws/v1";
+const wsServer = "ws://127.0.0.1";
+const wsClient = new WebSocket(wsServer);
+
 const StoreProvider = (props) => {
   const middleman = useMemo(() => new Middleman(), []);
+  const [wsConnected, setWsConnected] = useState(false);
   const [tickers, setTickers] = useState([]);
+  const [books, setBooks] = useState(null);
+  const [trades, setTrades] = useState([]);
+  const [candles, setCandles] = useState([]);
+  const [selectedBar, setSelectedBar] = useState("1D");
   const [pendingOrders, setPendingOrders] = useState([]);
   const [closeOrders, setCloseOrders] = useState([]);
   const [orderHistories, setOrderHistories] = useState([]);
   const [balances, setBalances] = useState([]);
   const [selectedTicker, setSelectedTicker] = useState(null);
-
-  const selectTickerHandler = useCallback((ticker) => {
-    // if (ticker?.instId !== selectedTicker?.instId) {
-    setSelectedTicker(ticker);
-    // }
-  }, []);
-
-  const getTickers = useCallback(
-    async (instType = "SPOT", from = 0, limit = 100) => {
-      try {
-        const result = await middleman.getTickers(instType, from, limit);
-        console.log(`getTickers result`, result);
-        setTickers(result);
-        if (selectedTicker === null) selectTickerHandler(result[0]);
-      } catch (error) {
-        return Promise.reject({ message: error });
-      }
-    },
-    [middleman, selectTickerHandler, selectedTicker]
-  );
 
   const getBooks = useCallback(
     async (instId, sz = 100) => {
@@ -71,6 +60,47 @@ const StoreProvider = (props) => {
       }
     },
     [middleman]
+  );
+
+  const candleBarHandler = useCallback(
+    async (bar) => {
+      if (bar !== selectedBar) {
+        setSelectedBar(bar);
+        const candles = await getCandles(selectedTicker?.instId, bar);
+        setCandles(candles);
+      }
+    },
+    [getCandles, selectedBar, selectedTicker?.instId]
+  );
+
+  const selectTickerHandler = useCallback(
+    async (ticker) => {
+      setSelectedTicker(ticker);
+      middleman.updateSelectedTicker(ticker);
+      if (ticker?.instId !== selectedTicker?.instId) {
+        const books = await getBooks(ticker?.instId);
+        setBooks(books);
+        const trades = await getTrades(ticker?.instId);
+        setTrades(trades);
+        const candles = await getCandles(ticker?.instId, selectedBar);
+        setCandles(candles);
+      }
+    },
+    [middleman, getBooks, getCandles, getTrades, selectedBar, selectedTicker]
+  );
+
+  const getTickers = useCallback(
+    async (instType = "SPOT", from = 0, limit = 100) => {
+      try {
+        const result = await middleman.getTickers(instType, from, limit);
+        console.log(`getTickers result`, result);
+        setTickers(result);
+        if (selectedTicker === null) selectTickerHandler(result[0]);
+      } catch (error) {
+        return Promise.reject({ message: error });
+      }
+    },
+    [middleman, selectTickerHandler, selectedTicker]
   );
 
   const getPendingOrders = useCallback(
@@ -131,19 +161,70 @@ const StoreProvider = (props) => {
   );
 
   useEffect(() => {
-    if (!tickers.length) {
-      getTickers();
-      getPendingOrders();
-      getCloseOrders();
-      // getBalances("BTC,ETH,USDT");
-      getBalances();
+    if (wsConnected && selectedTicker) {
+      console.log(`wsClient switchTradingPair`, selectedTicker.instId);
+      wsClient.send(
+        JSON.stringify({
+          op: "switchTradingPair",
+          args: {
+            instId: selectedTicker.instId,
+          },
+        })
+      );
     }
-  }, [tickers, getTickers, getPendingOrders, getCloseOrders, getBalances]);
+  }, [wsConnected, selectedTicker]);
+
+  useEffect(() => {
+    getTickers();
+    getPendingOrders();
+    getCloseOrders();
+    // getBalances("BTC,ETH,USDT");
+    getBalances();
+    wsClient.addEventListener("open", function () {
+      console.log("連結建立成功。");
+      setWsConnected(true);
+    });
+    wsClient.addEventListener("close", function () {
+      console.log("連結關閉。");
+      setWsConnected(false);
+    });
+    wsClient.addEventListener("message", (msg) => {
+      let metaData = JSON.parse(msg.data);
+      switch (metaData.type) {
+        case "pairOnUpdate":
+          const { updateTicker, updateTickers } = middleman.updateTickers(
+            metaData.data
+          );
+          if (updateTicker) setSelectedTicker(updateTicker);
+          if (updateTickers) setTickers(updateTickers);
+          break;
+        case "tradeDataOnUpdate":
+          const updateTrades = middleman.updateTrades(metaData.data);
+          setTrades(updateTrades);
+          break;
+        case "orderOnUpdate":
+          const updateBooks = middleman.updateBooks(metaData.data);
+          setBooks(updateBooks);
+          break;
+        case "candleOnUpdate":
+          // console.log("candleOnUpdate");
+          // console.log(metaData.data);
+          break;
+        default:
+          console.log("default");
+          console.log(metaData.data);
+      }
+    });
+  }, []);
 
   return (
     <StoreContext.Provider
       value={{
         tickers,
+        books,
+        trades,
+        candles,
+        selectedBar,
         pendingOrders,
         closeOrders,
         orderHistories,
@@ -154,6 +235,7 @@ const StoreProvider = (props) => {
         getBooks,
         getTrades,
         getCandles,
+        candleBarHandler,
         getPendingOrders,
         getCloseOrders,
         getBalances,

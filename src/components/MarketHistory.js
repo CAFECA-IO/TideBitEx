@@ -1,12 +1,12 @@
-import React, { useEffect, useContext, useState, useCallback } from "react";
+import React, { useContext } from "react";
 import { Tabs, Tab } from "react-bootstrap";
 import StoreContext from "../store/store-context";
 import { dateFormatter, formateDecimal } from "../utils/Utils";
 
 const TradeTile = (props) => {
   return (
-    <tr>
-      <td>{dateFormatter(parseInt(props.trade.ts)).time}</td>
+    <tr className={`${props.trade.update ? "update" : ""}`}>
+      <td>{dateFormatter(parseInt(props.trade.ts.toString())).time}</td>
       <td className={props.trade.side === "buy" ? "red" : "green"}>
         {formateDecimal(props.trade.px, 8)}
       </td>
@@ -17,24 +17,6 @@ const TradeTile = (props) => {
 
 const MarketHistory = (props) => {
   const storeCtx = useContext(StoreContext);
-  const [trades, setTrades] = useState(null);
-
-  const fetchTrades = useCallback(
-    async (selectedTicker) => {
-      const trades = await storeCtx.getTrades(selectedTicker.instId);
-      // console.log(`trades`, trades);
-      setTrades(trades);
-    },
-    [storeCtx]
-  );
-
-  useEffect(() => {
-    if (storeCtx?.selectedTicker) {
-      fetchTrades(storeCtx.selectedTicker);
-    }
-    return () => {};
-  }, [storeCtx?.selectedTicker, fetchTrades]);
-
   return (
     <>
       <div className="market-history">
@@ -53,8 +35,8 @@ const MarketHistory = (props) => {
                 </tr>
               </thead>
               <tbody>
-                {trades &&
-                  trades.map((trade) => (
+                {storeCtx.trades &&
+                  storeCtx.trades.map((trade) => (
                     <TradeTile
                       trade={trade}
                       key={`${trade.instId}-${trade.tradeId}`}

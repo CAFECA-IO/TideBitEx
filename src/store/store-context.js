@@ -3,6 +3,10 @@ import React from "react";
 const StoreContext = React.createContext({
   selectedTicker: null,
   tickers: [],
+  books: [],
+  trades: [],
+  candles: [],
+  selectedBar: null,
   pendingOrders: [],
   closeOrders: [],
   orderHistories: [],
@@ -73,7 +77,7 @@ const StoreContext = React.createContext({
    * @param {String} limit The maximum is 300. The default is 100.
    * @returns {Promise<Array<Array<String>>>}
    */
-  getCandles: async (instId, bar, after, before, limit) => {},
+  candleBarHandler: async (instId, bar, after, before, limit) => {},
   /**
    * @typedef {Object} PendingOrder
    * @property {string} accFillSz
