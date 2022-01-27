@@ -4,6 +4,8 @@ const Bot = require(path.resolve(__dirname, 'Bot.js'));
 const OkexConnector = require('../libs/Connectors/OkexConnector');
 const ResponseFormat = require('../libs/ResponseFormat');
 const Codes = require('../constants/Codes');
+const EventBus = require('../libs/EventBus');
+const Events = require('../constants/Events');
 
 class ExchangeHub extends Bot {
   constructor() {
@@ -30,6 +32,7 @@ class ExchangeHub extends Bot {
   async start() {
     await super.start();
     await this.okexConnector.start();
+    this._eventListener();
     return this;
   }
 
@@ -66,6 +69,39 @@ class ExchangeHub extends Bot {
     return this.okexConnector.router('getOrderHistory', { params, query });
   }
   // trade api end
+
+  async _eventListener() {
+    const WSChannel = await this.getBot('WSChannel');
+    EventBus.on(Events.tradeDataOnUpdate, (instId, tradeData) => {
+      WSChannel.broadcast(
+        instId,
+        {
+          type: Events.tradeDataOnUpdate,
+          data: tradeData,
+        }
+      )
+    });
+
+    EventBus.on(Events.tradeDataOnUpdate, (instId, booksData) => {
+      WSChannel.broadcast(
+        instId,
+        {
+          type: Events.tradeDataOnUpdate,
+          data: booksData,
+        }
+      )
+    });
+
+    EventBus.on(Events.candleOnUpdate, (instId, formatCandle) => {
+      WSChannel.broadcast(
+        instId,
+        {
+          type: Events.candleOnUpdate,
+          data: formatCandle,
+        }
+      )
+    });
+  }
 }
 
 module.exports = ExchangeHub;

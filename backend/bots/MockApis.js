@@ -28,9 +28,9 @@ class MockApis extends Bot {
   async ready() {
     await super.ready();
     this.pairOnUpdate();
-    this.orderOnUpdate();
-    this.tradeDataOnUpdate();
-    this.candleOnUpdate()
+    // this.orderOnUpdate();
+    // this.tradeDataOnUpdate();
+    // this.candleOnUpdate()
     return this;
   }
 

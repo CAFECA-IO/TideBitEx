@@ -6,6 +6,8 @@ const ResponseFormat = require('../ResponseFormat');
 const Codes = require('../../constants/Codes');
 const ConnectorBase = require('../ConnectorBase');
 const WebSocket = require('../WebSocket');
+const EventBus = require('../EventBus');
+const Events = require('../../constants/Events');
 
 const HEART_BEAT_TIME = 25000;
 
@@ -381,9 +383,6 @@ class OkexConnector extends ConnectorBase {
         delete arg.channel;
         const values = Object.values(arg);
         if (data.event === 'subscribe') {
-          if (channel === 'tickers') {
-            console.log('data', data)
-          }
           this.okexWsChannels[channel] = this.okexWsChannels[channel] || {};
           this.okexWsChannels[channel][values[0]] = this.okexWsChannels[channel][values[0]] || {};
         } else if (data.event === 'unsubscribe') {
@@ -444,24 +443,80 @@ class OkexConnector extends ConnectorBase {
       this._subscribeTrades(instIds);
     }
     this.okexWsChannels[channel][instType] = instData;
+
+    // const formatPair = [];
+    // instData.forEach((inst) => {
+    //   formatPair.push({
+    //     instId: inst.instId,
+    //     baseCcy: inst.baseCcy,
+    //     baseCcyNm: inst.baseCcyNm,
+    //     baseCcyIc: inst.baseCcyIc,
+    //     quoteCcy: inst.quoteCcy,
+    //     last: "6.9409",
+    //     change: "0.0833",
+    //     open24h: "7.0488",
+    //     high24h: "7.2867",
+    //     low24h: "6.8723",
+    //     volCcy24h: "7819090",
+    //     vol24h: "7819090",
+    //     timestamp: 1642040940950,
+    //     openUtc0: "7.1132",
+    //     openUtc8: "7.1437"
+    //   });
+    // });
+    // EventBus.emit(Events.pairOnUpdate, formatPair);
   }
 
   _updateTrades(instId, tradeData) {
     const channel = 'trades';
+    // this.okexWsChannels[channel][instId] = tradeData[0];
     // this.logger.debug(`[${this.constructor.name}]_updateTrades`, instId, tradeData);
-    this.okexWsChannels[channel][instId] = tradeData[0];
+    const formatTrades = tradeData.map((data) => {
+      return {
+        price: data.px,
+        side: data.side,
+        size: data.sz,
+        timestamp: parseInt(data.ts),
+        tradeId: data.tradeId,
+      }
+    });
+    EventBus.emit(Events.tradeDataOnUpdate, instId, formatTrades);
   }
 
   _updateBooks(instId, bookData) {
     const channel = 'books';
-    this.okexWsChannels[channel][instId] = bookData;
+    // this.okexWsChannels[channel][instId] = bookData;
     // this.logger.debug(`[${this.constructor.name}]_updateBooks`, instId, bookData);
+    const formatBooks = bookData.map((data) => {
+      return {
+        instId,
+        asks: data.asks,
+        bids: data.bids,
+        timestamp: data.timestamp,
+      }
+    });
+    EventBus.emit(Events.orderOnUpdate, instId, formatBooks);
   }
 
   _updateCandle1m(instId, candleData) {
     const channel = 'candle1m';
     this.okexWsChannels[channel][instId] = candleData;
     // this.logger.debug(`[${this.constructor.name}]_updateCandle1m`, instId, candleData);
+    const formatCandle = candleData.map((data) => {
+      const formatData = [
+        parseInt(data[0]),
+        data[1],
+        data[2],
+        data[3],
+        data[4],
+        data[5],
+      ]
+      return {
+        instId,
+        candle: formatData
+      }
+    });
+    EventBus.emit(Events.candleOnUpdate, instId, formatCandle);
   }
 
   _updateTickers(instId, tickerData) {
@@ -472,11 +527,11 @@ class OkexConnector extends ConnectorBase {
 
   _subscribeInstruments() {
     const instruments = {
-      "op": "subscribe",
-      "args": [
+      op: "subscribe",
+      args: [
         {
-          "channel" : "instruments",
-          "instType": "SPOT"
+          channel: "instruments",
+          instType: "SPOT"
         }
       ]
     };
