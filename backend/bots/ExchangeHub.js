@@ -29,6 +29,7 @@ class ExchangeHub extends Bot {
 
   async start() {
     await super.start();
+    await this.okexConnector.start();
     return this;
   }
 
