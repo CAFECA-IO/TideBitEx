@@ -400,6 +400,9 @@ class OkexConnector extends ConnectorBase {
             this._updateTrades(values[0], data.data);
             break;
           case 'books':
+            if (data.action === 'update') { // there has 2 action, snapshot: full data; update: incremental data.
+              this._updateBooks(values[0], data.data);
+            }
             break;
           default:
         }
@@ -434,8 +437,14 @@ class OkexConnector extends ConnectorBase {
 
   _updateTrades(instId, tradeData) {
     const channel = 'trades';
-    this.logger.debug(`[${this.constructor.name}]_updateTrades`, instId, tradeData)
+    // this.logger.debug(`[${this.constructor.name}]_updateTrades`, instId, tradeData);
     this.okexWsChannels[channel][instId] = tradeData[0];
+  }
+
+  _updateBooks(instId, bookData) {
+    const channel = 'books';
+    this.okexWsChannels[channel][instId] = bookData;
+    // this.logger.debug(`[${this.constructor.name}]_updateBooks`, instId, bookData);
   }
 
   _subscribeInstruments() {
@@ -464,6 +473,7 @@ class OkexConnector extends ConnectorBase {
   }
 
   _subscribeBook(instId) {
+    // books: 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed every 100 ms when there is change in order book.
     const args = [{
       channel: 'books',
       instId
