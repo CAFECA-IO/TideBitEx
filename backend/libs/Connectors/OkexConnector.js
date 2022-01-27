@@ -31,6 +31,7 @@ class OkexConnector extends ConnectorBase {
   async start() {
     this._okexWsEventListener();
     this._subscribeInstruments();
+    this._subscribeBook('BCD-BTC');
   }
 
   async okAccessSign({ timeString, method, path, body }) {
@@ -462,5 +463,16 @@ class OkexConnector extends ConnectorBase {
     }));
   }
 
+  _subscribeBook(instId) {
+    const args = [{
+      channel: 'books',
+      instId
+    }];
+    this.logger.debug(`[${this.constructor.name}]_subscribeBook`, args)
+    this.websocket.ws.send(JSON.stringify({
+      op: 'subscribe',
+      args
+    }));
+  }
 }
 module.exports = OkexConnector;
