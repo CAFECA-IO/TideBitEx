@@ -20,78 +20,14 @@ const StoreProvider = (props) => {
   const [balances, setBalances] = useState([]);
   const [selectedTicker, setSelectedTicker] = useState(null);
 
-  const updateTickers = useCallback(
-    (updatePairs) => {
-      const updateTickers = [...tickers];
-      const updateIndexes = updatePairs.map((pair) => {
-        console.log(
-          `pair.instId `,
-          pair.instId,
-          `selectedTicker?.instId`,
-          selectedTicker?.instId
-        );
-        if (pair.instId === selectedTicker?.instId)
-          setSelectedTicker({ ...pair, update: true });
-        console.log(`tickers `, tickers);
-        const index = tickers.findIndex((ticker) => {
-          console.log(`ticker.instId `, ticker.instId, ticker);
-          return ticker.instId === pair.instId;
-        });
-        updateTickers[index] = { ...pair, update: true };
-        return index;
-      });
-      console.log(`updateIndexes`, updateIndexes);
-      setTickers(updateTickers);
-    },
-    [selectedTicker?.instId, tickers]
-  );
-
-  const updateTrades = useCallback(
-    (updateData) => {
-      const updateTrades = updateData
-        .map((trade) => ({ ...trade, update: true }))
-        .concat(trades);
-      setTrades(updateTrades);
-    },
-    [trades]
-  );
-
-  const initWebSocket = useCallback(() => {
-    wsClient.addEventListener("open", function () {
-      console.log("連結建立成功。");
-      setWsConnected(true);
-    });
-    wsClient.addEventListener("close", function () {
-      console.log("連結關閉。");
-      setWsConnected(false);
-    });
-    wsClient.addEventListener("message", (msg) => {
-      let metaData = JSON.parse(msg.data);
-      switch (metaData.type) {
-        case "pairOnUpdate":
-          console.log("pairOnUpdate");
-          updateTickers(metaData.data);
-          break;
-        case "tradeDataOnUpdate":
-          // console.log("tradeDataOnUpdate");
-          // console.log(metaData.data);
-          updateTrades(metaData.data);
-          break;
-        case "orderOnUpdate":
-          // console.log("orderOnUpdate");
-          // console.log(metaData.data);
-          break;
-        case "candleOnUpdate":
-          // console.log("candleOnUpdate");
-          // console.log(metaData.data);
-          break;
-        default:
-          console.log("default");
-          console.log(metaData.data);
-      }
-    });
-  }, [updateTickers, updateTrades]);
-
+  const updateTrades = (updateData) => {
+    console.log(`trades`, trades);
+    console.log(`updateTrades`, updateData);
+    const updateTrades = updateData
+      .map((trade) => ({ ...trade, update: true }))
+      .concat(trades);
+    setTrades(updateTrades);
+  };
   const getBooks = useCallback(
     async (instId, sz = 100) => {
       try {
@@ -148,6 +84,7 @@ const StoreProvider = (props) => {
   const selectTickerHandler = useCallback(
     async (ticker) => {
       setSelectedTicker(ticker);
+      middleman.updateSelectedTicker(ticker);
       if (ticker?.instId !== selectedTicker?.instId) {
         const books = await getBooks(ticker?.instId);
         setBooks(books);
@@ -157,7 +94,7 @@ const StoreProvider = (props) => {
         setCandles(candles);
       }
     },
-    [getBooks, getCandles, getTrades, selectedBar, selectedTicker]
+    [middleman, getBooks, getCandles, getTrades, selectedBar, selectedTicker]
   );
 
   const getTickers = useCallback(
@@ -251,7 +188,43 @@ const StoreProvider = (props) => {
     getCloseOrders();
     // getBalances("BTC,ETH,USDT");
     getBalances();
-    initWebSocket();
+    wsClient.addEventListener("open", function () {
+      console.log("連結建立成功。");
+      setWsConnected(true);
+    });
+    wsClient.addEventListener("close", function () {
+      console.log("連結關閉。");
+      setWsConnected(false);
+    });
+    wsClient.addEventListener("message", (msg) => {
+      let metaData = JSON.parse(msg.data);
+      switch (metaData.type) {
+        case "pairOnUpdate":
+          console.log("pairOnUpdate");
+          const { updateTicker, updateTickers } = middleman.updateTickers(
+            metaData.data
+          );
+          if (updateTicker) setSelectedTicker(updateTicker);
+          if (updateTickers) setTickers(updateTickers);
+          break;
+        case "tradeDataOnUpdate":
+          // console.log("tradeDataOnUpdate");
+          // console.log(metaData.data);
+          updateTrades(metaData.data);
+          break;
+        case "orderOnUpdate":
+          // console.log("orderOnUpdate");
+          // console.log(metaData.data);
+          break;
+        case "candleOnUpdate":
+          // console.log("candleOnUpdate");
+          // console.log(metaData.data);
+          break;
+        default:
+          console.log("default");
+          console.log(metaData.data);
+      }
+    });
   }, []);
 
   return (

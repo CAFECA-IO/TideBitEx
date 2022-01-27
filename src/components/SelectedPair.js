@@ -48,7 +48,10 @@ const SelectedPair = (props) => {
                 <span>
                   {!storeCtx.selectedTicker
                     ? "--"
-                    : SafeMath.minus(storeCtx.selectedTicker?.change, "100")}
+                    : formateDecimal(
+                        SafeMath.minus(storeCtx.selectedTicker?.change, "100"),
+                        3
+                      )}{" "}
                   {!storeCtx.selectedTicker
                     ? "--%"
                     : SafeMath.gt(storeCtx.selectedTicker?.change, "0")
@@ -56,7 +59,7 @@ const SelectedPair = (props) => {
                         storeCtx.selectedTicker?.changePct,
                         3
                       )}%`
-                    : `-${formateDecimal(
+                    : `${formateDecimal(
                         storeCtx.selectedTicker?.changePct,
                         3
                       )}%`}
