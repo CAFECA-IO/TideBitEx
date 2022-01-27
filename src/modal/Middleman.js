@@ -16,9 +16,13 @@ class Middleman {
         // pair: ticker.instId
         //   .split("-")
         //   .reduce((acc, curr, i) => (i === 0 ? `${curr}` : `${acc}/${curr}`), ""),
-        change: SafeMath.div(
-          SafeMath.minus(ticker.last, ticker.open24h),
-          ticker.open24h
+        change: SafeMath.minus(ticker.last, ticker.open24h),
+        changePct: SafeMath.mult(
+          SafeMath.div(
+            SafeMath.minus(ticker.last, ticker.open24h),
+            ticker.open24h
+          ),
+          "100"
         ),
       }));
       return tickers;

@@ -5,6 +5,7 @@ import MarketNews from "../components/MarketNews";
 import MarketPairs from "../components/MarketPairs";
 import MarketTrade from "../components/MarketTrade";
 import OrderBook from "../components/OrderBook";
+import SelectedPair from "../components/SelectedPair";
 import TradingChart from "../components/TradingChart";
 import { ThemeConsumer } from "../context/ThemeContext";
 
@@ -16,16 +17,23 @@ const Exchange = (props) => {
           <div className="col-sm-12 col-md-3">
             <MarketPairs />
           </div>
-          <div className="col-sm-12 col-md-6">
-            <ThemeConsumer>
-              {({ data }) => <TradingChart theme={data.theme} />}
-            </ThemeConsumer>
-            <MarketTrade />
+          <div className="col-md-9">
+            <SelectedPair />
+            <div className="row sm-gutters">
+              <div className="col-sm-12 col-md-8">
+                <ThemeConsumer>
+                  {({ data }) => <TradingChart theme={data.theme} />}
+                </ThemeConsumer>
+                <MarketTrade />
+              </div>
+              <div className="col-md-4">
+                <OrderBook />
+                <MarketHistory />
+              </div>
+            </div>
           </div>
-          <div className="col-md-3">
-            <OrderBook />
-            <MarketHistory />
-          </div>
+        </div>
+        <div className="row sm-gutters">
           <div className="col-md-3">
             <MarketNews />
           </div>

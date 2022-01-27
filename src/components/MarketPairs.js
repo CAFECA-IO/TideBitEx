@@ -19,7 +19,7 @@ const PairTile = (props) => {
       onClick={(_) => storeCtx.selectTickerHandler(props.ticker)}
       className={`market-tile ${
         props.ticker.instId === storeCtx?.selectedTicker?.instId ? "active" : ""
-      }`}
+      } ${props.ticker.update ? "update" : ""}`}
     >
       <td>
         <i className="icon ion-md-star"></i> {props.ticker.pair}
@@ -27,8 +27,8 @@ const PairTile = (props) => {
       <td>{formateDecimal(props.ticker.last, 8)}</td>
       <td className={SafeMath.gt(props.ticker.change, "0") ? "green" : "red"}>
         {SafeMath.gt(props.ticker.change, "0")
-          ? `+${formateDecimal(props.ticker.change, 3)}%`
-          : `${formateDecimal(props.ticker.change, 3)}%`}
+          ? `+${formateDecimal(props.ticker.changePct, 3)}%`
+          : `${formateDecimal(props.ticker.changePct, 3)}%`}
       </td>
     </tr>
   );
