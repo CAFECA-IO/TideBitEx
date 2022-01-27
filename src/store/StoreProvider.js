@@ -20,14 +20,6 @@ const StoreProvider = (props) => {
   const [balances, setBalances] = useState([]);
   const [selectedTicker, setSelectedTicker] = useState(null);
 
-  const updateTrades = (updateData) => {
-    console.log(`trades`, trades);
-    console.log(`updateTrades`, updateData);
-    const updateTrades = updateData
-      .map((trade) => ({ ...trade, update: true }))
-      .concat(trades);
-    setTrades(updateTrades);
-  };
   const getBooks = useCallback(
     async (instId, sz = 100) => {
       try {
@@ -200,7 +192,6 @@ const StoreProvider = (props) => {
       let metaData = JSON.parse(msg.data);
       switch (metaData.type) {
         case "pairOnUpdate":
-          console.log("pairOnUpdate");
           const { updateTicker, updateTickers } = middleman.updateTickers(
             metaData.data
           );
@@ -210,7 +201,8 @@ const StoreProvider = (props) => {
         case "tradeDataOnUpdate":
           // console.log("tradeDataOnUpdate");
           // console.log(metaData.data);
-          updateTrades(metaData.data);
+          const updateTrades = middleman.updateTrades(metaData.data);
+          setTrades(updateTrades);
           break;
         case "orderOnUpdate":
           // console.log("orderOnUpdate");

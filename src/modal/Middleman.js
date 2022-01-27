@@ -9,11 +9,10 @@ class Middleman {
     this.selectedTicker = ticker;
   }
   updateTickers(updatePairs) {
-    console.log(`updatePairs `, updatePairs);
     if (!this.tickers.length > 0) return;
     let updateTickers = [...this.tickers];
     let updateTicker;
-    const updateIndexes = updatePairs.map((pair) => {
+    updatePairs.forEach((pair) => {
       const index = this.tickers.findIndex(
         (ticker) => ticker.instId === pair.instId
       );
@@ -29,11 +28,9 @@ class Middleman {
       };
       if (pair.instId === this.selectedTicker?.instId)
         updateTicker = updateTickers[index];
-      console.log(`updateTickers[index]`, updateTickers[index]);
       return index;
     });
-    console.log(`updateIndexes`, updateIndexes, updateTicker);
-    console.log(`updateTickers `, updateTickers);
+    this.tickers = updateTickers;
     return {
       updateTicker,
       updateTickers,
@@ -105,6 +102,21 @@ class Middleman {
       throw error;
     }
   }
+
+  updateTrades = (updateData) => {
+    const _updateTrades = updateData
+      .map((trade) => ({
+        ...trade,
+        px: trade.price,
+        sz: trade.size,
+        ts: trade.timestamp.toString(),
+        tradeId: trade.tradeId.toString(),
+        update: true,
+      }))
+      .concat(this.trades || []);
+    this.trades = _updateTrades;
+    return _updateTrades;
+  };
 
   async getTrades(instId, limit) {
     try {
