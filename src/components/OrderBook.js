@@ -24,9 +24,6 @@ const BookTile = (props) => {
 
 const OrderBook = (props) => {
   const storeCtx = useContext(StoreContext);
-  useEffect(() => {
-    console.log(`storeCtx.books`, storeCtx.books);
-  }, [storeCtx.books]);
 
   return (
     <>

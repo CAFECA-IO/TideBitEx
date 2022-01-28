@@ -14,6 +14,7 @@ const StoreProvider = (props) => {
   const middleman = useMemo(() => new Middleman(), []);
   const [wsConnected, setWsConnected] = useState(false);
   const [tickers, setTickers] = useState([]);
+  const [updateTickerIndexs, setUpdateTickerIndexs] = useState([]);
   const [books, setBooks] = useState(null);
   const [trades, setTrades] = useState([]);
   const [candles, setCandles] = useState([]);
@@ -184,14 +185,15 @@ const StoreProvider = (props) => {
           let metaData = JSON.parse(msg.data);
           switch (metaData.type) {
             case "pairOnUpdate":
-              setTickers(
-                tickers.map((ticker) => ({ ...ticker, update: false }))
-              );
-              const { updateTicker, updateTickers } = middleman.updateTickers(
-                metaData.data
-              );
+              const { updateTicker, updateTickers, updateIndexes } =
+                middleman.updateTickers(metaData.data);
               if (updateTicker) setSelectedTicker(updateTicker);
               if (updateTickers) setTickers(updateTickers);
+              if (updateIndexes) setUpdateTickerIndexs(updateIndexes);
+              const id = setTimeout(() => {
+                setUpdateTickerIndexs([]);
+                clearTimeout(id);
+              }, 500);
               break;
             case "tradeDataOnUpdate":
               const updateTrades = middleman.updateTrades(metaData.data);
@@ -215,14 +217,7 @@ const StoreProvider = (props) => {
         await getBalances();
       }
     },
-    [
-      getBalances,
-      getCloseOrders,
-      getPendingOrders,
-      getTickers,
-      middleman,
-      tickers,
-    ]
+    [getBalances, getCloseOrders, getPendingOrders, getTickers, middleman]
   );
 
   useEffect(() => {
@@ -242,6 +237,7 @@ const StoreProvider = (props) => {
         orderHistories,
         balances,
         selectedTicker,
+        updateTickerIndexs,
         selectTickerHandler,
         getTickers,
         getBooks,

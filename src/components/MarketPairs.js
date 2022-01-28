@@ -13,13 +13,12 @@ import { formateDecimal } from "../utils/Utils";
 
 const PairTile = (props) => {
   const storeCtx = useContext(StoreContext);
-
   return (
     <tr
       onClick={(_) => storeCtx.selectTickerHandler(props.ticker)}
       className={`market-tile ${
         props.ticker.instId === storeCtx?.selectedTicker?.instId ? "active" : ""
-      } ${props.ticker.update ? "update" : ""}`}
+      } ${storeCtx.updateTickerIndexs.includes(props.index) ? "update" : ""}`}
     >
       <td>
         <i className="icon ion-md-star"></i> {props.ticker.pair}
@@ -95,6 +94,7 @@ const MarketPairs = (props) => {
                     ticker={ticker}
                     key={`${ticker.instId}-${ticker.instType}-${index}-star`}
                     onClick={props.onClick}
+                    index={index}
                   />
                 ))}
               </tbody>
@@ -115,6 +115,7 @@ const MarketPairs = (props) => {
                     ticker={ticker}
                     key={`${ticker.instId}-${ticker.instType}-${index}-BTC`}
                     onClick={props.onClick}
+                    index={index}
                   />
                 ))}
               </tbody>
@@ -135,6 +136,7 @@ const MarketPairs = (props) => {
                     ticker={ticker}
                     key={`${ticker.instId}-${ticker.instType}-${index}-ETH`}
                     onClick={props.onClick}
+                    index={index}
                   />
                 ))}
               </tbody>
@@ -155,6 +157,7 @@ const MarketPairs = (props) => {
                     ticker={ticker}
                     key={`${ticker.instId}-${ticker.instType}-${index}-USDT`}
                     onClick={props.onClick}
+                    index={index}
                   />
                 ))}
               </tbody>

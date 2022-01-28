@@ -1,10 +1,11 @@
 .order-book table,
 .order-book tr,
-.order-book td,
+// .order-book td,
 .order-book th {
   width: 100%;
   table-layout: fixed;
 }
+
 .order-book tr {
   float: left;
   clear: both;

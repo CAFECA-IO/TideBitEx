@@ -3,6 +3,7 @@ import React from "react";
 const StoreContext = React.createContext({
   selectedTicker: null,
   tickers: [],
+  updateTickerIndexs:[],
   books: [],
   trades: [],
   candles: [],
