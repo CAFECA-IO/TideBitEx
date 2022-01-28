@@ -71,27 +71,44 @@ class Middleman {
 
   handleBooks(books) {
     let totalAsks = "0",
-      totalBids = "0";
-    const asks = books.asks
+      totalBids = "0",
+      asks = [],
+      bids = [],
+      askPx,
+      bidPx;
+    books.asks
       ?.sort((a, b) => +a[0] - +b[0])
-      ?.map((d) => {
+      ?.forEach((d) => {
         totalAsks = SafeMath.plus(SafeMath.plus(d[2], d[3]), totalAsks);
-        return {
+        let ask = {
           price: d[0],
           amount: SafeMath.plus(d[2], d[3]),
           total: totalAsks,
+          update: !!d["update"],
         };
-      })
-      ?.sort((a, b) => +b.price - +a.price);
-    const bids = books.bids
+        if (d[0] === askPx) {
+          asks[asks.length - 1] = ask;
+        } else {
+          askPx = d[0];
+          asks.push(ask);
+        }
+      });
+    asks = asks.sort((a, b) => +b.price - +a.price);
+    books.bids
       ?.sort((a, b) => +b[0] - +a[0])
-      ?.map((d) => {
+      ?.forEach((d) => {
         totalBids = SafeMath.plus(SafeMath.plus(d[2], d[3]), totalBids);
-        return {
+        let bid = {
           price: d[0],
           amount: SafeMath.plus(d[2], d[3]),
           total: totalBids,
         };
+        if (d[0] === bidPx) {
+          bids[bids.length - 1] = bid;
+        } else {
+          bidPx = d[0];
+          bids.push(bid);
+        }
       });
     const updateBooks = {
       ...books,
@@ -102,8 +119,6 @@ class Middleman {
   }
 
   updateBooks(orders) {
-    console.log(`updateBooks this.rawBooks`, this.rawBooks);
-    console.log(`updateBooks orders`, orders);
     orders.forEach((order) => {
       const asks = order.asks
         ?.map((order) => ({
@@ -123,11 +138,13 @@ class Middleman {
         bids,
       };
       this.rawBooks = updateRawBooks;
-      console.log(`updateBooks updateRawBooks`, updateRawBooks);
     });
-    console.log(`updateBooks this.rawBooks`, this.rawBooks);
     this.books = this.handleBooks(this.rawBooks);
-    console.log(`updateBooks this.books`, this.books);
+    const id = setTimeout(() => {
+      this.books.asks.forEach((ask) => (ask.update = false));
+      this.books.bids.forEach((bid) => (bid.update = false));
+      clearTimeout(id);
+    }, 500);
     return this.books;
   }
 
@@ -144,7 +161,7 @@ class Middleman {
   }
 
   updateTrades = (updateData) => {
-    console.log(`updateTrades`, updateData);
+    // console.log(`updateTrades`, updateData);
     const _updateTrades = updateData
       .map((trade) => ({
         instId: trade.instId,
@@ -160,7 +177,7 @@ class Middleman {
       _updateTrades.forEach((trade) => (trade.update = false));
       clearTimeout(id);
     }, 500);
-    console.log(`updateTrades`, _updateTrades);
+    // console.log(`updateTrades`, _updateTrades);
     this.trades = _updateTrades;
     return _updateTrades;
   };
