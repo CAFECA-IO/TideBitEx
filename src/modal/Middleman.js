@@ -97,33 +97,39 @@ class Middleman {
   }
 
   updateBooks(orders) {
-    console.log(`updateBooks this.books`, this.books);
+    console.log(`updateBooks this.rawBooks`, this.rawBooks);
     console.log(`updateBooks orders`, orders);
-    const asks = orders.asks
-      ?.map((order) => ({
-        ...order,
-        update: true,
-      }))
-      .concat(this.books?.asks || []);
-    const bids = orders.bids
-      ?.map((order) => ({
-        ...order,
-        update: true,
-      }))
-      .concat(this.books?.bids || []);
-    const updateBooks = {
-      ...this.books,
-      asks,
-      bids,
-    };
-    // this.books = this.books = this.handleBooks(updateBooks);
-    // return this.books;
+    orders.forEach((order) => {
+      const asks = order.asks
+        ?.map((order) => ({
+          ...order,
+          update: true,
+        }))
+        .concat(this.rawBooks?.asks || []);
+      const bids = order.bids
+        ?.map((order) => ({
+          ...order,
+          update: true,
+        }))
+        .concat(this.rawBooks?.bids || []);
+      const updateRawBooks = {
+        ...this.rawBooks,
+        asks,
+        bids,
+      };
+      this.rawBooks = updateRawBooks;
+      console.log(`updateBooks updateRawBooks`, updateRawBooks);
+    });
+
+    this.books = this.handleBooks(this.rawBooks);
+    console.log(`updateBooks this.books`, this.books);
+    return this.books;
   }
 
   async getBooks(instId, sz) {
     try {
       const rawBooks = await this.communicator.books(instId, sz);
-      console.log(`getBooks rawBooks`, rawBooks)
+      console.log(`getBooks rawBooks`, rawBooks);
       const asks = rawBooks[0].asks;
       const bids = rawBooks[0].bids;
       const books = {
@@ -131,7 +137,8 @@ class Middleman {
         bids,
         ts: rawBooks[0].ts,
       };
-      console.log(`getBooks books`, books)
+      this.rawBooks = rawBooks[0];
+      console.log(`getBooks books`, books);
       this.books = this.handleBooks(books);
       return this.books;
     } catch (error) {
@@ -149,7 +156,7 @@ class Middleman {
         tradeId: trade.tradeId.toString(),
         update: true,
       }))
-      .concat(this.trades || []);
+      .concat(this.trades.map((trade) => ({ ...trade, update: false })) || []);
     this.trades = _updateTrades;
     return _updateTrades;
   };

@@ -36,12 +36,12 @@ img {
   padding-bottom: 40px;
 }
 ::-webkit-scrollbar {
-  background: transparent;
+  background-color: transparent;
   width: 3px;
   height: 6px;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.07);
+  background-color: rgba(0, 0, 0, 0.07);
   border: solid rgba(88, 88, 88, 0.12) 2px;
   border-radius: 5px;
 }
@@ -62,7 +62,7 @@ tbody tr {
 }
 tbody tr:hover,
 tbody tr.active {
-  background: #f6f8f9;
+  background-color: #f6f8f9;
 }
 .input-group-text,
 .form-control {
@@ -72,7 +72,7 @@ tbody tr.active {
   border: none;
 }
 .heading {
-  background: #f5f9fc;
+  background-color: #f5f9fc;
   font-size: 14px;
   font-weight: 400;
   padding: 13px;
