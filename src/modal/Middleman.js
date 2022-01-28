@@ -18,12 +18,10 @@ class Middleman {
       );
       const ticker = {
         ...pair,
+        baseCcy: pair.instId.split("-")[0],
+        quoteCcy: pair.instId.split("-")[1],
         pair: pair.instId.replace("-", "/"),
-        change: SafeMath.minus(pair.last, pair.open24h),
-        changePct: SafeMath.mult(
-          SafeMath.div(SafeMath.minus(pair.last, pair.open24h), pair.open24h),
-          "100"
-        ),
+        changePct: SafeMath.mult(pair.changePct, "100"),
       };
       if (pair.instId === this.selectedTicker?.instId) updateTicker = ticker;
       if (index === -1) {
@@ -172,11 +170,7 @@ class Middleman {
     // console.log(`updateTrades`, updateData);
     const _updateTrades = updateData
       .map((trade) => ({
-        instId: trade.instId,
-        px: trade.price,
-        sz: trade.size,
-        ts: trade.timestamp,
-        tradeId: trade.tradeId.toString(),
+        ...trade,
         update: true,
       }))
       .concat(this.trades || []);
