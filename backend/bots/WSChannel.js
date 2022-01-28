@@ -3,6 +3,8 @@ const url = require('url');
 const WebSocket = require('ws');
 const Codes = require('../constants/Codes');
 const ResponseFormat = require('../libs/ResponseFormat');
+const EventBus = require('../libs/EventBus');
+const Events = require('../constants/Events');
 
 const Bot = require(path.resolve(__dirname, 'Bot.js'));
 
@@ -87,6 +89,9 @@ class WSChannel extends Bot {
           const findClient = this._client[ws.id];
           if (findClient.isStart) {
             delete this._channelClients[findClient.channel][ws.id];
+            if (Object.values(this._channelClients[findClient.channel]).length === 0) {
+              EventBus.emit(Events.pairOnUnsubscribe, findClient.channel);
+            }
           }
           delete this._client[ws.id];
           this.logger.debug('this._channelClients', this._channelClients)
@@ -105,14 +110,22 @@ class WSChannel extends Bot {
       if (!this._channelClients[args.instId]) {
         this._channelClients[args.instId] = {};
       }
+      if (Object.values(this._channelClients[args.instId]).length === 0) {
+        EventBus.emit(Events.pairOnSubscribe, args.instId);
+      }
       this._channelClients[args.instId][ws.id] = ws;
     } else {
       const oldChannel = findClient.channel;
       delete this._channelClients[oldChannel][ws.id];
-
+      if (Object.values(this._channelClients[oldChannel]).length === 0) {
+        EventBus.emit(Events.pairOnUnsubscribe, oldChannel);
+      }
       findClient.channel = args.instId;
       if (!this._channelClients[args.instId]) {
         this._channelClients[args.instId] = {};
+      }
+      if (Object.values(this._channelClients[args.instId]).length === 0) {
+        EventBus.emit(Events.pairOnSubscribe, args.instId);
       }
       this._channelClients[args.instId][ws.id] = ws;
     }
@@ -128,6 +141,14 @@ class WSChannel extends Bot {
         ws.send(msg);
       })
     }
+  }
+
+  broadcastAllClient({ type, data }) {
+    const msg = JSON.stringify({ type, data });
+    const clients = Object.values(this._client);
+    clients.forEach((client) => {
+      client.ws.send(msg);
+    })
   }
 }
 
