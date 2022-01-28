@@ -9,7 +9,7 @@ class Middleman {
     this.selectedTicker = ticker;
   }
   updateTickers(updatePairs) {
-    console.log(`updatePairs`,updatePairs)
+    console.log(`updatePairs`, updatePairs);
     if (!this.tickers.length > 0) return;
     let updateTickers = [...this.tickers];
     let updateTicker;
@@ -123,11 +123,12 @@ class Middleman {
       asks: this.rawBooks?.asks ? [...this.rawBooks.asks] : [],
       bids: this.rawBooks?.bids ? this.rawBooks.bids : [],
     };
+    console.log(`updateBooks`, orders);
     orders.forEach((order) => {
       order.asks.forEach((ask) => {
         let index;
         index = (this.rawBooks?.asks || []).findIndex((d) => d[0] === ask[0]);
-        if (SafeMath.gt(ask[2], "0")) {
+        if (SafeMath.gt(SafeMath.plus(ask[2], ask[3]), "0")) {
           if (index === -1) updateRawBooks.asks.push(ask);
           else updateRawBooks.asks[index] = ask;
         } else {
@@ -137,7 +138,7 @@ class Middleman {
       order.bids.forEach((bid) => {
         let index;
         index = (this.rawBooks?.bids || []).findIndex((d) => d[0] === bid[0]);
-        if (SafeMath.gt(bid[2], "0")) {
+        if (SafeMath.gt(SafeMath.plus(bid[2], bid[3]), "0")) {
           if (index === -1) updateRawBooks.bids.push(bid);
           else updateRawBooks.bids[index] = bid;
         } else {
