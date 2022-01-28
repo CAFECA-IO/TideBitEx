@@ -90,6 +90,9 @@ class WSChannel extends Bot {
           if (findClient.isStart) {
             delete this._channelClients[findClient.channel][ws.id];
           }
+          if (Object.values(this._channelClients[findClient.channel]).length === 0) {
+            EventBus.emit(Events.pairOnUnsubscribe, findClient.channel);
+          }
           delete this._client[ws.id];
           this.logger.debug('this._channelClients', this._channelClients)
         });
@@ -107,19 +110,24 @@ class WSChannel extends Bot {
       if (!this._channelClients[args.instId]) {
         this._channelClients[args.instId] = {};
       }
+      if (Object.values(this._channelClients[args.instId]).length === 0) {
+        EventBus.emit(Events.pairOnSubscribe, args.instId);
+      }
       this._channelClients[args.instId][ws.id] = ws;
-      EventBus.emit(Events.pairOnSubscribe, args.instId);
     } else {
       const oldChannel = findClient.channel;
       delete this._channelClients[oldChannel][ws.id];
-      EventBus.emit(Events.pairOnSubscribe, oldChannel);
-
+      if (Object.values(this._channelClients[oldChannel]).length === 0) {
+        EventBus.emit(Events.pairOnUnsubscribe, oldChannel);
+      }
       findClient.channel = args.instId;
       if (!this._channelClients[args.instId]) {
         this._channelClients[args.instId] = {};
       }
+      if (Object.values(this._channelClients[args.instId]).length === 0) {
+        EventBus.emit(Events.pairOnSubscribe, args.instId);
+      }
       this._channelClients[args.instId][ws.id] = ws;
-      EventBus.emit(Events.pairOnUnsubscribe, args.instId);
     }
   }
 

@@ -392,6 +392,8 @@ class OkexConnector extends ConnectorBase {
           if (!Object.keys(this.okexWsChannels[channel]).length) {
             delete this.okexWsChannels[channel];
           }
+        } else if (data.event === 'error') {
+          console.log('!!! _okexWsEventListener on event error', data);
         }
       } else if (data.data) { // okex server push data
         const arg = {...data.arg};

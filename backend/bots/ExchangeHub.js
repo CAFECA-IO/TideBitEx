@@ -81,11 +81,11 @@ class ExchangeHub extends Bot {
       )
     });
 
-    EventBus.on(Events.tradeDataOnUpdate, (instId, booksData) => {
+    EventBus.on(Events.orderOnUpdate, (instId, booksData) => {
       this.broadcast(
         instId,
         {
-          type: Events.tradeDataOnUpdate,
+          type: Events.orderOnUpdate,
           data: booksData,
         }
       )
@@ -101,14 +101,14 @@ class ExchangeHub extends Bot {
       )
     });
 
-    EventBus.on(Events.pairOnUpdate, (instId, formatPair) => {
-      this.broadcastAllClient(
-        {
-          type: Events.pairOnUpdate,
-          data: formatPair,
-        }
-      )
-    });
+    // EventBus.on(Events.pairOnUpdate, (instId, formatPair) => {
+    //   this.broadcastAllClient(
+    //     {
+    //       type: Events.pairOnUpdate,
+    //       data: formatPair,
+    //     }
+    //   )
+    // });
   }
 }
 
