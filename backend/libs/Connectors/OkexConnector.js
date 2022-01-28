@@ -85,10 +85,30 @@ class OkexConnector extends ConnectorBase {
         headers: this.getHeaders(true, {timeString, okAccessSign}),
       });
       this.logger.debug(res.data);
-      if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
+      if (res.data && res.data.code !== '0') {
+        this.logger.trace(res.data.msg);
+        return new ResponseFormat({
+          message: res.data.msg,
+          code: Codes.THIRD_PARTY_API_ERROR,
+        });
+      }
+      console.log('res.data.data', res.data.data);
+      const payload = res.data.data.map((data) => {
+        const details = data.details.map((dtl) => {
+          return {
+            ...dtl,
+            uTime: parseInt(dtl.uTime),
+          }
+        });
+        return {
+          ...data,
+          details,
+          uTime: parseInt(data.uTime),
+        }
+      });
       return new ResponseFormat({
         message: 'getBalance',
-        payload: res.data.data,
+        payload,
       });
     } catch (error) {
       this.logger.error(error);
@@ -118,10 +138,23 @@ class OkexConnector extends ConnectorBase {
         url: `${this.domain}${path}${qs}`,
         headers: this.getHeaders(false),
       });
-      if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
+      if (res.data && res.data.code !== '0') {
+        this.logger.trace(res.data.msg);
+        return new ResponseFormat({
+          message: res.data.msg,
+          code: Codes.THIRD_PARTY_API_ERROR,
+        });
+      }
+
+      const payload = res.data.data.map((data) => {
+        return {
+          ...data,
+          ts: parseInt(data.ts),
+        }
+      })
       return new ResponseFormat({
         message: 'getTickers',
-        payload: res.data.data,
+        payload,
       });
     } catch (error) {
       this.logger.error(error);
@@ -150,10 +183,22 @@ class OkexConnector extends ConnectorBase {
         url: `${this.domain}${path}${qs}`,
         headers: this.getHeaders(false),
       });
-      if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
+      if (res.data && res.data.code !== '0') {
+        this.logger.trace(res.data.msg);
+        return new ResponseFormat({
+          message: res.data.msg,
+          code: Codes.THIRD_PARTY_API_ERROR,
+        });
+      }
+      const payload = res.data.data.map((data) => {
+        return {
+          ...data,
+          ts: parseInt(data.ts)
+        }
+      })
       return new ResponseFormat({
         message: 'getOrderBooks',
-        payload: res.data.data,
+        payload,
       });
     } catch (error) {
       this.logger.error(error);
@@ -185,10 +230,24 @@ class OkexConnector extends ConnectorBase {
         url: `${this.domain}${path}${qs}`,
         headers: this.getHeaders(false),
       });
-      if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
+      if (res.data && res.data.code !== '0') {
+        this.logger.trace(res.data.msg);
+        return new ResponseFormat({
+          message: res.data.msg,
+          code: Codes.THIRD_PARTY_API_ERROR,
+        });
+      }
+
+      const payload = res.data.data.map((data) => {
+        const ts = data.shift();
+        return [
+          parseInt(ts),
+          ...data,
+        ]
+      })
       return new ResponseFormat({
         message: 'getCandlestick',
-        payload: res.data.data,
+        payload,
       });
     } catch (error) {
       this.logger.error(error);
@@ -217,10 +276,23 @@ class OkexConnector extends ConnectorBase {
         url: `${this.domain}${path}${qs}`,
         headers: this.getHeaders(false),
       });
-      if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
+      if (res.data && res.data.code !== '0') {
+        this.logger.trace(res.data.msg);
+        return new ResponseFormat({
+          message: res.data.msg,
+          code: Codes.THIRD_PARTY_API_ERROR,
+        });
+      }
+
+      const payload = res.data.data.map((data) => {
+        return {
+          ...data,
+          ts: parseInt(data.ts),
+        }
+      })
       return new ResponseFormat({
         message: 'getTrades',
-        payload: res.data.data,
+        payload,
       });
     } catch (error) {
       this.logger.error(error);
@@ -248,7 +320,7 @@ class OkexConnector extends ConnectorBase {
       tdMode: body.tdMode,
       ccy: body.ccy,
       clOrdId,
-      tag: body.tag,
+      tag: this.brokerId,
       side: body.side,
       posSide: body.posSide,
       ordType: body.ordType,
@@ -312,10 +384,25 @@ class OkexConnector extends ConnectorBase {
         headers: this.getHeaders(true, {timeString, okAccessSign}),
       });
       this.logger.debug(res.data);
-      if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
+      if (res.data && res.data.code !== '0') {
+        this.logger.trace(res.data.msg);
+        return new ResponseFormat({
+          message: res.data.msg,
+          code: Codes.THIRD_PARTY_API_ERROR,
+        });
+      }
+
+      const payload = res.data.data.map((data) => {
+        return {
+          ...data,
+          cTime: parseInt(data.cTime),
+          fillTime: parseInt(data.fillTime),
+          uTime: parseInt(data.uTime),
+        }
+      })
       return new ResponseFormat({
         message: 'getOrderList',
-        payload: res.data.data,
+        payload,
       });
     } catch (error) {
       this.logger.error(error);
@@ -357,10 +444,25 @@ class OkexConnector extends ConnectorBase {
         headers: this.getHeaders(true, {timeString, okAccessSign}),
       });
       this.logger.debug(res.data);
-      if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
+      if (res.data && res.data.code !== '0') {
+        this.logger.trace(res.data.msg);
+        return new ResponseFormat({
+          message: res.data.msg,
+          code: Codes.THIRD_PARTY_API_ERROR,
+        });
+      }
+
+      const payload = res.data.data.map((data) => {
+        return {
+          ...data,
+          cTime: parseInt(data.cTime),
+          fillTime: parseInt(data.fillTime),
+          uTime: parseInt(data.uTime),
+        }
+      })
       return new ResponseFormat({
         message: 'getOrderHistory',
-        payload: res.data.data,
+        payload,
       });
     } catch (error) {
       this.logger.error(error);
