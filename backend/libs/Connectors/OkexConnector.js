@@ -34,9 +34,6 @@ class OkexConnector extends ConnectorBase {
   async start() {
     this._okexWsEventListener();
     this._subscribeInstruments();
-    // this._subscribeBook('BCD-BTC');
-    // this._subscribeCandle1m('BCD-BTC');
-    // this._subscribeTrades('BCD-BTC');
   }
 
   async okAccessSign({ timeString, method, path, body }) {
@@ -626,7 +623,7 @@ class OkexConnector extends ConnectorBase {
         openUtc8: data.sodUtc8
       }
     });
-    EventBus.emit(Events.pairOnUpdate, instId, formatPair);
+    EventBus.emit(Events.pairOnUpdate, formatPair);
   }
 
   _subscribeInstruments() {
