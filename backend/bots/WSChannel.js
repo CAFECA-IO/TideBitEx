@@ -3,6 +3,8 @@ const url = require('url');
 const WebSocket = require('ws');
 const Codes = require('../constants/Codes');
 const ResponseFormat = require('../libs/ResponseFormat');
+const EventBus = require('../libs/EventBus');
+const Events = require('../constants/Events');
 
 const Bot = require(path.resolve(__dirname, 'Bot.js'));
 
@@ -106,15 +108,18 @@ class WSChannel extends Bot {
         this._channelClients[args.instId] = {};
       }
       this._channelClients[args.instId][ws.id] = ws;
+      EventBus.emit(Events.pairOnSubscribe, args.instId);
     } else {
       const oldChannel = findClient.channel;
       delete this._channelClients[oldChannel][ws.id];
+      EventBus.emit(Events.pairOnSubscribe, oldChannel);
 
       findClient.channel = args.instId;
       if (!this._channelClients[args.instId]) {
         this._channelClients[args.instId] = {};
       }
       this._channelClients[args.instId][ws.id] = ws;
+      EventBus.emit(Events.pairOnUnsubscribe, args.instId);
     }
   }
 
@@ -128,6 +133,14 @@ class WSChannel extends Bot {
         ws.send(msg);
       })
     }
+  }
+
+  broadcastAllClient({ type, data }) {
+    const msg = JSON.stringify({ type, data });
+    const clients = Object.values(this._client);
+    clients.forEach((client) => {
+      client.ws.send(msg);
+    })
   }
 }
 

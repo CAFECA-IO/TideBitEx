@@ -26,9 +26,14 @@ class Bot {
     });
     return Promise.resolve(bot);
   }
-  async broadcast({ type, data }) {
+  async broadcast(instId, { type, data }) {
     const ws = await this.getBot('WSChannel');
-    return ws.broadcast({ type, data });
+    return ws.broadcast(instId, { type, data });
+  }
+
+  async broadcastAllClient({ type, data }) {
+    const ws = await this.getBot('WSChannel');
+    return ws.broadcastAllClient({ type, data });
   }
 
   /* leveldb operation */

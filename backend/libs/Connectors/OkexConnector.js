@@ -34,9 +34,9 @@ class OkexConnector extends ConnectorBase {
   async start() {
     this._okexWsEventListener();
     this._subscribeInstruments();
-    this._subscribeBook('BCD-BTC');
-    this._subscribeCandle1m('BCD-BTC');
-    this._subscribeTickers('BCD-BTC');
+    // this._subscribeBook('BCD-BTC');
+    // this._subscribeCandle1m('BCD-BTC');
+    // this._subscribeTrades('BCD-BTC');
   }
 
   async okAccessSign({ timeString, method, path, body }) {
@@ -435,14 +435,14 @@ class OkexConnector extends ConnectorBase {
             || inst.instId.includes('ETH')
             || inst.instId.includes('USDT')
           ) && (
-            !this.okexWsChannels['trades']
-            || !this.okexWsChannels['trades'][inst.instId]
+            !this.okexWsChannels['tickers']
+            || !this.okexWsChannels['tickers'][inst.instId]
           )
         ) {
           instIds.push(inst.instId);
         }
       });
-      this._subscribeTrades(instIds);
+      this._subscribeTickers(instIds);
     }
     this.okexWsChannels[channel][instType] = instData;
   }
@@ -502,7 +502,7 @@ class OkexConnector extends ConnectorBase {
 
   _updateTickers(instId, tickerData) {
     const channel = 'tickers';
-    this.okexWsChannels[channel][instId] = tickerData;
+    // this.okexWsChannels[channel][instId] = tickerData;
     // this.logger.debug(`[${this.constructor.name}]_updateTickers`, instId, tickerData);
     const formatPair = tickerData.map((data) => {
       const change = SafeMath.minus(data.last, data.open24h);
@@ -538,12 +538,12 @@ class OkexConnector extends ConnectorBase {
     this.websocket.ws.send(JSON.stringify(instruments));
   }
 
-  _subscribeTrades(instIds) {
-    const args = instIds.map(instId => ({
+  _subscribeTrades(instId) {
+    const args = [{
       channel: 'trades',
       instId
-    }));
-    this.logger.debug(`[${this.constructor.name}]_subscribeTrades`, args)
+    }];
+    // this.logger.debug(`[${this.constructor.name}]_subscribeTrades`, args)
     this.websocket.ws.send(JSON.stringify({
       op: 'subscribe',
       args
@@ -575,17 +575,68 @@ class OkexConnector extends ConnectorBase {
     }));
   }
 
-  _subscribeTickers(instId) {
-    const args = [{
+  _subscribeTickers(instIds) {
+    const args = instIds.map(instId => ({
       channel: 'tickers',
       instId
-    }];
+    }));
     this.logger.debug(`[${this.constructor.name}]_subscribeTickers`, args)
     this.websocket.ws.send(JSON.stringify({
       op: 'subscribe',
       args
     }));
   }
+
+  _unsubscribeTrades(instId) {
+    const args = [{
+      channel: 'trades',
+      instId
+    }];
+    // this.logger.debug(`[${this.constructor.name}]_unsubscribeTrades`, args)
+    this.websocket.ws.send(JSON.stringify({
+      op: 'unsubscribe',
+      args
+    }));
+  }
+
+  _unsubscribeBook(instId) {
+    // books: 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed every 100 ms when there is change in order book.
+    const args = [{
+      channel: 'books',
+      instId
+    }];
+    this.logger.debug(`[${this.constructor.name}]_unsubscribeBook`, args)
+    this.websocket.ws.send(JSON.stringify({
+      op: 'unsubscribe',
+      args
+    }));
+  }
+
+  _unsubscribeCandle1m(instId) {
+    const args = [{
+      channel: 'candle1m',
+      instId
+    }];
+    this.logger.debug(`[${this.constructor.name}]_unsubscribeCandle1m`, args)
+    this.websocket.ws.send(JSON.stringify({
+      op: 'unsubscribe',
+      args
+    }));
+  }
   // okex ws end
+
+  // TideBitEx ws
+  _subscribeInstId(instId) {
+    this._subscribeTrades(instId);
+    this._subscribeBook(instId);
+    this._subscribeCandle1m(instId);
+  }
+
+  _unsubscribeInstId(instId) {
+    this._unsubscribeTrades(instId);
+    this._unsubscribeBook(instId);
+    this._unsubscribeCandle1m(instId);
+  }
+  // TideBitEx ws end
 }
 module.exports = OkexConnector;
