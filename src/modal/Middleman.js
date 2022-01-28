@@ -154,8 +154,12 @@ class Middleman {
         tradeId: trade.tradeId.toString(),
         update: true,
       }))
-      .concat(this.trades.map((trade) => ({ ...trade, update: false })) || [])
-      .sort((a, b) => +b.ts - +a.ts);
+      .concat(this.trades || []);
+    // .sort((a, b) => +b.ts - +a.ts);
+    const id = setTimeout(() => {
+      _updateTrades.forEach((trade) => (trade.update = false));
+      clearTimeout(id);
+    }, 500);
     console.log(`updateTrades`, _updateTrades);
     this.trades = _updateTrades;
     return _updateTrades;
