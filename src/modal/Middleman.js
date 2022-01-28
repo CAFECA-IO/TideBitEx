@@ -144,7 +144,7 @@ class Middleman {
       this.books.asks.forEach((ask) => (ask.update = false));
       this.books.bids.forEach((bid) => (bid.update = false));
       clearTimeout(id);
-    }, 500);
+    }, 100);
     return this.books;
   }
 
@@ -176,7 +176,7 @@ class Middleman {
     const id = setTimeout(() => {
       _updateTrades.forEach((trade) => (trade.update = false));
       clearTimeout(id);
-    }, 500);
+    }, 100);
     // console.log(`updateTrades`, _updateTrades);
     this.trades = _updateTrades;
     return _updateTrades;

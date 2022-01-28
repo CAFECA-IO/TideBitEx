@@ -193,7 +193,7 @@ const StoreProvider = (props) => {
               const id = setTimeout(() => {
                 setUpdateTickerIndexs([]);
                 clearTimeout(id);
-              }, 500);
+              }, 100);
               break;
             case "tradeDataOnUpdate":
               const updateTrades = middleman.updateTrades(metaData.data);
