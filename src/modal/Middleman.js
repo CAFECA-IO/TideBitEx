@@ -9,6 +9,7 @@ class Middleman {
     this.selectedTicker = ticker;
   }
   updateTickers(updatePairs) {
+    console.log(`updatePairs`,updatePairs)
     if (!this.tickers.length > 0) return;
     let updateTickers = [...this.tickers];
     let updateTicker;
@@ -167,7 +168,7 @@ class Middleman {
   }
 
   updateTrades = (updateData) => {
-    // console.log(`updateTrades`, updateData);
+    console.log(`updateTrades`, updateData);
     const _updateTrades = updateData
       .map((trade) => ({
         ...trade,
