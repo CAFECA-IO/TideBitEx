@@ -119,24 +119,32 @@ class Middleman {
   }
 
   updateBooks(orders) {
+    const updateRawBooks = {
+      ...this.rawBooks,
+      asks: this.rawBooks?.asks ? [...this.rawBooks.asks] : [],
+      bids: this.rawBooks?.bids ? this.rawBooks.bids : [],
+    };
     orders.forEach((order) => {
-      const asks = order.asks
-        ?.map((order) => ({
-          ...order,
-          update: true,
-        }))
-        .concat(this.rawBooks?.asks || []);
-      const bids = order.bids
-        ?.map((order) => ({
-          ...order,
-          update: true,
-        }))
-        .concat(this.rawBooks?.bids || []);
-      const updateRawBooks = {
-        ...this.rawBooks,
-        asks,
-        bids,
-      };
+      order.asks.forEach((ask) => {
+        let index;
+        index = (this.rawBooks?.asks || []).findIndex((d) => d[0] === ask[0]);
+        if (SafeMath.gt(ask[2], "0")) {
+          if (index === -1) updateRawBooks.asks.push(ask);
+          else updateRawBooks.asks[index] = ask;
+        } else {
+          updateRawBooks.asks.splice(index, 1);
+        }
+      });
+      order.bids.forEach((bid) => {
+        let index;
+        index = (this.rawBooks?.bids || []).findIndex((d) => d[0] === bid[0]);
+        if (SafeMath.gt(bid[2], "0")) {
+          if (index === -1) updateRawBooks.bids.push(bid);
+          else updateRawBooks.bids[index] = bid;
+        } else {
+          updateRawBooks.bids.splice(index, 1);
+        }
+      });
       this.rawBooks = updateRawBooks;
     });
     this.books = this.handleBooks(this.rawBooks);
