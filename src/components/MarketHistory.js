@@ -5,8 +5,11 @@ import { dateFormatter, formateDecimal } from "../utils/Utils";
 
 const TradeTile = (props) => {
   return (
-    <tr className={`${props.trade.update ? "update" : ""}`}>
-      <td>{dateFormatter(parseInt(props.trade.ts.toString())).time}</td>
+    <tr
+      className={`${props.trade.update ? "update" : ""}`}
+      trade-id={props.trade.tradeId}
+    >
+      <td>{dateFormatter(parseInt(props.trade.ts)).time}</td>
       <td className={props.trade.side === "buy" ? "red" : "green"}>
         {formateDecimal(props.trade.px, 8)}
       </td>

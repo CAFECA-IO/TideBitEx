@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import StoreContext from "../store/store-context";
 import SafeMath from "../utils/SafeMath";
 import { formateDecimal } from "../utils/Utils";
@@ -6,7 +6,9 @@ import { formateDecimal } from "../utils/Utils";
 const BookTile = (props) => {
   return (
     <tr
-      className={props.type === "asks" ? "red-bg" : "green-bg"}
+      className={`${props.type === "asks" ? "red-bg" : "green-bg"} ${
+        props.book.update ? "update" : ""
+      }`}
       data-width={props.dataWidth}
     >
       <td className={props.type === "asks" ? "red" : "green"}>
@@ -24,9 +26,15 @@ const BookTile = (props) => {
 
 const OrderBook = (props) => {
   const storeCtx = useContext(StoreContext);
+  const [init, setInit] = useState(true);
+
   useEffect(() => {
-    console.log(`storeCtx.books`, storeCtx.books);
-  }, [storeCtx.books]);
+    if (storeCtx.books && init) {
+      const element = document.querySelector(".order-book-asks");
+      element.scrollTop = element.scrollHeight;
+      setInit(false);
+    }
+  }, [init, storeCtx.books]);
 
   return (
     <>

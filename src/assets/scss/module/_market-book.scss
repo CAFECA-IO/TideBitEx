@@ -1,6 +1,6 @@
 .order-book table,
 .order-book tr,
-.order-book td,
+// .order-book td,
 .order-book th {
   width: 100%;
   table-layout: fixed;
@@ -41,6 +41,7 @@
   right: 0;
   top: 0;
   // width: attr(data-width,'');
+  padding: 0 !important;
   height: 45px;
 }
 

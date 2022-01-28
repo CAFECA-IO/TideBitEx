@@ -1,0 +1,11 @@
+@keyframes blinking {
+  0%,
+  100% {
+    background-color: rgb(255, 255, 255);
+    color: rgb(56, 56, 56);
+  }
+  50% {
+    background-color: rgba(112, 112, 112, 0.74);
+    color: rgb(255, 255, 255);
+  }
+}
