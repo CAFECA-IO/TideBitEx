@@ -101,14 +101,14 @@ class ExchangeHub extends Bot {
       )
     });
 
-    EventBus.on(Events.pairOnUpdate, (instId, formatPair) => {
-      this.broadcastAllClient(
-        {
-          type: Events.pairOnUpdate,
-          data: formatPair,
-        }
-      )
-    });
+    // EventBus.on(Events.pairOnUpdate, (instId, formatPair) => {
+    //   this.broadcastAllClient(
+    //     {
+    //       type: Events.pairOnUpdate,
+    //       data: formatPair,
+    //     }
+    //   )
+    // });
   }
 }
 
