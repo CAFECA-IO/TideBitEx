@@ -101,7 +101,7 @@ class ExchangeHub extends Bot {
       )
     });
 
-    EventBus.on(Events.pairOnUpdate, (instId, formatPair) => {
+    EventBus.on(Events.pairOnUpdate, (formatPair) => {
       this.broadcastAllClient(
         {
           type: Events.pairOnUpdate,
