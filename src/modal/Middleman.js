@@ -9,14 +9,10 @@ class Middleman {
     this.selectedTicker = ticker;
   }
   updateTickers(updatePairs) {
-    console.log(`updatePairs`, updatePairs);
-    if (!this.tickers.length > 0) return;
-    let updateTickers = [...this.tickers];
-    let updateTicker;
-    const updateIndexes = updatePairs.map((pair) => {
-      const index = this.tickers.findIndex(
-        (ticker) => ticker.instId === pair.instId
-      );
+    let updateTicker,
+      updateIndexes = {},
+      updateTickers = { ...this.tickers };
+    updatePairs.forEach((pair) => {
       const ticker = {
         ...pair,
         baseCcy: pair.instId.split("-")[0],
@@ -25,15 +21,25 @@ class Middleman {
         changePct: SafeMath.mult(pair.changePct, "100"),
       };
       if (pair.instId === this.selectedTicker?.instId) updateTicker = ticker;
+      const index = updateTickers[ticker.quoteCcy.toLowerCase()].findIndex(
+        (ticker) => ticker.instId === pair.instId
+      );
+      if (!updateIndexes[ticker.quoteCcy.toLowerCase()])
+        updateIndexes[ticker.quoteCcy.toLowerCase()] = [];
+      if (!updateTickers[ticker.quoteCcy.toLowerCase()])
+        updateTickers[ticker.quoteCcy.toLowerCase()] = [];
       if (index === -1) {
-        updateTickers.push(ticker);
-        return updateTickers.length - 1;
+        updateTickers[ticker.quoteCcy.toLowerCase()].push(ticker);
+        updateIndexes[ticker.quoteCcy.toLowerCase()].push(
+          updateTickers[ticker.quoteCcy.toLowerCase()].length - 1
+        );
       } else {
-        updateTickers[index] = ticker;
-        return index;
+        updateTickers[ticker.quoteCcy.toLowerCase()][index] = ticker;
+        updateIndexes[ticker.quoteCcy.toLowerCase()].push(index);
       }
     });
     this.tickers = updateTickers;
+
     return {
       updateTicker,
       updateTickers,
@@ -42,27 +48,36 @@ class Middleman {
   }
 
   async getTickers(instType, from, limit) {
+    this.tickers = {
+      btc: [],
+      eth: [],
+      usdt: [],
+    };
     try {
       const rawTickers = await this.communicator.tickers(instType, from, limit);
-      const tickers = rawTickers.map((ticker) => ({
-        ...ticker,
-        baseCcy: ticker.instId.split("-")[0],
-        quoteCcy: ticker.instId.split("-")[1],
-        pair: ticker.instId.replace("-", "/"),
-        // pair: ticker.instId
-        //   .split("-")
-        //   .reduce((acc, curr, i) => (i === 0 ? `${curr}` : `${acc}/${curr}`), ""),
-        change: SafeMath.minus(ticker.last, ticker.open24h),
-        changePct: SafeMath.mult(
-          SafeMath.div(
-            SafeMath.minus(ticker.last, ticker.open24h),
-            ticker.open24h
+      rawTickers.forEach((rawTicker) => {
+        const ticker = {
+          ...rawTicker,
+          baseCcy: rawTicker.instId.split("-")[0],
+          quoteCcy: rawTicker.instId.split("-")[1],
+          pair: rawTicker.instId.replace("-", "/"),
+          // pair: rawTicker.instId
+          //   .split("-")
+          //   .reduce((acc, curr, i) => (i === 0 ? `${curr}` : `${acc}/${curr}`), ""),
+          change: SafeMath.minus(rawTicker.last, rawTicker.open24h),
+          changePct: SafeMath.mult(
+            SafeMath.div(
+              SafeMath.minus(rawTicker.last, rawTicker.open24h),
+              rawTicker.open24h
+            ),
+            "100"
           ),
-          "100"
-        ),
-      }));
-      this.tickers = tickers;
-      return tickers;
+        };
+        if (!this.tickers[ticker.quoteCcy.toLowerCase()])
+          this.tickers[ticker.quoteCcy.toLowerCase()] = [];
+        this.tickers[ticker.quoteCcy.toLowerCase()].push(ticker);
+      });
+      return this.tickers;
     } catch (error) {
       throw error;
     }

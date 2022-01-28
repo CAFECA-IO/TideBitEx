@@ -13,8 +13,8 @@ const wsClient = new WebSocket(
 const StoreProvider = (props) => {
   const middleman = useMemo(() => new Middleman(), []);
   const [wsConnected, setWsConnected] = useState(false);
-  const [tickers, setTickers] = useState([]);
-  const [updateTickerIndexs, setUpdateTickerIndexs] = useState([]);
+  const [tickers, setTickers] = useState(null);
+  const [updateTickerIndexs, setUpdateTickerIndexs] = useState(null);
   const [books, setBooks] = useState(null);
   const [trades, setTrades] = useState([]);
   const [candles, setCandles] = useState([]);
@@ -107,7 +107,8 @@ const StoreProvider = (props) => {
       try {
         const result = await middleman.getTickers(instType, from, limit);
         setTickers(result);
-        if (selectedTicker === null || force) selectTickerHandler(result[0]);
+        if (selectedTicker === null || force)
+          selectTickerHandler(result["btc"][0]);
       } catch (error) {
         return Promise.reject({ message: error });
       }
@@ -193,7 +194,7 @@ const StoreProvider = (props) => {
               const id = setTimeout(() => {
                 setUpdateTickerIndexs([]);
                 clearTimeout(id);
-              }, 100);
+              }, 10);
               break;
             case "tradeDataOnUpdate":
               const updateTrades = middleman.updateTrades(metaData.data);

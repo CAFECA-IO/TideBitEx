@@ -8,6 +8,7 @@ import React, {
 import { Tabs, Tab } from "react-bootstrap";
 import StoreContext from "../store/store-context";
 import SafeMath from "../utils/SafeMath";
+import { FixedSizeList as List } from "react-window";
 
 import { formateDecimal } from "../utils/Utils";
 
@@ -18,7 +19,12 @@ const PairTile = (props) => {
       onClick={(_) => storeCtx.selectTickerHandler(props.ticker)}
       className={`market-tile ${
         props.ticker.instId === storeCtx?.selectedTicker?.instId ? "active" : ""
-      } ${storeCtx.updateTickerIndexs.includes(props.index) ? "update" : ""}`}
+      } ${
+        storeCtx.updateTickerIndexs &&
+        storeCtx.updateTickerIndexs[props.eventKey]?.includes(props.index)
+          ? "update"
+          : ""
+      }`}
     >
       <td>
         <i className="icon ion-md-star"></i> {props.ticker.pair}
@@ -33,27 +39,41 @@ const PairTile = (props) => {
   );
 };
 
+const PairList = (props) => {
+  return (
+    <React.Fragment>
+      {props.tickers.map((ticker, index) => (
+        <PairTile
+          ticker={ticker}
+          key={`${ticker.instId}-${ticker.instType}-${index}-BTC`}
+          onClick={props.onClick}
+          index={index}
+          eventKey={props.eventKey}
+        />
+      ))}
+    </React.Fragment>
+  );
+};
+
 const MarketPairs = (props) => {
   const storeCtx = useContext(StoreContext);
   const inputRef = useRef();
-  const [BTCBasedTickers, setBTCBasedTickers] = useState([]);
-  const [ETHBasedTickers, setETHBasedTickers] = useState([]);
-  const [USDTBasedTickers, setUSDTBasedTickers] = useState([]);
+  const [tickers, setTickers] = useState(null);
   const [starTickers, setStarTickers] = useState([]);
+  const [key, setKey] = useState("btc");
 
   const filterTickers = useCallback(() => {
-    const tickers = storeCtx.tickers.filter(
+    if (!storeCtx.tickers) return;
+    const updateTickers = { ...storeCtx.tickers };
+    updateTickers[key] = storeCtx.tickers[key].filter(
       (ticker) =>
         !inputRef.current ||
         ticker.instId
           ?.toLowerCase()
           .includes(inputRef.current.value.toLowerCase())
     );
-
-    setBTCBasedTickers(tickers.filter((ticker) => ticker.quoteCcy === "BTC"));
-    setETHBasedTickers(tickers.filter((ticker) => ticker.quoteCcy === "ETH"));
-    setUSDTBasedTickers(tickers.filter((ticker) => ticker.quoteCcy === "USDT"));
-  }, [storeCtx.tickers]);
+    setTickers(updateTickers);
+  }, [key, storeCtx.tickers]);
 
   useEffect(() => {
     filterTickers();
@@ -78,7 +98,7 @@ const MarketPairs = (props) => {
             onChange={filterTickers}
           />
         </div>
-        <Tabs defaultActiveKey="btc">
+        <Tabs activeKey={key} onSelect={(k) => setKey(k)}>
           <Tab eventKey="star" title="★">
             <table className="table star-active">
               <thead>
@@ -89,14 +109,13 @@ const MarketPairs = (props) => {
                 </tr>
               </thead>
               <tbody>
-                {starTickers.map((ticker, index) => (
-                  <PairTile
-                    ticker={ticker}
-                    key={`${ticker.instId}-${ticker.instType}-${index}-star`}
+                {key === "star" && (
+                  <PairList
+                    tickers={starTickers}
+                    eventKey="star"
                     onClick={props.onClick}
-                    index={index}
                   />
-                ))}
+                )}
               </tbody>
             </table>
           </Tab>
@@ -110,14 +129,13 @@ const MarketPairs = (props) => {
                 </tr>
               </thead>
               <tbody>
-                {BTCBasedTickers.map((ticker, index) => (
-                  <PairTile
-                    ticker={ticker}
-                    key={`${ticker.instId}-${ticker.instType}-${index}-BTC`}
+                {tickers && key === "btc" && (
+                  <PairList
+                    tickers={tickers["btc"]}
+                    eventKey="btc"
                     onClick={props.onClick}
-                    index={index}
                   />
-                ))}
+                )}
               </tbody>
             </table>
           </Tab>
@@ -131,14 +149,13 @@ const MarketPairs = (props) => {
                 </tr>
               </thead>
               <tbody>
-                {ETHBasedTickers.map((ticker, index) => (
-                  <PairTile
-                    ticker={ticker}
-                    key={`${ticker.instId}-${ticker.instType}-${index}-ETH`}
+                {tickers && key === "eth" && (
+                  <PairList
+                    tickers={tickers["eth"]}
+                    eventKey="eth"
                     onClick={props.onClick}
-                    index={index}
                   />
-                ))}
+                )}
               </tbody>
             </table>
           </Tab>
@@ -152,14 +169,13 @@ const MarketPairs = (props) => {
                 </tr>
               </thead>
               <tbody>
-                {USDTBasedTickers.map((ticker, index) => (
-                  <PairTile
-                    ticker={ticker}
-                    key={`${ticker.instId}-${ticker.instType}-${index}-USDT`}
+                {tickers && key === "usdt" && (
+                  <PairList
+                    tickers={tickers["usdt"]}
+                    eventKey="usdt"
                     onClick={props.onClick}
-                    index={index}
                   />
-                ))}
+                )}
               </tbody>
             </table>
           </Tab>
