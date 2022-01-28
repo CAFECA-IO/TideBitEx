@@ -71,9 +71,8 @@ class ExchangeHub extends Bot {
   // trade api end
 
   async _eventListener() {
-    const WSChannel = await this.getBot('WSChannel');
     EventBus.on(Events.tradeDataOnUpdate, (instId, tradeData) => {
-      WSChannel.broadcast(
+      this.broadcast(
         instId,
         {
           type: Events.tradeDataOnUpdate,
@@ -82,18 +81,18 @@ class ExchangeHub extends Bot {
       )
     });
 
-    EventBus.on(Events.tradeDataOnUpdate, (instId, booksData) => {
-      WSChannel.broadcast(
+    EventBus.on(Events.orderOnUpdate, (instId, booksData) => {
+      this.broadcast(
         instId,
         {
-          type: Events.tradeDataOnUpdate,
+          type: Events.orderOnUpdate,
           data: booksData,
         }
       )
     });
 
     EventBus.on(Events.candleOnUpdate, (instId, formatCandle) => {
-      WSChannel.broadcast(
+      this.broadcast(
         instId,
         {
           type: Events.candleOnUpdate,
@@ -103,8 +102,7 @@ class ExchangeHub extends Bot {
     });
 
     EventBus.on(Events.pairOnUpdate, (instId, formatPair) => {
-      WSChannel.broadcast(
-        instId,
+      this.broadcastAllClient(
         {
           type: Events.pairOnUpdate,
           data: formatPair,
