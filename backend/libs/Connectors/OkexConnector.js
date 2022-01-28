@@ -453,6 +453,7 @@ class OkexConnector extends ConnectorBase {
     // this.logger.debug(`[${this.constructor.name}]_updateTrades`, instId, tradeData);
     const formatTrades = tradeData.map((data) => {
       return {
+        instId,
         px: data.px,
         side: data.side,
         sz: data.sz,
