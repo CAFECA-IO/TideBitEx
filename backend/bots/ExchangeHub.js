@@ -101,6 +101,16 @@ class ExchangeHub extends Bot {
         }
       )
     });
+
+    EventBus.on(Events.pairOnUpdate, (instId, formatPair) => {
+      WSChannel.broadcast(
+        instId,
+        {
+          type: Events.pairOnUpdate,
+          data: formatPair,
+        }
+      )
+    });
   }
 }
 

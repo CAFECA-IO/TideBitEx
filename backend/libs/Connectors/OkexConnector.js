@@ -8,6 +8,7 @@ const ConnectorBase = require('../ConnectorBase');
 const WebSocket = require('../WebSocket');
 const EventBus = require('../EventBus');
 const Events = require('../../constants/Events');
+const SafeMath = require('../SafeMath');
 
 const HEART_BEAT_TIME = 25000;
 
@@ -373,6 +374,7 @@ class OkexConnector extends ConnectorBase {
   }
   // trade api end
 
+  // okex ws
   _okexWsEventListener() {
     this.websocket.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -443,28 +445,6 @@ class OkexConnector extends ConnectorBase {
       this._subscribeTrades(instIds);
     }
     this.okexWsChannels[channel][instType] = instData;
-
-    // const formatPair = [];
-    // instData.forEach((inst) => {
-    //   formatPair.push({
-    //     instId: inst.instId,
-    //     baseCcy: inst.baseCcy,
-    //     baseCcyNm: inst.baseCcyNm,
-    //     baseCcyIc: inst.baseCcyIc,
-    //     quoteCcy: inst.quoteCcy,
-    //     last: "6.9409",
-    //     change: "0.0833",
-    //     open24h: "7.0488",
-    //     high24h: "7.2867",
-    //     low24h: "6.8723",
-    //     volCcy24h: "7819090",
-    //     vol24h: "7819090",
-    //     timestamp: 1642040940950,
-    //     openUtc0: "7.1132",
-    //     openUtc8: "7.1437"
-    //   });
-    // });
-    // EventBus.emit(Events.pairOnUpdate, formatPair);
   }
 
   _updateTrades(instId, tradeData) {
@@ -473,10 +453,10 @@ class OkexConnector extends ConnectorBase {
     // this.logger.debug(`[${this.constructor.name}]_updateTrades`, instId, tradeData);
     const formatTrades = tradeData.map((data) => {
       return {
-        price: data.px,
+        px: data.px,
         side: data.side,
-        size: data.sz,
-        timestamp: parseInt(data.ts),
+        sz: data.sz,
+        ts: parseInt(data.ts),
         tradeId: data.tradeId,
       }
     });
@@ -492,7 +472,7 @@ class OkexConnector extends ConnectorBase {
         instId,
         asks: data.asks,
         bids: data.bids,
-        timestamp: data.timestamp,
+        ts: parseInt(data.ts),
       }
     });
     EventBus.emit(Events.orderOnUpdate, instId, formatBooks);
@@ -523,6 +503,25 @@ class OkexConnector extends ConnectorBase {
     const channel = 'tickers';
     this.okexWsChannels[channel][instId] = tickerData;
     // this.logger.debug(`[${this.constructor.name}]_updateTickers`, instId, tickerData);
+    const formatPair = tickerData.map((data) => {
+      const change = SafeMath.minus(data.last, data.open24h);
+      const changePct = SafeMath.div(change, data.open24h);
+      return {
+        instId,
+        last: data.last,
+        change,
+        changePct,
+        open24h: data.open24h,
+        high24h: data.high24h,
+        low24h: data.low24h,
+        volCcy24h: data.volCcy24h,
+        vol24h: data.vol24h,
+        ts: parseInt(data.ts),
+        openUtc0: data.sodUtc0,
+        openUtc8: data.sodUtc8
+      }
+    });
+    EventBus.emit(Events.pairOnUpdate, instId, formatPair);
   }
 
   _subscribeInstruments() {
@@ -586,5 +585,6 @@ class OkexConnector extends ConnectorBase {
       args
     }));
   }
+  // okex ws end
 }
 module.exports = OkexConnector;
