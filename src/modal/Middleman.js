@@ -120,8 +120,12 @@ class Middleman {
   updateBooks(orders) {
     const updateRawBooks = {
       ...this.rawBooks,
-      asks: this.rawBooks?.asks ? [...this.rawBooks.asks] : [],
-      bids: this.rawBooks?.bids ? this.rawBooks.bids : [],
+      asks: this.rawBooks?.asks
+        ? this.rawBooks.asks.map((ask) => (ask.update = false))
+        : [],
+      bids: this.rawBooks?.bids
+        ? this.rawBooks.bids.map((bid) => (bid.update = false))
+        : [],
     };
     console.log(`updateBooks`, orders);
     orders.forEach((order) => {
@@ -148,11 +152,6 @@ class Middleman {
       this.rawBooks = updateRawBooks;
     });
     this.books = this.handleBooks(this.rawBooks);
-    const id = setTimeout(() => {
-      this.books.asks.forEach((ask) => (ask.update = false));
-      this.books.bids.forEach((bid) => (bid.update = false));
-      clearTimeout(id);
-    }, 100);
     return this.books;
   }
 
@@ -175,13 +174,7 @@ class Middleman {
         ...trade,
         update: true,
       }))
-      .concat(this.trades || []);
-    // .sort((a, b) => +b.ts - +a.ts);
-    const id = setTimeout(() => {
-      _updateTrades.forEach((trade) => (trade.update = false));
-      clearTimeout(id);
-    }, 100);
-    // console.log(`updateTrades`, _updateTrades);
+      .concat(this.trades.map((trade) => ({ ...trade, update: false })) || []);
     this.trades = _updateTrades;
     return _updateTrades;
   };
