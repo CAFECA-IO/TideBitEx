@@ -225,11 +225,9 @@ const StoreProvider = (props) => {
             case "candleOnUpdate":
               _candleTimestamp = new Date().getTime();
               if (_candleTimestamp - +candleTimestamp > 1000) {
-                console.log(`candleOnUpdate`);
                 candleTimestamp = _candleTimestamp;
-                setBooks(updateBooks);
-                console.log("candleOnUpdate");
-                console.log(metaData.data);
+                console.log("candleOnUpdate", metaData.data);
+                setCandles(metaData.data);
               }
               break;
             default:
