@@ -117,7 +117,7 @@ class Middleman {
   }
 
   updateBooks(orders) {
-    console.log(`updateBooks orders`, orders);
+    // console.log(`updateBooks orders`, orders);
     const updateRawBooks = {
       ...this.rawBooks,
       asks: this.rawBooks?.asks
@@ -131,11 +131,11 @@ class Middleman {
       order.asks.forEach((ask) => {
         let index;
         index = (this.rawBooks?.asks || []).findIndex((d) => d[0] === ask[0]);
-        console.log(`updateBooks index`, index);
-        console.log(
-          `updateBooks order.asks SafeMath.gt(SafeMath.plus(ask[2], ask[3]), "0")`,
-          SafeMath.gt(SafeMath.plus(ask[2], ask[3]), "0")
-        );
+        // console.log(`updateBooks index`, index);
+        // console.log(
+        // `updateBooks order.asks SafeMath.gt(SafeMath.plus(ask[2], ask[3]), "0")`,
+        //   SafeMath.gt(SafeMath.plus(ask[2], ask[3]), "0")
+        // );
         if (SafeMath.gt(SafeMath.plus(ask[2], ask[3]), "0")) {
           if (index === -1) updateRawBooks.asks.push(ask);
           else updateRawBooks.asks[index] = ask;
@@ -163,9 +163,9 @@ class Middleman {
     try {
       const rawBooks = await this.communicator.books(instId, sz);
       this.rawBooks = rawBooks[0];
-      console.log(`getBooks this.rawBooks`, this.rawBooks);
+      // console.log(`getBooks this.rawBooks`, this.rawBooks);
       this.books = this.handleBooks(this.rawBooks);
-      console.log(`getBooks this.books`, this.books);
+      // console.log(`getBooks this.books`, this.books);
       return this.books;
     } catch (error) {
       throw error;
@@ -173,7 +173,7 @@ class Middleman {
   }
 
   updateTrades = (updateData) => {
-    console.log(`updateTrades updateData`, updateData);
+    // console.log(`updateTrades updateData`, updateData);
     const _updateTrades = updateData
       .filter(
         (data) =>
@@ -199,8 +199,62 @@ class Middleman {
     }
   }
 
+  handleCandles(data) {
+    let candles = [],
+      volumes = [];
+    data.forEach((d) => {
+      const timestamp = parseInt(d[0]);
+      const date = new Date(timestamp);
+      candles.push({
+        x: date,
+        y: d.slice(1, 5),
+      });
+      volumes.push({
+        x: date,
+        y: d[6],
+        upward: SafeMath.gt(d[4], d[1]),
+      });
+    });
+    return {
+      candles,
+      volumes,
+    };
+  }
+
+  updateCandles(data) {
+    console.log(`updateCandles data`, data);
+    console.log(`updateCandles this.rawCandles`, this.rawCandles[0][0]-this.rawCandles[0][1],this.rawCandles);
+
+    const priceData = this.handleCandles(
+      data
+        .filter(
+          (d) =>
+            d.instId === this.selectedTicker.instId &&
+            d.candle[0] > this.rawCandles[0][0]
+        )
+        .map((d) => d.candle)
+        .concat(this.rawCandles)
+    );
+    return priceData;
+  }
+
   async getCandles(instId, bar, after, before, limit) {
-    return await this.communicator.candles(instId, bar, after, before, limit);
+    let priceData;
+    try {
+      const result = await this.communicator.candles(
+        instId,
+        bar,
+        after,
+        before,
+        limit
+      );
+      this.rawCandles = result;
+      priceData = this.handleCandles(result);
+      return priceData;
+    } catch (error) {
+      console.log(`getCandles error`, error);
+      throw error;
+    }
   }
 
   async getPendingOrders(options) {
