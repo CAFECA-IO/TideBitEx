@@ -9,7 +9,6 @@ class Middleman {
     this.selectedTicker = ticker;
   }
   updateTickers(updatePairs) {
-    console.log(`updatePairs`, updatePairs);
     if (!this.tickers.length > 0) return;
     let updateTickers = [...this.tickers];
     let updateTicker;
@@ -121,13 +120,12 @@ class Middleman {
     const updateRawBooks = {
       ...this.rawBooks,
       asks: this.rawBooks?.asks
-        ? this.rawBooks.asks.map((ask) => (ask.update = false))
+        ? this.rawBooks.asks.map((ask) => ({ ...ask, update: false }))
         : [],
       bids: this.rawBooks?.bids
-        ? this.rawBooks.bids.map((bid) => (bid.update = false))
+        ? this.rawBooks.bids.map((bid) => ({ ...bid, update: false }))
         : [],
     };
-    console.log(`updateBooks`, orders);
     orders.forEach((order) => {
       order.asks.forEach((ask) => {
         let index;
@@ -161,6 +159,7 @@ class Middleman {
       this.rawBooks = rawBooks[0];
       console.log(`getBooks this.rawBooks`, this.rawBooks);
       this.books = this.handleBooks(this.rawBooks);
+      console.log(`getBooks this.books`, this.books);
       return this.books;
     } catch (error) {
       throw error;
@@ -168,7 +167,6 @@ class Middleman {
   }
 
   updateTrades = (updateData) => {
-    console.log(`updateTrades`, updateData);
     const _updateTrades = updateData
       .map((trade) => ({
         ...trade,

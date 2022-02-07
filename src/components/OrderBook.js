@@ -49,7 +49,8 @@ const OrderBook = (props) => {
             </tr>
           </thead>
           <tbody className="order-book-asks">
-            {storeCtx.books?.asks &&
+            {storeCtx?.selectedTicker &&
+              storeCtx.books?.asks &&
               storeCtx.books.asks.map((book, index) => (
                 <BookTile
                   type="asks"
@@ -97,7 +98,8 @@ const OrderBook = (props) => {
             </tbody>
           )}
           <tbody>
-            {storeCtx.books?.bids &&
+            {storeCtx?.selectedTicker &&
+              storeCtx.books?.bids &&
               storeCtx.books.bids.map((book, index) => (
                 <BookTile
                   type="bids"
