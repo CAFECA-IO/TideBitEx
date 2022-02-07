@@ -117,6 +117,7 @@ class Middleman {
   }
 
   updateBooks(orders) {
+    console.log(`updateBooks orders`, orders);
     const updateRawBooks = {
       ...this.rawBooks,
       asks: this.rawBooks?.asks
@@ -130,6 +131,11 @@ class Middleman {
       order.asks.forEach((ask) => {
         let index;
         index = (this.rawBooks?.asks || []).findIndex((d) => d[0] === ask[0]);
+        console.log(`updateBooks index`, index);
+        console.log(
+          `updateBooks order.asks SafeMath.gt(SafeMath.plus(ask[2], ask[3]), "0")`,
+          SafeMath.gt(SafeMath.plus(ask[2], ask[3]), "0")
+        );
         if (SafeMath.gt(SafeMath.plus(ask[2], ask[3]), "0")) {
           if (index === -1) updateRawBooks.asks.push(ask);
           else updateRawBooks.asks[index] = ask;
@@ -167,9 +173,15 @@ class Middleman {
   }
 
   updateTrades = (updateData) => {
+    console.log(`updateTrades updateData`, updateData);
     const _updateTrades = updateData
-      .map((trade) => ({
-        ...trade,
+      .filter(
+        (data) =>
+          SafeMath.gte(data.ts, this.trades[0].ts) &&
+          data.tradeId !== this.trades[0].tradeId
+      )
+      .map((data) => ({
+        ...data,
         update: true,
       }))
       .concat(this.trades.map((trade) => ({ ...trade, update: false })) || []);
@@ -180,7 +192,7 @@ class Middleman {
   async getTrades(instId, limit) {
     try {
       const trades = await this.communicator.trades(instId, limit);
-      this.trades = trades;
+      this.trades = trades.sort((a, b) => SafeMath.gt(a.ts, b.ts));
       return trades;
     } catch (error) {
       throw error;
