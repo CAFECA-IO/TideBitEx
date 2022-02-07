@@ -24,6 +24,10 @@ const StoreProvider = (props) => {
   const [orderHistories, setOrderHistories] = useState([]);
   const [balances, setBalances] = useState([]);
   const [selectedTicker, setSelectedTicker] = useState(null);
+  let tickerTimestamp = 0,
+    tradeTimestamp = 0,
+    bookTimestamp = 0,
+    candleTimestamp = 0;
 
   const getBooks = useCallback(
     async (instId, sz = 100) => {
@@ -171,6 +175,7 @@ const StoreProvider = (props) => {
 
   const sync = useCallback(
     async (isInit = false) => {
+      console.log("useCallback 只用一遍");
       await getTickers(true);
       if (isInit) {
         wsClient.addEventListener("open", function () {
@@ -182,30 +187,48 @@ const StoreProvider = (props) => {
           setWsConnected(false);
         });
         wsClient.addEventListener("message", (msg) => {
-          let metaData = JSON.parse(msg.data);
+          let _tickerTimestamp = 0,
+            _tradeTimestamp = 0,
+            _bookTimestamp = 0,
+            _candleTimestamp = 0,
+            metaData = JSON.parse(msg.data);
           switch (metaData.type) {
             case "pairOnUpdate":
               const { updateTicker, updateTickers, updateIndexes } =
                 middleman.updateTickers(metaData.data);
-              if (updateTicker) setSelectedTicker(updateTicker);
-              if (updateTickers) setTickers(updateTickers);
-              if (updateIndexes) setUpdateTickerIndexs(updateIndexes);
-              const id = setTimeout(() => {
-                setUpdateTickerIndexs([]);
-                clearTimeout(id);
-              }, 100);
+              _tickerTimestamp = new Date().getTime();
+              if (!!updateTicker) setSelectedTicker(updateTicker);
+              if (_tickerTimestamp - +tickerTimestamp > 1000) {
+                tickerTimestamp = _tickerTimestamp;
+                setTickers(updateTickers);
+                setUpdateTickerIndexs(updateIndexes);
+              }
               break;
             case "tradeDataOnUpdate":
               const updateTrades = middleman.updateTrades(metaData.data);
-              setTrades(updateTrades);
+              _tradeTimestamp = new Date().getTime();
+              if (_tradeTimestamp - +tradeTimestamp > 1000) {
+                console.log(`updateTrades`, updateTrades);
+                tradeTimestamp = _tradeTimestamp;
+                setTrades(updateTrades);
+              }
               break;
             case "orderOnUpdate":
               const updateBooks = middleman.updateBooks(metaData.data);
-              setBooks(updateBooks);
+              _bookTimestamp = new Date().getTime();
+              if (_bookTimestamp - +bookTimestamp > 1000) {
+                console.log(`updateBooks`, updateBooks);
+                bookTimestamp = _bookTimestamp;
+                setBooks(updateBooks);
+              }
               break;
             case "candleOnUpdate":
-              // console.log("candleOnUpdate");
-              // console.log(metaData.data);
+              _candleTimestamp = new Date().getTime();
+              if (_candleTimestamp - +candleTimestamp > 1000) {
+                candleTimestamp = _candleTimestamp;
+                console.log("candleOnUpdate", metaData.data);
+                setCandles(metaData.data);
+              }
               break;
             default:
               console.log("default");

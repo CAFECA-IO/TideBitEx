@@ -24,12 +24,26 @@ const PairTile = (props) => {
         <i className="icon ion-md-star"></i> {props.ticker.pair}
       </td>
       <td>{formateDecimal(props.ticker.last, 8)}</td>
-      <td className={SafeMath.gt(props.ticker.change, "0") ? "green" : "red"}>
-        {SafeMath.gt(props.ticker.change, "0")
+      <td className={SafeMath.gte(props.ticker.change, "0") ? "green" : "red"}>
+        {SafeMath.gte(props.ticker.change, "0")
           ? `+${formateDecimal(props.ticker.changePct, 3)}%`
           : `${formateDecimal(props.ticker.changePct, 3)}%`}
       </td>
     </tr>
+  );
+};
+
+const PairList = (props) => {
+  return (
+    <tbody className="pair-list">
+      {props.tickers.map((ticker, index) => (
+        <PairTile
+          ticker={ticker}
+          index={index}
+          key={`${ticker.instId}-${ticker.instType}-${index}-star`}
+        />
+      ))}
+    </tbody>
   );
 };
 
@@ -88,16 +102,7 @@ const MarketPairs = (props) => {
                   <th>Change</th>
                 </tr>
               </thead>
-              <tbody>
-                {starTickers.map((ticker, index) => (
-                  <PairTile
-                    ticker={ticker}
-                    key={`${ticker.instId}-${ticker.instType}-${index}-star`}
-                    onClick={props.onClick}
-                    index={index}
-                  />
-                ))}
-              </tbody>
+              <PairList tickers={starTickers} />
             </table>
           </Tab>
           <Tab eventKey="btc" title="BTC">
@@ -109,16 +114,7 @@ const MarketPairs = (props) => {
                   <th>Change</th>
                 </tr>
               </thead>
-              <tbody>
-                {BTCBasedTickers.map((ticker, index) => (
-                  <PairTile
-                    ticker={ticker}
-                    key={`${ticker.instId}-${ticker.instType}-${index}-BTC`}
-                    onClick={props.onClick}
-                    index={index}
-                  />
-                ))}
-              </tbody>
+              <PairList tickers={BTCBasedTickers} />
             </table>
           </Tab>
           <Tab eventKey="eth" title="ETH">
@@ -130,16 +126,7 @@ const MarketPairs = (props) => {
                   <th>Change</th>
                 </tr>
               </thead>
-              <tbody>
-                {ETHBasedTickers.map((ticker, index) => (
-                  <PairTile
-                    ticker={ticker}
-                    key={`${ticker.instId}-${ticker.instType}-${index}-ETH`}
-                    onClick={props.onClick}
-                    index={index}
-                  />
-                ))}
-              </tbody>
+              <PairList tickers={ETHBasedTickers} />
             </table>
           </Tab>
           <Tab eventKey="usdt" title="USDT">
@@ -151,16 +138,7 @@ const MarketPairs = (props) => {
                   <th>Change</th>
                 </tr>
               </thead>
-              <tbody>
-                {USDTBasedTickers.map((ticker, index) => (
-                  <PairTile
-                    ticker={ticker}
-                    key={`${ticker.instId}-${ticker.instType}-${index}-USDT`}
-                    onClick={props.onClick}
-                    index={index}
-                  />
-                ))}
-              </tbody>
+              <PairList tickers={USDTBasedTickers} />
             </table>
           </Tab>
         </Tabs>

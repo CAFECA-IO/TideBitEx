@@ -9,7 +9,6 @@ class Middleman {
     this.selectedTicker = ticker;
   }
   updateTickers(updatePairs) {
-    console.log(`updatePairs`, updatePairs);
     if (!this.tickers.length > 0) return;
     let updateTickers = [...this.tickers];
     let updateTicker;
@@ -120,10 +119,13 @@ class Middleman {
   updateBooks(orders) {
     const updateRawBooks = {
       ...this.rawBooks,
-      asks: this.rawBooks?.asks ? [...this.rawBooks.asks] : [],
-      bids: this.rawBooks?.bids ? this.rawBooks.bids : [],
+      asks: this.rawBooks?.asks
+        ? this.rawBooks.asks.map((ask) => ({ ...ask, update: false }))
+        : [],
+      bids: this.rawBooks?.bids
+        ? this.rawBooks.bids.map((bid) => ({ ...bid, update: false }))
+        : [],
     };
-    console.log(`updateBooks`, orders);
     orders.forEach((order) => {
       order.asks.forEach((ask) => {
         let index;
@@ -148,11 +150,6 @@ class Middleman {
       this.rawBooks = updateRawBooks;
     });
     this.books = this.handleBooks(this.rawBooks);
-    const id = setTimeout(() => {
-      this.books.asks.forEach((ask) => (ask.update = false));
-      this.books.bids.forEach((bid) => (bid.update = false));
-      clearTimeout(id);
-    }, 100);
     return this.books;
   }
 
@@ -162,6 +159,7 @@ class Middleman {
       this.rawBooks = rawBooks[0];
       console.log(`getBooks this.rawBooks`, this.rawBooks);
       this.books = this.handleBooks(this.rawBooks);
+      console.log(`getBooks this.books`, this.books);
       return this.books;
     } catch (error) {
       throw error;
@@ -169,19 +167,12 @@ class Middleman {
   }
 
   updateTrades = (updateData) => {
-    console.log(`updateTrades`, updateData);
     const _updateTrades = updateData
       .map((trade) => ({
         ...trade,
         update: true,
       }))
-      .concat(this.trades || []);
-    // .sort((a, b) => +b.ts - +a.ts);
-    const id = setTimeout(() => {
-      _updateTrades.forEach((trade) => (trade.update = false));
-      clearTimeout(id);
-    }, 100);
-    // console.log(`updateTrades`, _updateTrades);
+      .concat(this.trades.map((trade) => ({ ...trade, update: false })) || []);
     this.trades = _updateTrades;
     return _updateTrades;
   };
