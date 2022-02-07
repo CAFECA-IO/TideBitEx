@@ -24,8 +24,8 @@ const PairTile = (props) => {
         <i className="icon ion-md-star"></i> {props.ticker.pair}
       </td>
       <td>{formateDecimal(props.ticker.last, 8)}</td>
-      <td className={SafeMath.gt(props.ticker.change, "0") ? "green" : "red"}>
-        {SafeMath.gt(props.ticker.change, "0")
+      <td className={SafeMath.gte(props.ticker.change, "0") ? "green" : "red"}>
+        {SafeMath.gte(props.ticker.change, "0")
           ? `+${formateDecimal(props.ticker.changePct, 3)}%`
           : `${formateDecimal(props.ticker.changePct, 3)}%`}
       </td>

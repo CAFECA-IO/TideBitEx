@@ -78,13 +78,13 @@ const OrderBook = (props) => {
                 </td>
                 <td
                   className={
-                    SafeMath.gt(storeCtx.selectedTicker.change, "0")
+                    SafeMath.gte(storeCtx.selectedTicker.change, "0")
                       ? "green"
                       : "red"
                   }
                 >
                   <span>Change</span>
-                  {SafeMath.gt(storeCtx.selectedTicker.change, "0")
+                  {SafeMath.gte(storeCtx.selectedTicker.change, "0")
                     ? `+${formateDecimal(
                         storeCtx.selectedTicker.changePct,
                         3
