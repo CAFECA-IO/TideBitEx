@@ -226,6 +226,7 @@ const StoreProvider = (props) => {
               break;
             case "candleOnUpdate":
               const updateCandles = middleman.updateCandles(metaData.data);
+              console.log(`updateCandles`, updateCandles);
               _candleTimestamp = new Date().getTime();
               if (_candleTimestamp - +candleTimestamp > 1000) {
                 candleTimestamp = _candleTimestamp;
