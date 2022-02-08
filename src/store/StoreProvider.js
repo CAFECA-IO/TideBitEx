@@ -17,7 +17,7 @@ const StoreProvider = (props) => {
   const [updateTickerIndexs, setUpdateTickerIndexs] = useState([]);
   const [books, setBooks] = useState(null);
   const [trades, setTrades] = useState([]);
-  const [priceData, setPriceData] = useState({});
+  const [candles, setCandles] = useState([]);
   const [selectedBar, setSelectedBar] = useState("1D");
   const [pendingOrders, setPendingOrders] = useState([]);
   const [closeOrders, setCloseOrders] = useState([]);
@@ -66,7 +66,7 @@ const StoreProvider = (props) => {
           limit
         );
         console.log(`getCandles`, result);
-        setPriceData(result);
+        setCandles(result);
         // return result;
       } catch (error) {
         console.error(`getCandles`, error);
@@ -230,7 +230,7 @@ const StoreProvider = (props) => {
               _candleTimestamp = new Date().getTime();
               if (_candleTimestamp - +candleTimestamp > 1000) {
                 candleTimestamp = _candleTimestamp;
-                setPriceData(updateCandles);
+                setCandles(updateCandles);
               }
               break;
             default:
@@ -256,7 +256,7 @@ const StoreProvider = (props) => {
         tickers,
         books,
         trades,
-        priceData,
+        candles,
         selectedBar,
         pendingOrders,
         closeOrders,

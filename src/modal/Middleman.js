@@ -216,23 +216,30 @@ class Middleman {
   }
 
   updateCandles(data) {
-    console.log(`updateCandles data`, data);
+    const updateCandles = [...this.candles];
+    data.forEach((d) => {
+      let i = updateCandles.findIndex((candle) => d.candle[0] === candle[0]);
+      if (i === -1) {
+        if (SafeMath.gt(d.candle[0], updateCandles[0][0])) {
+          updateCandles.unshift(d.candle);
+          // console.log(`updateCandles unshift updateCandles`, updateCandles);
+        } else if (
+          SafeMath.lt(d.candle[0], updateCandles[updateCandles.length - 1][0])
+        ) {
+          updateCandles.push(d.candle);
+          // console.log(`updateCandles push updateCandles`, updateCandles);
+        }
+      } else {
+        // console.log(`updateCandles index: ${i} updateCandles`, updateCandles);
+        updateCandles[i] = d.candle;
+      }
+    });
+    this.candles = updateCandles;
 
-    const priceData = this.handleCandles(
-      data
-        // .filter(
-        //   (d) =>
-        //     d.instId === this.selectedTicker.instId &&
-        //     d.candle[0] > this.rawCandles[0][0]
-        // )
-        .map((d) => d.candle)
-        .concat(this.rawCandles)
-    );
-    return priceData;
+    return this.candles;
   }
 
   async getCandles(instId, bar, after, before, limit) {
-    let priceData;
     try {
       const result = await this.communicator.candles(
         instId,
@@ -241,9 +248,15 @@ class Middleman {
         before,
         limit
       );
-      this.rawCandles = result;
-      priceData = this.handleCandles(result);
-      return priceData;
+      this.candles = result;
+      console.log(
+        `getCandles this.candles is increase[expect false]`,
+        SafeMath.gt(
+          this.candles[this.candles.length - 1][0],
+          this.candles[0][0]
+        )
+      );
+      return this.candles;
     } catch (error) {
       console.log(`getCandles error`, error);
       throw error;

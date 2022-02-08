@@ -2,6 +2,7 @@ import React, { useContext } from "react";
 import TradingViewWidget, { Themes } from "react-tradingview-widget";
 import StoreContext from "../store/store-context";
 import ApexCharts from "react-apexcharts";
+import SafeMath from "../utils/SafeMath";
 
 const TradingChart = (props) => {
   const storeCtx = useContext(StoreContext);
@@ -84,6 +85,24 @@ const TradingChart = (props) => {
                   enabled: false,
                 },
               },
+              grid: {
+                yaxis: {
+                  lines: {
+                    show: true,
+                  },
+                },
+                xaxis: {
+                  lines: {
+                    show: true,
+                  },
+                },
+                padding: {
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  left: 0,
+                },
+              },
               plotOptions: {
                 candlestick: {
                   colors: {
@@ -94,11 +113,23 @@ const TradingChart = (props) => {
               },
               xaxis: {
                 type: "datetime",
+                labels: {
+                  show: false,
+                },
+                axisBorder: {
+                  show: false,
+                },
+              },
+              yaxis: {
+                opposite: true,
+                labels: {
+                  show: false,
+                },
               },
             }}
             series={[
               {
-                data: storeCtx.priceData?.candles ?? [],
+                data: storeCtx.candles.map((candle) => candle.slice(0, 5)),
                 type: "candlestick",
               },
             ]}
@@ -108,7 +139,7 @@ const TradingChart = (props) => {
             type="bar"
             series={[
               {
-                data: storeCtx.priceData?.volumes && [],
+                data: storeCtx.candles.map((candle) => [candle[0], candle[5]]), //.map((candle) => candle[5]),
                 name: "volume",
               },
             ]}
@@ -120,6 +151,25 @@ const TradingChart = (props) => {
                   enabled: true,
                   target: "candles",
                 },
+                offsetY: -32,
+              },
+              grid: {
+                yaxis: {
+                  lines: {
+                    show: false,
+                  },
+                },
+                xaxis: {
+                  lines: {
+                    show: true,
+                  },
+                },
+                padding: {
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  left: 0,
+                },
               },
               dataLabels: {
                 enabled: false,
@@ -127,6 +177,11 @@ const TradingChart = (props) => {
               plotOptions: {
                 bar: {
                   columnWidth: "80%",
+                  color: {
+                    backgroundBarColors: storeCtx.candles.map((candle) =>
+                      SafeMath.gt(candle[1], candle[4]) ? "#e73b3f" : "#239788"
+                    ),
+                  },
                 },
               },
               stroke: {
@@ -135,13 +190,14 @@ const TradingChart = (props) => {
               xaxis: {
                 type: "datetime",
                 axisBorder: {
-                  offsetX: 13,
+                  show: true,
                 },
               },
               yaxis: {
                 labels: {
                   show: false,
                 },
+                opposite: true,
               },
             }}
           />
