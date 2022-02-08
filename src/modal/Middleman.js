@@ -249,13 +249,6 @@ class Middleman {
         limit
       );
       this.candles = result;
-      console.log(
-        `getCandles this.candles is increase[expect false]`,
-        SafeMath.gt(
-          this.candles[this.candles.length - 1][0],
-          this.candles[0][0]
-        )
-      );
       return this.candles;
     } catch (error) {
       console.log(`getCandles error`, error);
