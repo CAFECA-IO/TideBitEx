@@ -1,7 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 import StoreContext from "../store/store-context";
 import { Tabs, Tab } from "react-bootstrap";
-import { formateDecimal } from "../utils/Utils";
 
 const TradeForm = (props) => {
   const storeCtx = useContext(StoreContext);
@@ -78,7 +77,7 @@ const TradeForm = (props) => {
         </span>
       </p>
       <p>
-        Margin:
+        Margin:{" "}
         <span>0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD</span>
       </p>
       <p>

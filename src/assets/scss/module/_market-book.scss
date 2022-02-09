@@ -34,7 +34,7 @@
   border: 1px solid #e0e3eb;
   border-radius: 2px;
 }
-.order-book-asks {
+.order-book-asks{
   flex-direction: column-reverse;
 }
 
@@ -82,7 +82,7 @@
   background: #fff;
 }
 .ob-heading td:first-child {
-  flex: 2;
+  width: 65%;
 }
 
 .order-book tbody {
