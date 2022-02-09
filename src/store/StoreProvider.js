@@ -87,13 +87,13 @@ const StoreProvider = (props) => {
 
   const selectTickerHandler = useCallback(
     async (ticker) => {
-      middleman.updateSelectedTicker(ticker);
-      setSelectedTicker(ticker);
+      const _ticker = middleman.updateSelectedTicker(ticker);
+      setSelectedTicker(_ticker);
       if (ticker.instId !== selectedTicker?.instId || !selectedTicker) {
         await getBooks(ticker.instId);
         await getTrades(ticker.instId);
         await getCandles(ticker.instId, selectedBar);
-        console.log(`wsClient switchTradingPair`, ticker);
+        console.log(`wsClient switchTradingPair`, _ticker);
         wsClient.send(
           JSON.stringify({
             op: "switchTradingPair",
@@ -152,7 +152,7 @@ const StoreProvider = (props) => {
     async (ccy) => {
       try {
         const result = await middleman.getBalances(ccy);
-        setBalances(result[0].details);
+        setBalances(result);
         return result;
       } catch (error) {
         console.log(`getBalances error`, error);
@@ -177,6 +177,7 @@ const StoreProvider = (props) => {
   const sync = useCallback(
     async (isInit = false) => {
       console.log("useCallback 只用一遍");
+      await getBalances();
       await getTickers(true);
       if (isInit) {
         wsClient.addEventListener("open", function () {
@@ -238,7 +239,6 @@ const StoreProvider = (props) => {
         });
         await getPendingOrders();
         await getCloseOrders();
-        await getBalances();
       }
     },
     [getBalances, getCloseOrders, getPendingOrders, getTickers, middleman]

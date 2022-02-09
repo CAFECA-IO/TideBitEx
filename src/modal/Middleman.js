@@ -6,7 +6,14 @@ class Middleman {
     this.communicator = new Communicator();
   }
   updateSelectedTicker(ticker) {
-    this.selectedTicker = ticker;
+    const _ticker = { ...ticker };
+    const balance = this.balances.find(
+      (detail) => detail.ccy === ticker.quoteCcy
+    );
+    if (balance) _ticker.available = balance.availBal;
+    else _ticker.available = 0;
+    this.selectedTicker = _ticker;
+    return this.selectedTicker;
   }
   updateTickers(updatePairs) {
     if (!this.tickers.length > 0) return;
@@ -23,7 +30,8 @@ class Middleman {
         pair: pair.instId.replace("-", "/"),
         changePct: SafeMath.mult(pair.changePct, "100"),
       };
-      if (pair.instId === this.selectedTicker?.instId) updateTicker = ticker;
+      if (pair.instId === this.selectedTicker?.instId)
+        updateTicker = { ...ticker, available: this.selectedTicker.available };
       if (index === -1) {
         updateTickers.push(ticker);
         return updateTickers.length - 1;
@@ -241,7 +249,7 @@ class Middleman {
       candles.push(candle.slice(0, 5));
       volumes.push([candle[0], candle[5]]);
     });
-    console.log(`candleOnUpdate`, { candles, volumes })
+    console.log(`candleOnUpdate`, { candles, volumes });
     return { candles, volumes };
   }
 
@@ -261,7 +269,7 @@ class Middleman {
         candles.push(candle.slice(0, 5));
         volumes.push([candle[0], candle[5]]);
       });
-      console.log(`getCandles`, { candles, volumes })
+      console.log(`getCandles`, { candles, volumes });
       return { candles, volumes };
     } catch (error) {
       console.log(`getCandles error`, error);
@@ -278,7 +286,13 @@ class Middleman {
   }
 
   async getBalances(ccy) {
-    return await this.communicator.balance(ccy);
+    try {
+      const result = await this.communicator.balance(ccy);
+      this.balances = result[0].details;
+      console.log(`getBalances`, this.balances);
+      return this.balances;
+    } catch (error) {}
+    return;
   }
 
   async postOrder(order) {

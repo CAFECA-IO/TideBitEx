@@ -21,7 +21,7 @@ const OrderTile = (props) => {
 
 const BalanceTile = (props) => {
   return (
-    <ul className="d-flex justify-content-between market-order-item">
+    <ul className="d-flex justify-content-between market-order-item market-balance">
       <li>{dateFormatter(parseInt(props.balance.uTime)).text}</li>
       <li>{props.balance.ccy || "--"}</li>
       {/* <li>{props.balance.eq || "--"}</li>ß */}
