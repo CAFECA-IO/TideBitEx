@@ -216,6 +216,8 @@ class Middleman {
   }
 
   updateCandles(data) {
+    let candles = [],
+      volumes = [];
     const updateCandles = [...this.candles];
     data.forEach((d) => {
       let i = updateCandles.findIndex((candle) => d.candle[0] === candle[0]);
@@ -235,11 +237,17 @@ class Middleman {
       }
     });
     this.candles = updateCandles;
-
-    return this.candles;
+    this.candles.forEach((candle) => {
+      candles.push(candle.slice(0, 5));
+      volumes.push([candle[0], candle[5]]);
+    });
+    console.log(`candleOnUpdate`, { candles, volumes })
+    return { candles, volumes };
   }
 
   async getCandles(instId, bar, after, before, limit) {
+    let candles = [],
+      volumes = [];
     try {
       const result = await this.communicator.candles(
         instId,
@@ -249,7 +257,12 @@ class Middleman {
         limit
       );
       this.candles = result;
-      return this.candles;
+      this.candles.forEach((candle) => {
+        candles.push(candle.slice(0, 5));
+        volumes.push([candle[0], candle[5]]);
+      });
+      console.log(`getCandles`, { candles, volumes })
+      return { candles, volumes };
     } catch (error) {
       console.log(`getCandles error`, error);
       throw error;

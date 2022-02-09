@@ -129,7 +129,7 @@ const TradingChart = (props) => {
             }}
             series={[
               {
-                data: storeCtx.candles.map((candle) => candle.slice(0, 5)),
+                data: storeCtx.candles ? storeCtx.candles.candles : [],
                 type: "candlestick",
               },
             ]}
@@ -139,7 +139,7 @@ const TradingChart = (props) => {
             type="bar"
             series={[
               {
-                data: storeCtx.candles.map((candle) => [candle[0], candle[5]]), //.map((candle) => candle[5]),
+                data: storeCtx.candles ? storeCtx.candles.volumes : [],
                 name: "volume",
               },
             ]}
@@ -177,11 +177,11 @@ const TradingChart = (props) => {
               plotOptions: {
                 bar: {
                   columnWidth: "80%",
-                  color: {
-                    backgroundBarColors: storeCtx.candles.map((candle) =>
-                      SafeMath.gt(candle[1], candle[4]) ? "#e73b3f" : "#239788"
-                    ),
-                  },
+                  // color: {
+                  //   backgroundBarColors: storeCtx.candles.map((candle) =>
+                  //     SafeMath.gt(candle[1], candle[4]) ? "#e73b3f" : "#239788"
+                  //   ),
+                  // },
                 },
               },
               stroke: {

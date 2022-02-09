@@ -17,7 +17,7 @@ const StoreProvider = (props) => {
   const [updateTickerIndexs, setUpdateTickerIndexs] = useState([]);
   const [books, setBooks] = useState(null);
   const [trades, setTrades] = useState([]);
-  const [candles, setCandles] = useState([]);
+  const [candles, setCandles] = useState(null);
   const [selectedBar, setSelectedBar] = useState("1D");
   const [pendingOrders, setPendingOrders] = useState([]);
   const [closeOrders, setCloseOrders] = useState([]);
