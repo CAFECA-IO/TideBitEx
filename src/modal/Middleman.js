@@ -6,7 +6,14 @@ class Middleman {
     this.communicator = new Communicator();
   }
   updateSelectedTicker(ticker) {
-    this.selectedTicker = ticker;
+    const _ticker = { ...ticker };
+    const balance = this.balances.find(
+      (detail) => detail.ccy === ticker.quoteCcy
+    );
+    if (balance) _ticker.available = balance.availBal;
+    else _ticker.available = 0;
+    this.selectedTicker = _ticker;
+    return this.selectedTicker;
   }
   updateTickers(updatePairs) {
     if (!this.tickers.length > 0) return;
@@ -23,7 +30,8 @@ class Middleman {
         pair: pair.instId.replace("-", "/"),
         changePct: SafeMath.mult(pair.changePct, "100"),
       };
-      if (pair.instId === this.selectedTicker?.instId) updateTicker = ticker;
+      if (pair.instId === this.selectedTicker?.instId)
+        updateTicker = { ...ticker, available: this.selectedTicker.available };
       if (index === -1) {
         updateTickers.push(ticker);
         return updateTickers.length - 1;
@@ -187,8 +195,80 @@ class Middleman {
     }
   }
 
+  handleCandles(data) {
+    let candles = [],
+      volumes = [];
+    data.forEach((d) => {
+      const timestamp = parseInt(d[0]);
+      const date = new Date(timestamp);
+      candles.push({
+        x: date,
+        y: d.slice(1, 5),
+      });
+      volumes.push({
+        x: date,
+        y: d[6],
+        upward: SafeMath.gt(d[4], d[1]),
+      });
+    });
+    return {
+      candles,
+      volumes,
+    };
+  }
+
+  updateCandles(data) {
+    let candles = [],
+      volumes = [];
+    const updateCandles = [...this.candles];
+    data.forEach((d) => {
+      let i = updateCandles.findIndex((candle) => d.candle[0] === candle[0]);
+      if (i === -1) {
+        if (SafeMath.gt(d.candle[0], updateCandles[0][0])) {
+          updateCandles.unshift(d.candle);
+          // console.log(`updateCandles unshift updateCandles`, updateCandles);
+        } else if (
+          SafeMath.lt(d.candle[0], updateCandles[updateCandles.length - 1][0])
+        ) {
+          updateCandles.push(d.candle);
+          // console.log(`updateCandles push updateCandles`, updateCandles);
+        }
+      } else {
+        // console.log(`updateCandles index: ${i} updateCandles`, updateCandles);
+        updateCandles[i] = d.candle;
+      }
+    });
+    this.candles = updateCandles;
+    this.candles.forEach((candle) => {
+      candles.push(candle.slice(0, 5));
+      volumes.push([candle[0], candle[5]]);
+    });
+    console.log(`candleOnUpdate`, { candles, volumes });
+    return { candles, volumes };
+  }
+
   async getCandles(instId, bar, after, before, limit) {
-    return await this.communicator.candles(instId, bar, after, before, limit);
+    let candles = [],
+      volumes = [];
+    try {
+      const result = await this.communicator.candles(
+        instId,
+        bar,
+        after,
+        before,
+        limit
+      );
+      this.candles = result;
+      this.candles.forEach((candle) => {
+        candles.push(candle.slice(0, 5));
+        volumes.push([candle[0], candle[5]]);
+      });
+      console.log(`getCandles`, { candles, volumes });
+      return { candles, volumes };
+    } catch (error) {
+      console.log(`getCandles error`, error);
+      throw error;
+    }
   }
 
   async getPendingOrders(options) {
@@ -200,7 +280,13 @@ class Middleman {
   }
 
   async getBalances(ccy) {
-    return await this.communicator.balance(ccy);
+    try {
+      const result = await this.communicator.balance(ccy);
+      this.balances = result[0].details;
+      console.log(`getBalances`, this.balances);
+      return this.balances;
+    } catch (error) {}
+    return;
   }
 
   async postOrder(order) {

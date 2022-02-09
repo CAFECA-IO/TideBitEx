@@ -5,10 +5,19 @@
   width: 100%;
   table-layout: fixed;
 }
-.order-book tr {
-  float: left;
-  clear: both;
-  overflow: hidden;
+
+.order-book thead th:first-child,
+.order-book tbody td:first-child {
+  flex: 3;
+}
+.order-book thead th:nth-child(2),
+.order-book thead th:nth-child(3),
+.order-book tbody td:nth-child(2),
+.order-book tbody td:nth-child(3) {
+  flex: 1;
+}
+.order-book table.table tbody tr {
+  border: none;
 }
 .order-book .table thead th {
   font-weight: 400;

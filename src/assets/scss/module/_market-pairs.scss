@@ -71,13 +71,12 @@
   width: 100%;
   table-layout: fixed;
 }
-.market-pairs tr {
-  float: left;
-  clear: both;
-  overflow: hidden;
-}
 
-.market-pairs thead th,
-.market-pairs tbody td {
-  width: 65%;
+.market-pairs thead th:first-child,
+.market-pairs tbody td:first-child {
+  width: 45%;//50%
+}
+.market-pairs thead th:nth-child(2),
+.market-pairs tbody td:nth-child(2) {
+  width: 36%;//28%
 }
