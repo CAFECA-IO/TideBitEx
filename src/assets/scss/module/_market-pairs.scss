@@ -70,17 +70,7 @@
   width: 100%;
   table-layout: fixed;
 }
-.market-pairs tr {
-  display: flex;
-  border-top: 1px solid #f0f3fa;
-  padding: 0.75rem 8px;
-}
 
-.market-pairs thead th,
-.market-pairs tbody td {
-  padding: 0px;
-  border: none;
-}
 .market-pairs thead th:first-child,
 .market-pairs tbody td:first-child {
   width: 45%;//50%

@@ -48,14 +48,25 @@ img {
 .dropdown-toggle::after {
   vertical-align: 1px;
 }
-thead th {
+table.table tbody td {
+  padding: 0px;
+  height: 100%;
+}
+table.table thead th {
   color: #758696;
   font-size: 13px;
   font-weight: 600;
-  border: 0 !important;
+  padding: 0px;
+  border: none;
 }
-tbody tr {
+table.table tr {
+  display: flex;
+  padding: 8px;
+  gap: 5px;
+}
+table.table tbody tr {
   color: #4a4a4a;
+  border-top: 1px solid #f0f3fa;
 }
 tbody tr:hover,
 tbody tr.active {
@@ -84,7 +95,7 @@ tbody tr.active {
 }
 .table td,
 .table th {
-  border-top: 1px solid #f0f3fa;
+  border: none;
 }
 .light-bb,
 .input-group-text {

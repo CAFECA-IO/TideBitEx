@@ -28,20 +28,7 @@
   width: 100%;
   table-layout: fixed;
 }
-.market-history tr {
-  // float: left;
-  // clear: both;
-  // overflow: hidden;
-  display: flex;
-  padding: 8px;
-  gap: 5px;
-  border-top: 1px solid #f0f3fa;
-}
-.market-history thead th,
-.market-history tbody td {
-  padding: 0px;
-  border: none;
-}
+
 .market-history {
   border: 1px solid #e0e3eb;
   border-radius: 2px;
