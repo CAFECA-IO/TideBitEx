@@ -9,7 +9,7 @@ const TradeTile = (props) => {
       className={`${props.trade.update ? "update" : ""}`}
       trade-id={props.trade.tradeId}
     >
-      <td>{dateFormatter(parseInt(props.trade.ts), true).time}</td>
+      <td>{dateFormatter(parseInt(props.trade.ts)).time}</td>
       <td className={props.trade.side === "buy" ? "red" : "green"}>
         {formateDecimal(props.trade.px, 8)}
       </td>

@@ -1,7 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 import StoreContext from "../store/store-context";
 import { Tabs, Tab } from "react-bootstrap";
-import { formateDecimal } from "../utils/Utils";
 
 const TradeForm = (props) => {
   const storeCtx = useContext(StoreContext);
@@ -59,18 +58,15 @@ const TradeForm = (props) => {
         </li>
       </ul>
       <p>
-        Available:
-        <span>
-          {formateDecimal(storeCtx?.selectedTicker?.available, 4)}
-          {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
-        </span>
+        Available:{" "}
+        <span>0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD</span>
       </p>
       <p>
-        Volume:
-        <span>{formateDecimal(storeCtx?.selectedTicker?.volCcy24h, 4)} {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD</span>
+        Volume:{" "}
+        <span>0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD</span>
       </p>
       <p>
-        Margin:
+        Margin:{" "}
         <span>0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD</span>
       </p>
       <p>

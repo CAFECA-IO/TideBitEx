@@ -6,30 +6,10 @@
   table-layout: fixed;
 }
 .order-book tr {
-  // float: left;
-  // clear: both;
-  // overflow: hidden;
-  display: flex;
-  padding: 5px 8px;
-  gap: 5px;
+  float: left;
+  clear: both;
+  overflow: hidden;
 }
-
-.order-book thead th,
-.order-book tbody td {
-  padding: 0px;
-  height: 100%;
-}
-.order-book thead th:first-child,
-.order-book tbody td:first-child {
-  flex: 3;
-}
-.order-book thead th:nth-child(2),
-.order-book thead th:nth-child(3),
-.order-book tbody td:nth-child(2),
-.order-book tbody td:nth-child(3) {
-  flex: 1;
-}
-
 .order-book .table thead th {
   font-weight: 400;
   font-size: 12px;
@@ -45,7 +25,7 @@
   border: 1px solid #e0e3eb;
   border-radius: 2px;
 }
-.order-book-asks {
+.order-book-asks{
   flex-direction: column-reverse;
 }
 
@@ -93,7 +73,7 @@
   background: #fff;
 }
 .ob-heading td:first-child {
-  flex: 2;
+  width: 65%;
 }
 
 .order-book tbody {

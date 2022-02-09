@@ -67,22 +67,22 @@ class Middleman {
     }
   }
 
-  handleBooks() {
+  handleBooks(books) {
     let totalAsks = "0",
       totalBids = "0",
       asks = [],
       bids = [],
       askPx,
       bidPx;
-    this.rawBooks.asks
+    books.asks
       ?.sort((a, b) => +a[0] - +b[0])
-      ?.forEach((d, i) => {
+      ?.forEach((d) => {
         totalAsks = SafeMath.plus(SafeMath.plus(d[2], d[3]), totalAsks);
         let ask = {
           price: d[0],
           amount: SafeMath.plus(d[2], d[3]),
           total: totalAsks,
-          update: !!d[4],
+          update: !!d["update"],
         };
         if (d[0] === askPx) {
           asks[asks.length - 1] = ask;
@@ -90,18 +90,16 @@ class Middleman {
           askPx = d[0];
           asks.push(ask);
         }
-        if (this.rawBooks.asks[i][4]) this.rawBooks.asks[i].splice(4, 1);
       });
     asks = asks.sort((a, b) => +b.price - +a.price);
-    this.rawBooks.bids
+    books.bids
       ?.sort((a, b) => +b[0] - +a[0])
-      ?.forEach((d, i) => {
+      ?.forEach((d) => {
         totalBids = SafeMath.plus(SafeMath.plus(d[2], d[3]), totalBids);
         let bid = {
           price: d[0],
           amount: SafeMath.plus(d[2], d[3]),
           total: totalBids,
-          update: !!d[4],
         };
         if (d[0] === bidPx) {
           bids[bids.length - 1] = bid;
@@ -109,49 +107,49 @@ class Middleman {
           bidPx = d[0];
           bids.push(bid);
         }
-        if (this.rawBooks.bids[i][4]) this.rawBooks.bids[i].splice(4, 1);
       });
     const updateBooks = {
+      ...books,
       asks,
       bids,
-      ts: Date.now(),
     };
     return updateBooks;
   }
 
-  updateBooks(rawOrders) {
+  updateBooks(orders) {
     const updateRawBooks = {
-      asks: this.rawBooks?.asks ? this.rawBooks.asks : [],
-      bids: this.rawBooks?.bids ? this.rawBooks.bids : [],
+      ...this.rawBooks,
+      asks: this.rawBooks?.asks
+        ? this.rawBooks.asks.map((ask) => ({ ...ask, update: false }))
+        : [],
+      bids: this.rawBooks?.bids
+        ? this.rawBooks.bids.map((bid) => ({ ...bid, update: false }))
+        : [],
     };
-    rawOrders.forEach((order) => {
+    orders.forEach((order) => {
       order.asks.forEach((ask) => {
-        let index,
-          updateAsk = ask;
-        updateAsk.push(true);
-        index = updateRawBooks.asks.findIndex((d) => d[0] === ask[0]);
+        let index;
+        index = (this.rawBooks?.asks || []).findIndex((d) => d[0] === ask[0]);
         if (SafeMath.gt(SafeMath.plus(ask[2], ask[3]), "0")) {
-          if (index === -1) updateRawBooks.asks.push(updateAsk);
-          else updateRawBooks.asks[index] = updateAsk;
+          if (index === -1) updateRawBooks.asks.push(ask);
+          else updateRawBooks.asks[index] = ask;
         } else {
           updateRawBooks.asks.splice(index, 1);
         }
       });
       order.bids.forEach((bid) => {
-        let index,
-          updateBid = bid;
-        updateBid.push(true);
-        index = updateRawBooks.bids.findIndex((d) => d[0] === bid[0]);
+        let index;
+        index = (this.rawBooks?.bids || []).findIndex((d) => d[0] === bid[0]);
         if (SafeMath.gt(SafeMath.plus(bid[2], bid[3]), "0")) {
-          if (index === -1) updateRawBooks.bids.push(updateBid);
-          else updateRawBooks.bids[index] = updateBid;
+          if (index === -1) updateRawBooks.bids.push(bid);
+          else updateRawBooks.bids[index] = bid;
         } else {
           updateRawBooks.bids.splice(index, 1);
         }
       });
       this.rawBooks = updateRawBooks;
     });
-    this.books = this.handleBooks();
+    this.books = this.handleBooks(this.rawBooks);
     return this.books;
   }
 
@@ -159,7 +157,9 @@ class Middleman {
     try {
       const rawBooks = await this.communicator.books(instId, sz);
       this.rawBooks = rawBooks[0];
-      this.books = this.handleBooks();
+      console.log(`getBooks this.rawBooks`, this.rawBooks);
+      this.books = this.handleBooks(this.rawBooks);
+      console.log(`getBooks this.books`, this.books);
       return this.books;
     } catch (error) {
       throw error;
@@ -167,15 +167,9 @@ class Middleman {
   }
 
   updateTrades = (updateData) => {
-    // console.log(`updateTrades updateData`, updateData);
     const _updateTrades = updateData
-      .filter(
-        (data) =>
-          SafeMath.gte(data.ts, this.trades[0].ts) &&
-          data.tradeId !== this.trades[0].tradeId
-      )
-      .map((data) => ({
-        ...data,
+      .map((trade) => ({
+        ...trade,
         update: true,
       }))
       .concat(this.trades.map((trade) => ({ ...trade, update: false })) || []);
@@ -186,74 +180,15 @@ class Middleman {
   async getTrades(instId, limit) {
     try {
       const trades = await this.communicator.trades(instId, limit);
-      this.trades = trades.sort((a, b) => SafeMath.gt(a.ts, b.ts));
+      this.trades = trades;
       return trades;
     } catch (error) {
       throw error;
     }
   }
 
-  handleCandles(data) {
-    let candles = [],
-      volumes = [];
-    data.forEach((d) => {
-      const timestamp = parseInt(d[0]);
-      const date = new Date(timestamp);
-      candles.push({
-        x: date,
-        y: d.slice(1, 5),
-      });
-      volumes.push({
-        x: date,
-        y: d[6],
-        upward: SafeMath.gt(d[4], d[1]),
-      });
-    });
-    return {
-      candles,
-      volumes,
-    };
-  }
-
-  updateCandles(data) {
-    const updateCandles = [...this.candles];
-    data.forEach((d) => {
-      let i = updateCandles.findIndex((candle) => d.candle[0] === candle[0]);
-      if (i === -1) {
-        if (SafeMath.gt(d.candle[0], updateCandles[0][0])) {
-          updateCandles.unshift(d.candle);
-          // console.log(`updateCandles unshift updateCandles`, updateCandles);
-        } else if (
-          SafeMath.lt(d.candle[0], updateCandles[updateCandles.length - 1][0])
-        ) {
-          updateCandles.push(d.candle);
-          // console.log(`updateCandles push updateCandles`, updateCandles);
-        }
-      } else {
-        // console.log(`updateCandles index: ${i} updateCandles`, updateCandles);
-        updateCandles[i] = d.candle;
-      }
-    });
-    this.candles = updateCandles;
-
-    return this.candles;
-  }
-
   async getCandles(instId, bar, after, before, limit) {
-    try {
-      const result = await this.communicator.candles(
-        instId,
-        bar,
-        after,
-        before,
-        limit
-      );
-      this.candles = result;
-      return this.candles;
-    } catch (error) {
-      console.log(`getCandles error`, error);
-      throw error;
-    }
+    return await this.communicator.candles(instId, bar, after, before, limit);
   }
 
   async getPendingOrders(options) {
