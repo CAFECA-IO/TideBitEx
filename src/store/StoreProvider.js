@@ -152,26 +152,14 @@ const StoreProvider = (props) => {
     async (ccy) => {
       try {
         const result = await middleman.getBalances(ccy);
-        console.log(`selectedTicker`, selectedTicker);
         setBalances(result[0].details);
-        if (selectedTicker) {
-          const _ticker = { ...selectedTicker };
-          console.log(`balances`, result[0].details);
-          const balance = result[0].details.find(
-            (balance) => balance.ccy === selectedTicker?.quoteCcy
-          );
-          console.log(`balance`, balances);
-          if (balance) _ticker.available = balance.availBal;
-          else _ticker.available = 0;
-          selectedTicker(_ticker);
-        }
         return result;
       } catch (error) {
         console.log(`getBalances error`, error);
         return Promise.reject({ message: error });
       }
     },
-    [balances, middleman, selectedTicker]
+    [middleman]
   );
 
   const postOrder = useCallback(
