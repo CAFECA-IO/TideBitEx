@@ -1,8 +1,8 @@
 import React, { useContext } from "react";
 import TradingViewWidget, { Themes } from "react-tradingview-widget";
 import StoreContext from "../store/store-context";
-import ApexCharts from "react-apexcharts";
-import SafeMath from "../utils/SafeMath";
+// import ApexCharts from "react-apexcharts";
+// import SafeMath from "../utils/SafeMath";
 
 const TradingChart = (props) => {
   const storeCtx = useContext(StoreContext);
@@ -69,7 +69,7 @@ const TradingChart = (props) => {
               M
             </div>
           </div>
-          <ApexCharts
+          {/* <ApexCharts
             height="65%"
             type="candlestick"
             options={{
@@ -133,8 +133,8 @@ const TradingChart = (props) => {
                 type: "candlestick",
               },
             ]}
-          />
-          <ApexCharts
+          /> */}
+          {/* <ApexCharts
             height="32%"
             type="bar"
             series={[
@@ -200,8 +200,8 @@ const TradingChart = (props) => {
                 opposite: true,
               },
             }}
-          />
-          {/* <TradingViewWidget
+          /> */}
+          <TradingViewWidget
               symbol={`OKEX:${storeCtx.selectedTicker.instId?.replace(
                 "-",
                 ""
@@ -214,7 +214,7 @@ const TradingChart = (props) => {
               library_path="charting_library/"
               allow_symbol_change={false}
               hide_legend={true}
-            /> */}
+            />
         </React.Fragment>
       )}
     </div>
