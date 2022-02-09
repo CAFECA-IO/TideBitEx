@@ -29,7 +29,7 @@ const BalanceTile = (props) => {
       {/* <li>{props.balance.availEq || "--"}</li> */}
       <li>{props.balance.availBal || "--"}</li>
       <li>{props.balance.frozenBal || "--"}</li>
-      <li>{props.balance.interest || "--"}</li>
+      {/* <li>{props.balance.interest || "--"}</li> */}
     </ul>
   );
 };
@@ -114,7 +114,7 @@ const HistoryOrder = (props) => {
               {/* <li>Available Equity</li> */}
               <li>Available balance</li>
               <li>Frozen balance</li>
-              <li>Interest</li>
+              {/* <li>Interest</li> */}
             </ul>
             {!storeCtx.balances.length && (
               <span className="no-data">
