@@ -24,9 +24,9 @@ const BalanceTile = (props) => {
     <ul className="d-flex justify-content-between market-order-item">
       <li>{dateFormatter(parseInt(props.balance.uTime)).text}</li>
       <li>{props.balance.ccy || "--"}</li>
-      <li>{props.balance.eq || "--"}</li>
-      <li>{props.balance.cashBal || "--"}</li>
-      <li>{props.balance.availEq || "--"}</li>
+      {/* <li>{props.balance.eq || "--"}</li>ß */}
+      {/* <li>{props.balance.cashBal || "--"}</li> */}
+      {/* <li>{props.balance.availEq || "--"}</li> */}
       <li>{props.balance.availBal || "--"}</li>
       <li>{props.balance.frozenBal || "--"}</li>
       <li>{props.balance.interest || "--"}</li>
@@ -106,12 +106,12 @@ const HistoryOrder = (props) => {
               ))}
           </Tab>
           <Tab eventKey="balance" title="Balance">
-            <ul className="d-flex justify-content-between market-order-item">
+            <ul className="d-flex justify-content-between market-order-item market-balance">
               <li>Update time</li>
               <li>Currency</li>
-              <li>Currency Equity</li>
-              <li>Cash balance</li>
-              <li>Available Equity</li>
+              {/* <li>Currency Equity</li> */}
+              {/* <li>Cash balance</li> */}
+              {/* <li>Available Equity</li> */}
               <li>Available balance</li>
               <li>Frozen balance</li>
               <li>Interest</li>

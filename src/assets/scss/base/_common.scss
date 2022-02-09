@@ -48,8 +48,11 @@ img {
 .dropdown-toggle::after {
   vertical-align: 1px;
 }
+thead tr {
+  padding: 8px 8px !important;
+}
 thead tr th {
-  padding: 8px 15px !important;
+  padding: 0px 0px !important;
 }
 thead th {
   color: #758696;

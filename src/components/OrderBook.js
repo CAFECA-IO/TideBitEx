@@ -97,7 +97,7 @@ const OrderBook = (props) => {
               </tr>
             </tbody>
           )}
-          <tbody>
+          <tbody className="order-book-bids">
             {storeCtx?.selectedTicker &&
               storeCtx.books?.bids &&
               storeCtx.books.bids.map((book, index) => (

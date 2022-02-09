@@ -142,7 +142,7 @@ class Communicator {
       }${options?.before ? `&before=${options.before}` : ""}${
         options?.limit ? `&limit=${options.limit}` : ""
       }`;
-      console.log(`getPendingOrders url`, url);
+      // console.log(`getPendingOrders url`, url);
       const res = await this._get(url);
       if (res.success) {
         return res.data;
@@ -165,7 +165,7 @@ class Communicator {
       }${options?.before ? `&before=${options.before}` : ""}${
         options?.limit ? `&limit=${options.limit}` : ""
       }`;
-      console.log(`closeOrders url`, url);
+      // console.log(`closeOrders url`, url);
       const res = await this._get(url);
       if (res.success) {
         return res.data;
@@ -180,7 +180,7 @@ class Communicator {
   async balance(ccy) {
     try {
       const url = `/account/balance?${ccy ? `&ccy=${ccy}` : ""}`;
-      console.log(`getPendingOrders url`, url);
+      // console.log(`getPendingOrders url`, url);
       const res = await this._get(url);
       if (res.success) {
         return res.data;

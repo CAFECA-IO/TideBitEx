@@ -43,7 +43,6 @@
 }
 .table td {
   font-size: 13px;
-  padding: 10px 18px;
   cursor: pointer;
 }
 
@@ -72,12 +71,21 @@
   table-layout: fixed;
 }
 .market-pairs tr {
-  float: left;
-  clear: both;
-  overflow: hidden;
+  display: flex;
+  border-top: 1px solid #f0f3fa;
+  padding: 0.75rem 8px;
 }
 
 .market-pairs thead th,
 .market-pairs tbody td {
-  width: 65%;
+  padding: 0px;
+  border: none;
+}
+.market-pairs thead th:first-child,
+.market-pairs tbody td:first-child {
+  width: 45%;//50%
+}
+.market-pairs thead th:nth-child(2),
+.market-pairs tbody td:nth-child(2) {
+  width: 36%;//28%
 }
