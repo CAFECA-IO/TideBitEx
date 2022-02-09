@@ -68,7 +68,6 @@ const StoreProvider = (props) => {
         setCandles(result);
         // return result;
       } catch (error) {
-        console.error(`getCandles`, error);
         return Promise.reject({ message: error });
       }
     },
@@ -93,7 +92,7 @@ const StoreProvider = (props) => {
         await getBooks(ticker.instId);
         await getTrades(ticker.instId);
         await getCandles(ticker.instId, selectedBar);
-        console.log(`wsClient switchTradingPair`, ticker);
+        console.log(`wsClient switchTradingPair`, ticker.instId);
         wsClient.send(
           JSON.stringify({
             op: "switchTradingPair",
@@ -104,7 +103,7 @@ const StoreProvider = (props) => {
         );
       }
     },
-    [middleman, selectedTicker, getBooks, getTrades, getCandles, selectedBar]
+    [middleman, getBooks, getCandles, getTrades, selectedBar, selectedTicker]
   );
 
   const getTickers = useCallback(
@@ -152,26 +151,14 @@ const StoreProvider = (props) => {
     async (ccy) => {
       try {
         const result = await middleman.getBalances(ccy);
-        console.log(`selectedTicker`, selectedTicker);
         setBalances(result[0].details);
-        if (selectedTicker) {
-          const _ticker = { ...selectedTicker };
-          console.log(`balances`, result[0].details);
-          const balance = result[0].details.find(
-            (balance) => balance.ccy === selectedTicker?.quoteCcy
-          );
-          console.log(`balance`, balances);
-          if (balance) _ticker.available = balance.availBal;
-          else _ticker.available = 0;
-          selectedTicker(_ticker);
-        }
         return result;
       } catch (error) {
         console.log(`getBalances error`, error);
         return Promise.reject({ message: error });
       }
     },
-    [balances, middleman, selectedTicker]
+    [middleman]
   );
 
   const postOrder = useCallback(
@@ -221,7 +208,7 @@ const StoreProvider = (props) => {
               const updateTrades = middleman.updateTrades(metaData.data);
               _tradeTimestamp = new Date().getTime();
               if (_tradeTimestamp - +tradeTimestamp > 1000) {
-                // console.log(`updateTrades`, updateTrades);
+                console.log(`updateTrades`, updateTrades);
                 tradeTimestamp = _tradeTimestamp;
                 setTrades(updateTrades);
               }
@@ -230,17 +217,17 @@ const StoreProvider = (props) => {
               const updateBooks = middleman.updateBooks(metaData.data);
               _bookTimestamp = new Date().getTime();
               if (_bookTimestamp - +bookTimestamp > 1000) {
-                // console.log(`updateBooks`, updateBooks);
+                console.log(`updateBooks`, updateBooks);
                 bookTimestamp = _bookTimestamp;
                 setBooks(updateBooks);
               }
               break;
             case "candleOnUpdate":
-              const updateCandles = middleman.updateCandles(metaData.data);
               _candleTimestamp = new Date().getTime();
               if (_candleTimestamp - +candleTimestamp > 1000) {
                 candleTimestamp = _candleTimestamp;
-                setCandles(updateCandles);
+                console.log("candleOnUpdate", metaData.data);
+                setCandles(metaData.data);
               }
               break;
             default:
