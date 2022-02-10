@@ -61,12 +61,12 @@ const TradeForm = (props) => {
       <p>
         Available:
         <span>
-          {/* {formateDecimal(storeCtx?.selectedTicker?.available, 4)} */}
-          {`${
+          {`${formateDecimal(storeCtx?.selectedTicker?.available, 4)} `}
+          {/* {`${
             storeCtx?.selectedTicker?.available === undefined
               ? "--"
               : storeCtx?.selectedTicker?.available
-          } `}
+          } `} */}
           {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
         </span>
       </p>
