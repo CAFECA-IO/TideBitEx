@@ -6,7 +6,8 @@ import StoreContext from "./store-context";
 // const wsServer = "ws://127.0.0.1";
 const wsClient = new WebSocket(
   (window.location.protocol === "https:" ? "wss://" : "ws://") +
-    window.location.host +
+    // window.location.host +
+    "127.0.0.1" +
     "/ws"
 );
 

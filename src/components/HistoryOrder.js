@@ -116,13 +116,13 @@ const HistoryOrder = (props) => {
               <li>Frozen balance</li>
               {/* <li>Interest</li> */}
             </ul>
-            {!storeCtx.balances.length && (
+            {!storeCtx.balances?.length && (
               <span className="no-data">
                 <i className="icon ion-md-document"></i>
                 No data
               </span>
             )}
-            {!!storeCtx.balances.length &&
+            {!!storeCtx.balances?.length &&
               storeCtx.balances.map((balance) => (
                 <BalanceTile balance={balance} />
               ))}
