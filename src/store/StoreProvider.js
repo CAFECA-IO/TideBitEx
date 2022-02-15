@@ -1,15 +1,11 @@
 import React, { useEffect, useCallback, useMemo, useState } from "react";
+import { Config } from "../constant/Config";
 import Middleman from "../modal/Middleman";
 import StoreContext from "./store-context";
 
 // const wsServer = "wss://exchange.tidebit.network/ws/v1";
 // const wsServer = "ws://127.0.0.1";
-const wsClient = new WebSocket(
-  (window.location.protocol === "https:" ? "wss://" : "ws://") +
-    // window.location.host +
-    "127.0.0.1" +
-    "/ws"
-);
+const wsClient = new WebSocket(Config[Config.status].websocket);
 
 const StoreProvider = (props) => {
   const middleman = useMemo(() => new Middleman(), []);
