@@ -1,4 +1,5 @@
 import React, { useEffect, useCallback, useMemo, useState } from "react";
+import { useHistory, useLocation } from "react-router-dom";
 import { Config } from "../constant/Config";
 import Middleman from "../modal/Middleman";
 import StoreContext from "./store-context";
@@ -9,6 +10,8 @@ const wsClient = new WebSocket(Config[Config.status].websocket);
 
 const StoreProvider = (props) => {
   const middleman = useMemo(() => new Middleman(), []);
+  const location = useLocation();
+  const history = useHistory();
   const [wsConnected, setWsConnected] = useState(false);
   const [tickers, setTickers] = useState([]);
   const [updateTickerIndexs, setUpdateTickerIndexs] = useState([]);
@@ -82,6 +85,14 @@ const StoreProvider = (props) => {
     [getCandles, selectedBar, selectedTicker?.instId]
   );
 
+  const findTicker = useCallback(
+    async (id) => {
+      const ticker = middleman.findTicker(id);
+      return ticker;
+    },
+    [middleman]
+  );
+
   const selectTickerHandler = useCallback(
     async (ticker) => {
       const _ticker = middleman.updateSelectedTicker(ticker);
@@ -109,12 +120,31 @@ const StoreProvider = (props) => {
       try {
         const result = await middleman.getTickers(instType, from, limit);
         setTickers(result);
-        if (selectedTicker === null || force) selectTickerHandler(result[0]);
+        if (selectedTicker === null || force) {
+          console.log(`location.pathname`, location.pathname);
+          console.log(
+            `location.pathname.includes("/markets/")`,
+            location.pathname.includes("/markets/")
+          );
+          const id = location.pathname.includes("/markets/")
+            ? location.pathname.replace("/markets/", "")
+            : null;
+          console.log(`id`, id);
+          const ticker = middleman.findTicker(id);
+          if (!ticker) {
+            history.push({
+              pathname: `/markets/${result[0].instId
+                .replace("-", "")
+                .toLowerCase()}`,
+            });
+            selectTickerHandler(result[0]);
+          } else selectTickerHandler(ticker);
+        }
       } catch (error) {
         return Promise.reject({ message: error });
       }
     },
-    [middleman, selectTickerHandler, selectedTicker]
+    [history, location.pathname, middleman, selectTickerHandler, selectedTicker]
   );
 
   const getPendingOrders = useCallback(
@@ -259,6 +289,7 @@ const StoreProvider = (props) => {
         balances,
         selectedTicker,
         updateTickerIndexs,
+        findTicker,
         selectTickerHandler,
         getTickers,
         getBooks,
