@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from "react";
 import StoreContext from "../store/store-context";
 import { Tabs, Tab } from "react-bootstrap";
 import { formateDecimal } from "../utils/Utils";
+import SafeMath from "../utils/SafeMath";
 
 const TradeForm = (props) => {
   const storeCtx = useContext(StoreContext);
@@ -24,7 +25,7 @@ const TradeForm = (props) => {
         />
         <div className="input-group-append">
           <span className="input-group-text">
-            {storeCtx?.selectedTicker?.quoteCcy || "--"}
+            {storeCtx.selectedTicker?.quoteCcy || "--"}
           </span>
         </div>
       </div>
@@ -40,7 +41,7 @@ const TradeForm = (props) => {
         />
         <div className="input-group-append">
           <span className="input-group-text">
-            {storeCtx?.selectedTicker?.baseCcy || "--"}
+            {storeCtx.selectedTicker?.baseCcy || "--"}
           </span>
         </div>
       </div>
@@ -61,34 +62,59 @@ const TradeForm = (props) => {
       <p>
         Available:
         <span>
-          {`${formateDecimal(storeCtx?.selectedTicker?.available, 4)} `}
-          {/* {`${
-            storeCtx?.selectedTicker?.available === undefined
-              ? "--"
-              : storeCtx?.selectedTicker?.available
-          } `} */}
-          {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
+          {`${formateDecimal(
+            props.side === "buy"
+              ? storeCtx.selectedTicker?.quoteCcyAvailable
+              : storeCtx.selectedTicker?.baseCcyAvailable,
+            4
+          )} `}
+          {props.side === "buy"
+            ? storeCtx.selectedTicker?.quoteCcy
+            : storeCtx.selectedTicker?.baseCcy || "--"}
+          = 0 USD
         </span>
       </p>
       <p>
         Volume:
         <span>
-          {`${formateDecimal(storeCtx?.selectedTicker?.volCcy24h, 4)} `}
-          {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
+          {`${formateDecimal(
+            props.side === "buy"
+              ? storeCtx.selectedTicker?.volCcy24h
+              : storeCtx.selectedTicker?.vol24h,
+            4
+          )} `}
+          {props.side === "buy"
+            ? storeCtx.selectedTicker?.quoteCcy
+            : storeCtx.selectedTicker?.baseCcy || "--"}
+          = 0 USD
         </span>
       </p>
       <p>
         Margin:
-        <span>0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD</span>
+        <span>
+          {` 0`}
+          {props.side === "buy"
+            ? storeCtx.selectedTicker?.quoteCcy
+            : storeCtx.selectedTicker?.baseCcy || "--"}
+          = 0 USD
+        </span>
       </p>
       <p>
-        Fee: <span>0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD</span>
+        Fee:
+        <span>
+          {` 0`}
+          {props.side === "buy"
+            ? storeCtx.selectedTicker?.quoteCcy
+            : storeCtx.selectedTicker?.baseCcy || "--"}
+          = 0 USD
+        </span>
       </p>
       <button
         type="submit"
         className={`btn ${props.side === "buy" ? "buy" : "sell"}`}
       >
         {props.side === "buy" ? "Buy" : "Sell"}
+        {` ${storeCtx.selectedTicker?.baseCcy ?? ""}`}
       </button>
     </form>
   );
@@ -109,7 +135,14 @@ const TradePannel = (props) => {
     setBuyPx(value);
   };
   const buySzHandler = (event) => {
-    let value = +event.target.value < 0 ? "0" : event.target.value;
+    let value = SafeMath.lte(event.target.value, "0")
+      ? "0"
+      : SafeMath.gte(
+          event.target.value,
+          storeCtx.selectedTicker?.quoteCcyAvailable
+        )
+      ? storeCtx.selectedTicker?.quoteCcyAvailable
+      : event.target.value;
     setBuySz(value);
   };
   const sellPxHandler = (event) => {
@@ -117,21 +150,35 @@ const TradePannel = (props) => {
     setSellPx(value);
   };
   const sellSzHandler = (event) => {
-    let value = +event.target.value < 0 ? "0" : event.target.value;
+    let value = SafeMath.lte(event.target.value, "0")
+      ? "0"
+      : SafeMath.gte(
+          event.target.value,
+          storeCtx.selectedTicker?.baseCcyAvailable
+        )
+      ? storeCtx.selectedTicker?.baseCcyAvailable
+      : event.target.value;
     setSellSz(value);
   };
 
   const buyPctHandler = (pct) => {
+    setBuySz(
+      SafeMath.div(
+        SafeMath.mult(pct, storeCtx.selectedTicker?.quoteCcyAvailable),
+        buyPx
+      )
+    );
     setSelectedBuyPct(pct);
   };
 
   const sellPctHandler = (pct) => {
+    setSellSz(SafeMath.mult(pct, storeCtx.selectedTicker?.baseCcyAvailable));
     setSelectedSellPct(pct);
   };
 
   const onSubmit = async (event, side) => {
     event.preventDefault();
-    if (!storeCtx?.selectedTicker) return;
+    if (!storeCtx.selectedTicker) return;
     const order =
       side === "buy"
         ? {

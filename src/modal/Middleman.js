@@ -8,11 +8,16 @@ class Middleman {
   }
   updateTicker(ticker) {
     const _ticker = { ...ticker };
-    const balance = this.balances.find(
+    const quoteBalance = this.balances.find(
       (detail) => detail.ccy === ticker.quoteCcy
     );
-    if (balance) _ticker.available = balance.availBal;
-    else _ticker.available = 0;
+    if (quoteBalance) _ticker.quoteCcyAvailable = quoteBalance.availBal;
+    else _ticker.quoteCcyAvailable = 0;
+    const baseBalance = this.balances.find(
+      (detail) => detail.ccy === ticker.baseCcy
+    );
+    if (baseBalance) _ticker.baseCcyAvailable = baseBalance.availBal;
+    else _ticker.baseCcyAvailable = 0;
     return _ticker;
   }
 
