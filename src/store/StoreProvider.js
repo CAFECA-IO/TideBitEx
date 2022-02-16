@@ -94,6 +94,7 @@ const StoreProvider = (props) => {
 
   const selectTickerHandler = useCallback(
     async (ticker) => {
+      console.log(`SelectedTicker`, ticker)
       const _ticker = middleman.updateSelectedTicker(ticker);
       setSelectedTicker(_ticker);
       if (ticker.instId !== selectedTicker?.instId || !selectedTicker) {
@@ -202,6 +203,7 @@ const StoreProvider = (props) => {
   const sync = useCallback(
     async (isInit = false) => {
       console.log("useCallback 只用一遍");
+      await middleman.getInstruments();
       await getBalances();
       await getTickers(true);
       if (isInit) {

@@ -7,12 +7,19 @@ class Middleman {
     this.tickers = [];
   }
   updateTicker(ticker) {
-    const _ticker = { ...ticker };
-    const balance = this.balances.find(
+    let _ticker;
+    const instrument = this.instruments.find((i) => i.instId === ticker.instId);
+    _ticker = { ...ticker, minSz: instrument?.minSz || "0.001" }; // -- TEST for ETH-USDT
+    const quoteBalance = this.balances.find(
       (detail) => detail.ccy === ticker.quoteCcy
     );
-    if (balance) _ticker.available = balance.availBal;
-    else _ticker.available = 0;
+    if (quoteBalance) _ticker.quoteCcyAvailable = quoteBalance.availBal;
+    else _ticker.quoteCcyAvailable = 0;
+    const baseBalance = this.balances.find(
+      (detail) => detail.ccy === ticker.baseCcy
+    );
+    if (baseBalance) _ticker.baseCcyAvailable = baseBalance.availBal;
+    else _ticker.baseCcyAvailable = 0;
     return _ticker;
   }
 
@@ -60,6 +67,18 @@ class Middleman {
       (ticker) => ticker.instId.replace("-", "").toLowerCase() === id
     );
     return _ticker;
+  }
+
+  async getInstruments(instType) {
+    try {
+      const instruments = await this.communicator.instruments(instType);
+      this.instruments = instruments;
+      return instruments;
+    } catch (error) {
+      console.log(`getInstruments error`, error);
+      this.instruments = [];
+      // throw error;
+    }
   }
 
   async getTickers(instType, from, limit) {
