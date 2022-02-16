@@ -98,6 +98,9 @@ const StoreProvider = (props) => {
       const _ticker = middleman.updateSelectedTicker(ticker);
       setSelectedTicker(_ticker);
       if (ticker.instId !== selectedTicker?.instId || !selectedTicker) {
+        history.push({
+          pathname: `/markets/${ticker.instId.replace("-", "").toLowerCase()}`,
+        });
         await getBooks(ticker.instId);
         await getTrades(ticker.instId);
         await getCandles(ticker.instId, selectedBar);
@@ -112,7 +115,15 @@ const StoreProvider = (props) => {
         );
       }
     },
-    [middleman, selectedTicker, getBooks, getTrades, getCandles, selectedBar]
+    [
+      middleman,
+      selectedTicker,
+      history,
+      getBooks,
+      getTrades,
+      getCandles,
+      selectedBar,
+    ]
   );
 
   const getTickers = useCallback(
@@ -121,30 +132,18 @@ const StoreProvider = (props) => {
         const result = await middleman.getTickers(instType, from, limit);
         setTickers(result);
         if (selectedTicker === null || force) {
-          console.log(`location.pathname`, location.pathname);
-          console.log(
-            `location.pathname.includes("/markets/")`,
-            location.pathname.includes("/markets/")
-          );
           const id = location.pathname.includes("/markets/")
             ? location.pathname.replace("/markets/", "")
             : null;
           console.log(`id`, id);
           const ticker = middleman.findTicker(id);
-          if (!ticker) {
-            history.push({
-              pathname: `/markets/${result[0].instId
-                .replace("-", "")
-                .toLowerCase()}`,
-            });
-            selectTickerHandler(result[0]);
-          } else selectTickerHandler(ticker);
+          selectTickerHandler(ticker ?? result[0]);
         }
       } catch (error) {
         return Promise.reject({ message: error });
       }
     },
-    [history, location.pathname, middleman, selectTickerHandler, selectedTicker]
+    [location.pathname, middleman, selectTickerHandler, selectedTicker]
   );
 
   const getPendingOrders = useCallback(
