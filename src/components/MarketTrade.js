@@ -1,6 +1,8 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useCallback } from "react";
 import StoreContext from "../store/store-context";
 import { Tabs, Tab } from "react-bootstrap";
+import { formateDecimal } from "../utils/Utils";
+import SafeMath from "../utils/SafeMath";
 
 const TradeForm = (props) => {
   const storeCtx = useContext(StoreContext);
@@ -23,7 +25,7 @@ const TradeForm = (props) => {
         />
         <div className="input-group-append">
           <span className="input-group-text">
-            {storeCtx?.selectedTicker?.quoteCcy || "--"}
+            {storeCtx.selectedTicker?.quoteCcy || "--"}
           </span>
         </div>
       </div>
@@ -39,10 +41,17 @@ const TradeForm = (props) => {
         />
         <div className="input-group-append">
           <span className="input-group-text">
-            {storeCtx?.selectedTicker?.baseCcy || "--"}
+            {storeCtx.selectedTicker?.baseCcy || "--"}
           </span>
         </div>
       </div>
+      <p
+        className={`error-message ${
+          SafeMath.lt(props.sz, storeCtx.selectedTicker?.minSz) ? "show" : ""
+        }`}
+      >
+        Minimum order size is {`${storeCtx.selectedTicker?.minSz}`}
+      </p>
       <ul className="market-trade-list">
         <li className={`${props.selectedPct === "0.25" ? "active" : ""}`}>
           <span onClick={() => props.percentageHandler("0.25")}>25%</span>
@@ -60,34 +69,81 @@ const TradeForm = (props) => {
       <p>
         Available:
         <span>
-          {/* {formateDecimal(storeCtx?.selectedTicker?.available, 4)} */}
           {`${
-            storeCtx?.selectedTicker?.available === undefined
-              ? "--"
-              : storeCtx?.selectedTicker?.available
+            storeCtx.selectedTicker
+              ? formateDecimal(
+                  props.side === "buy"
+                    ? storeCtx.selectedTicker?.quoteCcyAvailable
+                    : storeCtx.selectedTicker?.baseCcyAvailable,
+                  4
+                )
+              : "0"
           } `}
-          {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
+          {props.side === "buy"
+            ? storeCtx.selectedTicker?.quoteCcy || "--"
+            : storeCtx.selectedTicker?.baseCcy || "--"}
+          = 0 USD
         </span>
       </p>
       <p>
         Volume:
         <span>
-          {`${formateDecimal(storeCtx?.selectedTicker?.volCcy24h, 4)} `}
-          {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD
+          {`${
+            storeCtx.selectedTicker
+              ? formateDecimal(
+                  props.side === "buy"
+                    ? storeCtx.selectedTicker?.volCcy24h
+                    : storeCtx.selectedTicker?.vol24h,
+                  4
+                )
+              : "0"
+          } `}
+          {props.side === "buy"
+            ? storeCtx.selectedTicker?.quoteCcy || "--"
+            : storeCtx.selectedTicker?.baseCcy || "--"}
+          = 0 USD
         </span>
       </p>
       <p>
-        Margin:{" "}
-        <span>0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD</span>
+        Margin:
+        <span>
+          {`0 `}
+          {props.side === "buy"
+            ? storeCtx.selectedTicker?.quoteCcy || "--"
+            : storeCtx.selectedTicker?.baseCcy || "--"}
+          = 0 USD
+        </span>
       </p>
       <p>
-        Fee: <span>0 {storeCtx?.selectedTicker?.quoteCcy || "--"} = 0 USD</span>
+        Fee:
+        <span>
+          {`0 `}
+          {props.side === "buy"
+            ? storeCtx.selectedTicker?.quoteCcy || "--"
+            : storeCtx.selectedTicker?.baseCcy || "--"}
+          = 0 USD
+        </span>
       </p>
       <button
         type="submit"
         className={`btn ${props.side === "buy" ? "buy" : "sell"}`}
+        disabled={
+          !storeCtx.selectedTicker ||
+          SafeMath.gt(
+            props.sz,
+            props.side === "buy"
+              ? SafeMath.div(
+                  storeCtx.selectedTicker?.quoteCcyAvailable,
+                  props.px
+                )
+              : storeCtx.selectedTicker?.baseCcyAvailable
+          ) ||
+          SafeMath.lte(props.sz, "0") ||
+          SafeMath.lte(props.sz, storeCtx.selectedTicker?.minSz)
+        }
       >
         {props.side === "buy" ? "Buy" : "Sell"}
+        {` ${storeCtx.selectedTicker?.baseCcy ?? ""}`}
       </button>
     </form>
   );
@@ -108,7 +164,14 @@ const TradePannel = (props) => {
     setBuyPx(value);
   };
   const buySzHandler = (event) => {
-    let value = +event.target.value < 0 ? "0" : event.target.value;
+    let value = SafeMath.lte(event.target.value, "0")
+      ? "0"
+      : SafeMath.gte(
+          SafeMath.mult(event.target.value, buyPx),
+          storeCtx.selectedTicker?.quoteCcyAvailable
+        )
+      ? SafeMath.div(storeCtx.selectedTicker?.quoteCcyAvailable, buyPx)
+      : event.target.value;
     setBuySz(value);
   };
   const sellPxHandler = (event) => {
@@ -116,46 +179,66 @@ const TradePannel = (props) => {
     setSellPx(value);
   };
   const sellSzHandler = (event) => {
-    let value = +event.target.value < 0 ? "0" : event.target.value;
+    let value = SafeMath.lte(event.target.value, "0")
+      ? "0"
+      : SafeMath.gte(
+          event.target.value,
+          storeCtx.selectedTicker?.baseCcyAvailable
+        )
+      ? storeCtx.selectedTicker?.baseCcyAvailable
+      : event.target.value;
     setSellSz(value);
   };
 
-  const buyPctHandler = (pct) => {
-    setSelectedBuyPct(pct);
-  };
+  const buyPctHandler = useCallback(
+    (pct) => {
+      setBuySz(
+        SafeMath.div(
+          SafeMath.mult(pct, storeCtx.selectedTicker?.quoteCcyAvailable),
+          buyPx
+        )
+      );
+      setSelectedBuyPct(pct);
+    },
+    [buyPx, storeCtx.selectedTicker?.quoteCcyAvailable]
+  );
 
-  const sellPctHandler = (pct) => {
-    setSelectedSellPct(pct);
-  };
+  const sellPctHandler = useCallback(
+    (pct) => {
+      setSellSz(SafeMath.mult(pct, storeCtx.selectedTicker?.baseCcyAvailable));
+      setSelectedSellPct(pct);
+    },
+    [storeCtx.selectedTicker?.baseCcyAvailable]
+  );
 
   const onSubmit = async (event, side) => {
     event.preventDefault();
-    if (!storeCtx?.selectedTicker) return;
+    if (!storeCtx.selectedTicker) return;
     const order =
-      side === "buy"
-        ? {
-            instId: storeCtx.selectedTicker.instId,
-            tdMode,
-            side,
-            ordType: props.orderType,
-            px: buyPx,
-            sz: buySz,
-          }
-        : props.orderType === "limit"
-        ? {
-            instId: storeCtx.selectedTicker.instId,
-            tdMode,
-            side,
-            ordType: props.orderType,
-            px: sellPx,
-            sz: sellSz,
-          }
+      props.orderType === "limit"
+        ? side === "buy"
+          ? {
+              instId: storeCtx.selectedTicker.instId,
+              tdMode,
+              side,
+              ordType: props.orderType,
+              px: buyPx,
+              sz: buySz,
+            }
+          : {
+              instId: storeCtx.selectedTicker.instId,
+              tdMode,
+              side,
+              ordType: props.orderType,
+              px: sellPx,
+              sz: sellSz,
+            }
         : {
             instId: storeCtx.selectedTicker.instId,
             tdMode,
             side,
             ordType: props.orderType,
-            sz: sellSz,
+            sz: side === "buy" ? buySz : sellSz,
           };
     console.log(`order`, order);
     try {
@@ -172,12 +255,12 @@ const TradePannel = (props) => {
   useEffect(() => {
     if (storeCtx.selectedTicker) {
       setBuyPx(storeCtx.selectedTicker.askPx);
-      setBuySz("1");
+      buyPctHandler("0.25");
       setSellPx(storeCtx.selectedTicker.bidPx);
-      setSellSz("1");
+      sellPctHandler("0.25");
     }
     return () => {};
-  }, [storeCtx.selectedTicker]);
+  }, [buyPctHandler, sellPctHandler, storeCtx.selectedTicker]);
 
   return (
     <div className="d-flex justify-content-between">
