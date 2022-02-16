@@ -68,7 +68,6 @@ const StoreProvider = (props) => {
         setCandles(result);
         // return result;
       } catch (error) {
-        console.error(`getCandles`, error);
         return Promise.reject({ message: error });
       }
     },
@@ -238,7 +237,7 @@ const StoreProvider = (props) => {
               const updateTrades = middleman.updateTrades(metaData.data);
               _tradeTimestamp = new Date().getTime();
               if (_tradeTimestamp - +tradeTimestamp > 1000) {
-                // console.log(`updateTrades`, updateTrades);
+                console.log(`updateTrades`, updateTrades);
                 tradeTimestamp = _tradeTimestamp;
                 setTrades(updateTrades);
               }
@@ -247,17 +246,17 @@ const StoreProvider = (props) => {
               const updateBooks = middleman.updateBooks(metaData.data);
               _bookTimestamp = new Date().getTime();
               if (_bookTimestamp - +bookTimestamp > 1000) {
-                // console.log(`updateBooks`, updateBooks);
+                console.log(`updateBooks`, updateBooks);
                 bookTimestamp = _bookTimestamp;
                 setBooks(updateBooks);
               }
               break;
             case "candleOnUpdate":
-              const updateCandles = middleman.updateCandles(metaData.data);
               _candleTimestamp = new Date().getTime();
               if (_candleTimestamp - +candleTimestamp > 1000) {
                 candleTimestamp = _candleTimestamp;
-                setCandles(updateCandles);
+                console.log("candleOnUpdate", metaData.data);
+                setCandles(metaData.data);
               }
               break;
             default:

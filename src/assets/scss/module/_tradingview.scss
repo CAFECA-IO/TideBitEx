@@ -12,15 +12,3 @@
 .markets-overview .tradingview-widget-container {
   margin-bottom: 30px;
 }
-.tool-bar {
-  display: flex;
-  gap: 10px;
-  border-bottom: 1px solid #d0d1d3;
-  padding: 10px 6px;
-}
-.tool-bar > * {
-  line-height: 1;
-}
-.tool.active {
-  color: #007bff;
-}
