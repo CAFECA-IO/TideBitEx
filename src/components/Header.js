@@ -30,10 +30,10 @@ export default class Header extends Component {
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse id="basic-navbar-nav">
               <Nav className="navbar-nav mr-auto">
-                <Link to="/" className="nav-link">
+                <Link to="/markets" className="nav-link">
                   Exchange
                 </Link>
-                <Link to="/markets" className="nav-link">
+                <Link to="/analysis" className="nav-link">
                   Markets
                 </Link>
                 <NavDropdown title="Dashboard">

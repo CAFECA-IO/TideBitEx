@@ -2,11 +2,9 @@ import React, { useContext } from "react";
 // import TradingViewWidget, { Themes } from "react-tradingview-widget";
 import StoreContext from "../store/store-context";
 import ApexCharts from "react-apexcharts";
-// import SafeMath from "../utils/SafeMath";
 
 const TradingChart = (props) => {
   const storeCtx = useContext(StoreContext);
-  // candleBarHandler ++TODO
 
   return (
     <div className="main-chart mb15">

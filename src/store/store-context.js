@@ -42,6 +42,11 @@ const StoreContext = React.createContext({
    * @param {String} limit max 500, default 100
    * @returns {Promise<Array<Ticker>>}
    */
+  /**
+   * @param {String} id
+   * @returns {Ticker} ticker
+   */
+  findTicker: (id) => {},
   getTickers: async (instType, from, limit) => {},
   /**
    * @typedef {Object} Book

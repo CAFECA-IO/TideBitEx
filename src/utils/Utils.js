@@ -228,6 +228,7 @@ export const numberWithCommas = (x) => {
 };
 
 export const formateDecimal = (amount, maxLength = 18, decimalLength = 2) => {
+  if (SafeMath.eq(amount, "0")) return "0";
   if (!amount) return "";
   const splitChunck = amount.toString().split(".");
   if (SafeMath.gte(splitChunck[0].length, maxLength))

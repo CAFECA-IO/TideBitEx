@@ -1,17 +1,17 @@
 import React, { useEffect, useCallback, useMemo, useState } from "react";
+import { useHistory, useLocation } from "react-router-dom";
+import { Config } from "../constant/Config";
 import Middleman from "../modal/Middleman";
 import StoreContext from "./store-context";
 
 // const wsServer = "wss://exchange.tidebit.network/ws/v1";
 // const wsServer = "ws://127.0.0.1";
-const wsClient = new WebSocket(
-  (window.location.protocol === "https:" ? "wss://" : "ws://") +
-    window.location.host +
-    "/ws"
-);
+const wsClient = new WebSocket(Config[Config.status].websocket);
 
 const StoreProvider = (props) => {
   const middleman = useMemo(() => new Middleman(), []);
+  const location = useLocation();
+  const history = useHistory();
   const [wsConnected, setWsConnected] = useState(false);
   const [tickers, setTickers] = useState([]);
   const [updateTickerIndexs, setUpdateTickerIndexs] = useState([]);
@@ -84,11 +84,22 @@ const StoreProvider = (props) => {
     [getCandles, selectedBar, selectedTicker?.instId]
   );
 
+  const findTicker = useCallback(
+    async (id) => {
+      const ticker = middleman.findTicker(id);
+      return ticker;
+    },
+    [middleman]
+  );
+
   const selectTickerHandler = useCallback(
     async (ticker) => {
       const _ticker = middleman.updateSelectedTicker(ticker);
       setSelectedTicker(_ticker);
       if (ticker.instId !== selectedTicker?.instId || !selectedTicker) {
+        history.push({
+          pathname: `/markets/${ticker.instId.replace("-", "").toLowerCase()}`,
+        });
         await getBooks(ticker.instId);
         await getTrades(ticker.instId);
         await getCandles(ticker.instId, selectedBar);
@@ -103,7 +114,15 @@ const StoreProvider = (props) => {
         );
       }
     },
-    [middleman, getBooks, getCandles, getTrades, selectedBar, selectedTicker]
+    [
+      middleman,
+      selectedTicker,
+      history,
+      getBooks,
+      getTrades,
+      getCandles,
+      selectedBar,
+    ]
   );
 
   const getTickers = useCallback(
@@ -111,12 +130,19 @@ const StoreProvider = (props) => {
       try {
         const result = await middleman.getTickers(instType, from, limit);
         setTickers(result);
-        if (selectedTicker === null || force) selectTickerHandler(result[0]);
+        if (selectedTicker === null || force) {
+          const id = location.pathname.includes("/markets/")
+            ? location.pathname.replace("/markets/", "")
+            : null;
+          console.log(`id`, id);
+          const ticker = middleman.findTicker(id);
+          selectTickerHandler(ticker ?? result[0]);
+        }
       } catch (error) {
         return Promise.reject({ message: error });
       }
     },
-    [middleman, selectTickerHandler, selectedTicker]
+    [location.pathname, middleman, selectTickerHandler, selectedTicker]
   );
 
   const getPendingOrders = useCallback(
@@ -261,6 +287,7 @@ const StoreProvider = (props) => {
         balances,
         selectedTicker,
         updateTickerIndexs,
+        findTicker,
         selectTickerHandler,
         getTickers,
         getBooks,

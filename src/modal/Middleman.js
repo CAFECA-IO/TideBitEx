@@ -4,17 +4,24 @@ import Communicator from "./Communicator";
 class Middleman {
   constructor() {
     this.communicator = new Communicator();
+    this.tickers = [];
   }
-  updateSelectedTicker(ticker) {
+  updateTicker(ticker) {
     const _ticker = { ...ticker };
     const balance = this.balances.find(
       (detail) => detail.ccy === ticker.quoteCcy
     );
     if (balance) _ticker.available = balance.availBal;
     else _ticker.available = 0;
+    return _ticker;
+  }
+
+  updateSelectedTicker(ticker) {
+    const _ticker = this.updateTicker(ticker);
     this.selectedTicker = _ticker;
     return this.selectedTicker;
   }
+
   updateTickers(updatePairs) {
     if (!this.tickers.length > 0) return;
     let updateTickers = [...this.tickers];
@@ -46,6 +53,13 @@ class Middleman {
       updateTickers,
       updateIndexes,
     };
+  }
+
+  findTicker(id) {
+    let _ticker = this.tickers.find(
+      (ticker) => ticker.instId.replace("-", "").toLowerCase() === id
+    );
+    return _ticker;
   }
 
   async getTickers(instType, from, limit) {
