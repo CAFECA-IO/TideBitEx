@@ -204,6 +204,7 @@ const StoreProvider = (props) => {
   const sync = useCallback(
     async (isInit = false) => {
       console.log("useCallback 只用一遍");
+      await middleman.getInstruments();
       await getBalances();
       await getTickers(true);
       if (isInit) {

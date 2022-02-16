@@ -96,7 +96,16 @@
   margin: 5px 0;
   font-size: 13px;
   color: #4a4a4a;
+  &.error-message {
+    color: #ef5350;
+    text-align: right;
+    opacity: 0;
+  }
+  &.show{
+    opacity: 1;
+  }
 }
+
 .market-trade p span {
   float: right;
 }

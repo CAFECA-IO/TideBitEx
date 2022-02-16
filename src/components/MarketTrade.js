@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useCallback } from "react";
 import StoreContext from "../store/store-context";
 import { Tabs, Tab } from "react-bootstrap";
 import { formateDecimal } from "../utils/Utils";
@@ -45,6 +45,13 @@ const TradeForm = (props) => {
           </span>
         </div>
       </div>
+      <p
+        className={`error-message ${
+          SafeMath.lt(props.sz, storeCtx.selectedTicker?.minSz) ? "show" : ""
+        }`}
+      >
+        Minimum order size is {`${storeCtx.selectedTicker?.minSz}`}
+      </p>
       <ul className="market-trade-list">
         <li className={`${props.selectedPct === "0.25" ? "active" : ""}`}>
           <span onClick={() => props.percentageHandler("0.25")}>25%</span>
@@ -62,14 +69,18 @@ const TradeForm = (props) => {
       <p>
         Available:
         <span>
-          {`${formateDecimal(
-            props.side === "buy"
-              ? storeCtx.selectedTicker?.quoteCcyAvailable
-              : storeCtx.selectedTicker?.baseCcyAvailable,
-            4
-          )} `}
+          {`${
+            storeCtx.selectedTicker
+              ? formateDecimal(
+                  props.side === "buy"
+                    ? storeCtx.selectedTicker?.quoteCcyAvailable
+                    : storeCtx.selectedTicker?.baseCcyAvailable,
+                  4
+                )
+              : "0"
+          } `}
           {props.side === "buy"
-            ? storeCtx.selectedTicker?.quoteCcy
+            ? storeCtx.selectedTicker?.quoteCcy || "--"
             : storeCtx.selectedTicker?.baseCcy || "--"}
           = 0 USD
         </span>
@@ -77,14 +88,18 @@ const TradeForm = (props) => {
       <p>
         Volume:
         <span>
-          {`${formateDecimal(
-            props.side === "buy"
-              ? storeCtx.selectedTicker?.volCcy24h
-              : storeCtx.selectedTicker?.vol24h,
-            4
-          )} `}
+          {`${
+            storeCtx.selectedTicker
+              ? formateDecimal(
+                  props.side === "buy"
+                    ? storeCtx.selectedTicker?.volCcy24h
+                    : storeCtx.selectedTicker?.vol24h,
+                  4
+                )
+              : "0"
+          } `}
           {props.side === "buy"
-            ? storeCtx.selectedTicker?.quoteCcy
+            ? storeCtx.selectedTicker?.quoteCcy || "--"
             : storeCtx.selectedTicker?.baseCcy || "--"}
           = 0 USD
         </span>
@@ -92,9 +107,9 @@ const TradeForm = (props) => {
       <p>
         Margin:
         <span>
-          {` 0`}
+          {`0 `}
           {props.side === "buy"
-            ? storeCtx.selectedTicker?.quoteCcy
+            ? storeCtx.selectedTicker?.quoteCcy || "--"
             : storeCtx.selectedTicker?.baseCcy || "--"}
           = 0 USD
         </span>
@@ -102,9 +117,9 @@ const TradeForm = (props) => {
       <p>
         Fee:
         <span>
-          {` 0`}
+          {`0 `}
           {props.side === "buy"
-            ? storeCtx.selectedTicker?.quoteCcy
+            ? storeCtx.selectedTicker?.quoteCcy || "--"
             : storeCtx.selectedTicker?.baseCcy || "--"}
           = 0 USD
         </span>
@@ -112,6 +127,20 @@ const TradeForm = (props) => {
       <button
         type="submit"
         className={`btn ${props.side === "buy" ? "buy" : "sell"}`}
+        disabled={
+          !storeCtx.selectedTicker ||
+          SafeMath.gt(
+            props.sz,
+            props.side === "buy"
+              ? SafeMath.div(
+                  storeCtx.selectedTicker?.quoteCcyAvailable,
+                  props.px
+                )
+              : storeCtx.selectedTicker?.baseCcyAvailable
+          ) ||
+          SafeMath.lte(props.sz, "0") ||
+          SafeMath.lte(props.sz, storeCtx.selectedTicker?.minSz)
+        }
       >
         {props.side === "buy" ? "Buy" : "Sell"}
         {` ${storeCtx.selectedTicker?.baseCcy ?? ""}`}
@@ -138,10 +167,10 @@ const TradePannel = (props) => {
     let value = SafeMath.lte(event.target.value, "0")
       ? "0"
       : SafeMath.gte(
-          event.target.value,
+          SafeMath.mult(event.target.value, buyPx),
           storeCtx.selectedTicker?.quoteCcyAvailable
         )
-      ? storeCtx.selectedTicker?.quoteCcyAvailable
+      ? SafeMath.div(storeCtx.selectedTicker?.quoteCcyAvailable, buyPx)
       : event.target.value;
     setBuySz(value);
   };
@@ -161,49 +190,55 @@ const TradePannel = (props) => {
     setSellSz(value);
   };
 
-  const buyPctHandler = (pct) => {
-    setBuySz(
-      SafeMath.div(
-        SafeMath.mult(pct, storeCtx.selectedTicker?.quoteCcyAvailable),
-        buyPx
-      )
-    );
-    setSelectedBuyPct(pct);
-  };
+  const buyPctHandler = useCallback(
+    (pct) => {
+      setBuySz(
+        SafeMath.div(
+          SafeMath.mult(pct, storeCtx.selectedTicker?.quoteCcyAvailable),
+          buyPx
+        )
+      );
+      setSelectedBuyPct(pct);
+    },
+    [buyPx, storeCtx.selectedTicker?.quoteCcyAvailable]
+  );
 
-  const sellPctHandler = (pct) => {
-    setSellSz(SafeMath.mult(pct, storeCtx.selectedTicker?.baseCcyAvailable));
-    setSelectedSellPct(pct);
-  };
+  const sellPctHandler = useCallback(
+    (pct) => {
+      setSellSz(SafeMath.mult(pct, storeCtx.selectedTicker?.baseCcyAvailable));
+      setSelectedSellPct(pct);
+    },
+    [storeCtx.selectedTicker?.baseCcyAvailable]
+  );
 
   const onSubmit = async (event, side) => {
     event.preventDefault();
     if (!storeCtx.selectedTicker) return;
     const order =
-      side === "buy"
-        ? {
-            instId: storeCtx.selectedTicker.instId,
-            tdMode,
-            side,
-            ordType: props.orderType,
-            px: buyPx,
-            sz: buySz,
-          }
-        : props.orderType === "limit"
-        ? {
-            instId: storeCtx.selectedTicker.instId,
-            tdMode,
-            side,
-            ordType: props.orderType,
-            px: sellPx,
-            sz: sellSz,
-          }
+      props.orderType === "limit"
+        ? side === "buy"
+          ? {
+              instId: storeCtx.selectedTicker.instId,
+              tdMode,
+              side,
+              ordType: props.orderType,
+              px: buyPx,
+              sz: buySz,
+            }
+          : {
+              instId: storeCtx.selectedTicker.instId,
+              tdMode,
+              side,
+              ordType: props.orderType,
+              px: sellPx,
+              sz: sellSz,
+            }
         : {
             instId: storeCtx.selectedTicker.instId,
             tdMode,
             side,
             ordType: props.orderType,
-            sz: sellSz,
+            sz: side === "buy" ? buySz : sellSz,
           };
     console.log(`order`, order);
     try {
@@ -220,12 +255,12 @@ const TradePannel = (props) => {
   useEffect(() => {
     if (storeCtx.selectedTicker) {
       setBuyPx(storeCtx.selectedTicker.askPx);
-      setBuySz("1");
+      buyPctHandler("0.25");
       setSellPx(storeCtx.selectedTicker.bidPx);
-      setSellSz("1");
+      sellPctHandler("0.25");
     }
     return () => {};
-  }, [storeCtx.selectedTicker]);
+  }, [buyPctHandler, sellPctHandler, storeCtx.selectedTicker]);
 
   return (
     <div className="d-flex justify-content-between">
