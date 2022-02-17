@@ -7,7 +7,6 @@ import "slick-carousel/slick/slick-theme.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./assets/css/ionicons.min.css";
 import "./assets/scss/style.scss";
-import StoreProvider from "./store/StoreProvider";
 
 const ScrollToTop = () => {
   window.scrollTo(0, 0);
@@ -18,9 +17,7 @@ ReactDOM.render(
   <React.StrictMode>
     <BrowserRouter>
       <Route component={ScrollToTop} />
-      <StoreProvider>
-        <App />
-      </StoreProvider>
+      <App />
     </BrowserRouter>
   </React.StrictMode>,
   document.getElementById("root")

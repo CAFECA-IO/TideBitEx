@@ -1,7 +1,8 @@
 import React, { Component } from "react";
 import { ThemeProvider } from "./context/ThemeContext";
 import Index from "./pages";
-// import { SnackbarProvider } from "notistack";
+import { SnackbarProvider } from "notistack";
+import StoreProvider from "./store/StoreProvider";
 export default class App extends Component {
   state = {
     theme: "light",
@@ -21,9 +22,11 @@ export default class App extends Component {
           },
         }}
       >
-        {/* <SnackbarProvider maxSnack={10}> */}
-          <Index />
-        {/* </SnackbarProvider> */}
+        <SnackbarProvider maxSnack={10}>
+          <StoreProvider>
+            <Index />
+          </StoreProvider>
+        </SnackbarProvider>
       </ThemeProvider>
     );
   }

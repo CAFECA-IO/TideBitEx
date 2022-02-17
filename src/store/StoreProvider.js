@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useMemo, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
-// import { useSnackbar } from "notistack";
+import { useSnackbar } from "notistack";
 import { Config } from "../constant/Config";
 import Middleman from "../modal/Middleman";
 import StoreContext from "./store-context";
@@ -25,7 +25,7 @@ const StoreProvider = (props) => {
   const [closeOrders, setCloseOrders] = useState([]);
   const [orderHistories, setOrderHistories] = useState([]);
   const [balances, setBalances] = useState([]);
-  // const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [selectedTicker, setSelectedTicker] = useState(null);
   let tickerTimestamp = 0,
     tradeTimestamp = 0,
@@ -205,12 +205,12 @@ const StoreProvider = (props) => {
         console.log(`postOrder error`, result);
       } catch (error) {
         console.log(`postOrder error`, error);
-        // enqueueSnackbar(error?.message, {
-        //   variant: "error",
-        // });
+        enqueueSnackbar(error?.message, {
+          variant: "error",
+        });
       }
     },
-    [getCloseOrders, getPendingOrders, middleman]
+    [enqueueSnackbar, getCloseOrders, getPendingOrders, middleman]
   );
 
   const cancelOrder = useCallback(
@@ -222,13 +222,13 @@ const StoreProvider = (props) => {
       } catch (error) {
         // return Promise.reject({ message: error });
         console.log(`cancelOrder error`, error);
-        // enqueueSnackbar(`Failed to cancel order: ${order.ordId}`, {
-        //   variant: "error",
-        // });
+        enqueueSnackbar(`Failed to cancel order: ${order.ordId}`, {
+          variant: "error",
+        });
         return false;
       }
     },
-    [getPendingOrders, middleman]
+    [enqueueSnackbar, getPendingOrders, middleman]
   );
 
   const sync = useCallback(
