@@ -11,38 +11,36 @@ import { ThemeConsumer } from "../context/ThemeContext";
 
 const Exchange = (props) => {
   return (
-    <>
-      <div className="container-fluid mtb15 no-fluid">
-        <div className="row sm-gutters">
-          <div className="col-sm-12 col-md-3">
-            <MarketPairs />
-          </div>
-          <div className="col-md-9">
-            <SelectedPair />
-            <div className="row sm-gutters">
-              <div className="col-sm-12 col-md-8">
-                <ThemeConsumer>
-                  {({ data }) => <TradingChart theme={data.theme} />}
-                </ThemeConsumer>
-                <MarketTrade />
-              </div>
-              <div className="col-md-4">
-                <OrderBook />
-                <MarketHistory />
-              </div>
+    <div className="container-fluid no-fluid exchange-layout  mtb15">
+      <div className="row sm-gutters">
+        <div className="col-sm-12 col-md-3">
+          <MarketPairs />
+        </div>
+        <div className="col-md-9">
+          <SelectedPair />
+          <div className="row sm-gutters">
+            <div className="col-sm-12 col-md-8">
+              <ThemeConsumer>
+                {({ data }) => <TradingChart theme={data.theme} />}
+              </ThemeConsumer>
+              <MarketTrade />
+            </div>
+            <div className="col-md-4">
+              <OrderBook />
+              <MarketHistory />
             </div>
           </div>
         </div>
-        <div className="row sm-gutters">
-          <div className="col-md-3">
-            <MarketNews />
-          </div>
-          <div className="col-md-9">
-            <HistoryOrder />
-          </div>
+      </div>
+      <div className="row sm-gutters">
+        <div className="col-md-3">
+          <MarketNews />
+        </div>
+        <div className="col-md-9">
+          <HistoryOrder />
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

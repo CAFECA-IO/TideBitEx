@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback, useMemo, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
+// import { useSnackbar } from "notistack";
 import { Config } from "../constant/Config";
 import Middleman from "../modal/Middleman";
 import StoreContext from "./store-context";
@@ -23,6 +24,7 @@ const StoreProvider = (props) => {
   const [closeOrders, setCloseOrders] = useState([]);
   const [orderHistories, setOrderHistories] = useState([]);
   const [balances, setBalances] = useState([]);
+  // const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [selectedTicker, setSelectedTicker] = useState(null);
   let tickerTimestamp = 0,
     tradeTimestamp = 0,
@@ -94,7 +96,7 @@ const StoreProvider = (props) => {
 
   const selectTickerHandler = useCallback(
     async (ticker) => {
-      console.log(`SelectedTicker`, ticker)
+      console.log(`SelectedTicker`, ticker);
       const _ticker = middleman.updateSelectedTicker(ticker);
       setSelectedTicker(_ticker);
       if (ticker.instId !== selectedTicker?.instId || !selectedTicker) {
@@ -150,7 +152,8 @@ const StoreProvider = (props) => {
     async (options) => {
       try {
         const result = await middleman.getPendingOrders(options);
-        if (!options) setPendingOrders(result);
+        // if (!options) setPendingOrders(result);
+        setPendingOrders(result);
         return result;
       } catch (error) {
         console.log(`getPendingOrders error`, error);
@@ -164,7 +167,8 @@ const StoreProvider = (props) => {
     async (options) => {
       try {
         const result = await middleman.getCloseOrders(options);
-        if (!options) setCloseOrders(result);
+        // if (!options) setCloseOrders(result);
+        setCloseOrders(result);
         return result;
       } catch (error) {
         console.log(`getCloseOrders error`, error);
@@ -190,14 +194,39 @@ const StoreProvider = (props) => {
 
   const postOrder = useCallback(
     async (order) => {
+      console.log(`postOrder order`, order);
       try {
         const result = await middleman.postOrder(order);
-        return result;
+        await getCloseOrders();
+        await getPendingOrders();
+        // return result;
+        console.log(`postOrder error`, result);
       } catch (error) {
-        return Promise.reject({ message: error });
+        console.log(`postOrder error`, error);
+        // enqueueSnackbar(error?.message, {
+        //   variant: "error",
+        // });
       }
     },
-    [middleman]
+    [getCloseOrders, getPendingOrders, middleman]
+  );
+
+  const cancelOrder = useCallback(
+    async (order) => {
+      try {
+        const result = await middleman.cancelOrder(order);
+        await getPendingOrders();
+        return result;
+      } catch (error) {
+        // return Promise.reject({ message: error });
+        console.log(`cancelOrder error`, error);
+        // enqueueSnackbar(`Failed to cancel order: ${order.ordId}`, {
+        //   variant: "error",
+        // });
+        return false;
+      }
+    },
+    [getPendingOrders, middleman]
   );
 
   const sync = useCallback(
@@ -300,6 +329,7 @@ const StoreProvider = (props) => {
         getCloseOrders,
         getBalances,
         postOrder,
+        cancelOrder,
       }}
     >
       {props.children}

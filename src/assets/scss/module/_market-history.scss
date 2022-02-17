@@ -16,7 +16,8 @@
   font-weight: 400;
 }
 .market-history tbody {
-  height: 315px;
+  // height: 315px;
+  height: 340px;
   overflow-y: auto;
   display: block;
 }
@@ -32,4 +33,15 @@
 .market-history {
   border: 1px solid #e0e3eb;
   border-radius: 2px;
+}
+.market-history thead th:first-child,
+.market-history tbody td:first-child {
+  flex: 3;
+}
+.market-history thead th:nth-child(2),
+.market-history thead th:nth-child(3),
+.market-history tbody td:nth-child(2),
+.market-history tbody td:nth-child(3) {
+  flex: 4;
+  text-align: right;
 }

@@ -3,7 +3,7 @@ import { Tabs, Tab } from "react-bootstrap";
 import StoreContext from "../store/store-context";
 import SafeMath from "../utils/SafeMath";
 import { dateFormatter } from "../utils/Utils";
-
+import { FaTrashAlt } from "react-icons/fa";
 const OrderTile = (props) => {
   return (
     <ul className="d-flex justify-content-between market-order-item">
@@ -15,6 +15,11 @@ const OrderTile = (props) => {
       <li>{props.order.sz}</li>
       <li>{props.order.fillSz}</li>
       <li>{SafeMath.minus(props.order.sz, props.order.fillSz)}</li>
+      {props.type === "pending" && (
+        <li onClick={(_) => props.cancelOrder(props.order)}>
+          <FaTrashAlt />
+        </li>
+      )}
     </ul>
   );
 };
@@ -36,6 +41,9 @@ const BalanceTile = (props) => {
 
 const HistoryOrder = (props) => {
   const storeCtx = useContext(StoreContext);
+  const cancelOrder = (order) => {
+    storeCtx.cancelOrder(order);
+  };
 
   return (
     <>
@@ -51,6 +59,7 @@ const HistoryOrder = (props) => {
               <li>Amount</li>
               <li>Executed</li>
               <li>Unexecuted</li>
+              <li>Cancel</li>
             </ul>
             {!storeCtx.pendingOrders.length && (
               <span className="no-data">
@@ -60,7 +69,11 @@ const HistoryOrder = (props) => {
             )}
             {!!storeCtx.pendingOrders.length &&
               storeCtx.pendingOrders.map((order) => (
-                <OrderTile order={order} />
+                <OrderTile
+                  order={order}
+                  type="pending"
+                  cancelOrder={cancelOrder}
+                />
               ))}
           </Tab>
           <Tab eventKey="closed-orders" title="Closed Orders">

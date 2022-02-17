@@ -8,13 +8,14 @@
 
 .order-book thead th:first-child,
 .order-book tbody td:first-child {
-  flex: 3;
+  flex: 5;
 }
 .order-book thead th:nth-child(2),
 .order-book thead th:nth-child(3),
 .order-book tbody td:nth-child(2),
 .order-book tbody td:nth-child(3) {
-  flex: 1;
+  flex: 2;
+  text-align: right;
 }
 .order-book table.table tbody tr {
   border: none;
@@ -34,7 +35,7 @@
   border: 1px solid #e0e3eb;
   border-radius: 2px;
 }
-.order-book-asks{
+.order-book-asks {
   flex-direction: column-reverse;
 }
 

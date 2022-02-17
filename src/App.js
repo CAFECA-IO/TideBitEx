@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { ThemeProvider } from "./context/ThemeContext";
 import Index from "./pages";
+// import { SnackbarProvider } from "notistack";
 export default class App extends Component {
   state = {
     theme: "light",
@@ -20,7 +21,9 @@ export default class App extends Component {
           },
         }}
       >
-        <Index />
+        {/* <SnackbarProvider maxSnack={10}> */}
+          <Index />
+        {/* </SnackbarProvider> */}
       </ThemeProvider>
     );
   }

@@ -180,7 +180,7 @@ class Communicator {
   async balance(ccy) {
     try {
       const url = `/account/balance?${ccy ? `&ccy=${ccy}` : ""}`;
-      console.log(`getPendingOrders url`, url);
+      console.log(`balance url`, url);
       const res = await this._get(url);
       if (res.success) {
         return res.data;
@@ -203,6 +203,19 @@ class Communicator {
       return Promise.reject({ message: error });
     }
   }
+
+    // Trade
+    async cancel(order) {
+      try {
+        const res = await this._post(`/trade/cancel-order`, order);
+        if (res.success) {
+          return res.data;
+        }
+        return Promise.reject({ message: res.message, code: res.code });
+      } catch (error) {
+        return Promise.reject({ message: error });
+      }
+    }
 
   // use for need jwt request
   async _get(url) {
