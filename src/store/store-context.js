@@ -3,7 +3,7 @@ import React from "react";
 const StoreContext = React.createContext({
   selectedTicker: null,
   tickers: [],
-  updateTickerIndexs:[],
+  updateTickerIndexs: [],
   books: [],
   trades: [],
   candles: null,
@@ -209,6 +209,12 @@ const StoreContext = React.createContext({
    * @returns {Promise<OrderResult>}
    */
   postOrder: async (order) => {},
+  /**
+   * cancelOrder
+   * @param {Order} order
+   * @returns {Promise<Object>}
+   */
+  cancelOrder: async (order) => {},
 });
 
 export default StoreContext;

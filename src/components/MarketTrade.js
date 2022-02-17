@@ -240,15 +240,7 @@ const TradePannel = (props) => {
             ordType: props.orderType,
             sz: side === "buy" ? buySz : sellSz,
           };
-    console.log(`order`, order);
-    try {
-      const result = await storeCtx.postOrder(order);
-      await storeCtx.getCloseOrders();
-      await storeCtx.getPendingOrders();
-      console.log(`result`, result);
-    } catch (error) {
-      console.log(`error`, error);
-    }
+    storeCtx.postOrder(order);
   };
 
   // -- TEST

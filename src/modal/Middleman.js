@@ -325,6 +325,15 @@ class Middleman {
   async postOrder(order) {
     return await this.communicator.order(order);
   }
+  async cancelOrder(order) {
+    console.log(`cancelOrder order`, order);
+    const body = {
+      ordId: order.ordId,
+      instId: order.instId,
+    };
+    console.log(`cancelOrder body`, body);
+    return await this.communicator.cancel(body);
+  }
 }
 
 export default Middleman;
