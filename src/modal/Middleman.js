@@ -50,7 +50,15 @@ class Middleman {
       } else {
         const ticker = {
           ...updateTickers[index],
+          last: pair.last,
+          change: pair.change,
           changePct: SafeMath.mult(pair.changePct, "100"),
+          open24h: pair.open24h,
+          high24h: pair.high24h,
+          low24h: pair.low24h,
+          volCcy24h: pair.volCcy24h,
+          vol24h: pair.vol24h,
+          ts: pair.ts,
         };
         if (pair.instId === this.selectedTicker?.instId)
           updateTicker = this.updateSelectedTicker(ticker);
