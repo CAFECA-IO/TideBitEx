@@ -26,15 +26,14 @@ const BookTile = (props) => {
 
 const OrderBook = (props) => {
   const storeCtx = useContext(StoreContext);
-  const [init, setInit] = useState(true);
 
   useEffect(() => {
-    if (storeCtx.books && init) {
+    if (storeCtx.init) {
       const element = document.querySelector(".order-book-asks");
       element.scrollTop = element.scrollHeight;
-      setInit(false);
+      storeCtx.setInit(false);
     }
-  }, [init, storeCtx.books]);
+  }, [storeCtx.init, storeCtx]);
 
   return (
     <>

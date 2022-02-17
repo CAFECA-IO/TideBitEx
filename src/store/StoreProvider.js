@@ -17,6 +17,7 @@ const StoreProvider = (props) => {
   const [tickers, setTickers] = useState([]);
   const [updateTickerIndexs, setUpdateTickerIndexs] = useState([]);
   const [books, setBooks] = useState(null);
+  const [init, setInit] = useState(true);
   const [trades, setTrades] = useState([]);
   const [candles, setCandles] = useState(null);
   const [selectedBar, setSelectedBar] = useState("1D");
@@ -36,6 +37,7 @@ const StoreProvider = (props) => {
       try {
         const result = await middleman.getBooks(instId, sz);
         setBooks(result);
+        setInit(true)
         // return result;
       } catch (error) {
         return Promise.reject({ message: error });
@@ -266,7 +268,7 @@ const StoreProvider = (props) => {
               const updateTrades = middleman.updateTrades(metaData.data);
               _tradeTimestamp = new Date().getTime();
               if (_tradeTimestamp - +tradeTimestamp > 1000) {
-                console.log(`updateTrades`, updateTrades);
+                // console.log(`updateTrades`, updateTrades);
                 tradeTimestamp = _tradeTimestamp;
                 setTrades(updateTrades);
               }
@@ -275,7 +277,7 @@ const StoreProvider = (props) => {
               const updateBooks = middleman.updateBooks(metaData.data);
               _bookTimestamp = new Date().getTime();
               if (_bookTimestamp - +bookTimestamp > 1000) {
-                console.log(`updateBooks`, updateBooks);
+                // console.log(`updateBooks`, updateBooks);
                 bookTimestamp = _bookTimestamp;
                 setBooks(updateBooks);
               }
@@ -284,7 +286,7 @@ const StoreProvider = (props) => {
               _candleTimestamp = new Date().getTime();
               if (_candleTimestamp - +candleTimestamp > 1000) {
                 candleTimestamp = _candleTimestamp;
-                console.log("candleOnUpdate", metaData.data);
+                // console.log("candleOnUpdate", metaData.data);
                 setCandles(metaData.data);
               }
               break;
@@ -307,6 +309,7 @@ const StoreProvider = (props) => {
   return (
     <StoreContext.Provider
       value={{
+        init,
         tickers,
         books,
         trades,
@@ -318,6 +321,7 @@ const StoreProvider = (props) => {
         balances,
         selectedTicker,
         updateTickerIndexs,
+        setInit,
         findTicker,
         selectTickerHandler,
         getTickers,

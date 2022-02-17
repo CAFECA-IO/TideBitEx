@@ -1,6 +1,7 @@
 import React from "react";
 
 const StoreContext = React.createContext({
+  init: null,
   selectedTicker: null,
   tickers: [],
   updateTickerIndexs: [],
@@ -12,6 +13,7 @@ const StoreContext = React.createContext({
   closeOrders: [],
   orderHistories: [],
   balances: [],
+  setInit: (init) => {},
   /**
    * @typedef {Object} Ticker
    * @property {String} instType
