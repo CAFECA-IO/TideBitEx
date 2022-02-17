@@ -37,19 +37,31 @@ class Middleman {
       const index = this.tickers.findIndex(
         (ticker) => ticker.instId === pair.instId
       );
-      const ticker = {
-        ...pair,
-        baseCcy: pair.instId.split("-")[0],
-        quoteCcy: pair.instId.split("-")[1],
-        pair: pair.instId.replace("-", "/"),
-        changePct: SafeMath.mult(pair.changePct, "100"),
-      };
-      if (pair.instId === this.selectedTicker?.instId)
-        updateTicker = { ...ticker, available: this.selectedTicker.available };
       if (index === -1) {
+        const ticker = {
+          ...pair,
+          baseCcy: pair.instId.split("-")[0],
+          quoteCcy: pair.instId.split("-")[1],
+          pair: pair.instId.replace("-", "/"),
+          changePct: SafeMath.mult(pair.changePct, "100"),
+        };
         updateTickers.push(ticker);
         return updateTickers.length - 1;
       } else {
+        const ticker = {
+          ...updateTickers[index],
+          last: pair.last,
+          change: pair.change,
+          changePct: SafeMath.mult(pair.changePct, "100"),
+          open24h: pair.open24h,
+          high24h: pair.high24h,
+          low24h: pair.low24h,
+          volCcy24h: pair.volCcy24h,
+          vol24h: pair.vol24h,
+          ts: pair.ts,
+        };
+        if (pair.instId === this.selectedTicker?.instId)
+          updateTicker = this.updateSelectedTicker(ticker);
         updateTickers[index] = ticker;
         return index;
       }
@@ -108,22 +120,22 @@ class Middleman {
     }
   }
 
-  handleBooks(books) {
+  handleBooks() {
     let totalAsks = "0",
       totalBids = "0",
       asks = [],
       bids = [],
       askPx,
       bidPx;
-    books.asks
+    this.rawBooks.asks
       ?.sort((a, b) => +a[0] - +b[0])
-      ?.forEach((d) => {
+      ?.forEach((d, i) => {
         totalAsks = SafeMath.plus(SafeMath.plus(d[2], d[3]), totalAsks);
         let ask = {
           price: d[0],
           amount: SafeMath.plus(d[2], d[3]),
           total: totalAsks,
-          update: !!d["update"],
+          update: !!d[4],
         };
         if (d[0] === askPx) {
           asks[asks.length - 1] = ask;
@@ -131,16 +143,18 @@ class Middleman {
           askPx = d[0];
           asks.push(ask);
         }
+        if (this.rawBooks.asks[i][4]) this.rawBooks.asks[i].splice(4, 1);
       });
     asks = asks.sort((a, b) => +b.price - +a.price);
-    books.bids
+    this.rawBooks.bids
       ?.sort((a, b) => +b[0] - +a[0])
-      ?.forEach((d) => {
+      ?.forEach((d, i) => {
         totalBids = SafeMath.plus(SafeMath.plus(d[2], d[3]), totalBids);
         let bid = {
           price: d[0],
           amount: SafeMath.plus(d[2], d[3]),
           total: totalBids,
+          update: !!d[4],
         };
         if (d[0] === bidPx) {
           bids[bids.length - 1] = bid;
@@ -148,49 +162,67 @@ class Middleman {
           bidPx = d[0];
           bids.push(bid);
         }
+        if (this.rawBooks.bids[i][4]) this.rawBooks.bids[i].splice(4, 1);
       });
     const updateBooks = {
-      ...books,
       asks,
       bids,
+      ts: Date.now(),
     };
     return updateBooks;
   }
 
-  updateBooks(orders) {
+  updateBooks(rawOrders) {
+    // console.log(`updateBooks rawOrders`, rawOrders);
+    // console.log(`updateBooks this.rawBooks`, this.rawBooks);
     const updateRawBooks = {
-      ...this.rawBooks,
-      asks: this.rawBooks?.asks
-        ? this.rawBooks.asks.map((ask) => ({ ...ask, update: false }))
-        : [],
-      bids: this.rawBooks?.bids
-        ? this.rawBooks.bids.map((bid) => ({ ...bid, update: false }))
-        : [],
+      asks: this.rawBooks?.asks ? this.rawBooks.asks : [],
+      bids: this.rawBooks?.bids ? this.rawBooks.bids : [],
     };
-    orders.forEach((order) => {
+    // console.log(`updateBooks updateRawBooks`, updateRawBooks);
+    rawOrders.forEach((order) => {
+      // console.log(`updateBooks rawOrders order`, order);
       order.asks.forEach((ask) => {
-        let index;
-        index = (this.rawBooks?.asks || []).findIndex((d) => d[0] === ask[0]);
-        if (SafeMath.gt(SafeMath.plus(ask[2], ask[3]), "0")) {
-          if (index === -1) updateRawBooks.asks.push(ask);
-          else updateRawBooks.asks[index] = ask;
+        // console.log(`updateBooks order.asks.forEach((ask) ask`, ask);
+        let index,
+          updateAsk = ask;
+        updateAsk.push(true);
+        index = updateRawBooks.asks.findIndex((d) => d[0] === ask[0]);
+
+        // console.log(`updateBooks updateRawBooks.asks.findIndex`, index);
+        // console.log(`updateBooks updateAsk`, updateAsk);
+        if (index === -1) {
+          if (SafeMath.gt(SafeMath.plus(ask[2], ask[3]), "0")) {
+            updateRawBooks.asks.push(updateAsk);
+            // console.log(`updateBooks updateRawBooks`, updateRawBooks);
+          }
         } else {
-          updateRawBooks.asks.splice(index, 1);
+          if (SafeMath.gt(SafeMath.plus(ask[2], ask[3]), "0"))
+            updateRawBooks.asks[index] = updateAsk;
+          else updateRawBooks.asks.splice(index, 1);
+          // console.log(`updateBooks updateRawBooks`, updateRawBooks);
         }
       });
       order.bids.forEach((bid) => {
-        let index;
-        index = (this.rawBooks?.bids || []).findIndex((d) => d[0] === bid[0]);
-        if (SafeMath.gt(SafeMath.plus(bid[2], bid[3]), "0")) {
-          if (index === -1) updateRawBooks.bids.push(bid);
-          else updateRawBooks.bids[index] = bid;
+        let index,
+          updateBid = bid;
+        updateBid.push(true);
+        index = updateRawBooks.bids.findIndex((d) => d[0] === bid[0]);
+        if (index === -1) {
+          if (SafeMath.gt(SafeMath.plus(bid[2], bid[3]), "0")) {
+            updateRawBooks.bids.push(updateBid);
+            // console.log(`updateBooks updateRawBooks`, updateRawBooks);
+          }
         } else {
-          updateRawBooks.bids.splice(index, 1);
+          if (SafeMath.gt(SafeMath.plus(bid[2], bid[3]), "0"))
+            updateRawBooks.bids[index] = updateBid;
+          else updateRawBooks.bids.splice(index, 1);
+          // console.log(`updateBooks updateRawBooks`, updateRawBooks);
         }
       });
       this.rawBooks = updateRawBooks;
     });
-    this.books = this.handleBooks(this.rawBooks);
+    this.books = this.handleBooks();
     return this.books;
   }
 
@@ -198,9 +230,9 @@ class Middleman {
     try {
       const rawBooks = await this.communicator.books(instId, sz);
       this.rawBooks = rawBooks[0];
-      console.log(`getBooks this.rawBooks`, this.rawBooks);
-      this.books = this.handleBooks(this.rawBooks);
-      console.log(`getBooks this.books`, this.books);
+      this.books = this.handleBooks();
+      // console.log(`getBooks this.rawBooks`, this.rawBooks);
+      // console.log(`getBooks this.books`, this.books);
       return this.books;
     } catch (error) {
       throw error;
