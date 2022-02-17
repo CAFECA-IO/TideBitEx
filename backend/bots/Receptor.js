@@ -9,6 +9,8 @@ const Router = require('koa-router');
 const bodyParser = require('koa-body');
 const staticServe = require('koa-static');
 const dvalue = require('dvalue');
+const cors = require('@koa/cors');
+const proxy = require('koa-proxy');
 
 const Bot = require(path.resolve(__dirname, 'Bot.js'));
 const Utils = require(path.resolve(__dirname, '../libs/Utils.js'));
@@ -38,10 +40,13 @@ class Receptor extends Bot {
     .then((options) => {
       const sessionSecret = dvalue.randomID(24);
       const app = new koa();
-      app.use(staticServe(this.config.base.static))
+      const peatio = this.config.peatio.domain;
+      app.use(cors())
+         .use(staticServe(this.config.base.static))
          .use(bodyParser({ multipart: true }))
          .use(this.router.routes())
-         .use(this.router.allowedMethods());
+         .use(this.router.allowedMethods())
+         .use(proxy({ host: peatio }));
       return this.listen({ options, callback: app.callback() });
     });
   }
