@@ -37,19 +37,23 @@ class Middleman {
       const index = this.tickers.findIndex(
         (ticker) => ticker.instId === pair.instId
       );
-      const ticker = {
-        ...pair,
-        baseCcy: pair.instId.split("-")[0],
-        quoteCcy: pair.instId.split("-")[1],
-        pair: pair.instId.replace("-", "/"),
-        changePct: SafeMath.mult(pair.changePct, "100"),
-      };
-      if (pair.instId === this.selectedTicker?.instId)
-        updateTicker = { ...ticker, available: this.selectedTicker.available };
       if (index === -1) {
+        const ticker = {
+          ...pair,
+          baseCcy: pair.instId.split("-")[0],
+          quoteCcy: pair.instId.split("-")[1],
+          pair: pair.instId.replace("-", "/"),
+          changePct: SafeMath.mult(pair.changePct, "100"),
+        };
         updateTickers.push(ticker);
         return updateTickers.length - 1;
       } else {
+        const ticker = {
+          ...updateTickers[index],
+          changePct: SafeMath.mult(pair.changePct, "100"),
+        };
+        if (pair.instId === this.selectedTicker?.instId)
+          updateTicker = this.updateSelectedTicker(ticker);
         updateTickers[index] = ticker;
         return index;
       }
@@ -176,7 +180,7 @@ class Middleman {
           updateAsk = ask;
         updateAsk.push(true);
         index = updateRawBooks.asks.findIndex((d) => d[0] === ask[0]);
-       
+
         // console.log(`updateBooks updateRawBooks.asks.findIndex`, index);
         // console.log(`updateBooks updateAsk`, updateAsk);
         if (index === -1) {

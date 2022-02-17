@@ -164,7 +164,7 @@ const TradePannel = (props) => {
     setBuyPx(value);
   };
   const buySzHandler = (event) => {
-    let value = SafeMath.lte(event.target.value, "0")
+    let value = SafeMath.lt(event.target.value, "0")
       ? "0"
       : SafeMath.gte(
           SafeMath.mult(event.target.value, buyPx),
@@ -179,7 +179,7 @@ const TradePannel = (props) => {
     setSellPx(value);
   };
   const sellSzHandler = (event) => {
-    let value = SafeMath.lte(event.target.value, "0")
+    let value = SafeMath.lt(event.target.value, "0")
       ? "0"
       : SafeMath.gte(
           event.target.value,
@@ -246,13 +246,25 @@ const TradePannel = (props) => {
   // -- TEST
   useEffect(() => {
     if (storeCtx.selectedTicker) {
-      setBuyPx(storeCtx.selectedTicker.askPx);
-      buyPctHandler("0.25");
-      setSellPx(storeCtx.selectedTicker.bidPx);
-      sellPctHandler("0.25");
+      console.log(
+        `MarketTrade storeCtx.selectedTicker`,
+        storeCtx.selectedTicker
+      );
+      // setBuyPx(storeCtx.selectedTicker.askPx);
+      // setSellPx(storeCtx.selectedTicker.bidPx);
+      setBuyPx(storeCtx.selectedTicker.last);
+      setSellPx(storeCtx.selectedTicker.last);
+      buyPctHandler(selectedBuyPct ?? "0.25");
+      sellPctHandler(selectedSellPct ?? "0.25");
     }
     return () => {};
-  }, [buyPctHandler, sellPctHandler, storeCtx.selectedTicker]);
+  }, [
+    buyPctHandler,
+    selectedBuyPct,
+    selectedSellPct,
+    sellPctHandler,
+    storeCtx.selectedTicker,
+  ]);
 
   return (
     <div className="d-flex justify-content-between">
