@@ -255,7 +255,7 @@ const TradePannel = (props) => {
   useEffect(() => {
     if (
       (storeCtx.selectedTicker && props.orderType === "market") ||
-      (storeCtx.selectedTicker && !selectedBuyPct && !selectedBuyPct) ||
+      (storeCtx.selectedTicker && !selectedBuyPct && !selectedSellPct) ||
       (storeCtx.selectedTicker &&
         storeCtx.selectedTicker.instId !== selectedTicker?.instId)
     ) {
