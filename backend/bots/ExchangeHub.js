@@ -68,7 +68,16 @@ class ExchangeHub extends Bot {
   async getOrderHistory ({ params, query }) {
     return this.okexConnector.router('getOrderHistory', { params, query });
   }
+  async postCancelOrder ({ params, query, body }) {
+    return this.okexConnector.router('postCancelOrder', { params, query, body });
+  }
   // trade api end
+
+  // public api
+  async getInstruments ({ params, query }) {
+    return this.okexConnector.router('getInstruments', { params, query });
+  }
+  // public api end
 
   async _eventListener() {
     EventBus.on(Events.tradeDataOnUpdate, (instId, tradeData) => {
