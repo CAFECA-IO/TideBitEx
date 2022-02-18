@@ -511,6 +511,53 @@ class OkexConnector extends ConnectorBase {
   }
   // trade api end
 
+  // public data api
+  async getInstruments({ query }) {
+    const method = 'GET';
+    const path = '/api/v5/public/instruments';
+    const { instType, uly } = query;
+
+    const arr = [];
+    if (instType) arr.push(`instType=${instType}`);
+    if (uly) arr.push(`uly=${uly}`);
+    const qs = (!!arr.length) ?  `?${arr.join('&')}` : '';
+
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}${qs}`,
+        headers: this.getHeaders(false),
+      });
+      if (res.data && res.data.code !== '0') {
+        this.logger.trace(res.data.msg);
+        return new ResponseFormat({
+          message: res.data.msg,
+          code: Codes.THIRD_PARTY_API_ERROR,
+        });
+      }
+
+      const payload = res.data.data.map((data) => {
+        return {
+          ...data,
+          ts: parseInt(data.ts),
+        }
+      })
+      return new ResponseFormat({
+        message: 'getInstruments',
+        payload,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      let message = error.message;
+      if (error.response && error.response.data) message = error.response.data.msg;
+      return new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+  // public data api end
+
   // okex ws
   _okexWsEventListener() {
     this.websocket.onmessage = (event) => {

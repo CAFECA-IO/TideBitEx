@@ -73,6 +73,12 @@ class ExchangeHub extends Bot {
   }
   // trade api end
 
+  // public api
+  async getInstruments ({ params, query }) {
+    return this.okexConnector.router('getInstruments', { params, query });
+  }
+  // public api end
+
   async _eventListener() {
     EventBus.on(Events.tradeDataOnUpdate, (instId, tradeData) => {
       this.broadcast(
