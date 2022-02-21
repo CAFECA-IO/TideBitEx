@@ -306,6 +306,7 @@ const TradePannel = (props) => {
         <TradeForm
           px={sellPx}
           sz={sellSz}
+          selectedTicker={selectedTicker}
           selectedPct={selectedSellPct}
           onPxInput={sellPxHandler}
           onSzInput={sellSzHandler}
