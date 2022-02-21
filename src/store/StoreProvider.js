@@ -37,7 +37,7 @@ const StoreProvider = (props) => {
       try {
         const result = await middleman.getBooks(instId, sz);
         setBooks(result);
-        setInit(true)
+        setInit(true);
         // return result;
       } catch (error) {
         return Promise.reject({ message: error });
@@ -201,6 +201,7 @@ const StoreProvider = (props) => {
         const result = await middleman.postOrder(order);
         await getCloseOrders();
         await getPendingOrders();
+        await getBalances();
         // return result;
         console.log(`postOrder error`, result);
       } catch (error) {
@@ -210,7 +211,7 @@ const StoreProvider = (props) => {
         });
       }
     },
-    [enqueueSnackbar, getCloseOrders, getPendingOrders, middleman]
+    [enqueueSnackbar, getBalances, getCloseOrders, getPendingOrders, middleman]
   );
 
   const cancelOrder = useCallback(
@@ -218,6 +219,7 @@ const StoreProvider = (props) => {
       try {
         const result = await middleman.cancelOrder(order);
         await getPendingOrders();
+        await getBalances();
         return result;
       } catch (error) {
         // return Promise.reject({ message: error });
@@ -228,7 +230,7 @@ const StoreProvider = (props) => {
         return false;
       }
     },
-    [enqueueSnackbar, getPendingOrders, middleman]
+    [enqueueSnackbar, getBalances, getPendingOrders, middleman]
   );
 
   const sync = useCallback(
