@@ -103,7 +103,7 @@ const StoreProvider = (props) => {
       setSelectedTicker(_ticker);
       if (ticker.instId !== selectedTicker?.instId || !selectedTicker) {
         history.push({
-          pathname: `/markets/${ticker.instId.replace("-", "").toLowerCase()}`,
+          pathname: `/markets_v2/${ticker.instId.replace("-", "").toLowerCase()}`,
         });
         await getBooks(ticker.instId);
         await getTrades(ticker.instId);
@@ -136,8 +136,8 @@ const StoreProvider = (props) => {
         const result = await middleman.getTickers(instType, from, limit);
         setTickers(result);
         if (selectedTicker === null || force) {
-          const id = location.pathname.includes("/markets/")
-            ? location.pathname.replace("/markets/", "")
+          const id = location.pathname.includes("/markets_v2/")
+            ? location.pathname.replace("/markets_v2/", "")
             : null;
           console.log(`id`, id);
           const ticker = middleman.findTicker(id);
