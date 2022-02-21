@@ -10,7 +10,7 @@ const bodyParser = require("koa-body");
 const staticServe = require("koa-static");
 const dvalue = require("dvalue");
 const cors = require("@koa/cors");
-const proxy = require("koa-proxy");
+const proxy = require("koa-better-http-proxy");
 
 const Bot = require(path.resolve(__dirname, "Bot.js"));
 const Utils = require(path.resolve(__dirname, "../libs/Utils.js"));
@@ -47,18 +47,9 @@ class Receptor extends Bot {
         app
           .use(cors())
           .use(staticServe(this.config.base.static))
-          .use(bodyParser({ multipart: true }))
           .use(this.router.routes())
           .use(this.router.allowedMethods())
-          .use((stdin, next) => {
-            console.log(`stdin`, stdin);
-            console.log(
-              `proxy({ host: peatio })`,
-              proxy({ host: peatio }).toString()
-            );
-            next();
-          })
-          .use(proxy({ host: peatio }));
+          .use(proxy(peatio));
         return this.listen({ options, callback: app.callback() });
       });
   }
@@ -112,21 +103,25 @@ class Receptor extends Bot {
 
   register({ pathname, options, operation }) {
     const method = options.method.toLowerCase();
-    this.router[method](pathname, (ctx, next) => {
-      const inputs = {
-        body: ctx.request.body,
-        files: ctx.request.files,
-        params: ctx.params,
-        header: ctx.header,
-        method: ctx.method,
-        query: ctx.query,
-        session: ctx.session,
-      };
-      return operation(inputs).then((rs) => {
-        ctx.body = rs;
-        next();
-      });
-    });
+    this.router[method](
+      pathname,
+      bodyParser({ multipart: true }),
+      (ctx, next) => {
+        const inputs = {
+          body: ctx.request.body,
+          files: ctx.request.files,
+          params: ctx.params,
+          header: ctx.header,
+          method: ctx.method,
+          query: ctx.query,
+          session: ctx.session,
+        };
+        return operation(inputs).then((rs) => {
+          ctx.body = rs;
+          next();
+        });
+      }
+    );
     return Promise.resolve(true);
   }
 
