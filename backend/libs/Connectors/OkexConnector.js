@@ -62,7 +62,7 @@ class OkexConnector extends ConnectorBase {
   }
 
   // account api
-  async getBalance({ token, query }) {
+  async getBalance({ memberId, query }) {
     const method = 'GET';
     const path = '/api/v5/account/balance';
     const { ccy } = query;
@@ -103,7 +103,7 @@ class OkexConnector extends ConnectorBase {
           uTime: parseInt(data.uTime),
         }
       });
-      console.log('cookie!!!!!!', token);
+      console.log('memberId!!!!!!', memberId);
       return new ResponseFormat({
         message: 'getBalance',
         payload,

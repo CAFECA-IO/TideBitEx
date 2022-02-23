@@ -44,15 +44,31 @@ class ExchangeHub extends Bot {
 
     client.on('error', (err) => console.log('Redis Client Error', err));
 
-    await client.connect();
-    const value = await client.get(peatioSession);
-    console.log('getMemberIdFromRedis value', value);
+    try {
+      await client.connect();
+      const value = await client.get(
+        redis.commandOptions({ returnBuffers: true }),
+        peatioSession
+        );
+      await client.quit();
+      console.log('getMemberIdFromRedis peatioSession', peatioSession);
+      console.log('getMemberIdFromRedis value', value);
+      const split1 = value.toString('latin1').split('member_id\x06:\x06EFi\x02');
+      const memberIdLatin1 = split1[1].split('I"')[0];
+      const memberIdString = Buffer.from(memberIdLatin1, 'latin1').reverse().toString('hex');
+      const memberId = parseInt(memberIdString, 16);
+      console.log('memberId', memberIdString, memberId);
+      return memberId;
+    } catch (error) {
+      console.log(error)
+      await client.quit();
+    }
   }
 
   // account api
   async getBalance({ token, params, query }) {
-    await this.getMemberIdFromRedis(token);
-    return this.okexConnector.router('getBalance', { token, params, query });
+    const memberId = await this.getMemberIdFromRedis(token);
+    return this.okexConnector.router('getBalance', { memberId, params, query });
   }
   // account api end
   // market api
