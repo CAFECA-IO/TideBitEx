@@ -1,4 +1,5 @@
 const path = require('path');
+const redis = require('redis');
 
 const Bot = require(path.resolve(__dirname, 'Bot.js'));
 const OkexConnector = require('../libs/Connectors/OkexConnector');
@@ -36,8 +37,21 @@ class ExchangeHub extends Bot {
     return this;
   }
 
+  async getMemberIdFromRedis(peatioSession) {
+    const client = redis.createClient({
+      url: this.config.redis.domain
+    });
+
+    client.on('error', (err) => console.log('Redis Client Error', err));
+
+    await client.connect();
+    const value = await client.get(peatioSession);
+    console.log('getMemberIdFromRedis value', value);
+  }
+
   // account api
   async getBalance({ token, params, query }) {
+    await this.getMemberIdFromRedis(token);
     return this.okexConnector.router('getBalance', { token, params, query });
   }
   // account api end

@@ -36,6 +36,7 @@
     "react-scripts": "4.0.3",
     "react-slick": "^0.28.1",
     "react-tradingview-widget": "^1.3.2",
+    "redis": "^4.0.4",
     "slick-carousel": "^1.8.1",
     "spdy": "^4.0.2",
     "toml": "^3.0.0",

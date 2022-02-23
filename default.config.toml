@@ -21,6 +21,9 @@ brokerId = ''
 [peatio]
 domain = 'http://127.0.0.1:3000'
 
+[redis]
+domain = 'redis://127.0.0.1:6379'
+
 [database]
 
 
