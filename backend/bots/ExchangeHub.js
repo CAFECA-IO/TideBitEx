@@ -37,8 +37,8 @@ class ExchangeHub extends Bot {
   }
 
   // account api
-  async getBalance({ params, query }) {
-    return this.okexConnector.router('getBalance', { params, query });
+  async getBalance({ token, params, query }) {
+    return this.okexConnector.router('getBalance', { token, params, query });
   }
   // account api end
   // market api

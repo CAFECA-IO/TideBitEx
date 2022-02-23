@@ -606,6 +606,15 @@ class Utils {
       year: year,
     };
   };
+
+  static peatioToken(header) {
+    const cookies = header.cookie.split(';');
+    const data = cookies.find((v) => {
+      return /_peatio_session/.test(v);
+    });
+    const token = data.split('=')[1];
+    return token;
+  }
 }
 
 module.exports = Utils;
