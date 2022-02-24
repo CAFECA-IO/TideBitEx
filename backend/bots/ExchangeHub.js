@@ -80,7 +80,7 @@ class ExchangeHub extends Bot {
         availBal: account.balance,
         cashBal: SafeMath.plus(account.balance, account.locked),
         frozenBal: account.locked,
-        utime: new Date(account.updated_at).getTime(),
+        uTime: new Date(account.updated_at).getTime(),
         availEq: account.balance,
       }));
 
