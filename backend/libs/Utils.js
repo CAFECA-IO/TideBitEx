@@ -609,12 +609,12 @@ class Utils {
   };
 
   static peatioToken(header) {
-    if (!header.cookie || typeof header.cookie !== 'string') return '';
+    if (!header.cookie || typeof header.cookie !== 'string') return undefined;
     const cookies = header.cookie.split(';');
     const data = cookies.find((v) => {
       return /_peatio_session/.test(v);
     });
-    if (!data) return '';
+    if (!data) return undefined;
     const token = data.split('=')[1];
     return token;
   }
