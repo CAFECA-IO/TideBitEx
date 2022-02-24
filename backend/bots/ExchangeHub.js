@@ -47,7 +47,7 @@ class ExchangeHub extends Bot {
     client.on('error', (err) => console.log('Redis Client Error', err));
 
     try {
-      await client.connect();
+      await client.connect();   // 會因為連線不到卡住
       const value = await client.get(
         redis.commandOptions({ returnBuffers: true }),
         peatioSession
@@ -55,6 +55,7 @@ class ExchangeHub extends Bot {
       await client.quit();
       console.log('getMemberIdFromRedis peatioSession', peatioSession);
       console.log('getMemberIdFromRedis value', value);
+      // ++ TODO: 下面補error handle
       const split1 = value.toString('latin1').split('member_id\x06:\x06EFi\x02');
       const memberIdLatin1 = split1[1].split('I"')[0];
       const memberIdString = Buffer.from(memberIdLatin1, 'latin1').reverse().toString('hex');
@@ -64,6 +65,7 @@ class ExchangeHub extends Bot {
     } catch (error) {
       console.log(error)
       await client.quit();
+      return -1;
     }
   }
 
@@ -71,6 +73,7 @@ class ExchangeHub extends Bot {
   async getBalance({ token, params, query }) {
     try {
       const memberId = await this.getMemberIdFromRedis(token);
+      if (memberId === -1) throw new Error('get member_id fail');
       const accounts = await this.database.getBalance(memberId);
       console.log(accounts)
       const jobs = accounts.map((acc) => this.database.getCurrency(acc.currency));

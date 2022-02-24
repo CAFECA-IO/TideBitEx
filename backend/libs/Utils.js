@@ -614,6 +614,7 @@ class Utils {
     const data = cookies.find((v) => {
       return /_peatio_session/.test(v);
     });
+    if (!data) return '';
     const token = data.split('=')[1];
     return token;
   }
