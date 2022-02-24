@@ -412,11 +412,11 @@ class Utils {
     });
   }
 
-  static initialDB({ homeFolder }) {
+  static initialDB({ homeFolder, database }) {
     const dbPath = path.resolve(homeFolder, 'dataset');
     console.log('dbPath', dbPath)
     const dbo = new DBOperator();
-    return dbo.init(dbPath)
+    return dbo.init({ dir: dbPath, database})
     .then(() => dbo);
   }
 
@@ -608,6 +608,7 @@ class Utils {
   };
 
   static peatioToken(header) {
+    if (!header.cookie || typeof header.cookie !== 'string') return '';
     const cookies = header.cookie.split(';');
     const data = cookies.find((v) => {
       return /_peatio_session/.test(v);

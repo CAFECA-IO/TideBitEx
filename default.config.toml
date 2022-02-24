@@ -25,7 +25,18 @@ domain = 'http://127.0.0.1:3000'
 domain = 'redis://127.0.0.1:6379'
 
 [database]
-
+protocal = 'mysql'
+host = '127.0.0.1'
+port = ''
+user = 'user'
+password = ''
+dbName = ''
+logging = false
+ormEnable = false
+  [database.dialectOptions]
+  connectTimeout = 3000
+  [database.pool]
+  max = 10
 
 [api]
 pathname = [

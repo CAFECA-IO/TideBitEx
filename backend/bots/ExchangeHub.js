@@ -7,6 +7,7 @@ const ResponseFormat = require('../libs/ResponseFormat');
 const Codes = require('../constants/Codes');
 const EventBus = require('../libs/EventBus');
 const Events = require('../constants/Events');
+const SafeMath = require('../libs/SafeMath');
 
 class ExchangeHub extends Bot {
   constructor() {
@@ -67,8 +68,41 @@ class ExchangeHub extends Bot {
 
   // account api
   async getBalance({ token, params, query }) {
-    const memberId = await this.getMemberIdFromRedis(token);
-    return this.okexConnector.router('getBalance', { memberId, params, query });
+    try {
+      const memberId = await this.getMemberIdFromRedis(token);
+      const accounts = await this.database.getBalance(memberId);
+      console.log(accounts)
+      const jobs = accounts.map((acc) => this.database.getCurrency(acc.currency));
+      const currencies = await Promise.all(jobs);
+
+      const details = accounts.map((account, i) => ({
+        ccy: currencies[i].key.toUpperCase(),
+        availBal: account.balance,
+        cashBal: SafeMath.plus(account.balance, account.locked),
+        frozenBal: account.locked,
+        utime: new Date(account.updated_at).getTime(),
+        availEq: account.balance,
+      }));
+
+      const payload = [
+        {
+          details,
+        }
+      ]
+
+      return new ResponseFormat({
+        message: 'getBalance',
+        payload,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      const message = error.message;
+      return new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+    // return this.okexConnector.router('getBalance', { memberId: null, params, query });
   }
   // account api end
   // market api
