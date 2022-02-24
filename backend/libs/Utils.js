@@ -9,6 +9,7 @@ const colors = require('colors');
 
 const DBOperator = require(path.resolve(__dirname, '../database/dbOperator'));
 const Codes = require('../constants/Codes');
+const { default: BigNumber } = require('bignumber.js');
 
 class Utils {
   static waterfallPromise(jobs) {
@@ -615,6 +616,10 @@ class Utils {
     });
     const token = data.split('=')[1];
     return token;
+  }
+
+  static removeZeroEnd(str) {
+    return new BigNumber(str).toFixed();
   }
 }
 

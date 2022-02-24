@@ -8,6 +8,7 @@ const Codes = require('../constants/Codes');
 const EventBus = require('../libs/EventBus');
 const Events = require('../constants/Events');
 const SafeMath = require('../libs/SafeMath');
+const Utils = require('../libs/Utils');
 
 class ExchangeHub extends Bot {
   constructor() {
@@ -77,11 +78,11 @@ class ExchangeHub extends Bot {
 
       const details = accounts.map((account, i) => ({
         ccy: currencies[i].key.toUpperCase(),
-        availBal: account.balance,
+        availBal: Utils.removeZeroEnd(account.balance),
         cashBal: SafeMath.plus(account.balance, account.locked),
-        frozenBal: account.locked,
+        frozenBal: Utils.removeZeroEnd(account.locked),
         uTime: new Date(account.updated_at).getTime(),
-        availEq: account.balance,
+        availEq: Utils.removeZeroEnd(account.balance),
       }));
 
       const payload = [
