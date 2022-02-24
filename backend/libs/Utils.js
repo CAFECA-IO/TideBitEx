@@ -9,6 +9,7 @@ const colors = require('colors');
 
 const DBOperator = require(path.resolve(__dirname, '../database/dbOperator'));
 const Codes = require('../constants/Codes');
+const { default: BigNumber } = require('bignumber.js');
 
 class Utils {
   static waterfallPromise(jobs) {
@@ -412,11 +413,11 @@ class Utils {
     });
   }
 
-  static initialDB({ homeFolder }) {
+  static initialDB({ homeFolder, database }) {
     const dbPath = path.resolve(homeFolder, 'dataset');
     console.log('dbPath', dbPath)
     const dbo = new DBOperator();
-    return dbo.init(dbPath)
+    return dbo.init({ dir: dbPath, database})
     .then(() => dbo);
   }
 
@@ -606,6 +607,21 @@ class Utils {
       year: year,
     };
   };
+
+  static peatioToken(header) {
+    if (!header.cookie || typeof header.cookie !== 'string') return undefined;
+    const cookies = header.cookie.split(';');
+    const data = cookies.find((v) => {
+      return /_peatio_session/.test(v);
+    });
+    if (!data) return undefined;
+    const token = data.split('=')[1];
+    return token;
+  }
+
+  static removeZeroEnd(str) {
+    return new BigNumber(str).toFixed();
+  }
 }
 
 module.exports = Utils;
