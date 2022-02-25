@@ -47,6 +47,8 @@ tr.update {
   }
   & &__button:hover > .market-pairs,
   & &__button:hover > * ~ .market-pairs {
-    display: flex;
+    z-index: 1000;
+    opacity: 1;
+    pointer-events: stroke;
   }
 }

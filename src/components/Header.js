@@ -33,7 +33,7 @@ const Header = (_) => {
         {storeCtx.isLogin && (
           <React.Fragment>
             <Nav.Link href="/referral">Accounts</Nav.Link>
-            <Navbar.Toggle aria-controls="basic-navbar-nav" />
+            <Nav.Link href="/signin">Logout</Nav.Link>
           </React.Fragment>
         )}
       </Navbar.Collapse>
