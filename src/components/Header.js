@@ -10,7 +10,7 @@ const Header = (_) => {
     <Navbar bg="teal" variant="dark" expand="lg">
       <Navbar.Brand href="/">
         <img
-          src="img/TideBit_White_hk.png"
+          src="TideBit_White_hk.png"
           className="d-inline-block align-top"
           alt="TideBit"
           width="125px"
