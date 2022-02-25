@@ -102,7 +102,7 @@ passPhrase = 'your-api-passPhrase'
 brokerId = '377bd372412fSCDE'
 
 [peatio]
-domain = 'http://legacy.tidebit.network'      # 要與TideBit-Legacy application.yml中URL_HOST相同
+domain = 'http://127.0.0.1:3000'      # 要與TideBit-Legacy application.yml中URL_HOST相同
 
 [redis]
 domain = 'redis://127.0.0.1:6379'
