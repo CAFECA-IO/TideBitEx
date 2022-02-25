@@ -89,7 +89,7 @@ class OkexConnector extends ConnectorBase {
           code: Codes.THIRD_PARTY_API_ERROR,
         });
       }
-      console.log('res.data.data', res.data.data);
+      this.logger.log('res.data.data', res.data.data);
       const payload = res.data.data.map((data) => {
         const details = data.details.map((dtl) => {
           return {
@@ -315,7 +315,7 @@ class OkexConnector extends ConnectorBase {
     // memberId = 60976
     // randomId = gIpgavJz
 
-    console.log('clOrdId:',clOrdId)
+    this.logger.log('clOrdId:',clOrdId)
 
     const filterBody = {
       instId: body.instId,
@@ -341,7 +341,7 @@ class OkexConnector extends ConnectorBase {
         headers: this.getHeaders(true, {timeString, okAccessSign}),
         data: filterBody,
       });
-      console.log(res.data.data)
+      this.logger.log(res.data.data)
       if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
       return new ResponseFormat({
         message: 'postPlaceOrder',
@@ -498,7 +498,7 @@ class OkexConnector extends ConnectorBase {
         headers: this.getHeaders(true, {timeString, okAccessSign}),
         data: filterBody,
       });
-      console.log(res.data.data)
+      this.logger.log(res.data.data)
       if (res.data && res.data.code !== '0') throw new Error(res.data.msg);
       return new ResponseFormat({
         message: 'postCancelOrder',
@@ -582,7 +582,7 @@ class OkexConnector extends ConnectorBase {
             delete this.okexWsChannels[channel];
           }
         } else if (data.event === 'error') {
-          console.log('!!! _okexWsEventListener on event error', data);
+          this.logger.log('!!! _okexWsEventListener on event error', data);
         }
       } else if (data.data) { // okex server push data
         const arg = {...data.arg};
