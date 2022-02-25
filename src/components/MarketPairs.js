@@ -144,19 +144,15 @@ const MarketPairs = (props) => {
           <PairList tickers={ETHBasedTickers} />
         </Tab>
         <Tab eventKey="usdt" title="USDT">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Pairs</th>
-                <th>Last Price</th>
-                <th>Change</th>
-                <th>Volume</th>
-                <th>High</th>
-                <th>Low</th>
-              </tr>
-            </thead>
-            <PairList tickers={USDTBasedTickers} />
-          </table>
+          <ul className="header">
+            <li>Pairs</li>
+            <li>Last Price</li>
+            <li>Change</li>
+            <li>Volume</li>
+            <li>High</li>
+            <li>Low</li>
+          </ul>
+          <PairList tickers={USDTBasedTickers} />
         </Tab>
       </Tabs>
     </div>
