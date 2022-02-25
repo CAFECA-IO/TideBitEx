@@ -70,7 +70,7 @@ const HistoryOrder = (props) => {
                 No data
               </span>
             )} */}
-            <ul className="justify-content-between market-order-item order-list">
+            <ul className="order-list">
               {!!storeCtx.pendingOrders?.length &&
                 storeCtx.pendingOrders.map((order) => (
                   <OrderTile
@@ -99,7 +99,7 @@ const HistoryOrder = (props) => {
                 No data
               </span>
             )} */}
-            <ul className="justify-content-between market-order-item order-list">
+            <ul className="order-list">
               {!!storeCtx.closeOrders?.length &&
                 storeCtx.closeOrders.map((order) => (
                   <OrderTile order={order} />
@@ -146,7 +146,7 @@ const HistoryOrder = (props) => {
                 No data
               </span>
             )} */}
-            <ul className="justify-content-between market-order-item order-list">
+            <ul className="order-list">
               {!!storeCtx.balances?.length &&
                 storeCtx.balances.map((balance) => (
                   <BalanceTile balance={balance} />
