@@ -1,25 +1,21 @@
 const path = require('path');
 
-// const Sqlite = require(path.resolve(__dirname, "./sqlite"));
+const mysql = require('./mysql');
 
 class DBOperator {
   database = null;
   _isInit = false;
 
-  // get tokenDao() {
-  //   return this.database.tokenDao;
-  // }
-
   constructor() {
     return this;
   }
 
-  async init(dir) {
+  async init({ dir, database, logger }) {
     if (this._isInit) return;
-    // this.database = new Sqlite();
+    this.database = new mysql();
     this._isInit = true;
 
-    // return this.database.init(dir);
+    return this.database.init({ dir, database, logger });
   }
 
   down() {
@@ -27,6 +23,14 @@ class DBOperator {
     this.database.close();
     this._isInit = false;
     this.database = null;
+  }
+
+  async getBalance(memberId) {
+    return this.database.getBalance(memberId)
+  }
+
+  async getCurrency(currencyIds) {
+    return this.database.getCurrency(currencyIds);
   }
 }
 
