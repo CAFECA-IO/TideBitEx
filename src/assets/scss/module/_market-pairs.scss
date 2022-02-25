@@ -1,7 +1,30 @@
 .market-pairs {
-  border: 1px solid #e0e3eb;
+  border: 1px solid #333;
   padding-top: 14px;
   border-radius: 2px;
+  position: absolute;
+  top: 39px;
+  left: -12px;
+  display: none;
+  max-height: 50vh;
+  width: 50vw;
+  overflow: hidden;
+  background-color: #fff;
+  z-index: 1000;
+  flex-direction: column;
+  flex: auto;
+  // & > .tab-content {
+  //   display: flex;
+  //   flex-direction: column;
+  //   flex: auto;
+  //   overflow: hidden;
+  //   & > div{
+  //     display: flex;
+  //     flex-direction: column;
+  //     flex: auto;
+  //     overflow: auto;
+  //   }
+  // }
 }
 .market-pairs .input-group {
   padding: 0 14px;
@@ -74,9 +97,9 @@
 
 .market-pairs thead th:first-child,
 .market-pairs tbody td:first-child {
-  width: 45%;//50%
+  width: 45%; //50%
 }
 .market-pairs thead th:nth-child(2),
 .market-pairs tbody td:nth-child(2) {
-  width: 36%;//28%
+  width: 36%; //28%
 }

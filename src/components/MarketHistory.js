@@ -23,32 +23,25 @@ const MarketHistory = (props) => {
   return (
     <>
       <div className="market-history">
-        <Tabs defaultActiveKey="recent-trades">
-          <Tab eventKey="recent-trades" title="Recent Trades">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Time</th>
-                  <th>{`Price(${
-                    storeCtx?.selectedTicker?.quoteCcy || "--"
-                  })`}</th>
-                  <th>{`Amount(${
-                    storeCtx?.selectedTicker?.baseCcy || "--"
-                  })`}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {storeCtx.trades &&
-                  storeCtx.trades.map((trade) => (
-                    <TradeTile
-                      trade={trade}
-                      key={`${trade.instId}-${trade.tradeId}`}
-                    />
-                  ))}
-              </tbody>
-            </table>
-          </Tab>
-        </Tabs>
+        <div className="market-history__header">Trades</div>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>{`Price(${storeCtx?.selectedTicker?.quoteCcy || "--"})`}</th>
+              <th>{`Amount(${storeCtx?.selectedTicker?.baseCcy || "--"})`}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {storeCtx.trades &&
+              storeCtx.trades.map((trade) => (
+                <TradeTile
+                  trade={trade}
+                  key={`${trade.instId}-${trade.tradeId}`}
+                />
+              ))}
+          </tbody>
+        </table>
       </div>
     </>
   );

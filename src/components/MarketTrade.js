@@ -44,13 +44,28 @@ const TradeForm = (props) => {
           </span>
         </div>
       </div>
-      <p
-        className={`error-message ${
-          SafeMath.lt(props.sz, props.selectedTicker?.minSz) ? "show" : ""
-        }`}
-      >
-        Minimum order size is {`${props.selectedTicker?.minSz}`}
-      </p>
+      <div className="error-message__container">
+        <p
+          className={`error-message ${
+            SafeMath.lt(props.sz, props.selectedTicker?.minSz) ? "show" : ""
+          }`}
+        >
+          Minimum order size is {`${props.selectedTicker?.minSz}`}
+        </p>
+        <p
+          className={`error-message ${
+            (
+              props.side === "buy"
+                ? SafeMath.lt(props.selectedTicker?.quoteCcyAvailable, props.sz)
+                : SafeMath.lt(props.selectedTicker?.baseCcyAvailable, props.sz)
+            )
+              ? "show"
+              : ""
+          }`}
+        >
+          Amount is not enough
+        </p>
+      </div>
       <ul className="market-trade-list">
         <li className={`${props.selectedPct === "0.25" ? "active" : ""}`}>
           <span
@@ -63,7 +78,9 @@ const TradeForm = (props) => {
         </li>
         <li className={`${props.selectedPct === "0.5" ? "active" : ""}`}>
           <span
-            onClick={() => props.percentageHandler(props.selectedTicker, "0.5", props.px)}
+            onClick={() =>
+              props.percentageHandler(props.selectedTicker, "0.5", props.px)
+            }
           >
             50%
           </span>
@@ -79,7 +96,9 @@ const TradeForm = (props) => {
         </li>
         <li className={`${props.selectedPct === "1.0" ? "active" : ""}`}>
           <span
-            onClick={() => props.percentageHandler(props.selectedTicker, "1.0", props.px)}
+            onClick={() =>
+              props.percentageHandler(props.selectedTicker, "1.0", props.px)
+            }
           >
             100%
           </span>
@@ -105,38 +124,23 @@ const TradeForm = (props) => {
         </span>
       </p>
       <p>
-        Volume:
-        <span>
-          {`${
-            props.selectedTicker
-              ? formateDecimal(
-                  props.side === "buy"
-                    ? props.selectedTicker?.volCcy24h
-                    : props.selectedTicker?.vol24h,
-                  4
-                )
-              : "0"
-          } `}
-          {props.side === "buy"
-            ? props.selectedTicker?.quoteCcy || "--"
-            : props.selectedTicker?.baseCcy || "--"}
-          = 0 USD
-        </span>
-      </p>
-      <p>
-        Margin:
-        <span>
-          {`0 `}
-          {props.side === "buy"
-            ? props.selectedTicker?.quoteCcy || "--"
-            : props.selectedTicker?.baseCcy || "--"}
-          = 0 USD
-        </span>
-      </p>
-      <p>
         Fee:
         <span>
           {`0 `}
+          {props.side === "buy"
+            ? props.selectedTicker?.quoteCcy || "--"
+            : props.selectedTicker?.baseCcy || "--"}
+          = 0 USD
+        </span>
+      </p>
+      <p>
+        Total:
+        <span>
+          {`${
+            props.selectedTicker
+              ? formateDecimal(SafeMath.mult(props.px, props.sz), 4)
+              : "0"
+          } `}
           {props.side === "buy"
             ? props.selectedTicker?.quoteCcy || "--"
             : props.selectedTicker?.baseCcy || "--"}
@@ -183,6 +187,8 @@ const TradePannel = (props) => {
   const buySzHandler = (event) => {
     let value = SafeMath.lt(event.target.value, "0")
       ? "0"
+      : SafeMath.eq(storeCtx.selectedTicker?.quoteCcyAvailable, "0")
+      ? event.target.value
       : SafeMath.gte(
           SafeMath.mult(event.target.value, buyPx),
           storeCtx.selectedTicker?.quoteCcyAvailable
@@ -198,6 +204,8 @@ const TradePannel = (props) => {
   const sellSzHandler = (event) => {
     let value = SafeMath.lt(event.target.value, "0")
       ? "0"
+      : SafeMath.eq(storeCtx.selectedTicker?.baseCcyAvailable, "0")
+      ? event.target.value
       : SafeMath.gte(
           event.target.value,
           storeCtx.selectedTicker?.baseCcyAvailable
@@ -287,7 +295,7 @@ const TradePannel = (props) => {
   ]);
 
   return (
-    <div className="d-flex justify-content-between">
+    <div className="flex-row">
       <div className="market-trade-buy">
         <TradeForm
           px={buyPx}
@@ -324,6 +332,7 @@ const MarketTrade = (props) => {
   return (
     <>
       <div className="market-trade">
+        <div className="market-trade__header">{`Place Order`}</div>
         <Tabs defaultActiveKey="limit">
           <Tab eventKey="limit" title="Limit">
             <TradePannel orderType="limit" />

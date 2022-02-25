@@ -7,8 +7,8 @@ const TradingChart = (props) => {
   const storeCtx = useContext(StoreContext);
 
   return (
-    <div className="main-chart mb15">
-      {/* {storeCtx.priceData && ( */}
+    <div className="main-chart">
+      <div className="main-chart__header">Chart</div>
       {storeCtx.selectedTicker?.instId && (
         <React.Fragment>
           <div className="tool-bar">
@@ -67,139 +67,140 @@ const TradingChart = (props) => {
               M
             </div>
           </div>
-          <ApexCharts
-            height="65%"
-            type="candlestick"
-            options={{
-              chart: {
-                type: "candlestick",
-                height: 290,
-                id: "candles",
-                toolbar: {
-                  autoSelected: "pan",
-                  show: false,
+          <div className="main-chart__chart">
+            <ApexCharts
+              height="65%"
+              type="candlestick"
+              options={{
+                chart: {
+                  type: "candlestick",
+                  height: 290,
+                  id: "candles",
+                  toolbar: {
+                    autoSelected: "pan",
+                    show: false,
+                  },
+                  zoom: {
+                    enabled: false,
+                  },
                 },
-                zoom: {
-                  enabled: false,
+                grid: {
+                  yaxis: {
+                    lines: {
+                      show: true,
+                    },
+                  },
+                  xaxis: {
+                    lines: {
+                      show: true,
+                    },
+                  },
+                  padding: {
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    left: 0,
+                  },
                 },
-              },
-              grid: {
-                yaxis: {
-                  lines: {
-                    show: true,
+                plotOptions: {
+                  candlestick: {
+                    colors: {
+                      upward: "#239788",
+                      downward: "#e73b3f",
+                    },
                   },
                 },
                 xaxis: {
-                  lines: {
-                    show: true,
+                  type: "datetime",
+                  labels: {
+                    show: false,
                   },
-                },
-                padding: {
-                  top: 0,
-                  right: 0,
-                  bottom: 0,
-                  left: 0,
-                },
-              },
-              plotOptions: {
-                candlestick: {
-                  colors: {
-                    upward: "#239788",
-                    downward: "#e73b3f",
-                  },
-                },
-              },
-              xaxis: {
-                type: "datetime",
-                labels: {
-                  show: false,
-                },
-                axisBorder: {
-                  show: false,
-                },
-              },
-              yaxis: {
-                opposite: true,
-                labels: {
-                  show: false,
-                },
-              },
-            }}
-            series={[
-              {
-                data: storeCtx.candles ? storeCtx.candles.candles : [],
-                type: "candlestick",
-              },
-            ]}
-          />
-          <ApexCharts
-            height="32%"
-            type="bar"
-            series={[
-              {
-                data: storeCtx.candles ? storeCtx.candles.volumes : [],
-                name: "volume",
-              },
-            ]}
-            options={{
-              chart: {
-                //   // height: 160,
-                type: "bar",
-                brush: {
-                  enabled: true,
-                  target: "candles",
-                },
-                offsetY: -32,
-              },
-              grid: {
-                yaxis: {
-                  lines: {
+                  axisBorder: {
                     show: false,
                   },
                 },
+                yaxis: {
+                  opposite: true,
+                  labels: {
+                    show: false,
+                  },
+                },
+              }}
+              series={[
+                {
+                  data: storeCtx.candles ? storeCtx.candles.candles : [],
+                  type: "candlestick",
+                },
+              ]}
+            />
+            <ApexCharts
+              height="32%"
+              type="bar"
+              series={[
+                {
+                  data: storeCtx.candles ? storeCtx.candles.volumes : [],
+                  name: "volume",
+                },
+              ]}
+              options={{
+                chart: {
+                  //   // height: 160,
+                  type: "bar",
+                  brush: {
+                    enabled: true,
+                    target: "candles",
+                  },
+                  offsetY: -32,
+                },
+                grid: {
+                  yaxis: {
+                    lines: {
+                      show: false,
+                    },
+                  },
+                  xaxis: {
+                    lines: {
+                      show: true,
+                    },
+                  },
+                  padding: {
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    left: 0,
+                  },
+                },
+                dataLabels: {
+                  enabled: false,
+                },
+                plotOptions: {
+                  bar: {
+                    columnWidth: "80%",
+                    // color: {
+                    //   backgroundBarColors: storeCtx.candles.map((candle) =>
+                    //     SafeMath.gt(candle[1], candle[4]) ? "#e73b3f" : "#239788"
+                    //   ),
+                    // },
+                  },
+                },
+                stroke: {
+                  width: 0,
+                },
                 xaxis: {
-                  lines: {
+                  type: "datetime",
+                  axisBorder: {
                     show: true,
                   },
                 },
-                padding: {
-                  top: 0,
-                  right: 0,
-                  bottom: 0,
-                  left: 0,
+                yaxis: {
+                  labels: {
+                    show: false,
+                  },
+                  opposite: true,
                 },
-              },
-              dataLabels: {
-                enabled: false,
-              },
-              plotOptions: {
-                bar: {
-                  columnWidth: "80%",
-                  // color: {
-                  //   backgroundBarColors: storeCtx.candles.map((candle) =>
-                  //     SafeMath.gt(candle[1], candle[4]) ? "#e73b3f" : "#239788"
-                  //   ),
-                  // },
-                },
-              },
-              stroke: {
-                width: 0,
-              },
-              xaxis: {
-                type: "datetime",
-                axisBorder: {
-                  show: true,
-                },
-              },
-              yaxis: {
-                labels: {
-                  show: false,
-                },
-                opposite: true,
-              },
-            }}
-          />
-          {/* <TradingViewWidget
+              }}
+            />
+            {/* <TradingViewWidget
               symbol={`OKEX:${storeCtx.selectedTicker.instId?.replace(
                 "-",
                 ""
@@ -213,6 +214,7 @@ const TradingChart = (props) => {
               allow_symbol_change={false}
               hide_legend={true}
             /> */}
+          </div>
         </React.Fragment>
       )}
     </div>
