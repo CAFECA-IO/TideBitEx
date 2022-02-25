@@ -109,28 +109,13 @@ const TradeForm = (props) => {
         </span>
       </p>
       <p>
-        Volume:
+        Total:
         <span>
           {`${
             props.selectedTicker
-              ? formateDecimal(
-                  props.side === "buy"
-                    ? props.selectedTicker?.volCcy24h
-                    : props.selectedTicker?.vol24h,
-                  4
-                )
+              ? formateDecimal(SafeMath.mult(props.px, props.sz), 4)
               : "0"
           } `}
-          {props.side === "buy"
-            ? props.selectedTicker?.quoteCcy || "--"
-            : props.selectedTicker?.baseCcy || "--"}
-          = 0 USD
-        </span>
-      </p>
-      <p>
-        Margin:
-        <span>
-          {`0 `}
           {props.side === "buy"
             ? props.selectedTicker?.quoteCcy || "--"
             : props.selectedTicker?.baseCcy || "--"}

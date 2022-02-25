@@ -3,19 +3,17 @@ import StoreContext from "../store/store-context";
 import { Row, Col } from "react-bootstrap";
 import SafeMath from "../utils/SafeMath";
 import { formateDecimal } from "../utils/Utils";
+import MarketPairs from "./MarketPairs";
 const SelectedPair = (props) => {
   const storeCtx = useContext(StoreContext);
   return (
     <div className="pair">
-      <Row>
-        <Col md="auto">
+      <div className="flex-row">
+        <div className="pair__button">
           <div className="selectedPair">
             {storeCtx.selectedTicker?.pair || "--"}
           </div>
-          {/* <div className="link">
-            <a href="#">Bitcoin Price</a>
-          </div> */}
-        </Col>
+        </div>
         <Col md="auto">
           <div
             className={`showPrice ${
@@ -33,7 +31,7 @@ const SelectedPair = (props) => {
           </div>
         </Col>
         <Col md="auto">
-          <Row>
+          <div className="flex-row">
             <Col md="auto">
               <div className="tickerItemLabel">24h Change</div>
               <div
@@ -97,9 +95,10 @@ const SelectedPair = (props) => {
                   : formateDecimal(storeCtx.selectedTicker?.vol24h, 8) || "--"}
               </div>
             </Col>
-          </Row>
+          </div>
         </Col>
-      </Row>
+        <MarketPairs />
+      </div>
     </div>
   );
 };
