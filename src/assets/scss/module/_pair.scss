@@ -45,7 +45,8 @@ tr.update {
   & &__button {
     position: relative;
   }
-  & &__button:hover ~ .market-pairs {
+  & &__button:hover > .market-pairs,
+  & &__button:hover > * ~ .market-pairs {
     display: flex;
   }
 }

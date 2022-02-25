@@ -101,6 +101,9 @@
   background: #ff231f;
   box-shadow: 0px 0px 15px 0px #ff231fad;
 }
+.error-message__container {
+  height: 42px;
+}
 .market-trade p {
   margin: 5px 0;
   font-size: 13px;
@@ -108,10 +111,10 @@
   &.error-message {
     color: #ef5350;
     text-align: right;
-    opacity: 0;
+    display: none;
   }
   &.show {
-    opacity: 1;
+    display: block;
   }
 }
 

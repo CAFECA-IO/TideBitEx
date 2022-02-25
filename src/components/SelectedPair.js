@@ -13,6 +13,7 @@ const SelectedPair = (props) => {
           <div className="selectedPair">
             {storeCtx.selectedTicker?.pair || "--"}
           </div>
+          <MarketPairs />
         </div>
         <Col md="auto">
           <div
@@ -97,7 +98,6 @@ const SelectedPair = (props) => {
             </Col>
           </div>
         </Col>
-        <MarketPairs />
       </div>
     </div>
   );

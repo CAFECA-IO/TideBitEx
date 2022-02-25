@@ -44,13 +44,28 @@ const TradeForm = (props) => {
           </span>
         </div>
       </div>
-      <p
-        className={`error-message ${
-          SafeMath.lt(props.sz, props.selectedTicker?.minSz) ? "show" : ""
-        }`}
-      >
-        Minimum order size is {`${props.selectedTicker?.minSz}`}
-      </p>
+      <div className="error-message__container">
+        <p
+          className={`error-message ${
+            SafeMath.lt(props.sz, props.selectedTicker?.minSz) ? "show" : ""
+          }`}
+        >
+          Minimum order size is {`${props.selectedTicker?.minSz}`}
+        </p>
+        <p
+          className={`error-message ${
+            (
+              props.side === "buy"
+                ? SafeMath.lt(props.selectedTicker?.quoteCcyAvailable, props.sz)
+                : SafeMath.lt(props.selectedTicker?.baseCcyAvailable, props.sz)
+            )
+              ? "show"
+              : ""
+          }`}
+        >
+          Amount is not enough
+        </p>
+      </div>
       <ul className="market-trade-list">
         <li className={`${props.selectedPct === "0.25" ? "active" : ""}`}>
           <span
@@ -109,13 +124,9 @@ const TradeForm = (props) => {
         </span>
       </p>
       <p>
-        Total:
+        Fee:
         <span>
-          {`${
-            props.selectedTicker
-              ? formateDecimal(SafeMath.mult(props.px, props.sz), 4)
-              : "0"
-          } `}
+          {`0 `}
           {props.side === "buy"
             ? props.selectedTicker?.quoteCcy || "--"
             : props.selectedTicker?.baseCcy || "--"}
@@ -123,9 +134,13 @@ const TradeForm = (props) => {
         </span>
       </p>
       <p>
-        Fee:
+        Total:
         <span>
-          {`0 `}
+          {`${
+            props.selectedTicker
+              ? formateDecimal(SafeMath.mult(props.px, props.sz), 4)
+              : "0"
+          } `}
           {props.side === "buy"
             ? props.selectedTicker?.quoteCcy || "--"
             : props.selectedTicker?.baseCcy || "--"}
@@ -172,6 +187,8 @@ const TradePannel = (props) => {
   const buySzHandler = (event) => {
     let value = SafeMath.lt(event.target.value, "0")
       ? "0"
+      : SafeMath.eq(storeCtx.selectedTicker?.quoteCcyAvailable, "0")
+      ? event.target.value
       : SafeMath.gte(
           SafeMath.mult(event.target.value, buyPx),
           storeCtx.selectedTicker?.quoteCcyAvailable
@@ -187,6 +204,8 @@ const TradePannel = (props) => {
   const sellSzHandler = (event) => {
     let value = SafeMath.lt(event.target.value, "0")
       ? "0"
+      : SafeMath.eq(storeCtx.selectedTicker?.baseCcyAvailable, "0")
+      ? event.target.value
       : SafeMath.gte(
           event.target.value,
           storeCtx.selectedTicker?.baseCcyAvailable
