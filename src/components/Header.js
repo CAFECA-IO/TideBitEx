@@ -11,10 +11,9 @@ const Header = (props) => {
       <Navbar.Brand href="/">
         <img
           src="img/TideBit_White_hk.png"
-          width="125"
-          height="56"
           className="d-inline-block align-top"
           alt="TideBit"
+          width="125px"
         />
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />

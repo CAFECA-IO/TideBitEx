@@ -145,7 +145,7 @@ class Middleman {
         }
         if (this.rawBooks.asks[i][4]) this.rawBooks.asks[i].splice(4, 1);
       });
-    asks = asks.sort((a, b) => +b.price - +a.price);
+    // asks = asks.sort((a, b) => +b.price - +a.price);
     this.rawBooks.bids
       ?.sort((a, b) => +b[0] - +a[0])
       ?.forEach((d, i) => {

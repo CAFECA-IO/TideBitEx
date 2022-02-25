@@ -6,7 +6,7 @@ import { formateDecimal } from "../utils/Utils";
 const SelectedPair = (props) => {
   const storeCtx = useContext(StoreContext);
   return (
-    <div>
+    <div className="pair">
       <Row>
         <Col md="auto">
           <div className="selectedPair">

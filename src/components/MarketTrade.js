@@ -63,7 +63,9 @@ const TradeForm = (props) => {
         </li>
         <li className={`${props.selectedPct === "0.5" ? "active" : ""}`}>
           <span
-            onClick={() => props.percentageHandler(props.selectedTicker, "0.5", props.px)}
+            onClick={() =>
+              props.percentageHandler(props.selectedTicker, "0.5", props.px)
+            }
           >
             50%
           </span>
@@ -79,7 +81,9 @@ const TradeForm = (props) => {
         </li>
         <li className={`${props.selectedPct === "1.0" ? "active" : ""}`}>
           <span
-            onClick={() => props.percentageHandler(props.selectedTicker, "1.0", props.px)}
+            onClick={() =>
+              props.percentageHandler(props.selectedTicker, "1.0", props.px)
+            }
           >
             100%
           </span>
@@ -287,7 +291,7 @@ const TradePannel = (props) => {
   ]);
 
   return (
-    <div className="d-flex justify-content-between">
+    <div className="flex-row">
       <div className="market-trade-buy">
         <TradeForm
           px={buyPx}
@@ -324,6 +328,7 @@ const MarketTrade = (props) => {
   return (
     <>
       <div className="market-trade">
+        <div className="market-trade__header">{`Place Order`}</div>
         <Tabs defaultActiveKey="limit">
           <Tab eventKey="limit" title="Limit">
             <TradePannel orderType="limit" />

@@ -19,7 +19,7 @@
   padding: 8px 15px;
 }
 .market-order-item > li {
-  width: 12%;
+  // width: 12%;
   text-align: right;
 }
 .market-order-item > li:first-child {
@@ -37,7 +37,15 @@
 
 .market-order {
   border-top: 0;
-  min-height: 392px;
-  border: 1px solid #e0e3eb;
-  border-radius: 2px;
+  flex: 1;
+  border: 1px solid #333;
+  // border-radius: 2px;
+  &__header {
+    border-bottom: 1px solid #333;
+    background-color: #4597e6;
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 8px 5px;
+  }
 }

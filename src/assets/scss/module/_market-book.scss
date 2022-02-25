@@ -1,44 +1,52 @@
-.order-book table,
-.order-book tr,
-// .order-book td,
-.order-book th {
-  width: 100%;
-  table-layout: fixed;
-}
-
-.order-book thead th:first-child,
-.order-book tbody td:first-child {
-  flex: 5;
-}
-.order-book thead th:nth-child(2),
-.order-book thead th:nth-child(3),
-.order-book tbody td:nth-child(2),
-.order-book tbody td:nth-child(3) {
-  flex: 2;
-  text-align: right;
-}
-.order-book table.table tbody tr {
-  border: none;
-}
-.order-book .table thead th {
-  font-weight: 400;
-  font-size: 12px;
-}
-.order-book thead tr {
-  border-bottom: 1px solid #e0e3eb;
-}
-.order-book tbody tr,
-.order-book tbody td {
-  border: none;
-}
 .order-book {
-  border: 1px solid #e0e3eb;
-  border-radius: 2px;
-}
-.order-book-asks {
-  flex-direction: column-reverse;
-}
+  // height: 431px;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid #333;
+  &__table {
+    display: flex;
+    flex-direction: column;
+    flex: auto;
+    & > tbody {
+      overflow: auto;
+      flex: auto;
+    }
+    & > thead {
+      border-bottom: 1px solid #333;
+      background-color: #4597e6;
+      color: white;
+      font-weight: 700;
+      font-size: 14;
+    }
 
+    & > thead,
+    & > tbody {
+      padding: 8px 5px;
+    }
+    & > thead > tr > th,
+    & > tbody > tr > td {
+      flex: auto;
+      text-indent: 2px;
+    }
+    & > thead > tr.text-left > th {
+      text-align: left;
+    }
+    & > tbody > tr.text-right > th {
+      text-align: right;
+    }
+    & > tbody > tr > td {
+      font-size: 12px;
+    }
+  }
+}
+.red {
+  color: #d0021b;
+  font-weight: 500;
+}
+.green {
+  color: #00ce7d;
+  font-weight: 500;
+}
 .red-bg,
 .green-bg {
   position: relative;
@@ -48,50 +56,20 @@
 .red-bg-cover {
   position: absolute;
   content: "";
-  right: 0;
+
   top: 0;
   // width: attr(data-width,'');
   padding: 0 !important;
   height: 45px;
+  height: -webkit-fill-available;
 }
 
 .red-bg-cover {
   background: #de262663;
+  left: 0;
 }
 
 .green-bg-cover {
   background: #26de8163;
-}
-
-.ob-heading span {
-  color: #4a4a4a;
-  display: block;
-  font-size: 12px;
-  font-weight: 400;
-}
-
-.ob-heading td {
-  padding: 5px 12px;
-  cursor: default;
-}
-
-.ob-heading tr {
-  border-top: 1px solid #f0f3fa !important;
-  border-bottom: 1px solid #f0f3fa !important;
-}
-.ob-heading tr:hover {
-  background: #fff;
-}
-.ob-heading td:first-child {
-  width: 65%;
-}
-
-.order-book tbody {
-  display: block;
-  overflow-y: auto;
-  height: 211px;
-}
-
-tbody.ob-heading {
-  height: inherit;
+  right: 0;
 }
