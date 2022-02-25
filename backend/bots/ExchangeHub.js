@@ -128,27 +128,42 @@ class ExchangeHub extends Bot {
   // trade api
   async postPlaceOrder ({ params, query, body, token }) {
     const memberId = await this.getMemberIdFromRedis(token);
-    if (memberId === -1) throw new Error('get member_id fail');
+    if (memberId === -1) {
+      return new ResponseFormat({
+        message: 'member_id not found',
+        code: Codes.MEMBER_ID_NOT_FOUND,
+      });
+    }
     return this.okexConnector.router('postPlaceOrder', { memberId, params, query, body });
   }
   async getOrderList ({ params, query, token }) {
     const memberId = await this.getMemberIdFromRedis(token);
-    if (memberId === -1) throw new Error('get member_id fail');
+    if (memberId === -1) {
+      return new ResponseFormat({
+        message: 'member_id not found',
+        code: Codes.MEMBER_ID_NOT_FOUND,
+      });
+    }
     const res = await this.okexConnector.router('getOrderList', { params, query });
     const list = res.payload;
     if (Array.isArray(list)) {
-      const newList = list.filter((order) => order.clOrdId.includes(`${memberId}m`))
+      const newList = list.filter((order) => order.clOrdId.includes(`${memberId}m`));   // 可能發生與brokerId, randomId碰撞
       res.payload = newList;
     }
     return res;
   }
   async getOrderHistory ({ params, query, token }) {
     const memberId = await this.getMemberIdFromRedis(token);
-    if (memberId === -1) throw new Error('get member_id fail');
+    if (memberId === -1) {
+      return new ResponseFormat({
+        message: 'member_id not found',
+        code: Codes.MEMBER_ID_NOT_FOUND,
+      });
+    }
     const res = await this.okexConnector.router('getOrderHistory', { params, query });
     const list = res.payload;
     if (Array.isArray(list)) {
-      const newList = list.filter((order) => order.clOrdId.includes(`${memberId}m`))
+      const newList = list.filter((order) => order.clOrdId.includes(`${memberId}m`));   // 可能發生與brokerId, randomId碰撞
       res.payload = newList;
     }
     return res;
