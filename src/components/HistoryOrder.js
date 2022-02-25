@@ -70,7 +70,7 @@ const HistoryOrder = (props) => {
                 No data
               </span>
             )} */}
-            {!!storeCtx.pendingOrders.length &&
+            {!!storeCtx.pendingOrders?.length &&
               storeCtx.pendingOrders.map((order) => (
                 <OrderTile
                   order={order}
@@ -97,7 +97,7 @@ const HistoryOrder = (props) => {
                 No data
               </span>
             )} */}
-            {!!storeCtx.closeOrders.length &&
+            {!!storeCtx.closeOrders?.length &&
               storeCtx.closeOrders.map((order) => <OrderTile order={order} />)}
           </Tab>
           {/* <Tab eventKey="order-history" title="Order history">
@@ -134,12 +134,12 @@ const HistoryOrder = (props) => {
               <li>Frozen balance</li>
               {/* <li>Interest</li> */}
             </ul>
-            {!storeCtx.balances?.length && (
+            {/* {!storeCtx.balances?.length && (
               <span className="no-data">
                 <i className="icon ion-md-document"></i>
                 No data
               </span>
-            )}
+            )} */}
             {!!storeCtx.balances?.length &&
               storeCtx.balances.map((balance) => (
                 <BalanceTile balance={balance} />

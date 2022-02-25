@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect, useCallback } from "react";
 import StoreContext from "../store/store-context";
-import { Tabs, Tab } from "react-bootstrap";
+import { Tabs, Tab, Container, Nav } from "react-bootstrap";
 import { formateDecimal } from "../utils/Utils";
 import SafeMath from "../utils/SafeMath";
 
@@ -329,8 +329,9 @@ const TradePannel = (props) => {
 };
 
 const MarketTrade = (props) => {
+  const storeCtx = useContext(StoreContext);
   return (
-    <>
+    <div className="market-trade--container">
       <div className="market-trade">
         <div className="market-trade__header">{`Place Order`}</div>
         <Tabs defaultActiveKey="limit">
@@ -348,7 +349,13 @@ const MarketTrade = (props) => {
           </Tab> */}
         </Tabs>
       </div>
-    </>
+      {!storeCtx.isLogin && (
+        <div className="market-trade__cover flex-row">
+          <Nav.Link href="/signin">Login</Nav.Link>
+          <Nav.Link href="/signup">Register</Nav.Link>
+        </div>
+      )}
+    </div>
   );
 };
 

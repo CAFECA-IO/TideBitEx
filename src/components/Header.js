@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useContext } from "react";
 import { FaHome, FaCommentDots, FaDatabase } from "react-icons/fa";
 import { BiLineChart } from "react-icons/bi";
 import { Navbar, Nav, Container } from "react-bootstrap";
-import { Link } from "react-router-dom";
-import { ThemeConsumer } from "../context/ThemeContext";
+import StoreContext from "../store/store-context";
 
-const Header = (props) => {
+const Header = (_) => {
+  const storeCtx = useContext(StoreContext);
   return (
     <Navbar bg="teal" variant="dark" expand="lg">
       <Navbar.Brand href="/">
@@ -24,13 +24,13 @@ const Header = (props) => {
         </Nav.Link>
         <Nav.Link href="/digital_staking/plans">Digital Staking</Nav.Link>
         <Nav.Link href="/referral">Refer Now</Nav.Link>
-        {!props.isLogin && (
+        {!storeCtx.isLogin && (
           <React.Fragment>
             <Nav.Link href="/signin">Login</Nav.Link>
             <Nav.Link href="/signup">Register</Nav.Link>
           </React.Fragment>
         )}
-        {props.isLogin && (
+        {storeCtx.isLogin && (
           <React.Fragment>
             <Nav.Link href="/referral">Accounts</Nav.Link>
             <Navbar.Toggle aria-controls="basic-navbar-nav" />

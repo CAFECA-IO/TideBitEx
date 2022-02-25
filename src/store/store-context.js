@@ -2,6 +2,7 @@ import React from "react";
 
 const StoreContext = React.createContext({
   init: null,
+  isLogin: null,
   selectedTicker: null,
   tickers: [],
   updateTickerIndexs: [],
