@@ -309,7 +309,12 @@ class OkexConnector extends ConnectorBase {
 
     const timeString = new Date().toISOString();
 
-    const clOrdId = `${this.brokerId}m${memberId}${dvalue.randomID(8)}`.slice(0, 32);
+    const clOrdId = `${this.brokerId}${memberId}m${dvalue.randomID(8)}`.slice(0, 32);
+    // clOrdId = 377bd372412fSCDE60976mgIpgavJz
+    // brokerId = 377bd372412fSCDE
+    // memberId = 60976
+    // randomId = gIpgavJz
+
     console.log('clOrdId:',clOrdId)
 
     const filterBody = {

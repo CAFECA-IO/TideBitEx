@@ -72,8 +72,7 @@ class ExchangeHub extends Bot {
   // account api
   async getBalance({ token, params, query }) {
     try {
-      // const memberId = await this.getMemberIdFromRedis(token);
-      const memberId = 60976;
+      const memberId = await this.getMemberIdFromRedis(token);
       if (memberId === -1) throw new Error('get member_id fail');
       const accounts = await this.database.getBalance(memberId);
       const jobs = accounts.map((acc) => this.database.getCurrency(acc.currency));
@@ -138,7 +137,7 @@ class ExchangeHub extends Bot {
     const res = await this.okexConnector.router('getOrderList', { params, query });
     const list = res.payload;
     if (Array.isArray(list)) {
-      const newList = list.filter((order) => order.clOrdId.includes(memberId))
+      const newList = list.filter((order) => order.clOrdId.includes(`${memberId}m`))
       res.payload = newList;
     }
     return res;
@@ -149,7 +148,7 @@ class ExchangeHub extends Bot {
     const res = await this.okexConnector.router('getOrderHistory', { params, query });
     const list = res.payload;
     if (Array.isArray(list)) {
-      const newList = list.filter((order) => order.clOrdId.includes(memberId))
+      const newList = list.filter((order) => order.clOrdId.includes(`${memberId}m`))
       res.payload = newList;
     }
     return res;
