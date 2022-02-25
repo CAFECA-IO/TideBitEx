@@ -72,10 +72,10 @@ class ExchangeHub extends Bot {
   // account api
   async getBalance({ token, params, query }) {
     try {
-      const memberId = await this.getMemberIdFromRedis(token);
+      // const memberId = await this.getMemberIdFromRedis(token);
+      const memberId = 60976;
       if (memberId === -1) throw new Error('get member_id fail');
       const accounts = await this.database.getBalance(memberId);
-      console.log(accounts)
       const jobs = accounts.map((acc) => this.database.getCurrency(acc.currency));
       const currencies = await Promise.all(jobs);
 
@@ -127,14 +127,32 @@ class ExchangeHub extends Bot {
   }
   // market api end
   // trade api
-  async postPlaceOrder ({ params, query, body }) {
-    return this.okexConnector.router('postPlaceOrder', { params, query, body });
+  async postPlaceOrder ({ params, query, body, token }) {
+    const memberId = await this.getMemberIdFromRedis(token);
+    if (memberId === -1) throw new Error('get member_id fail');
+    return this.okexConnector.router('postPlaceOrder', { memberId, params, query, body });
   }
-  async getOrderList ({ params, query }) {
-    return this.okexConnector.router('getOrderList', { params, query });
+  async getOrderList ({ params, query, token }) {
+    const memberId = await this.getMemberIdFromRedis(token);
+    if (memberId === -1) throw new Error('get member_id fail');
+    const res = await this.okexConnector.router('getOrderList', { params, query });
+    const list = res.payload;
+    if (Array.isArray(list)) {
+      const newList = list.filter((order) => order.clOrdId.includes(memberId))
+      res.payload = newList;
+    }
+    return res;
   }
-  async getOrderHistory ({ params, query }) {
-    return this.okexConnector.router('getOrderHistory', { params, query });
+  async getOrderHistory ({ params, query, token }) {
+    const memberId = await this.getMemberIdFromRedis(token);
+    if (memberId === -1) throw new Error('get member_id fail');
+    const res = await this.okexConnector.router('getOrderHistory', { params, query });
+    const list = res.payload;
+    if (Array.isArray(list)) {
+      const newList = list.filter((order) => order.clOrdId.includes(memberId))
+      res.payload = newList;
+    }
+    return res;
   }
   async postCancelOrder ({ params, query, body }) {
     return this.okexConnector.router('postCancelOrder', { params, query, body });
