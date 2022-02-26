@@ -1,17 +1,21 @@
 import React, { useContext, useState, useEffect, useCallback } from "react";
 import StoreContext from "../store/store-context";
-import { Tabs, Tab } from "react-bootstrap";
+import { Tabs, Tab, Container, Nav } from "react-bootstrap";
 import { formateDecimal } from "../utils/Utils";
 import SafeMath from "../utils/SafeMath";
 
 const TradeForm = (props) => {
+  const storeCtx = useContext(StoreContext);
   return (
     <form
       onSubmit={(e) => {
         props.onSubmit(e, props.side);
       }}
+      className={`market-trade__form ${
+        props.side === "buy" ? "market-trade--buy" : "market-trade--sell"
+      }`}
     >
-      <div className="input-group">
+      <div className="input-group flex-row">
         <input
           type="number"
           className="form-control"
@@ -28,7 +32,7 @@ const TradeForm = (props) => {
           </span>
         </div>
       </div>
-      <div className="input-group">
+      <div className="input-group flex-row">
         <input
           type="number"
           className="form-control"
@@ -52,19 +56,27 @@ const TradeForm = (props) => {
         >
           Minimum order size is {`${props.selectedTicker?.minSz}`}
         </p>
-        <p
-          className={`error-message ${
-            (
-              props.side === "buy"
-                ? SafeMath.lt(props.selectedTicker?.quoteCcyAvailable, props.sz)
-                : SafeMath.lt(props.selectedTicker?.baseCcyAvailable, props.sz)
-            )
-              ? "show"
-              : ""
-          }`}
-        >
-          Amount is not enough
-        </p>
+        {storeCtx.isLogin && (
+          <p
+            className={`error-message ${
+              (
+                props.side === "buy"
+                  ? SafeMath.lt(
+                      props.selectedTicker?.quoteCcyAvailable,
+                      props.sz
+                    )
+                  : SafeMath.lt(
+                      props.selectedTicker?.baseCcyAvailable,
+                      props.sz
+                    )
+              )
+                ? "show"
+                : ""
+            }`}
+          >
+            Amount is not enough
+          </p>
+        )}
       </div>
       <ul className="market-trade-list">
         <li className={`${props.selectedPct === "0.25" ? "active" : ""}`}>
@@ -147,24 +159,29 @@ const TradeForm = (props) => {
           = 0 USD
         </span>
       </p>
-      <button
-        type="submit"
-        className={`btn ${props.side === "buy" ? "buy" : "sell"}`}
-        disabled={
-          !props.selectedTicker ||
-          SafeMath.gt(
-            props.sz,
-            props.side === "buy"
-              ? SafeMath.div(props.selectedTicker?.quoteCcyAvailable, props.px)
-              : props.selectedTicker?.baseCcyAvailable
-          ) ||
-          SafeMath.lte(props.sz, "0") ||
-          SafeMath.lte(props.sz, props.selectedTicker?.minSz)
-        }
-      >
-        {props.side === "buy" ? "Buy" : "Sell"}
-        {` ${props.selectedTicker?.baseCcy ?? ""}`}
-      </button>
+      <Container>
+        <button
+          type="submit"
+          className={`btn ${props.side === "buy" ? "buy" : "sell"}`}
+          disabled={
+            !props.selectedTicker ||
+            SafeMath.gt(
+              props.sz,
+              props.side === "buy"
+                ? SafeMath.div(
+                    props.selectedTicker?.quoteCcyAvailable,
+                    props.px
+                  )
+                : props.selectedTicker?.baseCcyAvailable
+            ) ||
+            SafeMath.lte(props.sz, "0") ||
+            SafeMath.lte(props.sz, props.selectedTicker?.minSz)
+          }
+        >
+          {props.side === "buy" ? "Buy" : "Sell"}
+          {` ${props.selectedTicker?.baseCcy ?? ""}`}
+        </button>
+      </Container>
     </form>
   );
 };
@@ -296,42 +313,39 @@ const TradePannel = (props) => {
 
   return (
     <div className="flex-row">
-      <div className="market-trade-buy">
-        <TradeForm
-          px={buyPx}
-          sz={buySz}
-          selectedTicker={selectedTicker}
-          selectedPct={selectedBuyPct}
-          onPxInput={buyPxHandler}
-          onSzInput={buySzHandler}
-          percentageHandler={buyPctHandler}
-          onSubmit={onSubmit}
-          side="buy"
-          readyOnly={!!props.readyOnly}
-        />
-      </div>
-      <div className="market-trade-sell">
-        <TradeForm
-          px={sellPx}
-          sz={sellSz}
-          selectedTicker={selectedTicker}
-          selectedPct={selectedSellPct}
-          onPxInput={sellPxHandler}
-          onSzInput={sellSzHandler}
-          percentageHandler={sellPctHandler}
-          onSubmit={onSubmit}
-          side="sell"
-          readyOnly={!!props.readyOnly}
-        />
-      </div>
+      <TradeForm
+        px={buyPx}
+        sz={buySz}
+        selectedTicker={selectedTicker}
+        selectedPct={selectedBuyPct}
+        onPxInput={buyPxHandler}
+        onSzInput={buySzHandler}
+        percentageHandler={buyPctHandler}
+        onSubmit={onSubmit}
+        side="buy"
+        readyOnly={!!props.readyOnly}
+      />
+      <TradeForm
+        px={sellPx}
+        sz={sellSz}
+        selectedTicker={selectedTicker}
+        selectedPct={selectedSellPct}
+        onPxInput={sellPxHandler}
+        onSzInput={sellSzHandler}
+        percentageHandler={sellPctHandler}
+        onSubmit={onSubmit}
+        side="sell"
+        readyOnly={!!props.readyOnly}
+      />
     </div>
   );
 };
 
 const MarketTrade = (props) => {
+  const storeCtx = useContext(StoreContext);
   return (
-    <>
-      <div className="market-trade">
+    <div className="market-trade">
+      <div className="market-trade__container">
         <div className="market-trade__header">{`Place Order`}</div>
         <Tabs defaultActiveKey="limit">
           <Tab eventKey="limit" title="Limit">
@@ -348,7 +362,13 @@ const MarketTrade = (props) => {
           </Tab> */}
         </Tabs>
       </div>
-    </>
+      {!storeCtx.isLogin && (
+        <div className="market-trade__cover flex-row">
+          <Nav.Link href="/signin">Login</Nav.Link>
+          <Nav.Link href="/signup">Register</Nav.Link>
+        </div>
+      )}
+    </div>
   );
 };
 

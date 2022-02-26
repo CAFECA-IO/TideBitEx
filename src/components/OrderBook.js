@@ -59,8 +59,8 @@ const OrderBook = (props) => {
 
   useEffect(() => {
     if (storeCtx.init) {
-      const element = document.querySelector(".order-book__asks");
-      element.scrollTop = element.scrollHeight;
+      // const element = document.querySelector(".order-book__asks");
+      // element.scrollTop = element.scrollHeight;
       storeCtx.setInit(false);
     }
   }, [storeCtx.init, storeCtx]);

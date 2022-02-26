@@ -337,34 +337,41 @@ class Middleman {
   }
 
   async getPendingOrders(options) {
-    return await this.communicator.ordersPending(options);
+    if (this.isLogin) return await this.communicator.ordersPending(options);
   }
 
   async getCloseOrders(options) {
-    return await this.communicator.closeOrders(options);
+    if (this.isLogin) return await this.communicator.closeOrders(options);
   }
 
   async getBalances(ccy) {
     try {
       const result = await this.communicator.balance(ccy);
       this.balances = result[0].details;
-      console.log(`getBalances`, this.balances);
+      this.isLogin = true;
+      console.log(`getBalances this.balances`, this.balances);
       return this.balances;
-    } catch (error) {}
-    return;
+    } catch (error) {
+      console.log(`getBalances error`, error);
+      this.isLogin = false;
+      this.balances = [];
+      return this.balances;
+    }
   }
 
   async postOrder(order) {
-    return await this.communicator.order(order);
+    if (this.isLogin) return await this.communicator.order(order);
   }
   async cancelOrder(order) {
-    console.log(`cancelOrder order`, order);
-    const body = {
-      ordId: order.ordId,
-      instId: order.instId,
-    };
-    console.log(`cancelOrder body`, body);
-    return await this.communicator.cancel(body);
+    if (this.isLogin) {
+      console.log(`cancelOrder order`, order);
+      const body = {
+        ordId: order.ordId,
+        instId: order.instId,
+      };
+      console.log(`cancelOrder body`, body);
+      return await this.communicator.cancel(body);
+    }
   }
 }
 

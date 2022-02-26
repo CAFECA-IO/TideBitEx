@@ -8,34 +8,36 @@ import React, {
 import { Tabs, Tab } from "react-bootstrap";
 import StoreContext from "../store/store-context";
 import SafeMath from "../utils/SafeMath";
+import { IoSearch } from "react-icons/io5";
 
 import { formateDecimal } from "../utils/Utils";
 
 const PairTile = (props) => {
   const storeCtx = useContext(StoreContext);
   return (
-    <tr
+    <li
       onClick={(_) => storeCtx.selectTickerHandler(props.ticker)}
       className={`market-tile ${
         props.ticker.instId === storeCtx?.selectedTicker?.instId ? "active" : ""
       } ${storeCtx.updateTickerIndexs.includes(props.index) ? "update" : ""}`}
     >
-      <td>
-        <i className="icon ion-md-star"></i> {props.ticker.pair}
-      </td>
-      <td>{formateDecimal(props.ticker.last, 8)}</td>
-      <td className={SafeMath.gte(props.ticker.change, "0") ? "green" : "red"}>
+      <div>{props.ticker.pair}</div>
+      <div>{formateDecimal(props.ticker.last, 8)}</div>
+      <div className={SafeMath.gte(props.ticker.change, "0") ? "green" : "red"}>
         {SafeMath.gte(props.ticker.change, "0")
           ? `+${formateDecimal(props.ticker.changePct, 3)}%`
           : `${formateDecimal(props.ticker.changePct, 3)}%`}
-      </td>
-    </tr>
+      </div>
+      <div>{formateDecimal(props.ticker.vol24h, 8)}</div>
+      <div>{formateDecimal(props.ticker.high24h, 8)}</div>
+      <div>{formateDecimal(props.ticker.low24h, 8)}</div>
+    </li>
   );
 };
 
 const PairList = (props) => {
   return (
-    <tbody className="pair-list">
+    <ul className="pair-list">
       {props.tickers.map((ticker, index) => (
         <PairTile
           ticker={ticker}
@@ -43,17 +45,20 @@ const PairList = (props) => {
           key={`${ticker.instId}-${ticker.instType}-${index}-star`}
         />
       ))}
-    </tbody>
+    </ul>
   );
 };
 
 const MarketPairs = (props) => {
   const storeCtx = useContext(StoreContext);
   const inputRef = useRef();
+  const [selectedTicker, setSelectedTicker] = useState("btc");
+
   const [BTCBasedTickers, setBTCBasedTickers] = useState([]);
   const [ETHBasedTickers, setETHBasedTickers] = useState([]);
   const [USDTBasedTickers, setUSDTBasedTickers] = useState([]);
-  const [starTickers, setStarTickers] = useState([]);
+  const [defaultActiveKey, setDefaultActiveKey] = useState("btc");
+  // const [starTickers, setStarTickers] = useState([]);
 
   const filterTickers = useCallback(() => {
     const tickers = storeCtx.tickers.filter(
@@ -74,12 +79,24 @@ const MarketPairs = (props) => {
     return () => {};
   }, [filterTickers]);
 
+  useEffect(() => {
+    if (
+      (storeCtx.selectedTicker && !selectedTicker) ||
+      (storeCtx.selectedTicker &&
+        storeCtx.selectedTicker?.instId !== selectedTicker?.instId)
+    ) {
+      console.log(`storeCtx.selectedTicker`, storeCtx.selectedTicker);
+      setSelectedTicker(storeCtx.selectedTicker);
+      setDefaultActiveKey(storeCtx.selectedTicker?.quoteCcy?.toLowerCase());
+    }
+  }, [selectedTicker, storeCtx.selectedTicker]);
+
   return (
     <div className="market-pairs">
       <div className="input-group">
         <div className="input-group-prepend">
           <span className="input-group-text" id="inputGroup-sizing-sm">
-            <i className="icon ion-md-search"></i>
+            <IoSearch />
           </span>
         </div>
         <input
@@ -91,8 +108,8 @@ const MarketPairs = (props) => {
           onChange={filterTickers}
         />
       </div>
-      <Tabs defaultActiveKey="btc">
-        <Tab eventKey="star" title="★">
+      <Tabs defaultActiveKey={defaultActiveKey}>
+        {/* <Tab eventKey="star" title="★">
           <table className="table star-active">
             <thead>
               <tr>
@@ -103,42 +120,39 @@ const MarketPairs = (props) => {
             </thead>
             <PairList tickers={starTickers} />
           </table>
-        </Tab>
+        </Tab> */}
         <Tab eventKey="btc" title="BTC">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Pairs</th>
-                <th>Last Price</th>
-                <th>Change</th>
-              </tr>
-            </thead>
-            <PairList tickers={BTCBasedTickers} />
-          </table>
+          <ul className="header">
+            <li>Pairs</li>
+            <li>Last Price</li>
+            <li>Change</li>
+            <li>Volume</li>
+            <li>High</li>
+            <li>Low</li>
+          </ul>
+          <PairList tickers={BTCBasedTickers} />
         </Tab>
         <Tab eventKey="eth" title="ETH">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Pairs</th>
-                <th>Last Price</th>
-                <th>Change</th>
-              </tr>
-            </thead>
-            <PairList tickers={ETHBasedTickers} />
-          </table>
+          <ul className="header">
+            <li>Pairs</li>
+            <li>Last Price</li>
+            <li>Change</li>
+            <li>Volume</li>
+            <li>High</li>
+            <li>Low</li>
+          </ul>
+          <PairList tickers={ETHBasedTickers} />
         </Tab>
         <Tab eventKey="usdt" title="USDT">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Pairs</th>
-                <th>Last Price</th>
-                <th>Change</th>
-              </tr>
-            </thead>
-            <PairList tickers={USDTBasedTickers} />
-          </table>
+          <ul className="header">
+            <li>Pairs</li>
+            <li>Last Price</li>
+            <li>Change</li>
+            <li>Volume</li>
+            <li>High</li>
+            <li>Low</li>
+          </ul>
+          <PairList tickers={USDTBasedTickers} />
         </Tab>
       </Tabs>
     </div>

@@ -14,6 +14,7 @@ const StoreProvider = (props) => {
   const location = useLocation();
   const history = useHistory();
   const [wsConnected, setWsConnected] = useState(false);
+  const [isLogin, setIsLogin] = useState(false);
   const [tickers, setTickers] = useState([]);
   const [updateTickerIndexs, setUpdateTickerIndexs] = useState([]);
   const [books, setBooks] = useState(null);
@@ -103,7 +104,7 @@ const StoreProvider = (props) => {
       setSelectedTicker(_ticker);
       if (ticker.instId !== selectedTicker?.instId || !selectedTicker) {
         history.push({
-          pathname: `/markets_v2/${ticker.instId.replace("-", "").toLowerCase()}`,
+          pathname: `/markets/${ticker.instId.replace("-", "").toLowerCase()}`,
         });
         await getBooks(ticker.instId);
         await getTrades(ticker.instId);
@@ -136,8 +137,8 @@ const StoreProvider = (props) => {
         const result = await middleman.getTickers(instType, from, limit);
         setTickers(result);
         if (selectedTicker === null || force) {
-          const id = location.pathname.includes("/markets_v2/")
-            ? location.pathname.replace("/markets_v2/", "")
+          const id = location.pathname.includes("/markets/")
+            ? location.pathname.replace("/markets/", "")
             : null;
           console.log(`id`, id);
           const ticker = middleman.findTicker(id);
@@ -182,14 +183,11 @@ const StoreProvider = (props) => {
 
   const getBalances = useCallback(
     async (ccy) => {
-      try {
-        const result = await middleman.getBalances(ccy);
-        setBalances(result);
-        return result;
-      } catch (error) {
-        console.log(`getBalances error`, error);
-        return Promise.reject({ message: error });
-      }
+      await middleman.getBalances(ccy);
+      console.log(`isLogin`, middleman.isLogin);
+      console.log(`balances`, middleman.balances);
+      setIsLogin(middleman.isLogin);
+      setBalances(middleman.balances);
     },
     [middleman]
   );
@@ -312,6 +310,7 @@ const StoreProvider = (props) => {
     <StoreContext.Provider
       value={{
         init,
+        isLogin,
         tickers,
         books,
         trades,

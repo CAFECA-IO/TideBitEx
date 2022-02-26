@@ -24,7 +24,7 @@ export default function index() {
           <Route exact path="/">
             <Exchange />
           </Route>
-          <Route path="/markets_v2">
+          <Route path="/markets">
             <Exchange />
           </Route>
           <Route path="/analysis">

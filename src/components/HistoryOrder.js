@@ -70,14 +70,16 @@ const HistoryOrder = (props) => {
                 No data
               </span>
             )} */}
-            {!!storeCtx.pendingOrders.length &&
-              storeCtx.pendingOrders.map((order) => (
-                <OrderTile
-                  order={order}
-                  type="pending"
-                  cancelOrder={cancelOrder}
-                />
-              ))}
+            <ul className="order-list">
+              {!!storeCtx.pendingOrders?.length &&
+                storeCtx.pendingOrders.map((order) => (
+                  <OrderTile
+                    order={order}
+                    type="pending"
+                    cancelOrder={cancelOrder}
+                  />
+                ))}
+            </ul>
           </Tab>
           <Tab eventKey="closed-orders" title="Closed Orders">
             <ul className="d-flex justify-content-between market-order-item">
@@ -97,8 +99,12 @@ const HistoryOrder = (props) => {
                 No data
               </span>
             )} */}
-            {!!storeCtx.closeOrders.length &&
-              storeCtx.closeOrders.map((order) => <OrderTile order={order} />)}
+            <ul className="order-list">
+              {!!storeCtx.closeOrders?.length &&
+                storeCtx.closeOrders.map((order) => (
+                  <OrderTile order={order} />
+                ))}{" "}
+            </ul>
           </Tab>
           {/* <Tab eventKey="order-history" title="Order history">
             <ul className="d-flex justify-content-between market-order-item">
@@ -134,16 +140,18 @@ const HistoryOrder = (props) => {
               <li>Frozen balance</li>
               {/* <li>Interest</li> */}
             </ul>
-            {!storeCtx.balances?.length && (
+            {/* {!storeCtx.balances?.length && (
               <span className="no-data">
                 <i className="icon ion-md-document"></i>
                 No data
               </span>
-            )}
-            {!!storeCtx.balances?.length &&
-              storeCtx.balances.map((balance) => (
-                <BalanceTile balance={balance} />
-              ))}
+            )} */}
+            <ul className="order-list">
+              {!!storeCtx.balances?.length &&
+                storeCtx.balances.map((balance) => (
+                  <BalanceTile balance={balance} />
+                ))}
+            </ul>
           </Tab>
         </Tabs>
       </div>

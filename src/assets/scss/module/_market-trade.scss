@@ -7,8 +7,104 @@
   border-color: #e0e3eb;
 }
 .market-trade {
-  border: 1px solid #e0e3eb;
+  position: relative;
   height: 100%;
+  border: 1px solid #333;
+  &__container {
+    display: flex;
+    flex-direction: column;
+    flex: auto;
+    height: 100%;
+  }
+  &__header {
+    border-bottom: 1px solid #333;
+    background-color: #4597e6;
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 8px 5px;
+  }
+  &__cover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba($color: #000000, $alpha: 0.7);
+    justify-content: center;
+    align-items: center;
+    & a,
+    & a:hover,
+    & a:active {
+      color: white;
+    }
+  }
+  & .tab-content {
+    flex: auto;
+    display: flex;
+    flex-direction: column;
+    & > [aria-hidden="false"] {
+      flex: auto;
+      display: flex;
+      flex-direction: column;
+      & > div{
+        flex: auto;
+        display: flex;
+        flex-direction: column;
+      }
+    }
+  }
+  &__form {
+    flex: auto;
+    display: flex;
+    flex-direction: column;
+    & > .container{
+      flex: auto;
+      align-items: flex-end;
+      justify-items: flex-end;
+    }
+  }
+  &--buy,
+  &--sell {
+    width: 100%;
+  }
+
+  &--buy {
+    padding: 0 12px 10px 12px;
+  }
+
+  &--sell {
+    padding: 0 12px 10px 12px;
+    border-left: 1px solid #e0e3eb;
+  }
+  &--buy &-list li span:hover,
+  &--buy &-list li.active span {
+    text-decoration: none;
+    background: #26a69a;
+    color: #fff;
+  }
+  &--sell &-list li span:hover,
+  &--sell &-list li.active span {
+    text-decoration: none;
+    background: #ef5350;
+    color: #fff;
+  }
+  & .input-group {
+    margin-bottom: 14px;
+    & > input {
+      flex: auto;
+    }
+    & > div.input-group-apend {
+      min-width: 60px;
+      background: #eff2f6;
+      color: #4a4a4a;
+      font-weight: 300;
+      & > .input-group-text{
+        display: block;
+        width: 100%;
+      }
+    }
+  }
 }
 
 .market-trade .nav .nav-item .nav-link.active {
@@ -21,15 +117,6 @@
   padding: 0;
 }
 
-.market-trade .input-group-text {
-  background: #eff2f6;
-  color: #4a4a4a;
-  font-weight: 300;
-}
-
-.market-trade .input-group {
-  margin-bottom: 14px;
-}
 .market-trade .nav-tabs .nav-link.active,
 .market-trade .nav-tabs .nav-link:hover {
   border-color: transparent;
@@ -59,33 +146,6 @@
 .market-trade-list li:last-child {
   margin-right: 0;
 }
-.market-trade {
-  border: 1px solid #333;
-  &__header {
-    border-bottom: 1px solid #333;
-    background-color: #4597e6;
-    color: white;
-    font-weight: 700;
-    font-size: 14px;
-    padding: 8px 5px;
-  }
-}
-.market-trade-buy,
-.market-trade-sell {
-  flex: auto;
-}
-.market-trade-buy .market-trade-list li span:hover,
-.market-trade-buy .market-trade-list li.active span {
-  text-decoration: none;
-  background: #26a69a;
-  color: #fff;
-}
-.market-trade-sell .market-trade-list li span:hover,
-.market-trade-sell .market-trade-list li.active span {
-  text-decoration: none;
-  background: #ef5350;
-  color: #fff;
-}
 
 .market-trade button.buy,
 .market-trade button.sell {
@@ -93,16 +153,15 @@
   color: #fff;
   text-transform: uppercase;
   padding: 10px;
-  margin-top: 30px;
+  // flex: auto;
+  margin-top: 1rem;
+  align-self: flex-end;
   width: 100%;
   box-shadow: 0px 0px 15px 0px #26de81ad;
 }
 .market-trade button.sell {
   background: #ff231f;
   box-shadow: 0px 0px 15px 0px #ff231fad;
-}
-.error-message__container {
-  height: 42px;
 }
 .market-trade p {
   margin: 5px 0;
@@ -118,6 +177,10 @@
   }
 }
 
+.error-message__container {
+  height: 56px;
+}
+
 .market-trade p span {
   float: right;
 }
@@ -129,18 +192,4 @@
 }
 .market-trade-item {
   width: 100%;
-}
-
-.market-trade-buy,
-.market-trade-sell {
-  width: 100%;
-}
-
-.market-trade-buy {
-  padding: 0 12px 10px 12px;
-}
-
-.market-trade-sell {
-  padding: 0 12px 10px 12px;
-  border-left: 1px solid #e0e3eb;
 }
