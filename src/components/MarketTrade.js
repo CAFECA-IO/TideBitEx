@@ -56,7 +56,7 @@ const TradeForm = (props) => {
         >
           Minimum order size is {`${props.selectedTicker?.minSz}`}
         </p>
-        {!storeCtx.isLogin && (
+        {storeCtx.isLogin && (
           <p
             className={`error-message ${
               (
