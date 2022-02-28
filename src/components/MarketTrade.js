@@ -1,11 +1,10 @@
 import React, { useContext, useState, useEffect, useCallback } from "react";
 import StoreContext from "../store/store-context";
-import { Tabs, Tab, Container, Nav } from "react-bootstrap";
+import { Tabs, Tab, Nav } from "react-bootstrap";
 import { formateDecimal } from "../utils/Utils";
 import SafeMath from "../utils/SafeMath";
 
 const TradeForm = (props) => {
-  const storeCtx = useContext(StoreContext);
   return (
     <form
       onSubmit={(e) => {
@@ -15,10 +14,29 @@ const TradeForm = (props) => {
         props.side === "buy" ? "market-trade--buy" : "market-trade--sell"
       }`}
     >
-      <div className="input-group flex-row">
+      <p className="market-trade__text">
+        Available:
+        <span>
+          {`${
+            props.selectedTicker
+              ? formateDecimal(
+                  props.side === "buy"
+                    ? props.selectedTicker?.quoteCcyAvailable
+                    : props.selectedTicker?.baseCcyAvailable,
+                  4
+                )
+              : "0"
+          } `}
+          {props.side === "buy"
+            ? props.selectedTicker?.quoteCcy || "--"
+            : props.selectedTicker?.baseCcy || "--"}
+          = 0 USD
+        </span>
+      </p>
+      <div className="market-trade__input-group input-group">
         <input
           type="number"
-          className="form-control"
+          className="market-trade__input form-control"
           placeholder="Price"
           value={props.px}
           onInput={props.onPxInput}
@@ -26,59 +44,54 @@ const TradeForm = (props) => {
           disabled={!!props.readyOnly}
           step="any"
         />
-        <div className="input-group-append">
+        <div className="market-trade__input-group--append input-group-append">
           <span className="input-group-text">
             {props.selectedTicker?.quoteCcy || "--"}
           </span>
         </div>
       </div>
-      <div className="input-group flex-row">
+      <div className="market-trade__input-group input-group">
         <input
           type="number"
-          className="form-control"
+          className="market-trade__input form-control"
           placeholder="Amount"
           value={props.sz}
           onInput={props.onSzInput}
           required
           step="any"
         />
-        <div className="input-group-append">
+        <div className="market-trade__input-group--append input-group-append">
           <span className="input-group-text">
             {props.selectedTicker?.baseCcy || "--"}
           </span>
         </div>
       </div>
-      <div className="error-message__container">
-        <p
-          className={`error-message ${
-            SafeMath.lt(props.sz, props.selectedTicker?.minSz) ? "show" : ""
-          }`}
-        >
-          Minimum order size is {`${props.selectedTicker?.minSz}`}
-        </p>
-        {storeCtx.isLogin && (
+      <div className="market-trade__input-group input-group">
+        <input
+          type="number"
+          className="market-trade__input  form-control"
+          placeholder="Total"
+          value={SafeMath.mult(props.px, props.sz)}
+          readOnly
+        />
+        <div className="market-trade__input-group--append input-group-append">
+          <span className="input-group-text">
+            {props.selectedTicker?.quoteCcy || "--"}
+          </span>
+        </div>
+      </div>
+      <div className="market-trade__error-message--container">
+        {props.errorMessage && (
           <p
-            className={`error-message ${
-              (
-                props.side === "buy"
-                  ? SafeMath.lt(
-                      props.selectedTicker?.quoteCcyAvailable,
-                      props.sz
-                    )
-                  : SafeMath.lt(
-                      props.selectedTicker?.baseCcyAvailable,
-                      props.sz
-                    )
-              )
-                ? "show"
-                : ""
+            className={`market-trade__error-message ${
+              SafeMath.lt(props.sz, props.selectedTicker?.minSz) ? "show" : ""
             }`}
           >
-            Amount is not enough
+            {props.errorMessage}
           </p>
         )}
       </div>
-      <ul className="market-trade-list">
+      <ul className="market-trade__amount-controller">
         <li className={`${props.selectedPct === "0.25" ? "active" : ""}`}>
           <span
             onClick={() =>
@@ -116,72 +129,25 @@ const TradeForm = (props) => {
           </span>
         </li>
       </ul>
-      <p>
-        Available:
-        <span>
-          {`${
-            props.selectedTicker
-              ? formateDecimal(
-                  props.side === "buy"
-                    ? props.selectedTicker?.quoteCcyAvailable
-                    : props.selectedTicker?.baseCcyAvailable,
-                  4
-                )
-              : "0"
-          } `}
-          {props.side === "buy"
-            ? props.selectedTicker?.quoteCcy || "--"
-            : props.selectedTicker?.baseCcy || "--"}
-          = 0 USD
-        </span>
-      </p>
-      <p>
-        Fee:
-        <span>
-          {`0 `}
-          {props.side === "buy"
-            ? props.selectedTicker?.quoteCcy || "--"
-            : props.selectedTicker?.baseCcy || "--"}
-          = 0 USD
-        </span>
-      </p>
-      <p>
-        Total:
-        <span>
-          {`${
-            props.selectedTicker
-              ? formateDecimal(SafeMath.mult(props.px, props.sz), 4)
-              : "0"
-          } `}
-          {props.side === "buy"
-            ? props.selectedTicker?.quoteCcy || "--"
-            : props.selectedTicker?.baseCcy || "--"}
-          = 0 USD
-        </span>
-      </p>
-      <Container>
-        <button
-          type="submit"
-          className={`btn ${props.side === "buy" ? "buy" : "sell"}`}
-          disabled={
-            !props.selectedTicker ||
-            SafeMath.gt(
-              props.sz,
-              props.side === "buy"
-                ? SafeMath.div(
-                    props.selectedTicker?.quoteCcyAvailable,
-                    props.px
-                  )
-                : props.selectedTicker?.baseCcyAvailable
-            ) ||
-            SafeMath.lte(props.sz, "0") ||
-            SafeMath.lte(props.sz, props.selectedTicker?.minSz)
-          }
-        >
-          {props.side === "buy" ? "Buy" : "Sell"}
-          {` ${props.selectedTicker?.baseCcy ?? ""}`}
-        </button>
-      </Container>
+      <div style={{ flex: "auto" }}></div>
+      <button
+        type="submit"
+        className="btn market-trade__button"
+        disabled={
+          !props.selectedTicker ||
+          SafeMath.gt(
+            props.sz,
+            props.side === "buy"
+              ? SafeMath.div(props.selectedTicker?.quoteCcyAvailable, props.px)
+              : props.selectedTicker?.baseCcyAvailable
+          ) ||
+          SafeMath.lte(props.sz, "0") ||
+          SafeMath.lte(props.sz, props.selectedTicker?.minSz)
+        }
+      >
+        {props.side === "buy" ? "Buy" : "Sell"}
+        {` ${props.selectedTicker?.baseCcy ?? ""}`}
+      </button>
     </form>
   );
 };
@@ -196,6 +162,8 @@ const TradePannel = (props) => {
   const [sellSz, setSellSz] = useState(null);
   const [selectedBuyPct, setSelectedBuyPct] = useState(null);
   const [selectedSellPct, setSelectedSellPct] = useState(null);
+  const [buyErrorMessage, setBuyErrorMessage] = useState(null);
+  const [sellErrorMessage, setSellErrorMessage] = useState(null);
 
   const buyPxHandler = (event) => {
     let value = +event.target.value < 0 ? "0" : event.target.value;
@@ -204,15 +172,29 @@ const TradePannel = (props) => {
   const buySzHandler = (event) => {
     let value = SafeMath.lt(event.target.value, "0")
       ? "0"
-      : SafeMath.eq(storeCtx.selectedTicker?.quoteCcyAvailable, "0")
-      ? event.target.value
-      : SafeMath.gte(
+      : SafeMath.gt(storeCtx.selectedTicker?.quoteCcyAvailable, "0") &&
+        SafeMath.gte(
           SafeMath.mult(event.target.value, buyPx),
           storeCtx.selectedTicker?.quoteCcyAvailable
         )
       ? SafeMath.div(storeCtx.selectedTicker?.quoteCcyAvailable, buyPx)
       : event.target.value;
     setBuySz(value);
+    if (SafeMath.gt(value, "0")) {
+      if (!!selectedTicker?.minSz && SafeMath.lt(value, selectedTicker?.minSz))
+        setBuyErrorMessage(`Minimum order size is ${selectedTicker?.minSz}`);
+      if (
+        SafeMath.gte(
+          SafeMath.mult(value, buyPx),
+          storeCtx.selectedTicker?.quoteCcyAvailable
+        )
+      )
+        setBuyErrorMessage(
+          `Available ${selectedTicker?.quoteCcy} is not enough`
+        );
+    } else {
+      setBuyErrorMessage(null);
+    }
   };
   const sellPxHandler = (event) => {
     let value = +event.target.value < 0 ? "0" : event.target.value;
@@ -221,15 +203,24 @@ const TradePannel = (props) => {
   const sellSzHandler = (event) => {
     let value = SafeMath.lt(event.target.value, "0")
       ? "0"
-      : SafeMath.eq(storeCtx.selectedTicker?.baseCcyAvailable, "0")
-      ? event.target.value
-      : SafeMath.gte(
+      : SafeMath.gt(storeCtx.selectedTicker?.baseCcyAvailable, "0") &&
+        SafeMath.gte(
           event.target.value,
           storeCtx.selectedTicker?.baseCcyAvailable
         )
       ? storeCtx.selectedTicker?.baseCcyAvailable
       : event.target.value;
     setSellSz(value);
+    if (SafeMath.gt(value, "0")) {
+      if (!!selectedTicker?.minSz && SafeMath.lt(value, selectedTicker?.minSz))
+        setSellErrorMessage(`Minimum order size is ${selectedTicker?.minSz}`);
+      if (SafeMath.gte(value, storeCtx.selectedTicker?.baseCcyAvailable))
+        setSellErrorMessage(
+          `Available ${selectedTicker?.baseCcy} is not enough`
+        );
+    } else {
+      setSellErrorMessage(null);
+    }
   };
 
   const buyPctHandler = useCallback((selectedTicker, pct, buyPx) => {
@@ -312,7 +303,7 @@ const TradePannel = (props) => {
   ]);
 
   return (
-    <div className="flex-row">
+    <div className="market-trade__panel">
       <TradeForm
         px={buyPx}
         sz={buySz}
@@ -324,6 +315,7 @@ const TradePannel = (props) => {
         onSubmit={onSubmit}
         side="buy"
         readyOnly={!!props.readyOnly}
+        errorMessage={buyErrorMessage}
       />
       <TradeForm
         px={sellPx}
@@ -336,6 +328,7 @@ const TradePannel = (props) => {
         onSubmit={onSubmit}
         side="sell"
         readyOnly={!!props.readyOnly}
+        errorMessage={sellErrorMessage}
       />
     </div>
   );
@@ -362,12 +355,12 @@ const MarketTrade = (props) => {
           </Tab> */}
         </Tabs>
       </div>
-      {!storeCtx.isLogin && (
+      {/* {!storeCtx.isLogin && (
         <div className="market-trade__cover flex-row">
           <Nav.Link href="/signin">Login</Nav.Link>
           <Nav.Link href="/signup">Register</Nav.Link>
         </div>
-      )}
+      )} */}
     </div>
   );
 };

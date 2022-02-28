@@ -1,29 +1,8 @@
-.market-trade input {
-  border: 1px solid #e0e3eb;
-  font-weight: 300;
-}
-.market-trade input:focus {
-  box-shadow: none;
-  border-color: #e0e3eb;
-}
 .market-trade {
   position: relative;
-  height: 100%;
   border: 1px solid #333;
-  &__container {
-    display: flex;
-    flex-direction: column;
-    flex: auto;
-    height: 100%;
-  }
-  &__header {
-    border-bottom: 1px solid #333;
-    background-color: #4597e6;
-    color: white;
-    font-weight: 700;
-    font-size: 14px;
-    padding: 8px 5px;
-  }
+  display: flex;
+  flex-direction: column;
   &__cover {
     position: absolute;
     top: 0;
@@ -39,157 +18,157 @@
       color: white;
     }
   }
-  & .tab-content {
+  &__container {
+    display: flex;
+    flex-direction: column;
+    flex: auto;
+    height: 100%;
+  }
+  &__header {
+    border-bottom: 1px solid #333;
+    background-color: #4597e6;
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 8px 5px;
+  }
+  & > &__container > nav.nav-tabs > a.nav-link.active,
+  & > &__container > nav.nav-tabs > a.nav-link:hover {
+    color: #007bff;
+  }
+  & > &__container > nav.nav-tabs > a.nav-link {
+    color: #4a4a4a;
+    padding-bottom: 0px;
+    padding-top: 10px;
+    margin-top: 2px;
+  }
+  & > &__container > .tab-content {
     flex: auto;
     display: flex;
     flex-direction: column;
-    & > [aria-hidden="false"] {
-      flex: auto;
-      display: flex;
-      flex-direction: column;
-      & > div{
-        flex: auto;
-        display: flex;
-        flex-direction: column;
-      }
-    }
+  }
+  & > &__container > .tab-content > .tab-pane.active.show {
+    flex: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  &__panel {
+    flex: auto;
+    display: flex;
+    flex-direction: row;
   }
   &__form {
+    max-height: calc(50vh - 144px);
+    min-height: 325px;
     flex: auto;
     display: flex;
     flex-direction: column;
-    & > .container{
-      flex: auto;
-      align-items: flex-end;
-      justify-items: flex-end;
-    }
+    padding: 4px 12px 14px 12px;
   }
-  &--buy,
-  &--sell {
-    width: 100%;
-  }
-
-  &--buy {
-    padding: 0 12px 10px 12px;
-  }
-
-  &--sell {
-    padding: 0 12px 10px 12px;
+  &__form:last-child {
     border-left: 1px solid #e0e3eb;
   }
-  &--buy &-list li span:hover,
-  &--buy &-list li.active span {
+  &__text {
+    margin: 5px 0;
+    font-size: 13px;
+    color: #4a4a4a;
+  }
+
+  &__text > span {
+    float: right;
+  }
+  &__input-group:not(:last-child) {
+    display: flex;
+    margin-bottom: 14px;
+  }
+  &__input {
+    flex: auto;
+    border: 1px solid #e0e3eb;
+    font-weight: 300;
+  }
+  &__input:focus {
+    box-shadow: none;
+    border-color: #e0e3eb;
+  }
+  &__input-group--append {
+    min-width: 70px;
+    background: #eff2f6;
+    color: #4a4a4a;
+    font-weight: 300;
+  }
+  &__input-group--append > span {
+    width: 100%;
+    display: block;
+  }
+  &__error-message--container {
+    height: 27px;
+  }
+  &__error-message {
+    margin-bottom: 14px;
+    line-height: 1;
+    font-size: 13px;
+    color: #ef5350;
+    text-align: right;
+  }
+  &__amount-controller {
+    margin-bottom: 0px;
+    padding: 0px;
+    display: flex;
+    margin-bottom: 7px;
+    gap: 7px;
+    justify-content: space-between;
+  }
+  &__amount-controller > li > span {
+    background: #eff2f6;
+    color: #4a4a4a;
+    font-weight: 300;
+    padding: 3px 15px;
+    border-radius: 5px;
+  }
+  &--buy > &__amount-controller li span:hover,
+  &--buy > &__amount-controller li.active span {
     text-decoration: none;
     background: #26a69a;
     color: #fff;
   }
-  &--sell &-list li span:hover,
-  &--sell &-list li.active span {
+  &--sell > &__amount-controller li span:hover,
+  &--sell > &__amount-controller li.active span {
     text-decoration: none;
     background: #ef5350;
     color: #fff;
   }
-  & .input-group {
-    margin-bottom: 14px;
-    & > input {
-      flex: auto;
+  &__form > *:last-child {
+    // flex: auto;
+  }
+  &__button {
+    color: #fff;
+    text-transform: uppercase;
+    padding: 10px;
+    // flex: auto;
+    // margin-top: 1rem;
+    align-self: flex-end;
+    width: 100%;
+  }
+  &--buy > &__button {
+    background: #26de81;
+    box-shadow: 0px 0px 15px 0px #26de81ad;
+  }
+  &--sell > &__button {
+    background: #ff231f;
+    box-shadow: 0px 0px 15px 0px #ff231fad;
+  }
+}
+
+@media only screen and (max-width: 414px) {
+  // If [device width] is less than or equal to 600px, then do
+  .market-trade {
+    &__panel {
+      flex-direction: column;
+      gap: 2px;
     }
-    & > div.input-group-apend {
-      min-width: 60px;
-      background: #eff2f6;
-      color: #4a4a4a;
-      font-weight: 300;
-      & > .input-group-text{
-        display: block;
-        width: 100%;
-      }
+    &__form:last-child {
+      border-left: none;
+      border-top: 1px solid #e0e3eb;
     }
   }
-}
-
-.market-trade .nav .nav-item .nav-link.active {
-  background: #fff;
-  color: #007bff;
-}
-
-.market-trade .nav .nav-item .nav-link {
-  color: #4a4a4a;
-  padding: 0;
-}
-
-.market-trade .nav-tabs .nav-link.active,
-.market-trade .nav-tabs .nav-link:hover {
-  border-color: transparent;
-  color: #007bff;
-}
-.market-trade .nav-tabs .nav-link {
-  color: #4a4a4a;
-  padding-bottom: 0px;
-  padding-top: 12px;
-}
-.market-trade .nav-tabs {
-  border-bottom: 1px solid transparent;
-}
-.market-trade-list li span {
-  background: #eff2f6;
-  color: #4a4a4a;
-  font-weight: 300;
-  padding: 3px 15px;
-  border-radius: 5px;
-}
-
-.market-trade-list li {
-  // display: inline-block;
-  margin-right: 7px;
-  margin-bottom: 7px;
-}
-.market-trade-list li:last-child {
-  margin-right: 0;
-}
-
-.market-trade button.buy,
-.market-trade button.sell {
-  background: #26de81;
-  color: #fff;
-  text-transform: uppercase;
-  padding: 10px;
-  // flex: auto;
-  margin-top: 1rem;
-  align-self: flex-end;
-  width: 100%;
-  box-shadow: 0px 0px 15px 0px #26de81ad;
-}
-.market-trade button.sell {
-  background: #ff231f;
-  box-shadow: 0px 0px 15px 0px #ff231fad;
-}
-.market-trade p {
-  margin: 5px 0;
-  font-size: 13px;
-  color: #4a4a4a;
-  &.error-message {
-    color: #ef5350;
-    text-align: right;
-    display: none;
-  }
-  &.show {
-    display: block;
-  }
-}
-
-.error-message__container {
-  height: 56px;
-}
-
-.market-trade p span {
-  float: right;
-}
-
-.market-trade-list {
-  margin-bottom: 0px;
-  padding: 0px;
-  display: flex;
-}
-.market-trade-item {
-  width: 100%;
 }

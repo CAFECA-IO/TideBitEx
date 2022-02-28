@@ -5,52 +5,44 @@ import { formateDecimal } from "../utils/Utils";
 
 const BookTile = (props) => {
   return (
-    <tr
-      className={`${props.type === "asks" ? "red-bg" : "green-bg"} ${
+    <li
+      className={`order-book__tile flex-row ${
         props.book.update ? "update" : ""
-      } flex-row`}
+      }`}
       data-width={props.dataWidth}
     >
       {props.type === "asks" ? (
         <>
-          <td className={props.type === "asks" ? "red" : "green"}>
-            {formateDecimal(props.book.price, 8)}
-          </td>
-          <td>{formateDecimal(props.book.amount, 8)}</td>
-          <td>
+          <div>{formateDecimal(props.book.price, 8)}</div>
+          <div>{formateDecimal(props.book.amount, 8)}</div>
+          <div>
             {formateDecimal(
               SafeMath.mult(props.book.price, props.book.amount),
-              4
+              8
             )}
-          </td>
-          <td
-            className={
-              props.type === "asks" ? "red-bg-cover" : "green-bg-cover"
-            }
+          </div>
+          <div
+            className="order-book__tile--cover"
             style={{ width: props.dataWidth }}
-          ></td>
+          ></div>
         </>
       ) : (
         <>
-          <td>
+          <div>
             {formateDecimal(
               SafeMath.mult(props.book.price, props.book.amount),
-              4
+              8
             )}
-          </td>
-          <td>{formateDecimal(props.book.amount, 8)}</td>
-          <td className={props.type === "asks" ? "red" : "green"}>
-            {formateDecimal(props.book.price, 8)}
-          </td>
-          <td
-            className={
-              props.type === "asks" ? "red-bg-cover" : "green-bg-cover"
-            }
+          </div>
+          <div>{formateDecimal(props.book.amount, 8)}</div>
+          <div>{formateDecimal(props.book.price, 8)}</div>
+          <div
+            className="order-book__tile--cover"
             style={{ width: props.dataWidth }}
-          ></td>
+          ></div>
         </>
       )}
-    </tr>
+    </li>
   );
 };
 
@@ -66,16 +58,14 @@ const OrderBook = (props) => {
   }, [storeCtx.init, storeCtx]);
 
   return (
-    <section className="order-book flex-row">
-      <table className="order-book__table">
-        <thead>
-          <tr className="flex-row text-right">
-            <th>Amount</th>
-            <th>Volume</th>
-            <th>Bid</th>
-          </tr>
-        </thead>
-        <tbody className="order-book__bids">
+    <section className="order-book">
+      <div className="order-book__table order-book__bids">
+        <ul className="order-book__header flex-row">
+          <li>Amount</li>
+          <li>Volume</li>
+          <li>Bid</li>
+        </ul>
+        <ul className="order-book__panel">
           {storeCtx?.selectedTicker &&
             storeCtx.books?.bids &&
             storeCtx.books.bids.map((book, index) => (
@@ -94,17 +84,15 @@ const OrderBook = (props) => {
                 ).toFixed(18)}%`}
               />
             ))}
-        </tbody>
-      </table>
-      <table className="order-book__table">
-        <thead>
-          <tr className="flex-row text-left">
-            <th>Ask</th>
-            <th>Volume</th>
-            <th>Amount</th>
-          </tr>
-        </thead>
-        <tbody className="order-book__asks">
+        </ul>
+      </div>
+      <div className="order-book__table order-book__asks">
+        <ul className="order-book__header flex-row">
+          <li>Ask</li>
+          <li>Volume</li>
+          <li>Amount</li>
+        </ul>
+        <ul className="order-book__panel">
           {storeCtx?.selectedTicker &&
             storeCtx.books?.asks &&
             storeCtx.books.asks.map((book, index) => (
@@ -123,8 +111,8 @@ const OrderBook = (props) => {
                 ).toFixed(18)}%`}
               />
             ))}
-        </tbody>
-      </table>
+        </ul>
+      </div>
     </section>
   );
 };

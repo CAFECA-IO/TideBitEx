@@ -1,54 +1,66 @@
-.tickerItemLabel {
-  font-size: 12px;
-  margin-right: 0px;
-  margin-bottom: 2px;
-  color: rgb(112, 122, 138);
-  line-height: 16px;
-  font-weight: 400;
-  text-align: left;
-  border-bottom: 1px solid transparent;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-}
-.selectedPair {
-  font-size: 20px;
-  font-weight: 500;
-  cursor: pointer;
-}
-.tickerPriceText,
-.subPrice {
-  font-size: 12px;
-  color: rgb(30, 35, 41);
-  &.decrease > span {
-    color: rgb(207, 48, 74);
-  }
-  &.increase > span {
-    color: rgb(3, 166, 109);
-  }
-}
-
-.showPrice {
-  &.decrease {
-    color: rgb(207, 48, 74);
-  }
-  &.increase {
-    color: rgb(3, 166, 109);
-  }
-}
-
-tr.update {
-  animation: blinking 0.5s;
-}
 .pair {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
   padding: 0 12px;
-  & &__button {
+  &__button {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    align-self: center;
   }
-  & &__button:hover > .market-pairs,
-  & &__button:hover > * ~ .market-pairs {
+  &__button:hover > .market-pairs,
+  &__button:hover > * ~ .market-pairs {
     z-index: 1000;
     opacity: 1;
     pointer-events: stroke;
+  }
+  .tickerItemLabel {
+    font-size: 12px;
+    margin-right: 0px;
+    margin-bottom: 2px;
+    color: rgb(112, 122, 138);
+    line-height: 16px;
+    font-weight: 400;
+    text-align: left;
+    border-bottom: 1px solid transparent;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .selectedPair {
+    font-size: 20px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .tickerPriceText,
+  .subPrice {
+    font-size: 12px;
+    color: rgb(30, 35, 41);
+    &.decrease > span {
+      color: rgb(207, 48, 74);
+    }
+    &.increase > span {
+      color: rgb(3, 166, 109);
+    }
+  }
+  .showPrice {
+    &.decrease {
+      color: rgb(207, 48, 74);
+    }
+    &.increase {
+      color: rgb(3, 166, 109);
+    }
+  }
+}
+// iphone XR
+@media only screen and (max-width: 414px) {
+  // If [device width] is less than or equal to 600px, then do
+  .pair {
+    & > &__details:nth-child(3),
+    & > &__details:nth-child(4),
+    & > &__details:nth-child(5) {
+      display: none;
+    }
   }
 }

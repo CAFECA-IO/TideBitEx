@@ -1,5 +1,6 @@
 .order-book {
-  // height: 431px;
+  display: flex;
+  flex-direction: row;
   height: 100%;
   overflow: hidden;
   border: 1px solid #333;
@@ -7,69 +8,81 @@
     display: flex;
     flex-direction: column;
     flex: auto;
-    & > tbody {
-      overflow: auto;
-      flex: auto;
-    }
-    & > thead {
-      border-bottom: 1px solid #333;
-      background-color: #4597e6;
-      color: white;
-      font-weight: 700;
-      font-size: 14;
-    }
-
-    & > thead,
-    & > tbody {
-      padding: 8px 5px;
-    }
-    & > thead > tr > th,
-    & > tbody > tr > td {
-      flex: auto;
-      text-indent: 2px;
-    }
-    & > thead > tr.text-left > th {
-      text-align: left;
-    }
-    & > tbody > tr.text-right > th {
-      text-align: right;
-    }
-    & > tbody > tr > td {
-      font-size: 12px;
-    }
+    max-height: calc(50vh - 57px);
+    min-height: 400px;
+  }
+  &__panel {
+    display: flex;
+    flex-direction: column;
+    flex: auto;
+    overflow: auto;
+  }
+  &__header {
+    border-bottom: 1px solid #333;
+    background-color: #4597e6;
+    color: white;
+    font-weight: 700;
+    font-size: 14;
+  }
+  &__tile {
+    position: relative;
+    font-size: 12px;
+  }
+  &__table > * {
+    padding: 8px 5px;
+  }
+  &__header > *,
+  &__tile > * {
+    flex: auto;
+    text-indent: 2px;
+  }
+  &__bids > &__header,
+  &__bids > &__panel > &__tile {
+    text-align: right;
+  }
+  &__asks > &__header,
+  &__asks > &__panel > &__tile {
+    text-align: left;
+  }
+  &__bids > &__panel > &__tile > *:nth-child(3) {
+    color: #00ce7d;
+    font-weight: 500;
+  }
+  &__asks > &__panel > &__tile > *:nth-child(1) {
+    color: #d0021b;
+    font-weight: 500;
+  }
+  &__tile--cover {
+    position: absolute;
+    content: "";
+    top: 0;
+    height: -webkit-fill-available;
+  }
+  &__bids &__tile--cover {
+    background: #26de8163;
+    right: 0;
+  }
+  &__asks &__tile--cover {
+    background: #de262663;
+    left: 0;
   }
 }
-.red {
-  color: #d0021b;
-  font-weight: 500;
-}
-.green {
-  color: #00ce7d;
-  font-weight: 500;
-}
-.red-bg,
-.green-bg {
-  position: relative;
-}
 
-.green-bg-cover,
-.red-bg-cover {
-  position: absolute;
-  content: "";
-
-  top: 0;
-  // width: attr(data-width,'');
-  padding: 0 !important;
-  height: 45px;
-  height: -webkit-fill-available;
+@media only screen and (min-width: 820px) {
+  // If [device width] is greater than or equal to 600px,
 }
-
-.red-bg-cover {
-  background: #de262663;
-  left: 0;
-}
-
-.green-bg-cover {
-  background: #26de8163;
-  right: 0;
+// ipad air & ipad mini
+// @media only screen and (max-width: 820px) and (min-width: 414px) {
+//   // The query above will trigger only for screens that are 600-400px wide. This can be used to target specific devices with known widths.
+// }
+// iphone XR
+@media only screen and (max-width: 414px) {
+  // If [device width] is less than or equal to 600px, then do
+  .order-book {
+    flex-direction: column;
+    &__bids > &__header,
+    &__bids > &__panel > &__tile {
+      text-align: left;
+    }
+  }
 }

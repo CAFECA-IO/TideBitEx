@@ -1,49 +1,39 @@
 import React, { useContext } from "react";
-import { Tabs, Tab } from "react-bootstrap";
 import StoreContext from "../store/store-context";
 import { dateFormatter, formateDecimal } from "../utils/Utils";
 
 const TradeTile = (props) => {
   return (
-    <tr
-      className={`${props.trade.update ? "update" : ""}`}
+    <li
+      className={`market-history__tile flex-row ${props.trade.update ? "update" : ""}`}
       trade-id={props.trade.tradeId}
     >
-      <td>{dateFormatter(parseInt(props.trade.ts)).time}</td>
-      <td className={props.trade.side === "buy" ? "red" : "green"}>
+      <div>{dateFormatter(parseInt(props.trade.ts)).time}</div>
+      <div className={props.trade.side === "buy" ? "red" : "green"}>
         {formateDecimal(props.trade.px, 8)}
-      </td>
-      <td>{formateDecimal(props.trade.sz, 8)}</td>
-    </tr>
+      </div>
+      <div>{formateDecimal(props.trade.sz, 8)}</div>
+    </li>
   );
 };
 
 const MarketHistory = (props) => {
   const storeCtx = useContext(StoreContext);
   return (
-    <>
-      <div className="market-history">
-        <div className="market-history__header">Trades</div>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Time</th>
-              <th>{`Price(${storeCtx?.selectedTicker?.quoteCcy || "--"})`}</th>
-              <th>{`Amount(${storeCtx?.selectedTicker?.baseCcy || "--"})`}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {storeCtx.trades &&
-              storeCtx.trades.map((trade) => (
-                <TradeTile
-                  trade={trade}
-                  key={`${trade.instId}-${trade.tradeId}`}
-                />
-              ))}
-          </tbody>
-        </table>
-      </div>
-    </>
+    <div className="market-history">
+      <div className="market-history__header">Trades</div>
+      <ul className="market-history__title flex-row">
+        <li>Time</li>
+        <li>{`Price(${storeCtx?.selectedTicker?.quoteCcy || "--"})`}</li>
+        <li>{`Amount(${storeCtx?.selectedTicker?.baseCcy || "--"})`}</li>
+      </ul>
+      <ul className="market-history__list">
+        {storeCtx.trades &&
+          storeCtx.trades.map((trade) => (
+            <TradeTile trade={trade} key={`${trade.instId}-${trade.tradeId}`} />
+          ))}
+      </ul>
+    </div>
   );
 };
 export default MarketHistory;
