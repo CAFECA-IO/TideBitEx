@@ -6,7 +6,7 @@
   top: 34px;
   left: -12px;
   display: none;
-  max-height: 50vh;
+  height: 50vh;
   width: 60vw;
   overflow: hidden;
   background-color: #fff;
@@ -106,7 +106,7 @@
 @media only screen and (max-width: 820px) {
   // If [device width] is greater than or equal to 600px,
   .market-pairs {
-    width: 100vw;
+    width: calc(100vw - 2px);
   }
 }
 // ipad air & ipad mini

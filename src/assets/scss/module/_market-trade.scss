@@ -58,7 +58,7 @@
     flex-direction: row;
   }
   &__form {
-    max-height: calc(50vh - 144px);
+    height: calc(50vh - 132px);
     min-height: 325px;
     flex: auto;
     display: flex;
@@ -104,19 +104,20 @@
     height: 27px;
   }
   &__error-message {
-    margin-bottom: 14px;
+    margin-bottom: 6px;
     line-height: 1;
     font-size: 13px;
     color: #ef5350;
     text-align: right;
   }
   &__amount-controller {
+    display: flex;
+    flex-flow: row wrap;
     margin-bottom: 0px;
     padding: 0px;
-    display: flex;
     margin-bottom: 7px;
     gap: 7px;
-    justify-content: space-between;
+    // justify-content: space-between;
   }
   &__amount-controller > li > span {
     background: #eff2f6;

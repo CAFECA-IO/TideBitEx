@@ -1,5 +1,5 @@
 .main-chart {
-  max-height: calc(50vh - 57px);
+  height: calc(50vh - 57px);
   min-height: 400px;
   border: 1px solid #333;
   &__chart {
@@ -11,7 +11,7 @@
     color: white;
     font-weight: 700;
     font-size: 14px;
-    padding: 9px 5px;
+    padding: 8px 5px
   }
 }
 .tool-bar {

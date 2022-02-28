@@ -8,14 +8,15 @@
     display: flex;
     flex-direction: column;
     flex: auto;
-    max-height: calc(50vh - 57px);
-    min-height: 400px;
+    height: calc(50vh - 59px);
+    min-height: 398px;
   }
   &__panel {
     display: flex;
     flex-direction: column;
     flex: auto;
     overflow: auto;
+    // padding: 0 5px;
   }
   &__header {
     border-bottom: 1px solid #333;
@@ -23,13 +24,11 @@
     color: white;
     font-weight: 700;
     font-size: 14;
+    padding: 8px 5px;
   }
   &__tile {
     position: relative;
     font-size: 12px;
-  }
-  &__table > * {
-    padding: 8px 5px;
   }
   &__header > *,
   &__tile > * {
