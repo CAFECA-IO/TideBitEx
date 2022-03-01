@@ -4,6 +4,8 @@ import StoreContext from "../store/store-context";
 import SafeMath from "../utils/SafeMath";
 import { dateFormatter } from "../utils/Utils";
 import { FaTrashAlt } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
+
 const OrderTile = (props) => {
   return (
     <ul className="d-flex justify-content-between market-order-item">
@@ -33,7 +35,7 @@ const BalanceTile = (props) => {
       {/* <li>{props.balance.eq || "--"}</li>
       <li>{props.balance.cashBal || "--"}</li>
       <li>{props.balance.availEq || "--"}</li> */}
-      <li>{props.balance.availBal || "--"}</li>
+      <li>{props.balance?.cashBal || props.balance?.availBal || "--"}</li>  {/* -- TODO: check api return object */}
       <li>{props.balance.frozenBal || "--"}</li>
       {/* <li>{props.balance.interest || "--"}</li> */}
     </ul>
@@ -45,24 +47,24 @@ const HistoryOrder = (props) => {
   const cancelOrder = (order) => {
     storeCtx.cancelOrder(order);
   };
-
+  const { t } = useTranslation();
   return (
     <>
       <div className="market-order">
         <div className="market-order__header">My Orders</div>
         <Tabs defaultActiveKey="open-orders">
-          <Tab eventKey="open-orders" title="Open Orders">
+          <Tab eventKey="open-orders" title={t("open_orders")}>
             <ul className="d-flex justify-content-between market-order-item">
               {/* <li>Time</li> */}
               {/* <li>All pairs</li>
               <li>All Types</li> */}
               {/* <li>Buy/Sell</li> */}
-              <li>Price</li>
-              <li>Volume</li>
-              <li>Amount</li>
+              <li>{t("price")}</li>
+              <li>{t("volume")}</li>
+              <li>{t("amount")}</li>
               {/* <li>Executed</li>
               <li>Unexecuted</li> */}
-              <li>Cancel</li>
+              <li>{t("cancel")}</li>
             </ul>
             {/* {!storeCtx.pendingOrders.length && (
               <span className="no-data">
@@ -81,15 +83,15 @@ const HistoryOrder = (props) => {
                 ))}
             </ul>
           </Tab>
-          <Tab eventKey="closed-orders" title="Closed Orders">
+          <Tab eventKey="closed-orders" title={t("close_orders")}>
             <ul className="d-flex justify-content-between market-order-item">
               {/* <li>Time</li> */}
               {/* <li>All pairs</li>
               <li>All Types</li>
               <li>Buy/Sell</li> */}
-              <li>Price</li>
-              <li>Volume</li>
-              <li>Amount</li>
+              <li>{t("price")}</li>
+              <li>{t("volume")}</li>
+              <li>{t("amount")}</li>
               {/* <li>Executed</li>
               <li>Unexecuted</li> */}
             </ul>
@@ -129,15 +131,15 @@ const HistoryOrder = (props) => {
                 <OrderTile order={order} />
               ))}
           </Tab> */}
-          <Tab eventKey="balance" title="Balance">
+          <Tab eventKey="balance" title={t("balance")}>
             <ul className="d-flex justify-content-between market-order-item">
               {/* <li>Update time</li> */}
-              <li>Currency</li>
+              <li>{t("currency")}</li>
               {/* <li>Currency Equity</li>
               <li>Cash balance</li>
               <li>Available Equity</li> */}
-              <li>Available balance</li>
-              <li>Frozen balance</li>
+              <li>{t("cashBal")}</li>
+              <li>{t("frozenBal")}</li>
               {/* <li>Interest</li> */}
             </ul>
             {/* {!storeCtx.balances?.length && (

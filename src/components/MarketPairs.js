@@ -9,7 +9,7 @@ import { Tabs, Tab } from "react-bootstrap";
 import StoreContext from "../store/store-context";
 import SafeMath from "../utils/SafeMath";
 import { IoSearch } from "react-icons/io5";
-
+import { useTranslation } from "react-i18next";
 import { formateDecimal } from "../utils/Utils";
 
 const PairTile = (props) => {
@@ -59,6 +59,7 @@ const MarketPairs = (props) => {
   const [USDTBasedTickers, setUSDTBasedTickers] = useState([]);
   const [defaultActiveKey, setDefaultActiveKey] = useState("btc");
   // const [starTickers, setStarTickers] = useState([]);
+  const { t } = useTranslation();
 
   const filterTickers = useCallback(() => {
     const tickers = storeCtx.tickers.filter(
@@ -123,34 +124,34 @@ const MarketPairs = (props) => {
         </Tab> */}
         <Tab eventKey="btc" title="BTC">
           <ul className="header">
-            <li>Pairs</li>
-            <li>Last Price</li>
-            <li>Change</li>
-            <li>Volume</li>
-            <li>High</li>
-            <li>Low</li>
+            <li>{t("pairs")}</li>
+            <li>{t("unit_price")}</li>
+            <li>{t("change")}</li>
+            <li>{t("volume")}</li>
+            <li>{t("high")}</li>
+            <li>{t("low")}</li>
           </ul>
           <PairList tickers={BTCBasedTickers} />
         </Tab>
         <Tab eventKey="eth" title="ETH">
           <ul className="header">
-            <li>Pairs</li>
-            <li>Last Price</li>
-            <li>Change</li>
-            <li>Volume</li>
-            <li>High</li>
-            <li>Low</li>
+            <li>{t("pairs")}</li>
+            <li>{t("unit_price")}</li>
+            <li>{t("change")}</li>
+            <li>{t("volume")}</li>
+            <li>{t("high")}</li>
+            <li>{t("low")}</li>
           </ul>
           <PairList tickers={ETHBasedTickers} />
         </Tab>
         <Tab eventKey="usdt" title="USDT">
           <ul className="header">
-            <li>Pairs</li>
-            <li>Last Price</li>
-            <li>Change</li>
-            <li>Volume</li>
-            <li>High</li>
-            <li>Low</li>
+            <li>{t("pairs")}</li>
+            <li>{t("unit_price")}</li>
+            <li>{t("change")}</li>
+            <li>{t("volume")}</li>
+            <li>{t("high")}</li>
+            <li>{t("low")}</li>
           </ul>
           <PairList tickers={USDTBasedTickers} />
         </Tab>

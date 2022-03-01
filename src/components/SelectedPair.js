@@ -3,8 +3,11 @@ import StoreContext from "../store/store-context";
 import SafeMath from "../utils/SafeMath";
 import { formateDecimal } from "../utils/Utils";
 import MarketPairs from "./MarketPairs";
+import { useTranslation } from "react-i18next";
+
 const SelectedPair = (props) => {
   const storeCtx = useContext(StoreContext);
+  const { t } = useTranslation();
   return (
     <div className="pair">
       <div className="pair__button">
@@ -30,7 +33,7 @@ const SelectedPair = (props) => {
         </div>
       </div>
       <div className="pair__details">
-        <div className="tickerItemLabel">24h Change</div>
+        <div className="tickerItemLabel">{t("24_change")}</div>
         <div
           className={`tickerPriceText ${
             !storeCtx.selectedTicker
@@ -56,20 +59,20 @@ const SelectedPair = (props) => {
         </div>
       </div>
       <div className="pair__details">
-        <div className="tickerItemLabel">24h High</div>
+        <div className="tickerItemLabel">{t("24_high")}</div>
         <div className="tickerPriceText">
           {formateDecimal(storeCtx.selectedTicker?.high24h, 8) || "--"}
         </div>
       </div>
       <div className="pair__details">
-        <div className="tickerItemLabel">24h Low</div>
+        <div className="tickerItemLabel">{t("24_low")}</div>
         <div className="tickerPriceText">
           {formateDecimal(storeCtx.selectedTicker?.low24h, 8) || "--"}
         </div>
       </div>
       <div className="pair__details">
         <div className="tickerItemLabel">
-          24h Volume({storeCtx.selectedTicker?.baseCcy || "--"})
+          {`${t("24_volume")}(${storeCtx.selectedTicker?.baseCcy || "--"})`}
         </div>
         <div className="tickerPriceText">
           {!storeCtx.selectedTicker
@@ -78,7 +81,7 @@ const SelectedPair = (props) => {
         </div>
       </div>
       <div className="pair__details">
-        <div className="tickerItemLabel">24h Volume</div>
+        <div className="tickerItemLabel">{`${t("24_volume_quote")}(${storeCtx.selectedTicker?.quoteCcy || "--"})`}</div>
         <div className="tickerPriceText">
           {!storeCtx.selectedTicker
             ? "--"

@@ -2,13 +2,13 @@ import React, { useContext } from "react";
 // import TradingViewWidget, { Themes } from "react-tradingview-widget";
 import StoreContext from "../store/store-context";
 import ApexCharts from "react-apexcharts";
-
+import { useTranslation } from "react-i18next";
 const TradingChart = (props) => {
   const storeCtx = useContext(StoreContext);
-
+  const { t } = useTranslation();
   return (
     <div className="main-chart">
-      <div className="main-chart__header">Chart</div>
+      <div className="main-chart__header">{t("chart")}</div>
       {storeCtx.selectedTicker?.instId && (
         <React.Fragment>
           <div className="tool-bar">

@@ -1,7 +1,8 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect } from "react";
 import StoreContext from "../store/store-context";
 import SafeMath from "../utils/SafeMath";
 import { formateDecimal } from "../utils/Utils";
+import { useTranslation } from "react-i18next";
 
 const BookTile = (props) => {
   return (
@@ -48,7 +49,7 @@ const BookTile = (props) => {
 
 const OrderBook = (props) => {
   const storeCtx = useContext(StoreContext);
-
+  const { t } = useTranslation();
   useEffect(() => {
     if (storeCtx.init) {
       // const element = document.querySelector(".order-book__asks");
@@ -61,9 +62,9 @@ const OrderBook = (props) => {
     <section className="order-book">
       <div className="order-book__table order-book__bids">
         <ul className="order-book__header flex-row">
-          <li>Amount</li>
-          <li>Volume</li>
-          <li>Bid</li>
+          <li>{t("amount")}</li>
+          <li>{t("volume")}</li>
+          <li>{t("bid")}</li>
         </ul>
         <ul className="order-book__panel">
           {storeCtx?.selectedTicker &&
@@ -88,9 +89,9 @@ const OrderBook = (props) => {
       </div>
       <div className="order-book__table order-book__asks">
         <ul className="order-book__header flex-row">
-          <li>Ask</li>
-          <li>Volume</li>
-          <li>Amount</li>
+          <li>{t("ask")}</li>
+          <li>{t("volume")}</li>
+          <li>{t("amount")}</li>
         </ul>
         <ul className="order-book__panel">
           {storeCtx?.selectedTicker &&

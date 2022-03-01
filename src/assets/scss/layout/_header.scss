@@ -2,9 +2,9 @@
   background-color: #00b5ad;
   padding: 0 1rem;
   height: 70px;
-  & > .navbar-barnd{
+  & > .navbar-barnd {
     width: 150px;
-    & > img{
+    & > img {
       width: 100%;
     }
   }
@@ -27,5 +27,74 @@
   & > .navbar-collapse > .nav-link:active,
   & > .navbar-collapse > .nav-link:hover {
     color: #fff;
+  }
+}
+.header-dropdown {
+  position: relative;
+  min-width: 72px;
+  &__card {
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.14);
+    border-radius: 5px;
+  }
+  &__list {
+    display: flex;
+    flex-direction: column;
+
+    max-height: 20rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: absolute;
+    width: 100%;
+    transform: translateY(-1rem);
+    opacity: 0;
+    pointer-events: none;
+    /* padding-left: 1rem; */
+    z-index: 200;
+    padding: 5px 8px;
+  }
+  &__item {
+    padding: 5px 0;
+  }
+  &__controller {
+    display: none;
+  }
+  &__controller:checked + &__button > &__icon {
+    transform: rotate(-90deg);
+  }
+  &__controller:checked + &__button + &__list {
+    transform: translateY(0rem);
+    opacity: 1;
+    pointer-events: stroke;
+    transition: transform 0.25s ease;
+  }
+  &__button {
+    display: flex;
+    flex-direction: row;
+    border: 1px solid #eee;
+    border-radius: 5px;
+    padding: 5px 8px;
+    align-items: center;
+    margin-top: 5px;
+    background-color: #eee;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    gap: 5px;
+  }
+  &__placeholder {
+    color: #999;
+  }
+  &__selected {
+    color: #555;
+  }
+  &__button > *:first-child {
+    flex: auto;
+  }
+  &__icon {
+    font-size: 12px;
+    font-weight: 400;
+    transform: rotate(90deg);
   }
 }

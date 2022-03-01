@@ -1,11 +1,14 @@
 import React, { useContext } from "react";
 import StoreContext from "../store/store-context";
 import { dateFormatter, formateDecimal } from "../utils/Utils";
+import { useTranslation } from "react-i18next";
 
 const TradeTile = (props) => {
   return (
     <li
-      className={`market-history__tile flex-row ${props.trade.update ? "update" : ""}`}
+      className={`market-history__tile flex-row ${
+        props.trade.update ? "update" : ""
+      }`}
       trade-id={props.trade.tradeId}
     >
       <div>{dateFormatter(parseInt(props.trade.ts)).time}</div>
@@ -19,13 +22,19 @@ const TradeTile = (props) => {
 
 const MarketHistory = (props) => {
   const storeCtx = useContext(StoreContext);
+  const { t } = useTranslation();
+
   return (
     <div className="market-history">
-      <div className="market-history__header">Trades</div>
+      <div className="market-history__header">{t("trades")}</div>
       <ul className="market-history__title flex-row">
-        <li>Time</li>
-        <li>{`Price(${storeCtx?.selectedTicker?.quoteCcy || "--"})`}</li>
-        <li>{`Amount(${storeCtx?.selectedTicker?.baseCcy || "--"})`}</li>
+        <li>{t("time")}</li>
+        <li>{`${t("price")}(${
+          storeCtx?.selectedTicker?.quoteCcy || "--"
+        })`}</li>
+        <li>{`${t("amount")}(${
+          storeCtx?.selectedTicker?.baseCcy || "--"
+        })`}</li>
       </ul>
       <ul className="market-history__list">
         {storeCtx.trades &&
