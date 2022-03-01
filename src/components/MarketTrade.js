@@ -267,6 +267,13 @@ const TradePannel = (props) => {
             sz: side === "buy" ? buySz : sellSz,
           };
     storeCtx.postOrder(order);
+    if (side === "buy") {
+      setBuySz("0");
+      buyPctHandler("0.25");
+    }else{
+      setSellSz('0')
+      sellPctHandler("0.25")
+    }
   };
 
   // -- TEST
@@ -333,6 +340,7 @@ const TradePannel = (props) => {
 };
 
 const MarketTrade = (props) => {
+  const storeCtx = useContext(StoreContext);
   const { t } = useTranslation();
   return (
     <div className="market-trade">
@@ -353,12 +361,12 @@ const MarketTrade = (props) => {
           </Tab> */}
         </Tabs>
       </div>
-      {/* {!storeCtx.isLogin && (
+      {!storeCtx.isLogin && (
         <div className="market-trade__cover flex-row">
           <Nav.Link href="/signin">Login</Nav.Link>
           <Nav.Link href="/signup">Register</Nav.Link>
         </div>
-      )} */}
+      )}
     </div>
   );
 };

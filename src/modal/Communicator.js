@@ -195,11 +195,13 @@ class Communicator {
   async order(order) {
     try {
       const res = await this._post(`/trade/order`, order);
+      console.log(`order res`,res)
       if (res.success) {
         return res.data;
       }
       return Promise.reject({ message: res.message, code: res.code });
     } catch (error) {
+      console.log(`order error`,error)
       return Promise.reject({ message: error });
     }
   }

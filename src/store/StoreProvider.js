@@ -201,10 +201,10 @@ const StoreProvider = (props) => {
         await getPendingOrders();
         await getBalances();
         // return result;
-        console.log(`postOrder error`, result);
+        console.log(`postOrder result`, result);
       } catch (error) {
         console.log(`postOrder error`, error);
-        enqueueSnackbar(error?.message, {
+        enqueueSnackbar(error?.message|| "Some went wrong", {
           variant: "error",
         });
       }
@@ -288,7 +288,6 @@ const StoreProvider = (props) => {
               _candleTimestamp = new Date().getTime();
               if (_candleTimestamp - +candleTimestamp > 1000) {
                 candleTimestamp = _candleTimestamp;
-                // console.log("candleOnUpdate", metaData.data);
                 setCandles(updateCandles);
               }
               break;
