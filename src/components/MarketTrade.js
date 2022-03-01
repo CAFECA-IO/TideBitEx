@@ -3,8 +3,10 @@ import StoreContext from "../store/store-context";
 import { Tabs, Tab, Nav } from "react-bootstrap";
 import { formateDecimal } from "../utils/Utils";
 import SafeMath from "../utils/SafeMath";
+import { useTranslation } from "react-i18next";
 
 const TradeForm = (props) => {
+  const { t } = useTranslation();
   return (
     <form
       onSubmit={(e) => {
@@ -15,7 +17,7 @@ const TradeForm = (props) => {
       }`}
     >
       <p className="market-trade__text">
-        Available:
+        {t("available")}:
         <span>
           {`${
             props.selectedTicker
@@ -37,7 +39,7 @@ const TradeForm = (props) => {
         <input
           type="number"
           className="market-trade__input form-control"
-          placeholder="Price"
+          placeholder={t("price")}
           value={props.px}
           onInput={props.onPxInput}
           required={!props.readyOnly}
@@ -54,7 +56,7 @@ const TradeForm = (props) => {
         <input
           type="number"
           className="market-trade__input form-control"
-          placeholder="Amount"
+          placeholder={t("trade_amount")}
           value={props.sz}
           onInput={props.onSzInput}
           required
@@ -70,7 +72,7 @@ const TradeForm = (props) => {
         <input
           type="number"
           className="market-trade__input  form-control"
-          placeholder="Total"
+          placeholder={t("trade_total")}
           value={SafeMath.mult(props.px, props.sz)}
           readOnly
         />
@@ -145,7 +147,7 @@ const TradeForm = (props) => {
           SafeMath.lte(props.sz, props.selectedTicker?.minSz)
         }
       >
-        {props.side === "buy" ? "Buy" : "Sell"}
+        {props.side === "buy" ? t("buy") : t("sell")}
         {` ${props.selectedTicker?.baseCcy ?? ""}`}
       </button>
     </form>
@@ -331,16 +333,16 @@ const TradePannel = (props) => {
 };
 
 const MarketTrade = (props) => {
-  const storeCtx = useContext(StoreContext);
+  const { t } = useTranslation();
   return (
     <div className="market-trade">
       <div className="market-trade__container">
-        <div className="market-trade__header">{`Place Order`}</div>
+        <div className="market-trade__header">{t("place_order")}</div>
         <Tabs defaultActiveKey="limit">
-          <Tab eventKey="limit" title="Limit">
+          <Tab eventKey="limit" title={t("limit")}>
             <TradePannel orderType="limit" />
           </Tab>
-          <Tab eventKey="market" title="Market">
+          <Tab eventKey="market" title={t("market")}>
             <TradePannel orderType="market" readyOnly={true} />
           </Tab>
           {/* <Tab eventKey="stop-limit" title="Stop Limit">
