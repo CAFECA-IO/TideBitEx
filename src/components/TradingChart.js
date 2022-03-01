@@ -70,6 +70,7 @@ const TradingChart = (props) => {
           <div className="main-chart__chart">
             <ApexCharts
               height="65%"
+              width="100%"
               type="candlestick"
               options={{
                 chart: {
@@ -135,6 +136,7 @@ const TradingChart = (props) => {
             />
             <ApexCharts
               height="32%"
+              width="100%"
               type="bar"
               series={[
                 {

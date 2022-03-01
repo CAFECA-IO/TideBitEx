@@ -13,56 +13,28 @@ const Exchange = (props) => {
   return (
     <main className="main">
       <SelectedPair />
-      <div className="flex-row upper-part">
-        <div className="left">
-          <OrderBook />
+      <section className="section">
+        <div className="section__container">
+          <div className="section__container--left">
+            <OrderBook />
+          </div>
+          <div className="section__container--right">
+            <ThemeConsumer>
+              {({ data }) => <TradingChart theme={data.theme} />}
+            </ThemeConsumer>
+          </div>
         </div>
-        <div className="right">
-          <ThemeConsumer>
-            {({ data }) => <TradingChart theme={data.theme} />}
-          </ThemeConsumer>
+        <div className="section__container">
+          <div className="section__container--left">
+            <MarketTrade />
+          </div>
+          <div className="section__container--right">
+            <HistoryOrder />
+            <MarketHistory />
+          </div>
         </div>
-      </div>
-      <div className="flex-row lower-part ">
-        <div className="left">
-          <MarketTrade />
-        </div>
-        <div className="right flex-row">
-          <HistoryOrder />
-          <MarketHistory />
-        </div>
-      </div>
+      </section>
     </main>
-    // <div className="container-fluid no-fluid exchange-layout  mtb15">
-    //   <div className="row sm-gutters">
-    //     <div className="col-sm-12 col-md-3">
-    //       <MarketPairs />
-    //     </div>
-    //     <div className="col-md-9">
-    //       <SelectedPair />
-    //       <div className="row sm-gutters">
-    //         <div className="col-sm-12 col-md-8">
-    //           <ThemeConsumer>
-    //             {({ data }) => <TradingChart theme={data.theme} />}
-    //           </ThemeConsumer>
-    //           <MarketTrade />
-    //         </div>
-    //         <div className="col-md-4">
-    //           <OrderBook />
-    //           <MarketHistory />
-    //         </div>
-    //       </div>
-    //     </div>
-    //   </div>
-    //   <div className="row sm-gutters">
-    //     <div className="col-md-3">
-    //       <MarketNews />
-    //     </div>
-    //     <div className="col-md-9">
-    //       <HistoryOrder />
-    //     </div>
-    //   </div>
-    // </div>
   );
 };
 

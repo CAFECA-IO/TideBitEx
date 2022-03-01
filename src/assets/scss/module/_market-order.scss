@@ -33,13 +33,24 @@
 }
 
 .market-order {
+  height: calc(50vh - 57px);
   border-top: 0;
   border: 1px solid #333;
   overflow: hidden;
-  height: 100%;
+  min-height: 400px;
   display: flex;
   flex-direction: column;
   flex: auto;
+  & > nav.nav-tabs > a.nav-link.active,
+  & > nav.nav-tabs > a.nav-link:hover {
+    color: #007bff;
+  }
+  & > nav.nav-tabs > a.nav-link {
+    color: #4a4a4a;
+    padding-bottom: 0px;
+    padding-top: 10px;
+    margin-top: 2px;
+  }
   & > .tab-content {
     display: flex;
     flex-direction: column;

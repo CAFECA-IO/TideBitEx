@@ -1,6 +1,79 @@
 @import "./header";
 
-.exchange-layout {
-  max-width: 1520px;
-  margin: 15px auto;
+main.main {
+  display: flex;
+  flex-direction: column;
+  // height: calc(100vh - 70px);
+  width: 100vw;
+  padding: 0 2px 2px 2px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  &__container {
+    gap: 2px;
+    display: flex;
+    flex-direction: row;
+    &--left,
+    &__right {
+      flex: 1;
+    }
+    &--left {
+      flex: 2;
+    }
+    &--right {
+      display: flex;
+      flex-direction: row;
+      flex: 3;
+      gap: 2px;
+    }
+    &--right > *:first-child {
+      flex: 2;
+    }
+    &--right > *:last-child {
+      flex: 1;
+    }
+  }
+}
+@media only screen and (max-width: 1120px) {
+  // If [device width] is less than or equal to 600px, then do
+  .section {
+    &__container {
+      &--right > *:first-child {
+        flex: 4;
+      }
+      &--right > *:last-child {
+        flex: 3;
+      }
+    }
+  }
+}
+
+@media only screen and (max-width: 820px) {
+  // If [device width] is less than or equal to 600px, then do
+  .section {
+    &__container {
+      flex: 1;
+      flex-direction: column;
+      &--right > *:first-child {
+        flex: 1;
+      }
+      &--right > *:last-child {
+        flex: 1;
+      }
+    }
+  }
+}
+// iphone XR
+@media only screen and (max-width: 414px) {
+  // If [device width] is less than or equal to 600px, then do
+  .section {
+    &__container {
+      &--right {
+        flex-direction: column;
+      }
+    }
+  }
 }

@@ -4,32 +4,16 @@ ol {
   padding: 0;
   list-style: none;
 }
-.main {
-  display: flex;
-  flex-direction: column;
-  height: calc(53vh - 70px);
-  width: 100vw;
-  padding: 2px;
-}
 .flex-row {
   display: flex;
   flex-direction: row;
 }
-.upper-part {
-  max-height: calc(50vh - 57px);
-  flex: 1;
-  margin-bottom: 2px;
-  gap: 2px;
+.text-left {
+  text-align: left;
 }
-.lower-part {
-  flex: 1;
-  max-height: calc(50vh - 57px);
-  gap: 2px;
+.text-right {
+  text-align: right;
 }
-.left {
-  flex: 2;
-}
-.right {
-  flex: 3;
-  gap: 2px;
+.update {
+  animation: blinking 0.5s;
 }
