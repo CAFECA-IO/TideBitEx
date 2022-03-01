@@ -317,7 +317,7 @@ class Middleman {
       candles.push(candle.slice(0, 5));
       volumes.push([candle[0], candle[5]]);
     });
-    console.log(`candleOnUpdate`, { candles, volumes });
+    // console.log(`candleOnUpdate`, { candles, volumes });
     return { candles, volumes };
   }
 
