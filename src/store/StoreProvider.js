@@ -271,6 +271,7 @@ const StoreProvider = (props) => {
                 // console.log(`updateTrades`, updateTrades);
                 tradeTimestamp = _tradeTimestamp;
                 setTrades(updateTrades);
+                middleman.resetTrades();
               }
               break;
             case "orderOnUpdate":
@@ -283,11 +284,12 @@ const StoreProvider = (props) => {
               }
               break;
             case "candleOnUpdate":
+              const updateCandles = middleman.updateCandles(metaData.data);
               _candleTimestamp = new Date().getTime();
               if (_candleTimestamp - +candleTimestamp > 1000) {
                 candleTimestamp = _candleTimestamp;
                 // console.log("candleOnUpdate", metaData.data);
-                setCandles(metaData.data);
+                setCandles(updateCandles);
               }
               break;
             default:

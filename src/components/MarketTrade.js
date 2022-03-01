@@ -275,10 +275,6 @@ const TradePannel = (props) => {
       (storeCtx.selectedTicker &&
         storeCtx.selectedTicker.instId !== selectedTicker?.instId)
     ) {
-      console.log(
-        `MarketTrade storeCtx.selectedTicker`,
-        storeCtx.selectedTicker
-      );
       // setBuyPx(storeCtx.selectedTicker.askPx);
       // setSellPx(storeCtx.selectedTicker.bidPx);
       setSelectedTicker(storeCtx.selectedTicker);

@@ -241,13 +241,22 @@ class Middleman {
 
   updateTrades = (updateData) => {
     const _updateTrades = updateData
+      .filter(
+        (trade) =>
+          trade.instId === this.selectedTicker.instId &&
+          this.trades.findIndex((t) => t.tradeId === trade.tradeId) === -1
+      )
       .map((trade) => ({
         ...trade,
         update: true,
       }))
-      .concat(this.trades.map((trade) => ({ ...trade, update: false })) || []);
+      .concat(this.trades || []);
     this.trades = _updateTrades;
     return _updateTrades;
+  };
+
+  resetTrades = () => {
+    this.trades = this.trades.map((trade) => ({ ...trade, update: false }));
   };
 
   async getTrades(instId, limit) {
@@ -337,11 +346,19 @@ class Middleman {
   }
 
   async getPendingOrders(options) {
-    if (this.isLogin) return await this.communicator.ordersPending(options);
+    if (this.isLogin)
+      return await this.communicator.ordersPending({
+        ...options,
+        instId: this.selectedTicker?.instId,
+      });
   }
 
   async getCloseOrders(options) {
-    if (this.isLogin) return await this.communicator.closeOrders(options);
+    if (this.isLogin)
+      return await this.communicator.closeOrders({
+        ...options,
+        instId: this.selectedTicker?.instId,
+      });
   }
 
   async getBalances(ccy) {
