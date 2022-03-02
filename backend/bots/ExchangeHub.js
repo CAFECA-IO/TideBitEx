@@ -147,28 +147,43 @@ class ExchangeHub extends Bot {
       try {
         const account = await this.database.getAccountByMemberIdCurrency(memberId, orderData.currencyId, { dbTransaction: t});
         const amount = SafeMath.plus(account.balance, account.locked);
+        const oriAccBal = account.balance;
+        const oriAccLoc = account.locked;
 
-        // orderData.locked: locked value
-        // orderData.balance: locked value * -1
-        // orderData.absBalance: absolute value of balance
+        /*******************************************
+         * body.side: order is 'buy' or 'sell'
+         * orderData.price: body.px, price value
+         * orderData.volume: body.sz, volume value
+         * orderData.locked:
+         *   if body.side === 'buy', locked = body.px * body.sz
+         *   if body.side === 'sell', locked = body.sz
+         * 
+         * orderData.balance: locked value * -1
+         *******************************************/
+
         const orderData = await this._getOrderData(body);
+        const price = orderData.price;
+        const volume = orderData.volume;
+        const locked = orderData.locked;
+        const balance = orderData.balance;
+        const absBalance = SafeMath.mult(balance, '-1');
 
         const created_at = new Date().toISOString();
         const updated_at = created_at;
         const newAccount = {
           id: account.id,
-          balance: SafeMath.plus(account.balance, orderData.balance),
-          locked: SafeMath.plus(account.locked, orderData.locked),
+          balance: SafeMath.plus(oriAccBal, balance),
+          locked: SafeMath.plus(oriAccLoc, locked),
         };
 
         const order = await this.database.insertOrder(
           orderData.bid,
           orderData.ask,
           orderData.currency,
-          orderData.price,
-          orderData.volume,
-          orderData.volume,
-          orderData.state,
+          price,
+          volume,
+          volume,
+          this.database.ORDER_STATE.WAIT,
           'NULL',
           orderData.type,
           memberId,
@@ -177,8 +192,8 @@ class ExchangeHub extends Bot {
           'NULL',
           'Web',
           orderData.ordType,
-          orderData.locked,
-          orderData.locked,
+          locked,
+          locked,
           '0',
           0,
           { dbTransaction: t }
@@ -188,8 +203,8 @@ class ExchangeHub extends Bot {
           memberId,
           account.id,
           this.database.REASON.ORDER_SUBMIT,
-          orderData.absBalance,
-          orderData.locked,
+          absBalance,
+          locked,
           '0',
           amount,
           order[0],
@@ -307,14 +322,12 @@ class ExchangeHub extends Bot {
       bid, 
       ask,
       currency,
-      price: body.px || 'DEFAULT',
+      price: body.px || 'NULL',
       volume: body.sz,
       type: body.side === 'buy' ? this.database.TYPE.ORDER_BID : this.database.TYPE.ORDER_ASK,
-      state: this.database.ORDER_STATE.WAIT,
       ordType: body.ordType,
       locked,
       balance,
-      absBalance: locked,
       currencyId: body.side === 'buy' ? bid : ask,
     };
     return EthUsdtData;
