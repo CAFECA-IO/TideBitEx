@@ -147,7 +147,7 @@ class Middleman {
       });
     // asks = asks.sort((a, b) => +b.price - +a.price);
     this.rawBooks.bids
-      ?.sort((a, b) => +b[0] - +a[0])
+      ?.sort((a, b) => +a[0] - +b[0])
       ?.forEach((d, i) => {
         totalBids = SafeMath.plus(SafeMath.plus(d[2], d[3]), totalBids);
         let bid = {

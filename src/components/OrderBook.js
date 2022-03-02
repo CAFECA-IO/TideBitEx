@@ -58,11 +58,17 @@ const OrderBook = (props) => {
   useEffect(() => {
     window.addEventListener("resize", handleWindowResize);
 
-    if (storeCtx.init && SafeMath.lte(width, breakpoint)) {
-      const asksElement = document.querySelector(".order-book__asks");
-      const bidsElement = document.querySelector(".order-book__bids");
-      asksElement.scrollTop = asksElement.parentElement.scrollHeight;
+    if (storeCtx.init) {
+      const bidsElement = document.querySelector(
+        ".order-book__bids > .order-book__panel"
+      );
       bidsElement.scrollTop = bidsElement.scrollHeight;
+      if (SafeMath.lte(width, breakpoint)) {
+        const asksElement = document.querySelector(
+          ".order-book__asks > .order-book__panel"
+        );
+        asksElement.scrollTop = asksElement.scrollHeight;
+      }
       storeCtx.setInit(false);
     }
     return () => window.removeEventListener("resize", handleWindowResize);
@@ -86,21 +92,41 @@ const OrderBook = (props) => {
           </ul>
         )}
         <ul className="order-book__panel">
-          {storeCtx?.selectedTicker &&
-            storeCtx.books?.bids &&
-            storeCtx.books.bids.map((book, index) => (
-              <BookTile
-                type={`${SafeMath.lte(width, breakpoint) ? "asks" : "bids"}`}
-                book={book}
-                key={`bids-${storeCtx.selectedTicker.instId}-${index}`}
-                dataWidth={`${parseFloat(
-                  SafeMath.mult(
-                    SafeMath.div(book.total, storeCtx.books.total),
-                    "100"
-                  )
-                ).toFixed(18)}%`}
-              />
-            ))}
+          {storeCtx?.selectedTicker && storeCtx.books?.bids
+            ? SafeMath.lte(width, breakpoint)
+              ? storeCtx.books.bids
+                  // .sort((a, b) => +a.price - +b.price)
+                  .map((book, index) => (
+                    <BookTile
+                      type={`${
+                        SafeMath.lte(width, breakpoint) ? "asks" : "bids"
+                      }`}
+                      book={book}
+                      key={`bids-${storeCtx.selectedTicker.instId}-${index}`}
+                      dataWidth={`${parseFloat(
+                        SafeMath.mult(
+                          SafeMath.div(book.total, storeCtx.books.total),
+                          "100"
+                        )
+                      ).toFixed(18)}%`}
+                    />
+                  ))
+              : storeCtx.books.bids.map((book, index) => (
+                  <BookTile
+                    type={`${
+                      SafeMath.lte(width, breakpoint) ? "asks" : "bids"
+                    }`}
+                    book={book}
+                    key={`bids-${storeCtx.selectedTicker.instId}-${index}`}
+                    dataWidth={`${parseFloat(
+                      SafeMath.mult(
+                        SafeMath.div(book.total, storeCtx.books.total),
+                        "100"
+                      )
+                    ).toFixed(18)}%`}
+                  />
+                ))
+            : null}
         </ul>
       </div>
       <div className="order-book__table order-book__asks">
