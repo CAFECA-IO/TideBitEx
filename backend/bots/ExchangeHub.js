@@ -134,7 +134,73 @@ class ExchangeHub extends Bot {
         code: Codes.MEMBER_ID_NOT_FOUND,
       });
     }
-    return this.okexConnector.router('postPlaceOrder', { memberId, params, query, body });
+    const okexOrderRes = await this.okexConnector.router('postPlaceOrder', { memberId, params, query, body });
+    /* !!! HIGH RISK (start) !!! */
+    // 1. find and lock account
+    // 2. new order
+    // 3. add account_version
+    // 4. update account balance and locked
+    if (okexOrderRes.success) {
+      const t = await this.database.transaction();
+      const created_at = new Date().toISOString();
+      const updated_at = created_at;
+      try {
+        const orderData = await this._getOrderData(body);
+        const account = await this.database.getAccountByMemberIdCurrency(memberId, orderData.currencyId, { dbTransaction: t});
+        const order = await this.database.insertOrder(
+          orderData.bid,
+          orderData.ask,
+          orderData.currency,
+          orderData.price,
+          orderData.volume,
+          orderData.volume,
+          orderData.state,
+          'DEFAULT',
+          orderData.type,
+          memberId,
+          created_at,
+          updated_at,
+          'DEFAULT',
+          'Web',
+          orderData.ordType,
+          orderData.locked,
+          orderData.locked,
+          '0',
+          0,
+          { dbTransaction: t }
+        );
+
+        const balance = SafeMath.mult(orderData.locked, '-1');
+        await this.database.insertAccountVersion(
+          memberId,
+          account.id,
+          this.database.REASON.ORDER_SUBMIT,
+          balance,
+          orderData.locked,
+          '0',
+          SafeMath.plus(account.balance, account.locked),
+          order[0],
+          this.database.MODIFIABLE_TYPE.ORDER,
+          created_at,
+          updated_at,
+          account.currency,
+          this.database.FUNC.LOCK_FUNDS,
+          { dbTransaction: t }
+        );
+        const newAccount = {
+          id: account.id,
+          balance: SafeMath.plus(account.balance, balance),
+          locked: SafeMath.plus(account.locked, orderData.locked),
+        };
+        await this.database.updateAccount(newAccount, { dbTransaction: t })
+        await t.commit();
+      } catch (error) {
+        this.logger.error(error);
+        await t.rollback();
+      }
+    }
+    /* !!! HIGH RISK (end) !!! */
+    return okexOrderRes;
   }
   async getOrderList ({ params, query, token }) {
     const memberId = await this.getMemberIdFromRedis(token);
@@ -218,6 +284,27 @@ class ExchangeHub extends Bot {
         }
       )
     });
+  }
+
+  async _getOrderData(body) {
+    // ++ TODO: get data by instId
+    // -- temp for demo
+    const bid = 34; // USDT
+    const ask = 3;  // ETH
+    const currency = -1;   // it doesn't in markets.yml
+    const EthUsdtData = {
+      bid, 
+      ask,
+      currency,
+      price: body.px || 'DEFAULT',
+      volume: body.sz,
+      type: body.side === 'buy' ? this.database.TYPE.ORDER_BID : this.database.TYPE.ORDER_ASK,
+      state: this.database.ORDER_STATE.WAIT,
+      ordType: body.ordType,
+      locked: body.side === 'buy' ? SafeMath.mult(body.px, body.sz) : body.sz,
+      currencyId: body.side === 'buy' ? bid : ask,
+    };
+    return EthUsdtData;
   }
 }
 
