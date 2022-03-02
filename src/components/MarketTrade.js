@@ -363,8 +363,8 @@ const MarketTrade = (props) => {
       </div>
       {!storeCtx.isLogin && (
         <div className="market-trade__cover flex-row">
-          <Nav.Link href="/signin">Login</Nav.Link>
-          <Nav.Link href="/signup">Register</Nav.Link>
+          <Nav.Link href="/signin">{t("login")}</Nav.Link>
+          <Nav.Link href="/signup">{t("register")}</Nav.Link>
         </div>
       )}
     </div>

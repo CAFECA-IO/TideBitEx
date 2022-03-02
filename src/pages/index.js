@@ -18,56 +18,54 @@ import Notfound from "./notfound";
 
 export default function index() {
   return (
-    <>
-      <Layout>
-        <Switch>
-          <Route exact path="/">
-            <Exchange />
-          </Route>
-          <Route path="/markets">
-            <Exchange />
-          </Route>
-          <Route path="/analysis">
-            <Markets />
-          </Route>
-          <Route path="/profile">
-            <Profile />
-          </Route>
-          <Route path="/wallet">
-            <Wallet />
-          </Route>
-          <Route path="/settings">
-            <Settings />
-          </Route>
-          <Route path="/login">
-            <Login />
-          </Route>
-          <Route path="/signup">
-            <Signup />
-          </Route>
-          <Route path="/reset">
-            <Reset />
-          </Route>
-          <Route path="/otp-verify">
-            <OtpVerify />
-          </Route>
-          <Route path="/otp-number">
-            <OtpNumber />
-          </Route>
-          <Route path="/lock">
-            <Lock />
-          </Route>
-          <Route path="/terms-and-conditions">
-            <TermsAndConditions />
-          </Route>
-          <Route path="/news-details">
-            <NewsDetails />
-          </Route>
-          <Route path="/notfound">
-            <Notfound />
-          </Route>
-        </Switch>
-      </Layout>
-    </>
+    <Layout>
+      <Switch>
+        <Route exact path="/">
+          <Exchange />
+        </Route>
+        <Route path="/markets">
+          <Exchange />
+        </Route>
+        <Route path="/analysis">
+          <Markets />
+        </Route>
+        <Route path="/profile">
+          <Profile />
+        </Route>
+        <Route path="/wallet">
+          <Wallet />
+        </Route>
+        <Route path="/settings">
+          <Settings />
+        </Route>
+        <Route path="/login">
+          <Login />
+        </Route>
+        <Route path="/signup">
+          <Signup />
+        </Route>
+        <Route path="/reset">
+          <Reset />
+        </Route>
+        <Route path="/otp-verify">
+          <OtpVerify />
+        </Route>
+        <Route path="/otp-number">
+          <OtpNumber />
+        </Route>
+        <Route path="/lock">
+          <Lock />
+        </Route>
+        <Route path="/terms-and-conditions">
+          <TermsAndConditions />
+        </Route>
+        <Route path="/news-details">
+          <NewsDetails />
+        </Route>
+        <Route path="/notfound">
+          <Notfound />
+        </Route>
+      </Switch>
+    </Layout>
   );
 }

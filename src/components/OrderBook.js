@@ -50,41 +50,83 @@ const BookTile = (props) => {
 const OrderBook = (props) => {
   const storeCtx = useContext(StoreContext);
   const { t } = useTranslation();
+  const [width, setWidth] = React.useState(window.innerWidth);
+  const breakpoint = 414;
+
+  const handleWindowResize = () => setWidth(window.innerWidth);
+
   useEffect(() => {
+    window.addEventListener("resize", handleWindowResize);
+
     if (storeCtx.init) {
-      // const element = document.querySelector(".order-book__asks");
-      // element.scrollTop = element.scrollHeight;
+      const bidsElement = document.querySelector(
+        ".order-book__bids > .order-book__panel"
+      );
+      bidsElement.scrollTop = bidsElement.scrollHeight;
+      if (SafeMath.lte(width, breakpoint)) {
+        const asksElement = document.querySelector(
+          ".order-book__asks > .order-book__panel"
+        );
+        asksElement.scrollTop = asksElement.scrollHeight;
+      }
       storeCtx.setInit(false);
     }
-  }, [storeCtx.init, storeCtx]);
+    return () => window.removeEventListener("resize", handleWindowResize);
+  }, [storeCtx.init, storeCtx, width]);
 
   return (
     <section className="order-book">
       <div className="order-book__table order-book__bids">
-        <ul className="order-book__header flex-row">
-          <li>{t("amount")}</li>
-          <li>{t("volume")}</li>
-          <li>{t("bid")}</li>
-        </ul>
+        {SafeMath.lte(width, breakpoint) && (
+          <ul className="order-book__header flex-row">
+            <li>{t("bid")}</li>
+            <li>{t("volume")}</li>
+            <li>{t("amount")}</li>
+          </ul>
+        )}
+        {SafeMath.gt(width, breakpoint) && (
+          <ul className="order-book__header flex-row">
+            <li>{t("amount")}</li>
+            <li>{t("volume")}</li>
+            <li>{t("bid")}</li>
+          </ul>
+        )}
         <ul className="order-book__panel">
-          {storeCtx?.selectedTicker &&
-            storeCtx.books?.bids &&
-            storeCtx.books.bids.map((book, index) => (
-              <BookTile
-                type="bids"
-                book={book}
-                key={`bids-${storeCtx.selectedTicker.instId}-${index}`}
-                dataWidth={`${parseFloat(
-                  SafeMath.mult(
-                    SafeMath.div(
-                      book.total,
-                      storeCtx.books.bids[storeCtx.books.bids.length - 1].total
-                    ),
-                    "100"
-                  )
-                ).toFixed(18)}%`}
-              />
-            ))}
+          {storeCtx?.selectedTicker && storeCtx.books?.bids
+            ? SafeMath.lte(width, breakpoint)
+              ? storeCtx.books.bids
+                  // .sort((a, b) => +a.price - +b.price)
+                  .map((book, index) => (
+                    <BookTile
+                      type={`${
+                        SafeMath.lte(width, breakpoint) ? "asks" : "bids"
+                      }`}
+                      book={book}
+                      key={`bids-${storeCtx.selectedTicker.instId}-${index}`}
+                      dataWidth={`${parseFloat(
+                        SafeMath.mult(
+                          SafeMath.div(book.total, storeCtx.books.total),
+                          "100"
+                        )
+                      ).toFixed(18)}%`}
+                    />
+                  ))
+              : storeCtx.books.bids.map((book, index) => (
+                  <BookTile
+                    type={`${
+                      SafeMath.lte(width, breakpoint) ? "asks" : "bids"
+                    }`}
+                    book={book}
+                    key={`bids-${storeCtx.selectedTicker.instId}-${index}`}
+                    dataWidth={`${parseFloat(
+                      SafeMath.mult(
+                        SafeMath.div(book.total, storeCtx.books.total),
+                        "100"
+                      )
+                    ).toFixed(18)}%`}
+                  />
+                ))
+            : null}
         </ul>
       </div>
       <div className="order-book__table order-book__asks">
@@ -103,10 +145,7 @@ const OrderBook = (props) => {
                 key={`asks-${storeCtx.selectedTicker.instId}-${index}`}
                 dataWidth={`${parseFloat(
                   SafeMath.mult(
-                    SafeMath.div(
-                      book.total,
-                      storeCtx.books.asks[storeCtx.books.asks.length - 1].total
-                    ),
+                    SafeMath.div(book.total, storeCtx.books.total),
                     "100"
                   )
                 ).toFixed(18)}%`}

@@ -35,7 +35,8 @@ const BalanceTile = (props) => {
       {/* <li>{props.balance.eq || "--"}</li>
       <li>{props.balance.cashBal || "--"}</li>
       <li>{props.balance.availEq || "--"}</li> */}
-      <li>{props.balance?.cashBal || props.balance?.availBal || "--"}</li>  {/* -- TODO: check api return object */}
+      <li>{props.balance?.cashBal || props.balance?.availBal || "--"}</li>{" "}
+      {/* -- TODO: check api return object */}
       <li>{props.balance.frozenBal || "--"}</li>
       {/* <li>{props.balance.interest || "--"}</li> */}
     </ul>
@@ -45,7 +46,10 @@ const BalanceTile = (props) => {
 const HistoryOrder = (props) => {
   const storeCtx = useContext(StoreContext);
   const cancelOrder = (order) => {
-    storeCtx.cancelOrder(order);
+    const confirm = window.confirm("Confirm Cancel");
+    if (confirm) {
+      storeCtx.cancelOrder(order);
+    }
   };
   const { t } = useTranslation();
   return (
