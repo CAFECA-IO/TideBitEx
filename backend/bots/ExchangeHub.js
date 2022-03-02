@@ -146,9 +146,6 @@ class ExchangeHub extends Bot {
       const t = await this.database.transaction();
       try {
         const account = await this.database.getAccountByMemberIdCurrency(memberId, orderData.currencyId, { dbTransaction: t});
-        const amount = SafeMath.plus(account.balance, account.locked);
-        const oriAccBal = account.balance;
-        const oriAccLoc = account.locked;
 
         /*******************************************
          * body.side: order is 'buy' or 'sell'
@@ -166,10 +163,13 @@ class ExchangeHub extends Bot {
         const volume = orderData.volume;
         const locked = orderData.locked;
         const balance = orderData.balance;
-        const absBalance = SafeMath.mult(balance, '-1');
 
         const created_at = new Date().toISOString();
         const updated_at = created_at;
+        
+        const amount = SafeMath.plus(account.balance, account.locked);
+        const oriAccBal = account.balance;
+        const oriAccLoc = account.locked;
         const newAccount = {
           id: account.id,
           balance: SafeMath.plus(oriAccBal, balance),
@@ -203,7 +203,7 @@ class ExchangeHub extends Bot {
           memberId,
           account.id,
           this.database.REASON.ORDER_SUBMIT,
-          absBalance,
+          balance,
           locked,
           '0',
           amount,
