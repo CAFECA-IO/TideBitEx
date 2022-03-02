@@ -171,7 +171,7 @@ class Middleman {
       ts: Date.now(),
       total: SafeMath.plus(totalAsks, totalBids),
     };
-    console.log(`updateBooks.total`, updateBooks.total);
+    // console.log(`updateBooks.total`, updateBooks.total);
     return updateBooks;
   }
 

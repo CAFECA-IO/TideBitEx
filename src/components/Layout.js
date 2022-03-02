@@ -5,32 +5,45 @@ import { useTranslation } from "react-i18next";
 
 const languages = {
   "en-US": "English",
+  "zh-HK": "繁體中文",
   jp: "日本語",
   "zh-CN": "简体中文",
-  "zh-TW": "繁體中文",
+  // "zh-TW": "繁體中文",
 };
 
 const Layout = ({ children }) => {
   const { i18n } = useTranslation();
   const [languageKey, setLanguageKey] = useState("en");
   const [active, setActive] = useState(false);
-
   const changeLanguage = useCallback(
-    (key) => {
+    async (key) => {
+      console.log(`1 key`, key);
+      if (!key) {
+        key = document.cookie
+          .split(";")
+          .filter((v) => /lang/.test(v))
+          .pop()
+          ?.split("=")[1];
+        // const lang = await window.cookieStore.get("lang");
+        // key = lang.value;
+        // console.log(`lang`, lang);
+        console.log(`2 key`, key);
+      } else {
+        console.log(`3 key`, key);
+        // document.cookie.replace(
+        //   `${document.cookie.split(";").find((v) => /lang/.test(v))};`,
+        //   ""
+        // );
+        // document.cookie = `lang=${key}`;
+        await window.cookieStore.set("lang", key);
+      }
       setLanguageKey(key);
-      document.cookie = `lang=${key}`;
       i18n.changeLanguage(key);
     },
     [i18n]
   );
   useEffect(() => {
-    const key =
-      document.cookie
-        .split(";")
-        .find((v) => /lang/.test(v))
-        ?.split("=")[1] || navigator.language;
-    console.log(`key`, key);
-    changeLanguage(key);
+    changeLanguage();
   }, [changeLanguage]);
 
   return (

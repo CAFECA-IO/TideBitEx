@@ -32,6 +32,9 @@
 .header-dropdown {
   position: relative;
   min-width: 72px;
+  .sidebar > & {
+    margin-top: 16px;
+  }
   &__card {
     background-color: #fff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.14);
@@ -53,6 +56,7 @@
     /* padding-left: 1rem; */
     z-index: 200;
     padding: 5px 8px;
+    transition: all 0.25s ease;
   }
   &__item {
     padding: 5px 0;
@@ -67,7 +71,18 @@
     transform: translateY(0rem);
     opacity: 1;
     pointer-events: stroke;
-    transition: transform 0.25s ease;
+  }
+  .sidebar &__controller + &__button > &__icon {
+    transform: rotate(-90deg);
+  }
+  .sidebar &__controller:checked + &__button > &__icon {
+    transform: rotate(90deg);
+  }
+  .sidebar &__list {
+    transform: translateY(-9rem);
+  }
+  .sidebar &__controller:checked + &__button + &__list {
+    transform: translateY(-11rem);
   }
   &__button {
     display: flex;
@@ -96,5 +111,6 @@
     font-size: 12px;
     font-weight: 400;
     transform: rotate(90deg);
+    transition: transform 0.25s ease;
   }
 }
