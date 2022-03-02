@@ -53,9 +53,9 @@
   }
   &__tile--cover {
     position: absolute;
-    content: "";
     top: 0;
-    height: -webkit-fill-available;
+    // height: -webkit-fill-available;
+    height: 18px;
   }
   &__bids &__tile--cover {
     background: #26de8163;
@@ -82,6 +82,21 @@
     &__bids > &__header,
     &__bids > &__panel > &__tile {
       text-align: left;
+    }
+    &__bids &__tile--cover {
+      left: 0;
+    }
+    &__bids > &__panel > &__tile > *:nth-child(1) {
+      color: #00ce7d;
+      font-weight: 500;
+    }
+    &__bids > &__panel > &__tile > *:nth-child(1) {
+      color: #18214d;
+      font-weight: 500;
+    }
+    &__asks > &__panel &__tile--cover {
+      right: 0;
+      left: auto;
     }
   }
 }

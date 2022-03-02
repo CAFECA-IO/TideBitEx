@@ -128,7 +128,7 @@ class Middleman {
       askPx,
       bidPx;
     this.rawBooks.asks
-      ?.sort((a, b) => +a[0] - +b[0])
+      ?.sort((a, b) => +b[0] - +a[0])
       ?.forEach((d, i) => {
         totalAsks = SafeMath.plus(SafeMath.plus(d[2], d[3]), totalAsks);
         let ask = {
@@ -164,11 +164,14 @@ class Middleman {
         }
         if (this.rawBooks.bids[i][4]) this.rawBooks.bids[i].splice(4, 1);
       });
+    // bids = bids.sort((a, b) => +a.price - +b.price);
     const updateBooks = {
       asks,
       bids,
       ts: Date.now(),
+      total: SafeMath.plus(totalAsks, totalBids),
     };
+    console.log(`updateBooks.total`, updateBooks.total);
     return updateBooks;
   }
 
@@ -223,6 +226,7 @@ class Middleman {
       this.rawBooks = updateRawBooks;
     });
     this.books = this.handleBooks();
+    console.log(`updateBooks this.books`, this.books);
     return this.books;
   }
 
@@ -231,6 +235,7 @@ class Middleman {
       const rawBooks = await this.communicator.books(instId, sz);
       this.rawBooks = rawBooks[0];
       this.books = this.handleBooks();
+      console.log(`getBooks this.books`, this.books);
       // console.log(`getBooks this.rawBooks`, this.rawBooks);
       // console.log(`getBooks this.books`, this.books);
       return this.books;

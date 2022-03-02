@@ -50,36 +50,52 @@ const BookTile = (props) => {
 const OrderBook = (props) => {
   const storeCtx = useContext(StoreContext);
   const { t } = useTranslation();
+  const [width, setWidth] = React.useState(window.innerWidth);
+  const breakpoint = 414;
+
+  const handleWindowResize = () => setWidth(window.innerWidth);
+
   useEffect(() => {
-    if (storeCtx.init) {
-      // const element = document.querySelector(".order-book__asks");
-      // element.scrollTop = element.scrollHeight;
+    window.addEventListener("resize", handleWindowResize);
+
+    if (storeCtx.init && SafeMath.lte(width, breakpoint)) {
+      const asksElement = document.querySelector(".order-book__asks");
+      const bidsElement = document.querySelector(".order-book__bids");
+      asksElement.scrollTop = asksElement.parentElement.scrollHeight;
+      bidsElement.scrollTop = bidsElement.scrollHeight;
       storeCtx.setInit(false);
     }
-  }, [storeCtx.init, storeCtx]);
+    return () => window.removeEventListener("resize", handleWindowResize);
+  }, [storeCtx.init, storeCtx, width]);
 
   return (
     <section className="order-book">
       <div className="order-book__table order-book__bids">
-        <ul className="order-book__header flex-row">
-          <li>{t("amount")}</li>
-          <li>{t("volume")}</li>
-          <li>{t("bid")}</li>
-        </ul>
+        {SafeMath.lte(width, breakpoint) && (
+          <ul className="order-book__header flex-row">
+            <li>{t("bid")}</li>
+            <li>{t("volume")}</li>
+            <li>{t("amount")}</li>
+          </ul>
+        )}
+        {SafeMath.gt(width, breakpoint) && (
+          <ul className="order-book__header flex-row">
+            <li>{t("amount")}</li>
+            <li>{t("volume")}</li>
+            <li>{t("bid")}</li>
+          </ul>
+        )}
         <ul className="order-book__panel">
           {storeCtx?.selectedTicker &&
             storeCtx.books?.bids &&
             storeCtx.books.bids.map((book, index) => (
               <BookTile
-                type="bids"
+                type={`${SafeMath.lte(width, breakpoint) ? "asks" : "bids"}`}
                 book={book}
                 key={`bids-${storeCtx.selectedTicker.instId}-${index}`}
                 dataWidth={`${parseFloat(
                   SafeMath.mult(
-                    SafeMath.div(
-                      book.total,
-                      storeCtx.books.bids[storeCtx.books.bids.length - 1].total
-                    ),
+                    SafeMath.div(book.total, storeCtx.books.total),
                     "100"
                   )
                 ).toFixed(18)}%`}
@@ -103,10 +119,7 @@ const OrderBook = (props) => {
                 key={`asks-${storeCtx.selectedTicker.instId}-${index}`}
                 dataWidth={`${parseFloat(
                   SafeMath.mult(
-                    SafeMath.div(
-                      book.total,
-                      storeCtx.books.asks[storeCtx.books.asks.length - 1].total
-                    ),
+                    SafeMath.div(book.total, storeCtx.books.total),
                     "100"
                   )
                 ).toFixed(18)}%`}
