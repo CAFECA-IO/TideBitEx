@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { FaHome, FaCommentDots, FaDatabase } from "react-icons/fa";
 import { BiLineChart } from "react-icons/bi";
 import { Navbar, Nav, Container, NavDropdown } from "react-bootstrap";
@@ -18,10 +18,21 @@ const Header = (_) => {
   const { t, i18n } = useTranslation();
   const [languageKey, setLanguageKey] = useState("en");
   const changeLanguage = (key) => {
-    console.log(`changeLanguage key`, key);
     setLanguageKey(key);
     i18n.changeLanguage(key);
+    document.cookie = `lang=${key}`;
   };
+
+  useEffect(() => {
+    const lang =
+      document.cookie
+        .split(";")
+        .find((v) => /lang/.test(v))
+        ?.split("=")[1] || navigator.language;
+    setLanguageKey(lang);
+    i18n.changeLanguage(lang);
+  }, [i18n]);
+
   return (
     <Navbar bg="teal" variant="dark" expand="lg">
       <Navbar.Brand href="/">
@@ -63,78 +74,77 @@ const Header = (_) => {
           {(key) => <div>{languages[key]}</div>}
         </DropDown>
       </Navbar.Collapse>
-      {false && (
-        <Navbar.Collapse id="basic-navbar-nav">
-          <Container>
-            <Nav className="justify-content-end flex-grow-1 pe-3">
-              <Nav.Link href="/">
-                <Container>
-                  <FaHome />
-                  <p>{t("home")}</p>
-                </Container>
-              </Nav.Link>
-              <Nav.Link href="/markets/btchkd">
-                <Container>
-                  <BiLineChart />
-                  <p>{t("trading")}</p>
-                </Container>
-              </Nav.Link>
-              <Nav.Link href="https://tidebit.zendesk.com/hc/zh-tw/articles/360003146914-%E5%A4%A7%E9%A1%8D%E4%BA%A4%E6%98%93Block-Trade-OTC-%E5%B0%88%E5%B1%AC-Whatsapp-852-62871829">
+
+      <Navbar.Collapse id="basic-navbar-nav">
+        <Container>
+          <Nav className="justify-content-end flex-grow-1 pe-3">
+            <Nav.Link href="/">
+              <Container>
+                <FaHome />
+                <p>{t("home")}</p>
+              </Container>
+            </Nav.Link>
+            <Nav.Link href="/markets/btchkd">
+              <Container>
+                <BiLineChart />
+                <p>{t("trading")}</p>
+              </Container>
+            </Nav.Link>
+            <Nav.Link href="https://tidebit.zendesk.com/hc/zh-tw/articles/360003146914-%E5%A4%A7%E9%A1%8D%E4%BA%A4%E6%98%93Block-Trade-OTC-%E5%B0%88%E5%B1%AC-Whatsapp-852-62871829">
+              <FaCommentDots />
+              <p>{t("block_trade")}</p>
+            </Nav.Link>
+            <Nav.Link href="/digital_staking/plans">
+              <Container>
+                <FaDatabase />
+                <p>{t("digital_staking")}</p>
+              </Container>
+            </Nav.Link>
+            <Nav.Link href="/referrals">
+              <Container>
                 <FaCommentDots />
-                <p>{t("block_trade")}</p>
-              </Nav.Link>
-              <Nav.Link href="/digital_staking/plans">
-                <Container>
-                  <FaDatabase />
-                  <p>{t("digital_staking")}</p>
-                </Container>
-              </Nav.Link>
-              <Nav.Link href="/referrals">
-                <Container>
-                  <FaCommentDots />
-                  <p>{t("refer_now")}</p>
-                </Container>
-              </Nav.Link>
-              <Nav.Link href="/accounts">
-                <Container>
-                  <FaCommentDots />
-                  <p>{t("accounts")}</p>
-                </Container>
-              </Nav.Link>
-              <Nav.Link href="/history/orders">
-                <Container>
-                  <FaCommentDots />
-                  <p>{t("history")}</p>
-                </Container>
-              </Nav.Link>
-              <Nav.Link href="/settings">
-                <Container>
-                  <FaCommentDots />
-                  <p>{t("settings")}</p>
-                </Container>
-              </Nav.Link>
-              <Nav.Link href="/zendesk">
-                <Container>
-                  <FaCommentDots />
-                  <p>{t("support_center")}</p>
-                </Container>
-              </Nav.Link>
-              <Nav.Link href="https://tidebit.zendesk.com/hc/zh-tw/sections/115002703828-公告">
-                <Container>
-                  <FaCommentDots />
-                  <p>{t("announcement")}</p>
-                </Container>
-              </Nav.Link>
-              <Nav.Link href="/signout">
-                <Container>
-                  <FaCommentDots />
-                  <p>{t("logout")}</p>
-                </Container>
-              </Nav.Link>
-            </Nav>
-          </Container>
-        </Navbar.Collapse>
-      )}
+                <p>{t("refer_now")}</p>
+              </Container>
+            </Nav.Link>
+            <Nav.Link href="/accounts">
+              <Container>
+                <FaCommentDots />
+                <p>{t("accounts")}</p>
+              </Container>
+            </Nav.Link>
+            <Nav.Link href="/history/orders">
+              <Container>
+                <FaCommentDots />
+                <p>{t("history")}</p>
+              </Container>
+            </Nav.Link>
+            <Nav.Link href="/settings">
+              <Container>
+                <FaCommentDots />
+                <p>{t("settings")}</p>
+              </Container>
+            </Nav.Link>
+            <Nav.Link href="/zendesk">
+              <Container>
+                <FaCommentDots />
+                <p>{t("support_center")}</p>
+              </Container>
+            </Nav.Link>
+            <Nav.Link href="https://tidebit.zendesk.com/hc/zh-tw/sections/115002703828-公告">
+              <Container>
+                <FaCommentDots />
+                <p>{t("announcement")}</p>
+              </Container>
+            </Nav.Link>
+            <Nav.Link href="/signout">
+              <Container>
+                <FaCommentDots />
+                <p>{t("logout")}</p>
+              </Container>
+            </Nav.Link>
+          </Nav>
+        </Container>
+      </Navbar.Collapse>
     </Navbar>
   );
 };

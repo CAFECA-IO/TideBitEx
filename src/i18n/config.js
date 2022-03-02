@@ -5,16 +5,19 @@ i18n.use(initReactI18next).init({
   fallbackLng: "en",
   lng: "en",
   resources: {
-    en: {
+    "en-US": {
       translations: require("./locales/en/translations.json"),
     },
     jp: {
       translations: require("./locales/jp/translations.json"),
     },
-    zh_HK: {
+    "zh-CN": {
+      translations: require("./locales/zh_CN/translations.json"),
+    },
+    "zh-HK": {
       translations: require("./locales/zh_HK/translations.json"),
     },
-    zh_TW: {
+    "zh-TW": {
       translations: require("./locales/zh_TW/translations.json"),
     },
   },
@@ -22,6 +25,6 @@ i18n.use(initReactI18next).init({
   defaultNS: "translations",
 });
 
-i18n.languages = ["en", "jp", "zh_HK", "zh_TW"];
+i18n.languages = ["en-US", "jp", "zh-CN", "zh-HK", "zh-TW"];
 
 export default i18n;
