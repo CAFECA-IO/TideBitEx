@@ -1,0 +1,29 @@
+.sidebar {
+  position: fixed;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  background-color: #1b1c1d;
+  width: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  &__item {
+    color: #fff;
+    border-bottom: 1px solid #555;
+    width: 100%;
+    text-align: center;
+    margin-top: 10px;
+  }
+  &__link + p {
+    margin-bottom: 10px;
+  }
+  &__link,
+  &__link:active,
+  &__link:hover {
+    color: #fff;
+  }
+  & > .header-dropdown {
+    margin-top: 16px;
+  }
+}
