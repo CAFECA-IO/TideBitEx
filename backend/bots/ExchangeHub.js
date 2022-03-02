@@ -137,16 +137,30 @@ class ExchangeHub extends Bot {
     const okexOrderRes = await this.okexConnector.router('postPlaceOrder', { memberId, params, query, body });
     /* !!! HIGH RISK (start) !!! */
     // 1. find and lock account
-    // 2. new order
-    // 3. add account_version
-    // 4. update account balance and locked
+    // 2. get orderData from body
+    // 3. calculate balance value, locked value
+    // 4. new order
+    // 5. add account_version
+    // 6. update account balance and locked
     if (okexOrderRes.success) {
       const t = await this.database.transaction();
-      const created_at = new Date().toISOString();
-      const updated_at = created_at;
       try {
-        const orderData = await this._getOrderData(body);
         const account = await this.database.getAccountByMemberIdCurrency(memberId, orderData.currencyId, { dbTransaction: t});
+        const amount = SafeMath.plus(account.balance, account.locked);
+
+        // orderData.locked: locked value
+        // orderData.balance: locked value * -1
+        // orderData.absBalance: absolute value of balance
+        const orderData = await this._getOrderData(body);
+
+        const created_at = new Date().toISOString();
+        const updated_at = created_at;
+        const newAccount = {
+          id: account.id,
+          balance: SafeMath.plus(account.balance, orderData.balance),
+          locked: SafeMath.plus(account.locked, orderData.locked),
+        };
+
         const order = await this.database.insertOrder(
           orderData.bid,
           orderData.ask,
@@ -155,12 +169,12 @@ class ExchangeHub extends Bot {
           orderData.volume,
           orderData.volume,
           orderData.state,
-          'DEFAULT',
+          'NULL',
           orderData.type,
           memberId,
           created_at,
           updated_at,
-          'DEFAULT',
+          'NULL',
           'Web',
           orderData.ordType,
           orderData.locked,
@@ -170,15 +184,14 @@ class ExchangeHub extends Bot {
           { dbTransaction: t }
         );
 
-        const balance = SafeMath.mult(orderData.locked, '-1');
         await this.database.insertAccountVersion(
           memberId,
           account.id,
           this.database.REASON.ORDER_SUBMIT,
-          balance,
+          orderData.absBalance,
           orderData.locked,
           '0',
-          SafeMath.plus(account.balance, account.locked),
+          amount,
           order[0],
           this.database.MODIFIABLE_TYPE.ORDER,
           created_at,
@@ -187,11 +200,6 @@ class ExchangeHub extends Bot {
           this.database.FUNC.LOCK_FUNDS,
           { dbTransaction: t }
         );
-        const newAccount = {
-          id: account.id,
-          balance: SafeMath.plus(account.balance, balance),
-          locked: SafeMath.plus(account.locked, orderData.locked),
-        };
         await this.database.updateAccount(newAccount, { dbTransaction: t })
         await t.commit();
       } catch (error) {
@@ -292,6 +300,9 @@ class ExchangeHub extends Bot {
     const bid = 34; // USDT
     const ask = 3;  // ETH
     const currency = -1;   // it doesn't in markets.yml
+    const locked = body.side === 'buy' ? SafeMath.mult(body.px, body.sz) : body.sz;
+    const balance = SafeMath.mult(locked, '-1');
+
     const EthUsdtData = {
       bid, 
       ask,
@@ -301,7 +312,9 @@ class ExchangeHub extends Bot {
       type: body.side === 'buy' ? this.database.TYPE.ORDER_BID : this.database.TYPE.ORDER_ASK,
       state: this.database.ORDER_STATE.WAIT,
       ordType: body.ordType,
-      locked: body.side === 'buy' ? SafeMath.mult(body.px, body.sz) : body.sz,
+      locked,
+      balance,
+      absBalance: locked,
       currencyId: body.side === 'buy' ? bid : ask,
     };
     return EthUsdtData;
