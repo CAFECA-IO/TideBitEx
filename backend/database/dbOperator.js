@@ -5,6 +5,39 @@ const mysql = require('./mysql');
 class DBOperator {
   database = null;
   _isInit = false;
+  REASON = {
+    STRIKE_FEE: 100,
+    STRIKE_ADD: 110,
+    STRIKE_SUB: 120,
+    STRIKE_UNLOCK: 130,
+    ORDER_SUBMIT: 600,
+    ORDER_CANCEL: 610,
+    ORDER_FULLFILLED: 620,
+  };
+  FUNC = {
+    UNLOCK_FUNDS: 1,
+    LOCK_FUNDS: 2,
+    PLUS_FUNDS: 3,
+    SUB_FUNDS: 4,
+    UNLOCK_AND_SUB_FUNDS: 5,
+  };
+  ORDER_STATE = {
+    CANCEL: 0,
+    WAIT: 100,
+    DONE: 200,
+  }
+  TYPE = {
+    ORDER_ASK: 'OrderAsk',
+    ORDER_BID: 'OrderBid',
+  };
+  ORD_TYPE = {
+    LIMIT: 'limit',
+    MARKET: 'market',
+  };
+  MODIFIABLE_TYPE = {
+    ORDER: 'Order',
+    TRADE: 'Trade',
+  }
 
   constructor() {
     return this;
@@ -25,13 +58,107 @@ class DBOperator {
     this.database = null;
   }
 
+  async transaction() {
+    return this.database.transaction();
+  }
+
   async getBalance(memberId) {
-    return this.database.getBalance(memberId)
+    return this.database.getBalance(memberId);
   }
 
   async getCurrency(currencyIds) {
     return this.database.getCurrency(currencyIds);
   }
+
+  async getAccountByMemberIdCurrency(memberId, currencyId, { dbTransaction }) {
+    return this.database.getAccountByMemberIdCurrency(memberId, currencyId, { dbTransaction });
+  }
+
+  /* !!! HIGH RISK (start) !!! */
+  async insertOrder(
+    bid,
+    ask,
+    currency,
+    price,
+    volume,
+    origin_volume,
+    state,
+    done_at,
+    type,
+    member_id,
+    created_at,
+    updated_at,
+    sn,
+    source,
+    ord_type,
+    locked,
+    origin_locked,
+    funds_received,
+    trades_count,
+    { dbTransaction }
+  ) {
+    return this.database.insertOrder(
+      bid,
+      ask,
+      currency,
+      price,
+      volume,
+      origin_volume,
+      state,
+      done_at,
+      type,
+      member_id,
+      created_at,
+      updated_at,
+      sn,
+      source,
+      ord_type,
+      locked,
+      origin_locked,
+      funds_received,
+      trades_count,
+      { dbTransaction }
+    );
+  }
+
+  async insertAccountVersion(
+    member_id,
+    accountId,
+    reason,
+    balance,
+    locked,
+    fee,
+    amount,
+    modifiable_id,
+    modifiable_type,
+    created_at,
+    updated_at,
+    currency,
+    fun,
+    { dbTransaction }
+  ) {
+    return this.database.insertAccountVersion(
+      member_id,
+      accountId,
+      reason,
+      balance,
+      locked,
+      fee,
+      amount,
+      modifiable_id,
+      modifiable_type,
+      created_at,
+      updated_at,
+      currency,
+      fun,
+      { dbTransaction }
+    );
+  }
+
+  async updateAccount(datas, { dbTransaction }) {
+    return this.database.updateAccount(datas, { dbTransaction });
+  }
+  /* !!! HIGH RISK (end) !!! */
 }
 
 module.exports = DBOperator;

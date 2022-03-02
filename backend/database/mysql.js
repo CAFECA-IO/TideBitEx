@@ -1,5 +1,4 @@
 const { Sequelize, DataTypes } = require('sequelize');
-
 class mysql {
   constructor() {
     return this;
@@ -30,7 +29,11 @@ class mysql {
     this.db.close();
   }
 
-  async getBalance(memberId) {
+  async transaction() {
+    return this.db.transaction();
+  }
+
+  async getBalance(memberId, options) {
     const query = 'SELECT * FROM `accounts` WHERE `accounts`.member_id = ?;';
     const values = [memberId];
     try {
@@ -65,6 +68,208 @@ class mysql {
       return [];
     }
   }
+
+  async getAccountByMemberIdCurrency(memberId, currencyId, { dbTransaction }) {
+    const query = 'SELECT * FROM `accounts` WHERE `accounts`.`member_id` = ? AND `accounts`.`currency` = ?;';
+    try {
+      this.logger.log('getAccountByMemberIdCurrency', query, `[${memberId}, ${currencyId}]`);
+      const [[account]] = await this.db.query(
+        {
+          query,
+          values: [memberId, currencyId]
+        },
+        {
+          transaction: dbTransaction,
+          lock: dbTransaction.LOCK.UPDATE,
+        }
+      );
+      return account;
+    } catch (error) {
+      this.logger.log(error);
+      if (dbTransaction) throw error;
+      return [];
+    }
+  }
+
+  /* !!! HIGH RISK (start) !!! */
+  async insertOrder(
+    bid,
+    ask,
+    currency,
+    price,
+    volume,
+    origin_volume,
+    state,
+    done_at,
+    type,
+    member_id,
+    created_at,
+    updated_at,
+    sn,
+    source,
+    ord_type,
+    locked,
+    origin_locked,
+    funds_received,
+    trades_count,
+    { dbTransaction }
+  ) {
+    const query = 'INSERT INTO `tidebitstaging`.`orders` ('
+      + '`id`, `bid`, `ask`, `currency`, `price`, `volume`, `origin_volume`, `state`,'
+      + ' `done_at`, `type`, `member_id`, `created_at`, `updated_at`, `sn`, `source`,'
+      + ' `ord_type`, `locked`, `origin_locked`, `funds_received`, `trades_count`)'
+      + ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);'
+
+    try {
+      this.logger.log(
+        'insertOrder',
+        'DEFAULT',
+        query,
+        bid,
+        ask,
+        currency,
+        price,
+        volume,
+        origin_volume,
+        state,
+        done_at,
+        type,
+        member_id,
+        created_at,
+        updated_at,
+        sn,
+        source,
+        ord_type,
+        locked,
+        origin_locked,
+        funds_received,
+        trades_count,
+      );
+      return this.db.query(
+        {
+          query,
+          values: [
+            'DEFAULT',
+            bid,
+            ask,
+            currency,
+            price,
+            volume,
+            origin_volume,
+            state,
+            done_at,
+            type,
+            member_id,
+            created_at,
+            updated_at,
+            sn,
+            source,
+            ord_type,
+            locked,
+            origin_locked,
+            funds_received,
+            trades_count,
+          ],
+        },
+        {
+          transaction: dbTransaction,
+        }
+      );
+    } catch (error) {
+      this.logger.error(error);
+      if (dbTransaction) throw error;
+    }
+  }
+
+  async insertAccountVersion(
+    member_id,
+    accountId,
+    reason,
+    balance,
+    locked,
+    fee,
+    amount,
+    modifiable_id,
+    modifiable_type,
+    created_at,
+    updated_at,
+    currency,
+    fun,
+    { dbTransaction }
+  ) {
+    const query = 'INSERT INTO `tidebitstaging`.`account_versions` (`id`, `member_id`, `account_id`, `reason`, `balance`, `locked`, `fee`, `amount`, `modifiable_id`, `modifiable_type`, `created_at`, `updated_at`, `currency`, `fun`)'
+      + ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);'
+    try {
+      this.logger.log(
+        'insertAccountVersion',
+        'DEFAULT',
+        query,
+        member_id,
+        accountId,
+        reason,
+        balance,
+        locked,
+        fee,
+        amount,
+        modifiable_id,
+        modifiable_type,
+        currency,
+        fun
+      );
+      await this.db.query(
+        {
+          query,
+          values: [
+            'DEFAULT',
+            member_id,
+            accountId,
+            reason,
+            balance,
+            locked,
+            fee,
+            amount,
+            modifiable_id,
+            modifiable_type,
+            created_at,
+            updated_at,
+            currency,
+            fun,
+          ],
+        },
+        {
+          transaction: dbTransaction,
+        }
+      );
+    } catch (error) {
+      this.logger.error(error);
+      if (dbTransaction) throw error;
+    }
+  }
+
+  async updateAccount(datas, { dbTransaction }) {
+    try {
+      // UPDATE `tidebitstaging`.`accounts` SET `balance` = 2.0000000000000000, `locked` = 1.0000000000000000 WHERE `id` = 52;
+      // UPDATE `tidebitstaging`.`accounts` SET `balance` = ?, `locked` = ? WHERE  `id` = ?; [ 1856038, '-2.3', '2.3' ]
+      const id = datas.id;
+      const where = '`id` = ' + id;
+      delete datas.id;
+      const set = Object.keys(datas).map((key) => `\`${key}\` = ${datas[key]}`);
+      let query = 'UPDATE `tidebitstaging`.`accounts` SET ' + set.join(', ') + ' WHERE ' + where + ';';
+      this.logger.log('updateAccount', query);
+      await this.db.query(
+        {
+          query
+        },
+        {
+          transaction: dbTransaction,
+        }
+      );
+    } catch (error) {
+      this.logger.error(error);
+      if (dbTransaction) throw error;
+    }
+  }
+  /* !!! HIGH RISK (end) !!! */
 }
 
 module.exports = mysql;

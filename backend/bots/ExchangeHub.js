@@ -134,7 +134,98 @@ class ExchangeHub extends Bot {
         code: Codes.MEMBER_ID_NOT_FOUND,
       });
     }
-    return this.okexConnector.router('postPlaceOrder', { memberId, params, query, body });
+    const okexOrderRes = await this.okexConnector.router('postPlaceOrder', { memberId, params, query, body });
+    /* !!! HIGH RISK (start) !!! */
+    // 1. find and lock account
+    // 2. get orderData from body
+    // 3. calculate balance value, locked value
+    // 4. new order
+    // 5. add account_version
+    // 6. update account balance and locked
+    if (okexOrderRes.success) {
+      const t = await this.database.transaction();
+      try {
+        const account = await this.database.getAccountByMemberIdCurrency(memberId, orderData.currencyId, { dbTransaction: t});
+
+        /*******************************************
+         * body.side: order is 'buy' or 'sell'
+         * orderData.price: body.px, price value
+         * orderData.volume: body.sz, volume value
+         * orderData.locked:
+         *   if body.side === 'buy', locked = body.px * body.sz
+         *   if body.side === 'sell', locked = body.sz
+         * 
+         * orderData.balance: locked value * -1
+         *******************************************/
+
+        const orderData = await this._getOrderData(body);
+        const price = orderData.price;
+        const volume = orderData.volume;
+        const locked = orderData.locked;
+        const balance = orderData.balance;
+
+        const created_at = new Date().toISOString();
+        const updated_at = created_at;
+        
+        const oriAccBal = account.balance;
+        const oriAccLoc = account.locked;
+        const newAccBal = SafeMath.plus(oriAccBal, balance);
+        const newAccLoc = SafeMath.plus(oriAccLoc, locked);
+        const amount = SafeMath.plus(newAccBal, newAccLoc);
+        const newAccount = {
+          id: account.id,
+          balance: newAccBal,
+          locked: newAccLoc,
+        };
+
+        const order = await this.database.insertOrder(
+          orderData.bid,
+          orderData.ask,
+          orderData.currency,
+          price,
+          volume,
+          volume,
+          this.database.ORDER_STATE.WAIT,
+          'NULL',
+          orderData.type,
+          memberId,
+          created_at,
+          updated_at,
+          'NULL',
+          'Web',
+          orderData.ordType,
+          locked,
+          locked,
+          '0',
+          0,
+          { dbTransaction: t }
+        );
+
+        await this.database.insertAccountVersion(
+          memberId,
+          account.id,
+          this.database.REASON.ORDER_SUBMIT,
+          balance,
+          locked,
+          '0',
+          amount,
+          order[0],
+          this.database.MODIFIABLE_TYPE.ORDER,
+          created_at,
+          updated_at,
+          account.currency,
+          this.database.FUNC.LOCK_FUNDS,
+          { dbTransaction: t }
+        );
+        await this.database.updateAccount(newAccount, { dbTransaction: t })
+        await t.commit();
+      } catch (error) {
+        this.logger.error(error);
+        await t.rollback();
+      }
+    }
+    /* !!! HIGH RISK (end) !!! */
+    return okexOrderRes;
   }
   async getOrderList ({ params, query, token }) {
     const memberId = await this.getMemberIdFromRedis(token);
@@ -218,6 +309,30 @@ class ExchangeHub extends Bot {
         }
       )
     });
+  }
+
+  async _getOrderData(body) {
+    // ++ TODO: get data by instId
+    // -- temp for demo
+    const bid = 34; // USDT
+    const ask = 3;  // ETH
+    const currency = -1;   // it doesn't in markets.yml
+    const locked = body.side === 'buy' ? SafeMath.mult(body.px, body.sz) : body.sz;
+    const balance = SafeMath.mult(locked, '-1');
+
+    const EthUsdtData = {
+      bid, 
+      ask,
+      currency,
+      price: body.px || 'NULL',
+      volume: body.sz,
+      type: body.side === 'buy' ? this.database.TYPE.ORDER_BID : this.database.TYPE.ORDER_ASK,
+      ordType: body.ordType,
+      locked,
+      balance,
+      currencyId: body.side === 'buy' ? bid : ask,
+    };
+    return EthUsdtData;
   }
 }
 
