@@ -167,13 +167,15 @@ class ExchangeHub extends Bot {
         const created_at = new Date().toISOString();
         const updated_at = created_at;
         
-        const amount = SafeMath.plus(account.balance, account.locked);
         const oriAccBal = account.balance;
         const oriAccLoc = account.locked;
+        const newAccBal = SafeMath.plus(oriAccBal, balance);
+        const newAccLoc = SafeMath.plus(oriAccLoc, locked);
+        const amount = SafeMath.plus(newAccBal, newAccLoc);
         const newAccount = {
           id: account.id,
-          balance: SafeMath.plus(oriAccBal, balance),
-          locked: SafeMath.plus(oriAccLoc, locked),
+          balance: newAccBal,
+          locked: newAccLoc,
         };
 
         const order = await this.database.insertOrder(
