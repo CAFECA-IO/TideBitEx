@@ -141,6 +141,7 @@ class ExchangeHub extends Bot {
     // 4. new order
     // 5. add account_version
     // 6. update account balance and locked
+    // 7. post okex placeOrder
     const t = await this.database.transaction();
     try {
       
