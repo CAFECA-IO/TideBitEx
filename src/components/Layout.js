@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect, useCallback } from "react";
 import Header from "./Header";
 import SideBar from "./SideBar";
 import { useTranslation } from "react-i18next";
+import BottomNavigator from "./BottomNavigator";
 
 const languages = {
   "en-US": "English",
@@ -61,6 +62,7 @@ const Layout = ({ children }) => {
           sidebarHandler={() => setActive((prev) => !prev)}
         />
         {children}
+        <BottomNavigator />
         <div className="layout--cover" onClick={() => setActive(false)}></div>
       </div>
     </div>

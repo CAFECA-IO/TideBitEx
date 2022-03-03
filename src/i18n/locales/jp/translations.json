@@ -46,5 +46,9 @@
   "high": "最高値",
   "low": "最安値",
   "trade_amount": "金額",
-  "trade_total": "合計"
+  "trade_total": "合計",
+  "navigator_chart": "チャート",
+  "navigator_market": "市場",
+  "navigator_trade": "トレード",
+  "navigator_assets": "資産"
 }
