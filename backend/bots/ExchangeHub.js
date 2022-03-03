@@ -134,7 +134,6 @@ class ExchangeHub extends Bot {
         code: Codes.MEMBER_ID_NOT_FOUND,
       });
     }
-    const okexOrderRes = await this.okexConnector.router('postPlaceOrder', { memberId, params, query, body });
     /* !!! HIGH RISK (start) !!! */
     // 1. find and lock account
     // 2. get orderData from body
@@ -142,91 +141,101 @@ class ExchangeHub extends Bot {
     // 4. new order
     // 5. add account_version
     // 6. update account balance and locked
-    if (okexOrderRes.success) {
-      const t = await this.database.transaction();
-      try {
-        const account = await this.database.getAccountByMemberIdCurrency(memberId, orderData.currencyId, { dbTransaction: t});
+    // 7. post okex placeOrder
+    const t = await this.database.transaction();
+    try {
+      
+      /*******************************************
+       * body.side: order is 'buy' or 'sell'
+       * orderData.price: body.px, price value
+       * orderData.volume: body.sz, volume value
+       * orderData.locked:
+       *   if body.side === 'buy', locked = body.px * body.sz
+       *   if body.side === 'sell', locked = body.sz
+       * 
+       * orderData.balance: locked value * -1
+       *******************************************/
+      
+      const orderData = await this._getOrderData(body);
+      const account = await this.database.getAccountByMemberIdCurrency(memberId, orderData.currencyId, { dbTransaction: t});
+      const price = orderData.price;
+      const volume = orderData.volume;
+      const locked = orderData.locked;
+      const balance = orderData.balance;
 
-        /*******************************************
-         * body.side: order is 'buy' or 'sell'
-         * orderData.price: body.px, price value
-         * orderData.volume: body.sz, volume value
-         * orderData.locked:
-         *   if body.side === 'buy', locked = body.px * body.sz
-         *   if body.side === 'sell', locked = body.sz
-         * 
-         * orderData.balance: locked value * -1
-         *******************************************/
+      const created_at = new Date().toISOString();
+      const updated_at = created_at;
+      
+      const oriAccBal = account.balance;
+      const oriAccLoc = account.locked;
+      const newAccBal = SafeMath.plus(oriAccBal, balance);
+      const newAccLoc = SafeMath.plus(oriAccLoc, locked);
+      const amount = SafeMath.plus(newAccBal, newAccLoc);
+      const newAccount = {
+        id: account.id,
+        balance: newAccBal,
+        locked: newAccLoc,
+      };
 
-        const orderData = await this._getOrderData(body);
-        const price = orderData.price;
-        const volume = orderData.volume;
-        const locked = orderData.locked;
-        const balance = orderData.balance;
+      const order = await this.database.insertOrder(
+        orderData.bid,
+        orderData.ask,
+        orderData.currency,
+        price,
+        volume,
+        volume,
+        this.database.ORDER_STATE.WAIT,
+        'NULL',
+        orderData.type,
+        memberId,
+        created_at,
+        updated_at,
+        'NULL',
+        'Web',
+        orderData.ordType,
+        locked,
+        locked,
+        '0',
+        0,
+        { dbTransaction: t }
+      );
 
-        const created_at = new Date().toISOString();
-        const updated_at = created_at;
-        
-        const oriAccBal = account.balance;
-        const oriAccLoc = account.locked;
-        const newAccBal = SafeMath.plus(oriAccBal, balance);
-        const newAccLoc = SafeMath.plus(oriAccLoc, locked);
-        const amount = SafeMath.plus(newAccBal, newAccLoc);
-        const newAccount = {
-          id: account.id,
-          balance: newAccBal,
-          locked: newAccLoc,
-        };
+      await this.database.insertAccountVersion(
+        memberId,
+        account.id,
+        this.database.REASON.ORDER_SUBMIT,
+        balance,
+        locked,
+        '0',
+        amount,
+        order[0],
+        this.database.MODIFIABLE_TYPE.ORDER,
+        created_at,
+        updated_at,
+        account.currency,
+        this.database.FUNC.LOCK_FUNDS,
+        { dbTransaction: t }
+      );
+      await this.database.updateAccount(newAccount, { dbTransaction: t });
 
-        const order = await this.database.insertOrder(
-          orderData.bid,
-          orderData.ask,
-          orderData.currency,
-          price,
-          volume,
-          volume,
-          this.database.ORDER_STATE.WAIT,
-          'NULL',
-          orderData.type,
-          memberId,
-          created_at,
-          updated_at,
-          'NULL',
-          'Web',
-          orderData.ordType,
-          locked,
-          locked,
-          '0',
-          0,
-          { dbTransaction: t }
-        );
-
-        await this.database.insertAccountVersion(
-          memberId,
-          account.id,
-          this.database.REASON.ORDER_SUBMIT,
-          balance,
-          locked,
-          '0',
-          amount,
-          order[0],
-          this.database.MODIFIABLE_TYPE.ORDER,
-          created_at,
-          updated_at,
-          account.currency,
-          this.database.FUNC.LOCK_FUNDS,
-          { dbTransaction: t }
-        );
-        await this.database.updateAccount(newAccount, { dbTransaction: t })
-        await t.commit();
-      } catch (error) {
-        this.logger.error(error);
+      const okexOrderRes = await this.okexConnector.router('postPlaceOrder', { memberId, orderId: order[0], params, query, body });
+      if (!okexOrderRes.success) {
         await t.rollback();
+        return okexOrderRes;
       }
+      await t.commit();
+      return okexOrderRes;
+    } catch (error) {
+      this.logger.error(error);
+      await t.rollback();
+      return new ResponseFormat({
+        message: error.message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
     }
     /* !!! HIGH RISK (end) !!! */
-    return okexOrderRes;
   }
+
   async getOrderList ({ params, query, token }) {
     const memberId = await this.getMemberIdFromRedis(token);
     if (memberId === -1) {

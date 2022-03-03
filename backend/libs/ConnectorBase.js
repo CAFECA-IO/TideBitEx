@@ -14,7 +14,7 @@ class ConnectorBase {
     return this;
   };
 
-  async router(functionName, { header, params, query, body, memberId }) {
+  async router(functionName, { header, params, query, body, memberId, orderId }) {
     if (!this[functionName]) {
       return new ResponseFormat({
         message: 'API_NOT_SUPPORTED',
@@ -22,7 +22,7 @@ class ConnectorBase {
       })
     }
 
-    return this[functionName]({ header, params, query, body, memberId });
+    return this[functionName]({ header, params, query, body, memberId, orderId });
   }
 
   async _tideBitExEventListener() {

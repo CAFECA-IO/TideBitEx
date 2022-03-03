@@ -248,8 +248,6 @@ class mysql {
 
   async updateAccount(datas, { dbTransaction }) {
     try {
-      // UPDATE `tidebitstaging`.`accounts` SET `balance` = 2.0000000000000000, `locked` = 1.0000000000000000 WHERE `id` = 52;
-      // UPDATE `tidebitstaging`.`accounts` SET `balance` = ?, `locked` = ? WHERE  `id` = ?; [ 1856038, '-2.3', '2.3' ]
       const id = datas.id;
       const where = '`id` = ' + id;
       delete datas.id;
