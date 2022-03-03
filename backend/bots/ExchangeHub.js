@@ -279,14 +279,13 @@ class ExchangeHub extends Bot {
     // 5. get balance and locked value from order
     // 6. add account_version
     // 7. update account balance and locked
+    // 8. post okex cancel order
     const t = await this.database.transaction();
     try {
       // get orderId from body.clOrdId
       const orderId = Utils.parseClOrdId(body.clOrdId);
       const order = await this.database.getOrder(orderId, { dbTransaction: t });
       if (order.state !== this.database.ORDER_STATE.WAIT) {
-        console.log('!!!!order', order)
-        console.log('!!!!this.database.ORDER_STATE.WAIT', this.database.ORDER_STATE.WAIT)
         await t.rollback();
         return new ResponseFormat({
           code: Codes.ORDER_HAS_BEEN_CLOSED,
@@ -299,7 +298,7 @@ class ExchangeHub extends Bot {
       /*******************************************
        * body.clOrdId: custom orderId for okex
        * locked: value from order.locked, used for unlock balance, negative in account_version
-       * balance: locked * -1
+       * balance: order.locked
        *******************************************/
       const newOrder = {
         id: orderId,
