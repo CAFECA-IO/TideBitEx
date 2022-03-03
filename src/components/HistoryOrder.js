@@ -17,7 +17,7 @@ const OrderTile = (props) => {
       <li>{props.order.sz}</li>
       <li>{SafeMath.mult(props.order.px, props.order.sz)}</li>
       {/* <li>{props.order.fillSz}</li> */}
-      <li>{SafeMath.minus(props.order.sz, props.order.fillSz)}</li>
+      {/* <li>{SafeMath.minus(props.order.sz, props.order.fillSz)}</li> */}
       {props.type === "pending" && (
         <li onClick={(_) => props.cancelOrder(props.order)}>
           <FaTrashAlt />
@@ -109,7 +109,7 @@ const HistoryOrder = (props) => {
               {!!storeCtx.closeOrders?.length &&
                 storeCtx.closeOrders.map((order) => (
                   <OrderTile order={order} />
-                ))}{" "}
+                ))}
             </ul>
           </Tab>
           {/* <Tab eventKey="order-history" title="Order history">

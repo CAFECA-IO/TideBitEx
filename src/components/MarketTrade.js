@@ -283,13 +283,10 @@ const TradePannel = (props) => {
   // -- TEST
   useEffect(() => {
     if (
-      (storeCtx.selectedTicker && props.orderType === "market") ||
       (storeCtx.selectedTicker && !selectedBuyPct && !selectedSellPct) ||
       (storeCtx.selectedTicker &&
         storeCtx.selectedTicker.instId !== selectedTicker?.instId)
     ) {
-      // setBuyPx(storeCtx.selectedTicker.askPx);
-      // setSellPx(storeCtx.selectedTicker.bidPx);
       setSelectedTicker(storeCtx.selectedTicker);
       setBuyPx(storeCtx.selectedTicker.last);
       setSellPx(storeCtx.selectedTicker.last);
@@ -299,6 +296,10 @@ const TradePannel = (props) => {
         storeCtx.selectedTicker.last
       );
       sellPctHandler(storeCtx.selectedTicker, selectedSellPct ?? "0.25");
+    }
+    if (storeCtx.selectedTicker && props.orderType === "market") {
+      setBuyPx(storeCtx.selectedTicker.last);
+      setSellPx(storeCtx.selectedTicker.last);
     }
     return () => {};
   }, [

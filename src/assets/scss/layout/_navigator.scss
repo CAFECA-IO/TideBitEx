@@ -15,6 +15,9 @@
     display: flex;
     justify-content: space-around;
   }
+  &__item {
+    text-align: center;
+  }
   &__item.active {
     color: #1cb2b0;
   }

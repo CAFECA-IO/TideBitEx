@@ -20,11 +20,14 @@ const Layout = ({ children }) => {
     async (key) => {
       console.log(`1 key`, key);
       if (!key) {
-        key = document.cookie
-          .split(";")
-          .filter((v) => /lang/.test(v))
-          .pop()
-          ?.split("=")[1];
+        key =
+          document.cookie
+            .split(";")
+            .filter((v) => /lang/.test(v))
+            .pop()
+            ?.split("=")[1] ||
+          navigator.language ||
+          Object.keys(languages)[0];
         // const lang = await window.cookieStore.get("lang");
         // key = lang.value;
         // console.log(`lang`, lang);
