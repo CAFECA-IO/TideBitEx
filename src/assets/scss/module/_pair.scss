@@ -53,7 +53,7 @@
     }
   }
 }
-// iPad Mini 
+// iPad Mini
 @media only screen and (max-width: 703px) {
   // If [device width] is less than or equal to 600px, then do
   .pair {
@@ -68,7 +68,9 @@
 @media only screen and (max-width: 414px) {
   // If [device width] is less than or equal to 600px, then do
   .pair {
-    & > &__details:nth-child(5) {
+    & > &__details:nth-child(5),
+    & > &__details:nth-child(6),
+    & > &__details:nth-child(7) {
       display: none;
     }
   }

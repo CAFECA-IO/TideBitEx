@@ -79,3 +79,20 @@
     padding: 8px 5px;
   }
 }
+@media only screen and (max-width: 414px) {
+  .market-order {
+    border: none;
+
+    &__header {
+      display: none;
+    }
+    &__title{
+      border-bottom: 1px solid #333;
+      background-color: #4597e6;
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 8px 5px;
+    }
+  }
+}

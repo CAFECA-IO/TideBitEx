@@ -28,8 +28,18 @@ const SelectedPair = (props) => {
         >
           {formateDecimal(storeCtx.selectedTicker?.last, 8) || "--"}
         </div>
-        <div className="subPrice">
-          ${formateDecimal(storeCtx.selectedTicker?.last, 8) || "--"}
+
+        {/* ${formateDecimal(storeCtx.selectedTicker?.last, 8) || "--"} */}
+        <div
+          className={`subPrice ${
+            SafeMath.gte(storeCtx.selectedTicker?.change, "0") ? "green" : "red"
+          }`}
+        >
+          {storeCtx.selectedTicker
+            ? SafeMath.gte(storeCtx.selectedTicker?.change, "0")
+              ? `+${formateDecimal(storeCtx.selectedTicker.changePct, 3)}%`
+              : `${formateDecimal(storeCtx.selectedTicker.changePct, 3)}%`
+            : "--"}
         </div>
       </div>
       <div className="pair__details">
@@ -81,7 +91,9 @@ const SelectedPair = (props) => {
         </div>
       </div>
       <div className="pair__details">
-        <div className="tickerItemLabel">{`${t("24_volume_quote")}(${storeCtx.selectedTicker?.quoteCcy || "--"})`}</div>
+        <div className="tickerItemLabel">{`${t("24_volume_quote")}(${
+          storeCtx.selectedTicker?.quoteCcy || "--"
+        })`}</div>
         <div className="tickerPriceText">
           {!storeCtx.selectedTicker
             ? "--"

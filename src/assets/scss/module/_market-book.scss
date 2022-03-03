@@ -78,25 +78,36 @@
 @media only screen and (max-width: 414px) {
   // If [device width] is less than or equal to 600px, then do
   .order-book {
-    flex-direction: column;
-    &__bids > &__header,
-    &__bids > &__panel > &__tile {
-      text-align: left;
+    .tab-content & {
+      border: none;
     }
-    &__bids &__tile--cover {
-      left: 0;
+    .tab-content &__table {
+      height: calc(50vh - 59px);
     }
-    &__bids > &__panel > &__tile > *:nth-child(1) {
-      color: #00ce7d;
-      font-weight: 500;
+    &__table {
+      height: 100%;
     }
-    &__bids > &__panel > &__tile > *:nth-child(3) {
-      color: #18214d;
-      font-weight: 500;
-    }
-    &__asks > &__panel &__tile--cover {
-      right: 0;
-      left: auto;
-    }
+
+    // font-size: 10px;
+    // flex-direction: column;
+    // &__bids > &__header,
+    // &__bids > &__panel > &__tile {
+    //   text-align: left;
+    // }
+    // &__bids &__tile--cover {
+    //   left: 0;
+    // }
+    // &__bids > &__panel > &__tile > *:nth-child(1) {
+    //   color: #00ce7d;
+    //   font-weight: 500;
+    // }
+    // &__bids > &__panel > &__tile > *:nth-child(3) {
+    //   color: #18214d;
+    //   font-weight: 500;
+    // }
+    // &__asks > &__panel &__tile--cover {
+    //   right: 0;
+    //   left: auto;
+    // }
   }
 }

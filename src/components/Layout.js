@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect, useCallback } from "react";
 import Header from "./Header";
 import SideBar from "./SideBar";
 import { useTranslation } from "react-i18next";
+import BottomNavigator from "./BottomNavigator";
 
 const languages = {
   "en-US": "English",
@@ -19,11 +20,14 @@ const Layout = ({ children }) => {
     async (key) => {
       console.log(`1 key`, key);
       if (!key) {
-        key = document.cookie
-          .split(";")
-          .filter((v) => /lang/.test(v))
-          .pop()
-          ?.split("=")[1];
+        key =
+          document.cookie
+            .split(";")
+            .filter((v) => /lang/.test(v))
+            .pop()
+            ?.split("=")[1] ||
+          navigator.language ||
+          Object.keys(languages)[0];
         // const lang = await window.cookieStore.get("lang");
         // key = lang.value;
         // console.log(`lang`, lang);
@@ -61,6 +65,7 @@ const Layout = ({ children }) => {
           sidebarHandler={() => setActive((prev) => !prev)}
         />
         {children}
+        <BottomNavigator />
         <div className="layout--cover" onClick={() => setActive(false)}></div>
       </div>
     </div>

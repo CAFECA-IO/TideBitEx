@@ -17,7 +17,7 @@ const OrderTile = (props) => {
       <li>{props.order.sz}</li>
       <li>{SafeMath.mult(props.order.px, props.order.sz)}</li>
       {/* <li>{props.order.fillSz}</li> */}
-      <li>{SafeMath.minus(props.order.sz, props.order.fillSz)}</li>
+      {/* <li>{SafeMath.minus(props.order.sz, props.order.fillSz)}</li> */}
       {props.type === "pending" && (
         <li onClick={(_) => props.cancelOrder(props.order)}>
           <FaTrashAlt />
@@ -55,10 +55,10 @@ const HistoryOrder = (props) => {
   return (
     <>
       <div className="market-order">
-        <div className="market-order__header">My Orders</div>
+        <div className="market-order__header">{t("my_orders")}</div>
         <Tabs defaultActiveKey="open-orders">
           <Tab eventKey="open-orders" title={t("open_orders")}>
-            <ul className="d-flex justify-content-between market-order-item">
+            <ul className="d-flex justify-content-between market-order-item market-order__title">
               {/* <li>Time</li> */}
               {/* <li>All pairs</li>
               <li>All Types</li> */}
@@ -88,7 +88,7 @@ const HistoryOrder = (props) => {
             </ul>
           </Tab>
           <Tab eventKey="closed-orders" title={t("close_orders")}>
-            <ul className="d-flex justify-content-between market-order-item">
+            <ul className="d-flex justify-content-between market-order-item market-order__title">
               {/* <li>Time</li> */}
               {/* <li>All pairs</li>
               <li>All Types</li>
@@ -109,7 +109,7 @@ const HistoryOrder = (props) => {
               {!!storeCtx.closeOrders?.length &&
                 storeCtx.closeOrders.map((order) => (
                   <OrderTile order={order} />
-                ))}{" "}
+                ))}
             </ul>
           </Tab>
           {/* <Tab eventKey="order-history" title="Order history">
@@ -136,7 +136,7 @@ const HistoryOrder = (props) => {
               ))}
           </Tab> */}
           <Tab eventKey="balance" title={t("balance")}>
-            <ul className="d-flex justify-content-between market-order-item">
+            <ul className="d-flex justify-content-between market-order-item market-order__title">
               {/* <li>Update time</li> */}
               <li>{t("currency")}</li>
               {/* <li>Currency Equity</li>

@@ -46,5 +46,9 @@
   "high": "最高價",
   "low": "最低價",
   "trade_amount": "數量",
-  "trade_total": "總值"
+  "trade_total": "總值",
+  "navigator_chart": "圖表",
+  "navigator_market": "市場",
+  "navigator_trade": "交易",
+  "navigator_assets": "資產"
 }

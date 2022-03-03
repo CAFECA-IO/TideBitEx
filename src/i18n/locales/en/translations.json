@@ -46,5 +46,9 @@
   "high": "High",
   "low": "Low",
   "trade_amount": "Amount",
-  "trade_total": "Total"
+  "trade_total": "Total",
+  "navigator_chart": "Chart",
+  "navigator_market": "Market",
+  "navigator_trade": "Trade",
+  "navigator_assets": "Assets"
 }

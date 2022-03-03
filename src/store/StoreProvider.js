@@ -28,6 +28,7 @@ const StoreProvider = (props) => {
   const [balances, setBalances] = useState([]);
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [selectedTicker, setSelectedTicker] = useState(null);
+  const [activePage, setActivePage] = useState("market");
   let tickerTimestamp = 0,
     tradeTimestamp = 0,
     bookTimestamp = 0,
@@ -102,6 +103,7 @@ const StoreProvider = (props) => {
       console.log(`SelectedTicker`, ticker);
       const _ticker = middleman.updateSelectedTicker(ticker);
       setSelectedTicker(_ticker);
+      document.title = `${_ticker.last} ${_ticker.pair}`;
       if (ticker.instId !== selectedTicker?.instId || !selectedTicker) {
         history.push({
           pathname: `/markets/${ticker.instId.replace("-", "").toLowerCase()}`,
@@ -204,7 +206,7 @@ const StoreProvider = (props) => {
         console.log(`postOrder result`, result);
       } catch (error) {
         console.log(`postOrder error`, error);
-        enqueueSnackbar(error?.message|| "Some went wrong", {
+        enqueueSnackbar(error?.message || "Some went wrong", {
           variant: "error",
         });
       }
@@ -230,6 +232,10 @@ const StoreProvider = (props) => {
     },
     [enqueueSnackbar, getBalances, getPendingOrders, middleman]
   );
+
+  const activePageHandler = (page) => {
+    setActivePage(page);
+  };
 
   const sync = useCallback(
     async (isInit = false) => {
@@ -257,7 +263,10 @@ const StoreProvider = (props) => {
               const { updateTicker, updateTickers, updateIndexes } =
                 middleman.updateTickers(metaData.data);
               _tickerTimestamp = new Date().getTime();
-              if (!!updateTicker) setSelectedTicker(updateTicker);
+              if (!!updateTicker) {
+                setSelectedTicker(updateTicker);
+                document.title = `${updateTicker.last} ${updateTicker.pair}`;
+              }
               if (_tickerTimestamp - +tickerTimestamp > 1000) {
                 tickerTimestamp = _tickerTimestamp;
                 setTickers(updateTickers);
@@ -323,6 +332,7 @@ const StoreProvider = (props) => {
         balances,
         selectedTicker,
         updateTickerIndexs,
+        activePage,
         setInit,
         findTicker,
         selectTickerHandler,
@@ -336,6 +346,7 @@ const StoreProvider = (props) => {
         getBalances,
         postOrder,
         cancelOrder,
+        activePageHandler,
       }}
     >
       {props.children}

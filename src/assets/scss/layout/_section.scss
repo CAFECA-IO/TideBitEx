@@ -44,6 +44,7 @@
 @media only screen and (max-width: 820px) {
   // If [device width] is less than or equal to 600px, then do
   .section {
+    flex: auto;
     &__container {
       flex: 1;
       flex-direction: column;
@@ -60,7 +61,14 @@
 @media only screen and (max-width: 414px) {
   // If [device width] is less than or equal to 600px, then do
   .section {
+    gap: 8px;
+    height: calc(100% - 94px);
+    flex: none;
     &__container {
+      border: 1px solid #333;
+    }
+    &__container {
+      gap: 0;
       &--right {
         flex-direction: column;
       }
