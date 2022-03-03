@@ -102,6 +102,7 @@ const StoreProvider = (props) => {
       console.log(`SelectedTicker`, ticker);
       const _ticker = middleman.updateSelectedTicker(ticker);
       setSelectedTicker(_ticker);
+      document.title = `${_ticker.last} ${_ticker.pair}`;
       if (ticker.instId !== selectedTicker?.instId || !selectedTicker) {
         history.push({
           pathname: `/markets/${ticker.instId.replace("-", "").toLowerCase()}`,
@@ -204,7 +205,7 @@ const StoreProvider = (props) => {
         console.log(`postOrder result`, result);
       } catch (error) {
         console.log(`postOrder error`, error);
-        enqueueSnackbar(error?.message|| "Some went wrong", {
+        enqueueSnackbar(error?.message || "Some went wrong", {
           variant: "error",
         });
       }
@@ -257,7 +258,10 @@ const StoreProvider = (props) => {
               const { updateTicker, updateTickers, updateIndexes } =
                 middleman.updateTickers(metaData.data);
               _tickerTimestamp = new Date().getTime();
-              if (!!updateTicker) setSelectedTicker(updateTicker);
+              if (!!updateTicker) {
+                setSelectedTicker(updateTicker);
+                document.title = `${updateTicker.last} ${updateTicker.pair}`;
+              }
               if (_tickerTimestamp - +tickerTimestamp > 1000) {
                 tickerTimestamp = _tickerTimestamp;
                 setTickers(updateTickers);

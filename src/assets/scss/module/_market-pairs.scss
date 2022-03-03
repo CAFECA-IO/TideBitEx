@@ -107,6 +107,14 @@
   // If [device width] is greater than or equal to 600px,
   .market-pairs {
     width: calc(100vw - 2px);
+    & .header > *:nth-child(4),
+    & .header > *:nth-child(5),
+    & .header > *:nth-child(6),
+    & .market-tile > *:nth-child(4),
+    & .market-tile > *:nth-child(5),
+    & .market-tile > *:nth-child(6) {
+      display: none;
+    }
   }
 }
 // ipad air & ipad mini

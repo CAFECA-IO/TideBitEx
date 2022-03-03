@@ -8,6 +8,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow: scroll;
   &__item {
     color: #fff;
     border-bottom: 1px solid #555;
@@ -15,12 +16,23 @@
     text-align: center;
     margin-top: 10px;
   }
-  &__link + p {
+  &__link > p {
     margin-bottom: 10px;
   }
   &__link,
   &__link:active,
   &__link:hover {
     color: #fff;
+  }
+}
+
+@media only screen and (max-height: 745px) {
+  .sidebar {
+    &__item {
+      margin-top: 5px;
+    }
+    &__link > p {
+      margin-bottom: 5px;
+    }
   }
 }
