@@ -145,8 +145,7 @@ class ExchangeHub extends Bot {
     if (okexOrderRes.success) {
       const t = await this.database.transaction();
       try {
-        const account = await this.database.getAccountByMemberIdCurrency(memberId, orderData.currencyId, { dbTransaction: t});
-
+        
         /*******************************************
          * body.side: order is 'buy' or 'sell'
          * orderData.price: body.px, price value
@@ -157,8 +156,9 @@ class ExchangeHub extends Bot {
          * 
          * orderData.balance: locked value * -1
          *******************************************/
-
+        
         const orderData = await this._getOrderData(body);
+        const account = await this.database.getAccountByMemberIdCurrency(memberId, orderData.currencyId, { dbTransaction: t});
         const price = orderData.price;
         const volume = orderData.volume;
         const locked = orderData.locked;
