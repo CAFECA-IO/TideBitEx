@@ -15,14 +15,14 @@
     display: flex;
     justify-content: space-around;
   }
-  &__item {
-  }
   &__item.active {
     color: #1cb2b0;
   }
   &__item.active > svg > g {
     stroke: #1cb2b0;
-    stroke-width: 1.4px;
+  }
+  &__item.active:not(:nth-child(2)) > svg path:last-child {
+    fill: #1cb2b0;
   }
 }
 

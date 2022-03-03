@@ -78,7 +78,17 @@
 @media only screen and (max-width: 414px) {
   // If [device width] is less than or equal to 600px, then do
   .order-book {
-    font-size: 10px;
+    .tab-content & {
+      border: none;
+    }
+    .tab-content &__table {
+      height: calc(50vh - 59px);
+    }
+    &__table {
+      height: 100%;
+    }
+
+    // font-size: 10px;
     // flex-direction: column;
     // &__bids > &__header,
     // &__bids > &__panel > &__tile {

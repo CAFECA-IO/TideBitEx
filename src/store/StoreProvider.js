@@ -28,6 +28,7 @@ const StoreProvider = (props) => {
   const [balances, setBalances] = useState([]);
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [selectedTicker, setSelectedTicker] = useState(null);
+  const [activePage, setActivePage] = useState("market");
   let tickerTimestamp = 0,
     tradeTimestamp = 0,
     bookTimestamp = 0,
@@ -232,6 +233,10 @@ const StoreProvider = (props) => {
     [enqueueSnackbar, getBalances, getPendingOrders, middleman]
   );
 
+  const activePageHandler = (page) => {
+    setActivePage(page);
+  };
+
   const sync = useCallback(
     async (isInit = false) => {
       console.log("useCallback 只用一遍");
@@ -327,6 +332,7 @@ const StoreProvider = (props) => {
         balances,
         selectedTicker,
         updateTickerIndexs,
+        activePage,
         setInit,
         findTicker,
         selectTickerHandler,
@@ -340,6 +346,7 @@ const StoreProvider = (props) => {
         getBalances,
         postOrder,
         cancelOrder,
+        activePageHandler,
       }}
     >
       {props.children}

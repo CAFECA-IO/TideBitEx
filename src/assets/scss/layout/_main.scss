@@ -12,5 +12,6 @@ main.main {
 @media only screen and (max-width: 414px) {
   main.main {
     padding: 0;
+    flex: auto;
   }
 }

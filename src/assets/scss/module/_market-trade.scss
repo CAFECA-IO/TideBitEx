@@ -163,13 +163,18 @@
 @media only screen and (max-width: 414px) {
   // If [device width] is less than or equal to 600px, then do
   .market-trade {
+    border: none;
+    
+    &__header {
+      display: none;
+    }
     &__panel {
       flex-direction: column;
-      gap: 2px;
+      // gap: 2px;
     }
-    &__form:last-child {
-      border-left: none;
-      border-top: 1px solid #e0e3eb;
-    }
+    // &__form:last-child {
+    //   border-left: none;
+    //   border-top: 1px solid #e0e3eb;
+    // }
   }
 }

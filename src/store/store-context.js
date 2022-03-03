@@ -14,6 +14,7 @@ const StoreContext = React.createContext({
   closeOrders: [],
   orderHistories: [],
   balances: [],
+  activePage: null,
   setInit: (init) => {},
   /**
    * @typedef {Object} Ticker
@@ -218,6 +219,7 @@ const StoreContext = React.createContext({
    * @returns {Promise<Object>}
    */
   cancelOrder: async (order) => {},
+  activePageHandler:()=>{}
 });
 
 export default StoreContext;

@@ -15,7 +15,8 @@
     overflow-y: scroll;
     overflow-x: hidden;
     pointer-events: stroke;
-  }  &--pusher {
+  }
+  &--pusher {
     transition: transform 0.5s ease, -webkit-transform 0.5s ease;
     position: absolute;
     top: 0;
@@ -36,5 +37,16 @@
     height: 100%;
     background-color: rgba(0, 0, 0, 0.4);
     z-index: 10;
+  }
+}
+
+@media only screen and (max-width: 414px) {
+  // If [device width] is less than or equal to 600px, then do
+  .layout {
+    &--pusher {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
   }
 }
