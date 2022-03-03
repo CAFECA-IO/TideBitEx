@@ -91,6 +91,28 @@ class mysql {
     }
   }
 
+  async getOrder(orderId, { dbTransaction }) {
+    const query = 'SELECT * FROM `orders` WHERE `orders`.`id` = ?;';
+    try {
+      this.logger.log('getOrder', query, `[${orderId}]`);
+      const [[order]] = await this.db.query(
+        {
+          query,
+          values: [orderId]
+        },
+        {
+          transaction: dbTransaction,
+          lock: dbTransaction.LOCK.UPDATE,
+        }
+      );
+      return order;
+    } catch (error) {
+      this.logger.log(error);
+      if (dbTransaction) throw error;
+      return [];
+    }
+  }
+
   /* !!! HIGH RISK (start) !!! */
   async insertOrder(
     bid,
@@ -260,6 +282,29 @@ class mysql {
         },
         {
           transaction: dbTransaction,
+        }
+      );
+    } catch (error) {
+      this.logger.error(error);
+      if (dbTransaction) throw error;
+    }
+  }
+
+  async updateOrder(datas, { dbTransaction }) {
+    try {
+      const id = datas.id;
+      const where = '`id` = ' + id;
+      delete datas.id;
+      const set = Object.keys(datas).map((key) => `\`${key}\` = ${datas[key]}`);
+      let query = 'UPDATE `tidebitstaging`.`orders` SET ' + set.join(', ') + ' WHERE ' + where + ';';
+      this.logger.log('updateOrder', query);
+      await this.db.query(
+        {
+          query
+        },
+        {
+          transaction: dbTransaction,
+          lock: dbTransaction.LOCK.UPDATE,
         }
       );
     } catch (error) {

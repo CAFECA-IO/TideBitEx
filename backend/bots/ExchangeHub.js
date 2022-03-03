@@ -156,7 +156,7 @@ class ExchangeHub extends Bot {
        * orderData.balance: locked value * -1
        *******************************************/
       
-      const orderData = await this._getOrderData(body);
+      const orderData = await this._getPlaceOrderData(body);
       const account = await this.database.getAccountByMemberIdCurrency(memberId, orderData.currencyId, { dbTransaction: t});
       const price = orderData.price;
       const volume = orderData.volume;
@@ -185,12 +185,12 @@ class ExchangeHub extends Bot {
         volume,
         volume,
         this.database.ORDER_STATE.WAIT,
-        'NULL',
+        null,
         orderData.type,
         memberId,
         created_at,
         updated_at,
-        'NULL',
+        null,
         'Web',
         orderData.ordType,
         locked,
@@ -268,8 +268,96 @@ class ExchangeHub extends Bot {
     }
     return res;
   }
-  async postCancelOrder ({ params, query, body }) {
-    return this.okexConnector.router('postCancelOrder', { params, query, body });
+  async postCancelOrder ({ params, query, body, token }) {
+    const memberId = await this.getMemberIdFromRedis(token);
+
+    /* !!! HIGH RISK (start) !!! */
+    // 1. get orderId from body
+    // 2. get order data from table
+    // 3. find and lock account
+    // 4. update order state
+    // 5. get balance and locked value from order
+    // 6. add account_version
+    // 7. update account balance and locked
+    // 8. post okex cancel order
+    const t = await this.database.transaction();
+    try {
+      // get orderId from body.clOrdId
+      const orderId = Utils.parseClOrdId(body.clOrdId);
+      const order = await this.database.getOrder(orderId, { dbTransaction: t });
+      if (order.state !== this.database.ORDER_STATE.WAIT) {
+        await t.rollback();
+        return new ResponseFormat({
+          code: Codes.ORDER_HAS_BEEN_CLOSED,
+          message: 'order has been close',
+        })
+      }
+      const currencyId = order.type === this.database.TYPE.ORDER_ASK ? order.ask : order.bid;
+      const account = await this.database.getAccountByMemberIdCurrency(memberId, currencyId, { dbTransaction: t});
+
+      /*******************************************
+       * body.clOrdId: custom orderId for okex
+       * locked: value from order.locked, used for unlock balance, negative in account_version
+       * balance: order.locked
+       *******************************************/
+      const newOrder = {
+        id: orderId,
+        state: this.database.ORDER_STATE.CANCEL,
+      }
+      const locked = SafeMath.mult(order.locked, '-1');
+      const balance = order.locked;
+
+      const created_at = new Date().toISOString();
+      const updated_at = created_at;
+      
+      const oriAccBal = account.balance;
+      const oriAccLoc = account.locked;
+      const newAccBal = SafeMath.plus(oriAccBal, balance);
+      const newAccLoc = SafeMath.plus(oriAccLoc, locked);
+      const amount = SafeMath.plus(newAccBal, newAccLoc);
+      const newAccount = {
+        id: account.id,
+        balance: newAccBal,
+        locked: newAccLoc,
+      };
+
+      await this.database.updateOrder(newOrder, { dbTransaction: t });
+
+      await this.database.insertAccountVersion(
+        memberId,
+        account.id,
+        this.database.REASON.ORDER_CANCEL,
+        balance,
+        locked,
+        '0',
+        amount,
+        orderId,
+        this.database.MODIFIABLE_TYPE.ORDER,
+        created_at,
+        updated_at,
+        account.currency,
+        this.database.FUNC.UNLOCK_FUNDS,
+        { dbTransaction: t }
+      );
+
+      await this.database.updateAccount(newAccount, { dbTransaction: t });
+
+      const okexCancelOrderRes = await this.okexConnector.router('postCancelOrder', { params, query, body });
+      if (!okexCancelOrderRes.success) {
+        await t.rollback();
+        return okexCancelOrderRes;
+      }
+      await t.commit();
+      return okexCancelOrderRes;
+    } catch (error) {
+      this.logger.error(error);
+      await t.rollback();
+      return new ResponseFormat({
+        message: error.message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+    /* !!! HIGH RISK (end) !!! */
   }
   // trade api end
 
@@ -320,7 +408,7 @@ class ExchangeHub extends Bot {
     });
   }
 
-  async _getOrderData(body) {
+  async _getPlaceOrderData(body) {
     // ++ TODO: get data by instId
     // -- temp for demo
     const bid = 34; // USDT
@@ -333,7 +421,7 @@ class ExchangeHub extends Bot {
       bid, 
       ask,
       currency,
-      price: body.px || 'NULL',
+      price: body.px || null,
       volume: body.sz,
       type: body.side === 'buy' ? this.database.TYPE.ORDER_BID : this.database.TYPE.ORDER_ASK,
       ordType: body.ordType,

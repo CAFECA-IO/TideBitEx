@@ -74,6 +74,10 @@ class DBOperator {
     return this.database.getAccountByMemberIdCurrency(memberId, currencyId, { dbTransaction });
   }
 
+  async getOrder(orderId, { dbTransaction }) {
+    return this.database.getOrder(orderId, { dbTransaction });
+  }
+
   /* !!! HIGH RISK (start) !!! */
   async insertOrder(
     bid,
@@ -157,6 +161,10 @@ class DBOperator {
 
   async updateAccount(datas, { dbTransaction }) {
     return this.database.updateAccount(datas, { dbTransaction });
+  }
+
+  async updateOrder(datas, { dbTransaction }) {
+    return this.database.updateOrder(datas, { dbTransaction });
   }
   /* !!! HIGH RISK (end) !!! */
 }
