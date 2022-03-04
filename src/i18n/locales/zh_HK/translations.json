@@ -36,7 +36,7 @@
   "close_orders": "歷史委託",
   "balance": "資產",
   "currency": "幣種",
-  "availBal": "幣種餘額",
+  "cashBal": "幣種餘額",
   "frozenBal": "幣種佔用餘額",
   "time": "時間",
   "price": "價格",
