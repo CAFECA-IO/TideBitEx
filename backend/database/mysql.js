@@ -224,8 +224,8 @@ class mysql {
     try {
       this.logger.log(
         'insertAccountVersion',
-        'DEFAULT',
         query,
+        'DEFAULT',
         member_id,
         accountId,
         reason,
