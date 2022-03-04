@@ -27,6 +27,7 @@ class ExchangeHub extends Bot {
           passPhrase: this.config.okex.passPhrase,
           brokerId: this.config.okex.brokerId,
           wssPublic: this.config.okex.wssPublic,
+          wssPrivate: this.config.okex.wssPrivate,
         })
       })
       .then(() => this);
@@ -405,6 +406,13 @@ class ExchangeHub extends Bot {
           data: formatPair,
         }
       )
+    });
+
+    EventBus.on(Events.orderDetailUpdate, async(instType, formatOrder) => {
+      if (instType === 'SPOT') {
+        // TODO: using message queue
+        console.log('!!!!!Events.orderDetailUpdate formatOrder', formatOrder);
+      }
     });
   }
 

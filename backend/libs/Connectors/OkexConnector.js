@@ -16,10 +16,11 @@ class OkexConnector extends ConnectorBase {
   constructor ({ logger }) {
     super({ logger });
     this.websocket = new WebSocket({ logger });
+    this.websocketPrivate = new WebSocket({ logger });
     return this;
   }
 
-  async init({ domain, apiKey, secretKey, passPhrase, brokerId, wssPublic }) {
+  async init({ domain, apiKey, secretKey, passPhrase, brokerId, wssPublic, wssPrivate }) {
     await super.init();
     this.domain = domain;
     this.apiKey = apiKey;
@@ -28,12 +29,14 @@ class OkexConnector extends ConnectorBase {
     this.brokerId = brokerId;
     this.okexWsChannels = {};
     await this.websocket.init({ url: wssPublic, heartBeat: HEART_BEAT_TIME});
+    await this.websocketPrivate.init({ url: wssPrivate, heartBeat: HEART_BEAT_TIME});
     return this;
   };
 
   async start() {
     this._okexWsEventListener();
     this._subscribeInstruments();
+    this._wsPrivateLogin();
   }
 
   async okAccessSign({ timeString, method, path, body }) {
@@ -634,6 +637,31 @@ class OkexConnector extends ConnectorBase {
       }
       this.websocket.heartbeat();
     };
+    this.websocketPrivate.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.event) { // subscribe return
+        if (data.event === 'login') {
+          if (data.code === '0') {
+            this._subscribeOrders();
+          }
+        } else if (data.event === 'subscribe') {
+          // temp do nothing
+        } else if (data.event === 'error') {
+          this.logger.log('!!! _okexWsPrivateEventListener on event error', data);
+        } 
+      } else if (data.data) { // okex server push data
+        const arg = {...data.arg};
+        const channel = arg.channel;
+        delete arg.channel;
+        const values = Object.values(arg);
+        switch(channel) {
+          case 'orders':
+            this._updateOrderDetails(values[0], data.data);
+            break;
+          default:
+        }
+      }
+    }
   }
 
   _updateInstruments(instType, instData) {
@@ -658,6 +686,23 @@ class OkexConnector extends ConnectorBase {
       this._subscribeTickers(instIds);
     }
     this.okexWsChannels[channel][instType] = instData;
+  }
+
+  _updateOrderDetails(instType, orderData) {
+    console.log('!!!orderData', orderData)
+    const formatOrder = [];
+    orderData.map((data) => {
+      if (data.clOrdId.startsWith(this.brokerId)) {
+        formatOrder.push({
+          ...data,
+          cTime: parseInt(data.cTime),
+          fillTime: parseInt(data.fillTime),
+          uTime: parseInt(data.uTime),
+        })
+      }
+    });
+
+    EventBus.emit(Events.orderDetailUpdate, instType, formatOrder);
   }
 
   _updateTrades(instId, tradeData) {
@@ -835,6 +880,40 @@ class OkexConnector extends ConnectorBase {
       op: 'unsubscribe',
       args
     }));
+  }
+
+  async _wsPrivateLogin() {
+    const method = 'GET';
+    const path = '/users/self/verify';
+
+    const timestamp = Math.floor(Date.now() / 1000);
+
+    const okAccessSign = await this.okAccessSign({ timeString: timestamp, method, path: `${path}` });
+    const login = {
+      op: "login",
+      args: [
+        {
+          apiKey: this.apiKey,
+          passphrase: this.passPhrase,
+          timestamp,
+          sign: okAccessSign,
+        }
+      ]
+    };
+    this.websocketPrivate.ws.send(JSON.stringify(login));
+  }
+
+  _subscribeOrders() {
+    const orders = {
+      op: "subscribe",
+      args: [
+        {
+          channel: "orders",
+          instType: "SPOT"
+        }
+      ]
+    };
+    this.websocketPrivate.ws.send(JSON.stringify(orders));
   }
   // okex ws end
 
