@@ -13,7 +13,6 @@ import { useTranslation } from "react-i18next";
 const MobileExchange = (props) => {
   const storeCtx = useContext(StoreContext);
   const { t } = useTranslation();
-  console.log(`StoreContext storeCtx.activePage`, storeCtx.activePage);
   return (
     <main className="main">
       {(storeCtx.activePage === "chart" ||

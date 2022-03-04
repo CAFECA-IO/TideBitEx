@@ -46,10 +46,7 @@ const BalanceTile = (props) => {
 const HistoryOrder = (props) => {
   const storeCtx = useContext(StoreContext);
   const cancelOrder = (order) => {
-    const confirm = window.confirm("Confirm Cancel");
-    if (confirm) {
-      storeCtx.cancelOrder(order);
-    }
+    storeCtx.cancelOrder(order);
   };
   const { t } = useTranslation();
   return (

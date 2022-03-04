@@ -226,7 +226,6 @@ class Middleman {
       this.rawBooks = updateRawBooks;
     });
     this.books = this.handleBooks();
-    console.log(`updateBooks this.books`, this.books);
     return this.books;
   }
 
