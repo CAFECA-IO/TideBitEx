@@ -270,13 +270,24 @@ const TradePannel = (props) => {
             ordType: props.orderType,
             sz: side === "buy" ? buySz : sellSz,
           };
-    storeCtx.postOrder(order);
+    const confirm = window.confirm(`You are going to
+          ${order.side} ${order.sz} ${order.instId.split("-")[0]}
+          ${order.side === "buy" ? "with" : "for"} ${SafeMath.mult(
+      props.orderType === "market" ? selectedTicker.last : order.px,
+      order.sz
+    )} ${order.instId.split("-")[1]}
+          with price ${
+            props.orderType === "market" ? selectedTicker.last : order.px
+          } ${order.instId.split("-")[1]} per ${order.instId.split("-")[0]}`);
+    if (confirm) {
+      storeCtx.postOrder(order);
+    }
     if (side === "buy") {
       setBuySz("0");
-      buyPctHandler("0.25");
+      buyPctHandler(selectedTicker, "0.25", selectedTicker.last);
     } else {
       setSellSz("0");
-      sellPctHandler("0.25");
+      sellPctHandler(selectedTicker, "0.25", selectedTicker.last);
     }
   };
 

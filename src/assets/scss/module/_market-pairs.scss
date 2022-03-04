@@ -124,4 +124,8 @@
 // iphone XR
 @media only screen and (max-width: 414px) {
   // If [device width] is less than or equal to 600px, then do
+  .market-pairs {
+    height: 60vh;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.14);
+  }
 }

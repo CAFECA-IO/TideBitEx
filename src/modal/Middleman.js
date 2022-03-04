@@ -226,7 +226,6 @@ class Middleman {
       this.rawBooks = updateRawBooks;
     });
     this.books = this.handleBooks();
-    console.log(`updateBooks this.books`, this.books);
     return this.books;
   }
 
@@ -389,6 +388,7 @@ class Middleman {
       console.log(`cancelOrder order`, order);
       const body = {
         ordId: order.ordId,
+        clOrdId: order.clOrdId,
         instId: order.instId,
       };
       console.log(`cancelOrder body`, body);

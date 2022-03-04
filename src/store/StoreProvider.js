@@ -4,6 +4,7 @@ import { useSnackbar } from "notistack";
 import { Config } from "../constant/Config";
 import Middleman from "../modal/Middleman";
 import StoreContext from "./store-context";
+import SafeMath from "../utils/SafeMath";
 
 // const wsServer = "wss://exchange.tidebit.network/ws/v1";
 // const wsServer = "ws://127.0.0.1";
@@ -42,10 +43,16 @@ const StoreProvider = (props) => {
         setInit(true);
         // return result;
       } catch (error) {
-        return Promise.reject({ message: error });
+        console.log(`getBooks`, error);
+        enqueueSnackbar(
+          `${error?.message || "Some went wrong"}. Failed to get market book`,
+          {
+            variant: "error",
+          }
+        );
       }
     },
-    [middleman]
+    [enqueueSnackbar, middleman]
   );
 
   const getTrades = useCallback(
@@ -55,10 +62,16 @@ const StoreProvider = (props) => {
         setTrades(result);
         // return result;
       } catch (error) {
-        return Promise.reject({ message: error });
+        console.log(`getTrades`, error);
+        enqueueSnackbar(
+          `${error?.message || "Some went wrong"}. Failed to get market trade`,
+          {
+            variant: "error",
+          }
+        );
       }
     },
-    [middleman]
+    [enqueueSnackbar, middleman]
   );
 
   const getCandles = useCallback(
@@ -74,10 +87,16 @@ const StoreProvider = (props) => {
         setCandles(result);
         // return result;
       } catch (error) {
-        return Promise.reject({ message: error });
+        console.log(`getCandles`, error);
+        enqueueSnackbar(
+          `${error?.message || "Some went wrong"}. Failed to get market price`,
+          {
+            variant: "error",
+          }
+        );
       }
     },
-    [middleman]
+    [enqueueSnackbar, middleman]
   );
 
   const candleBarHandler = useCallback(
@@ -147,10 +166,21 @@ const StoreProvider = (props) => {
           selectTickerHandler(ticker ?? result[0]);
         }
       } catch (error) {
-        return Promise.reject({ message: error });
+        enqueueSnackbar(
+          `${error?.message || "Some went wrong"}. Failed to get market pairs`,
+          {
+            variant: "error",
+          }
+        );
       }
     },
-    [location.pathname, middleman, selectTickerHandler, selectedTicker]
+    [
+      enqueueSnackbar,
+      location.pathname,
+      middleman,
+      selectTickerHandler,
+      selectedTicker,
+    ]
   );
 
   const getPendingOrders = useCallback(
@@ -162,10 +192,15 @@ const StoreProvider = (props) => {
         return result;
       } catch (error) {
         console.log(`getPendingOrders error`, error);
-        return Promise.reject({ message: error });
+        enqueueSnackbar(
+          `${error?.message || "Some went wrong"}. Failed to get pending order`,
+          {
+            variant: "error",
+          }
+        );
       }
     },
-    [middleman]
+    [enqueueSnackbar, middleman]
   );
 
   const getCloseOrders = useCallback(
@@ -177,10 +212,15 @@ const StoreProvider = (props) => {
         return result;
       } catch (error) {
         console.log(`getCloseOrders error`, error);
-        return Promise.reject({ message: error });
+        enqueueSnackbar(
+          `${error?.message || "Some went wrong"}. Failed to get close order`,
+          {
+            variant: "error",
+          }
+        );
       }
     },
-    [middleman]
+    [enqueueSnackbar, middleman]
   );
 
   const getBalances = useCallback(
@@ -204,11 +244,30 @@ const StoreProvider = (props) => {
         await getBalances();
         // return result;
         console.log(`postOrder result`, result);
+        enqueueSnackbar(
+          `${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
+            order.instId.split("/")[0]
+          } with ${order.side === "buy" ? "with" : "for"} ${SafeMath.mult(
+            order.px,
+            order.sz
+          )} ${order.instId.split("/")[1]}`,
+          {}
+        );
       } catch (error) {
         console.log(`postOrder error`, error);
-        enqueueSnackbar(error?.message || "Some went wrong", {
-          variant: "error",
-        });
+        enqueueSnackbar(
+          `${error?.message || "Some went wrong"}. Failed to post order:
+           ${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
+            order.instId.split("/")[0]
+          } with ${order.side === "buy" ? "with" : "for"} ${SafeMath.mult(
+            order.px,
+            order.sz
+          )} ${order.instId.split("/")[1]}
+          `,
+          {
+            variant: "error",
+          }
+        );
       }
     },
     [enqueueSnackbar, getBalances, getCloseOrders, getPendingOrders, middleman]
@@ -217,16 +276,34 @@ const StoreProvider = (props) => {
   const cancelOrder = useCallback(
     async (order) => {
       try {
+        console.log(`cancelOrder order`, order);
         const result = await middleman.cancelOrder(order);
         await getPendingOrders();
         await getBalances();
+        enqueueSnackbar(
+          `You have canceled ordId(${order.ordId}): ${
+            order.side === "buy" ? "Bid" : "Ask"
+          } ${order.sz} ${order.instId.split("/")[0]} with ${
+            order.side === "buy" ? "with" : "for"
+          } ${SafeMath.mult(order.px, order.sz)} ${order.instId.split("/")[1]}`,
+          {}
+        );
         return result;
       } catch (error) {
-        // return Promise.reject({ message: error });
         console.log(`cancelOrder error`, error);
-        enqueueSnackbar(`Failed to cancel order: ${order.ordId}`, {
-          variant: "error",
-        });
+        enqueueSnackbar(
+          `${error?.message || "Some went wrong"}. Failed to cancel order(${
+            order.ordId
+          }): ${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
+            order.instId.split("/")[0]
+          } with ${order.side === "buy" ? "with" : "for"} ${SafeMath.mult(
+            order.px,
+            order.sz
+          )} ${order.instId.split("/")[1]}`,
+          {
+            variant: "error",
+          }
+        );
         return false;
       }
     },

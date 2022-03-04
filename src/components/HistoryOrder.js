@@ -46,7 +46,17 @@ const BalanceTile = (props) => {
 const HistoryOrder = (props) => {
   const storeCtx = useContext(StoreContext);
   const cancelOrder = (order) => {
-    const confirm = window.confirm("Confirm Cancel");
+    const confirm = window.confirm(`You are going to cancel order: ${
+      order.ordId
+    }
+    ${order.side} ${order.sz} ${order.instId.split("-")[0]}
+    ${order.side === "buy" ? "with" : "for"} ${SafeMath.mult(
+      order.px,
+      order.sz
+    )} ${order.sz} ${order.instId.split("-")[1]}
+    with price ${order.px} ${order.instId.split("-")[1]} per ${
+      order.instId.split("-")[0]
+    }`);
     if (confirm) {
       storeCtx.cancelOrder(order);
     }

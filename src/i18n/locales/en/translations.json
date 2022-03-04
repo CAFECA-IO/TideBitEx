@@ -36,7 +36,7 @@
   "close_orders": "Close Orders",
   "balance": "Balance",
   "currency": "Currency",
-  "availBal": "Available balance",
+  "cashBal": "Available balance",
   "frozenBal": "Frozen balance",
   "time": "Time",
   "price": "Price",
