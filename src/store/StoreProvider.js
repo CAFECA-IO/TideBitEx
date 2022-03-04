@@ -246,23 +246,23 @@ const StoreProvider = (props) => {
         console.log(`postOrder result`, result);
         enqueueSnackbar(
           `${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
-            order.instId.split("/")[0]
+            order.instId.split("-")[0]
           } with ${order.side === "buy" ? "with" : "for"} ${SafeMath.mult(
             order.px,
             order.sz
-          )} ${order.instId.split("/")[1]}`,
-          {}
+          )} ${order.instId.split("-")[1]}`,
+          { variant: "success" }
         );
       } catch (error) {
         console.log(`postOrder error`, error);
         enqueueSnackbar(
           `${error?.message || "Some went wrong"}. Failed to post order:
            ${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
-            order.instId.split("/")[0]
+            order.instId.split("-")[0]
           } with ${order.side === "buy" ? "with" : "for"} ${SafeMath.mult(
             order.px,
             order.sz
-          )} ${order.instId.split("/")[1]}
+          )} ${order.instId.split("-")[1]}
           `,
           {
             variant: "error",
@@ -283,10 +283,10 @@ const StoreProvider = (props) => {
         enqueueSnackbar(
           `You have canceled ordId(${order.ordId}): ${
             order.side === "buy" ? "Bid" : "Ask"
-          } ${order.sz} ${order.instId.split("/")[0]} with ${
+          } ${order.sz} ${order.instId.split("-")[0]} with ${
             order.side === "buy" ? "with" : "for"
-          } ${SafeMath.mult(order.px, order.sz)} ${order.instId.split("/")[1]}`,
-          {}
+          } ${SafeMath.mult(order.px, order.sz)} ${order.instId.split("-")[1]}`,
+          { variant: "success" }
         );
         return result;
       } catch (error) {
@@ -295,11 +295,11 @@ const StoreProvider = (props) => {
           `${error?.message || "Some went wrong"}. Failed to cancel order(${
             order.ordId
           }): ${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
-            order.instId.split("/")[0]
+            order.instId.split("-")[0]
           } with ${order.side === "buy" ? "with" : "for"} ${SafeMath.mult(
             order.px,
             order.sz
-          )} ${order.instId.split("/")[1]}`,
+          )} ${order.instId.split("-")[1]}`,
           {
             variant: "error",
           }
