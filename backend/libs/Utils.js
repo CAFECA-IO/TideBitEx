@@ -631,7 +631,10 @@ class Utils {
     const slice1 = clOrdId.slice(16); // slice broker id
     const split1 = slice1.split('m'); // split memberId
     const split2 = split1[1].split('o');  // split orderId
-    return split2[0];
+    return {
+      memberId: split1[0],
+      orderId: split2[0],
+    }
   }
 }
 

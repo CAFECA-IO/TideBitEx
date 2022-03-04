@@ -8,4 +8,5 @@ module.exports = {
   tradeDataOnUpdate: 'tradeDataOnUpdate',
   orderOnUpdate: 'orderOnUpdate',
   candleOnUpdate: 'candleOnUpdate',
+  orderDetailUpdate: 'orderDetailUpdate',
 }

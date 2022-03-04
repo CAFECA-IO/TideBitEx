@@ -12,6 +12,7 @@ type = "ethereum"
 [okex]
 domain = 'https://www.okx.com'
 wssPublic = 'wss://ws.okx.com:8443/ws/v5/public'
+wssPrivate = 'wss://ws.okx.com:8443/ws/v5/private'
 apiKey = ''
 secretKey = ''
 passPhrase = ''
