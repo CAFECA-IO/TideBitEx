@@ -284,7 +284,7 @@ class ExchangeHub extends Bot {
     const t = await this.database.transaction();
     try {
       // get orderId from body.clOrdId
-      const orderId = Utils.parseClOrdId(body.clOrdId);
+      const { orderId } = Utils.parseClOrdId(body.clOrdId);
       const order = await this.database.getOrder(orderId, { dbTransaction: t });
       if (order.state !== this.database.ORDER_STATE.WAIT) {
         await t.rollback();
@@ -408,12 +408,86 @@ class ExchangeHub extends Bot {
       )
     });
 
-    EventBus.on(Events.orderDetailUpdate, async(instType, formatOrder) => {
+    EventBus.on(Events.orderDetailUpdate, async(instType, formatOrders) => {
       if (instType === 'SPOT') {
         // TODO: using message queue
-        console.log('!!!!!Events.orderDetailUpdate formatOrder', formatOrder);
+        for(const formatOrder of formatOrders) {
+          if (formatOrder.state !== 'canceled' /* cancel order */ && formatOrder.accFillSz !== '0'/* create order */) {
+            await this._updateOrderDetail(formatOrder);
+          }
+        }
       }
     });
+  }
+
+  async _updateOrderDetail(formatOrder) {
+    const t = await this.database.transaction();
+    /* !!! HIGH RISK (start) !!! */
+    // 1. get orderId from body
+    // 2. get order data from table
+    // 3. find and lock account
+    // 4. update order state
+    // 5. get balance and locked value from order
+    // 6. add trade
+    // 7. add vouchers
+    // 8. add account_version
+    // 9. update account balance and locked
+    try {
+      // get orderId from formatOrder.clOrdId
+      const { memberId, orderId } = Utils.parseClOrdId(formatOrder.clOrdId);
+      const order = await this.database.getOrder(orderId, { dbTransaction: t });
+      if (order.state !== this.database.ORDER_STATE.WAIT) {
+        await t.rollback();
+        this.logger.error('order has been close');
+      }
+      const currencyId = order.type === this.database.TYPE.ORDER_ASK ? order.ask : order.bid;
+      const accountAsk = await this.database.getAccountByMemberIdCurrency(memberId, currencyId, { dbTransaction: t });
+      const accountBid = await this.database.getAccountByMemberIdCurrency(memberId, currencyId, { dbTransaction: t });
+
+      /*******************************************
+       * formatOrder.clOrdId: custom orderId for okex
+       * formatOrder.state: 'live', 'canceled', 'filled', 'partially_filled', but 'cancel' may not enter this function
+       * lockedA: Ask locked value, 
+       * balanceA: formatOrder.fillSz
+       *******************************************/
+      let state = this.database.ORDER_STATE.WAIT;
+      if (formatOrder.state === 'filled') {
+        state = this.database.ORDER_STATE.DONE;
+      }
+      const newOrder = {
+        id: orderId,
+        state,
+      }
+      // const lockedA = ;
+      // const balanceA = formatOrder.fillSz;
+
+      const created_at = new Date().toISOString();
+      const updated_at = created_at;
+      
+      // !!!!!! CAUTION temp for demo, still not finish !!!!!!!
+      await this.database.insertVouchers(
+        memberId,
+        orderId,
+        formatOrder.tradeId,
+        null,
+        'eth',    // -- need change
+        'usdt',   // -- need change
+        formatOrder.fillPx,
+        formatOrder.fillSz,
+        SafeMath.mult(formatOrder.fillPx, formatOrder.fillSz),
+        order.type === this.database.TYPE.ORDER_ASK ? 'ask' : 'bid',
+        order.type === this.database.TYPE.ORDER_ASK ? formatOrder.fee : '0',
+        order.type === this.database.TYPE.ORDER_ASK ? '0' : formatOrder.fee,
+        created_at,
+        { dbTransaction: t }
+      )
+
+      await t.commit();
+    } catch (error) {
+      this.logger.error(error);
+      await t.rollback();
+    }
+    /* !!! HIGH RISK (end) !!! */
   }
 
   async _getPlaceOrderData(body) {

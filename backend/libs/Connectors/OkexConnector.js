@@ -689,11 +689,10 @@ class OkexConnector extends ConnectorBase {
   }
 
   _updateOrderDetails(instType, orderData) {
-    console.log('!!!orderData', orderData)
-    const formatOrder = [];
+    const formatOrders = [];
     orderData.map((data) => {
       if (data.clOrdId.startsWith(this.brokerId)) {
-        formatOrder.push({
+        formatOrders.push({
           ...data,
           cTime: parseInt(data.cTime),
           fillTime: parseInt(data.fillTime),
@@ -702,7 +701,7 @@ class OkexConnector extends ConnectorBase {
       }
     });
 
-    EventBus.emit(Events.orderDetailUpdate, instType, formatOrder);
+    EventBus.emit(Events.orderDetailUpdate, instType, formatOrders);
   }
 
   _updateTrades(instId, tradeData) {

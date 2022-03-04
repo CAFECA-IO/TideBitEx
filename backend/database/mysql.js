@@ -268,6 +268,73 @@ class mysql {
     }
   }
 
+  async insertVouchers(
+    member_id,
+    order_id,
+    trade_id,
+    designated_trading_fee_asset_history_id,
+    ask,
+    bid,
+    price,
+    volume,
+    value,
+    trend,
+    ask_fee,
+    bid_fee,
+    created_at,
+    { dbTransaction }
+  ) {
+    const query = 'INSERT INTO `tidebitstaging`.`vouchers` (`id`,`member_id`,`order_id`,`trade_id`,`designated_trading_fee_asset_history_id`,`ask`,`bid`,`price`,`volume`,`value`,`trend`,`ask_fee`,`bid_fee`,`created_at`)'
+      + ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);'
+    try {
+      this.logger.log(
+        'insertAccountVersion',
+        query,
+        'DEFAULT',
+        member_id,
+        order_id,
+        trade_id,
+        designated_trading_fee_asset_history_id,
+        ask,
+        bid,
+        price,
+        volume,
+        value,
+        trend,
+        ask_fee,
+        bid_fee,
+        created_at,
+      );
+      await this.db.query(
+        {
+          query,
+          values: [
+            'DEFAULT',
+            member_id,
+            order_id,
+            trade_id,
+            designated_trading_fee_asset_history_id,
+            ask,
+            bid,
+            price,
+            volume,
+            value,
+            trend,
+            ask_fee,
+            bid_fee,
+            created_at,
+          ],
+        },
+        {
+          transaction: dbTransaction,
+        }
+      );
+    } catch (error) {
+      this.logger.error(error);
+      if (dbTransaction) throw error;
+    }
+  }
+
   async updateAccount(datas, { dbTransaction }) {
     try {
       const id = datas.id;

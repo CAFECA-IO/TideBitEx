@@ -159,6 +159,40 @@ class DBOperator {
     );
   }
 
+  async insertVouchers(
+    member_id,
+    order_id,
+    trade_id,
+    designated_trading_fee_asset_history_id,
+    ask,
+    bid,
+    price,
+    volume,
+    value,
+    trend,
+    ask_fee,
+    bid_fee,
+    created_at,
+    { dbTransaction }
+  ) {
+    return this.database.insertVouchers(
+      member_id,
+      order_id,
+      trade_id,
+      designated_trading_fee_asset_history_id,
+      ask,
+      bid,
+      price,
+      volume,
+      value,
+      trend,
+      ask_fee,
+      bid_fee,
+      created_at,
+      { dbTransaction }
+    );
+  }
+
   async updateAccount(datas, { dbTransaction }) {
     return this.database.updateAccount(datas, { dbTransaction });
   }
