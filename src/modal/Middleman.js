@@ -389,6 +389,7 @@ class Middleman {
       console.log(`cancelOrder order`, order);
       const body = {
         ordId: order.ordId,
+        clOrdId: order.clOrdId,
         instId: order.instId,
       };
       console.log(`cancelOrder body`, body);
