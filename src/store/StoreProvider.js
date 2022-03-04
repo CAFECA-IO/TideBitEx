@@ -165,7 +165,7 @@ const StoreProvider = (props) => {
           const ticker = middleman.findTicker(id);
           selectTickerHandler(ticker ?? result[0]);
         }
-        console.log(`getTickers result`, result);
+        // console.log(`getTickers result`, result);
       } catch (error) {
         enqueueSnackbar(
           `${error?.message || "Some went wrong"}. Failed to get market pairs`,
