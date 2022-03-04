@@ -62,8 +62,15 @@ const PairsHeader = (props) => {
     </ul>
   );
 };
-const quoteCcies = ["btc", "eth", "usdt", "hkd", "usdx", "inno", "usd", "alts"];
-
+const quoteCcies = {
+  BTC: ["BTC"],
+  ETH: ["ETH"],
+  HKD: ["HKD"],
+  USDX: ["USDC", "USDT", "USDK"],
+  INNO: ["INNO"],
+  USD: ["USD"],
+  ALTS: ["USX"],
+};
 const MarketPairs = (props) => {
   const storeCtx = useContext(StoreContext);
   const inputRef = useRef();
@@ -117,70 +124,20 @@ const MarketPairs = (props) => {
         />
       </div>
       <Tabs defaultActiveKey={defaultActiveKey}>
-        <Tab eventKey="btc" title="BTC">
-          <PairsHeader />
-          <PairList
-            tickers={filteredTickers.filter(
-              (ticker) => ticker.quoteCcy === "BTC"
-            )}
-          />
-        </Tab>
-        <Tab eventKey="eth" title="ETH">
-          <PairsHeader />
-          <PairList
-            tickers={filteredTickers.filter(
-              (ticker) => ticker.quoteCcy === "ETH"
-            )}
-          />
-        </Tab>
-        <Tab eventKey="usdt" title="USDT">
-          <PairsHeader />
-          <PairList
-            tickers={filteredTickers.filter(
-              (ticker) => ticker.quoteCcy === "USDT"
-            )}
-          />
-        </Tab>
-        <Tab eventKey="hkd" title="HKD">
-          <PairsHeader />
-          <PairList
-            tickers={filteredTickers.filter(
-              (ticker) => ticker.quoteCcy === "HKD"
-            )}
-          />
-        </Tab>
-        <Tab eventKey="usdx" title="USDX">
-          <PairsHeader />
-          <PairList
-            tickers={filteredTickers.filter(
-              (ticker) => ticker.quoteCcy === "USDX"
-            )}
-          />
-        </Tab>
-        <Tab eventKey="inno" title="INNO">
-          <PairsHeader />
-          <PairList
-            tickers={filteredTickers.filter(
-              (ticker) => ticker.quoteCcy === "INNO"
-            )}
-          />
-        </Tab>
-        <Tab eventKey="usd" title="USD">
-          <PairsHeader />
-          <PairList
-            tickers={filteredTickers.filter(
-              (ticker) => ticker.quoteCcy === "USD"
-            )}
-          />
-        </Tab>
-        <Tab eventKey="alts" title="ALTS">
-          <PairsHeader />
-          <PairList
-            tickers={filteredTickers.filter(
-              (ticker) => ticker.quoteCcy === "ALTS"
-            )}
-          />
-        </Tab>
+        {Object.keys(quoteCcies).map((quoteCcy) => (
+          <Tab
+            eventKey={quoteCcy.toLowerCase()}
+            title={quoteCcy}
+            key={`market-tab-${quoteCcy.toLowerCase()}`}
+          >
+            <PairsHeader />
+            <PairList
+              tickers={filteredTickers.filter((ticker) =>
+                quoteCcies[quoteCcy].includes(ticker.quoteCcy)
+              )}
+            />
+          </Tab>
+        ))}
       </Tabs>
     </div>
   );

@@ -165,7 +165,6 @@ const StoreProvider = (props) => {
           const ticker = middleman.findTicker(id);
           selectTickerHandler(ticker ?? result[0]);
         }
-        // console.log(`getTickers result`, result);
       } catch (error) {
         enqueueSnackbar(
           `${error?.message || "Some went wrong"}. Failed to get market pairs`,
@@ -239,40 +238,32 @@ const StoreProvider = (props) => {
     async (order) => {
       console.log(`postOrder order`, order);
       try {
-        const confirm = window.confirm(`You are going 
-        ${order.side} ${order.sz} ${order.instId.split("/")[0]}
-        ${order.side === "buy" ? "with" : "for"} ${SafeMath(
-          order.px,
-          order.sz
-        )} ${order.instId.split("/")[1]}
-        with price ${order.px} ${order.instId.split("/")[1]} per ${
-          order.instId.split("/")[0]
-        }`);
-        if (confirm) {
-          const result = await middleman.postOrder(order);
-          await getCloseOrders();
-          await getPendingOrders();
-          await getBalances();
-          // return result;
-          console.log(`postOrder result`, result);
-          enqueueSnackbar(
-            `${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
-              order.instId.split("/")[0]
-            } with ${order.side === "buy" ? "with" : "for"} ${SafeMath(
-              order.px,
-              order.sz
-            )} ${order.instId.split("/")[1]}`,
-            {}
-          );
-        }
+        const result = await middleman.postOrder(order);
+        await getCloseOrders();
+        await getPendingOrders();
+        await getBalances();
+        // return result;
+        console.log(`postOrder result`, result);
+        enqueueSnackbar(
+          `${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
+            order.instId.split("/")[0]
+          } with ${order.side === "buy" ? "with" : "for"} ${SafeMath.mult(
+            order.px,
+            order.sz
+          )} ${order.instId.split("/")[1]}`,
+          {}
+        );
       } catch (error) {
         console.log(`postOrder error`, error);
         enqueueSnackbar(
-          `${error?.message || "Some went wrong"}. Failed to post order: ${
-            order.side === "buy" ? "Bid" : "Ask"
-          } ${order.sz} ${order.instId.split("/")[0]} with ${
-            order.side === "buy" ? "with" : "for"
-          } ${SafeMath(order.px, order.sz)} ${order.instId.split("/")[1]}`,
+          `${error?.message || "Some went wrong"}. Failed to post order:
+           ${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
+            order.instId.split("/")[0]
+          } with ${order.side === "buy" ? "with" : "for"} ${SafeMath.mult(
+            order.px,
+            order.sz
+          )} ${order.instId.split("/")[1]}
+          `,
           {
             variant: "error",
           }
@@ -286,31 +277,18 @@ const StoreProvider = (props) => {
     async (order) => {
       try {
         console.log(`cancelOrder order`, order);
-        const confirm = window.confirm(`You are going to cancel order: ${
-          order.ordId
-        }
-        ${order.side} ${order.sz} ${order.instId.split("/")[0]}
-        ${order.side === "buy" ? "with" : "for"} ${SafeMath(
-          order.px,
-          order.sz
-        )} ${order.sz} ${order.instId.split("/")[1]}
-        with price ${order.px} ${order.instId.split("/")[1]} per ${
-          order.instId.split("/")[0]
-        }`);
-        if (confirm) {
-          const result = await middleman.cancelOrder(order);
-          await getPendingOrders();
-          await getBalances();
-          enqueueSnackbar(
-            `You have canceled ordId(${order.ordId}): ${
-              order.side === "buy" ? "Bid" : "Ask"
-            } ${order.sz} ${order.instId.split("/")[0]} with ${
-              order.side === "buy" ? "with" : "for"
-            } ${SafeMath(order.px, order.sz)} ${order.instId.split("/")[1]}`,
-            {}
-          );
-          return result;
-        }
+        const result = await middleman.cancelOrder(order);
+        await getPendingOrders();
+        await getBalances();
+        enqueueSnackbar(
+          `You have canceled ordId(${order.ordId}): ${
+            order.side === "buy" ? "Bid" : "Ask"
+          } ${order.sz} ${order.instId.split("/")[0]} with ${
+            order.side === "buy" ? "with" : "for"
+          } ${SafeMath.mult(order.px, order.sz)} ${order.instId.split("/")[1]}`,
+          {}
+        );
+        return result;
       } catch (error) {
         console.log(`cancelOrder error`, error);
         enqueueSnackbar(
@@ -318,7 +296,7 @@ const StoreProvider = (props) => {
             order.ordId
           }): ${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
             order.instId.split("/")[0]
-          } with ${order.side === "buy" ? "with" : "for"} ${SafeMath(
+          } with ${order.side === "buy" ? "with" : "for"} ${SafeMath.mult(
             order.px,
             order.sz
           )} ${order.instId.split("/")[1]}`,
