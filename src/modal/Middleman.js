@@ -365,9 +365,11 @@ class Middleman {
       });
   }
 
-  async getBalances(ccy) {
+  async getBalances() {
     try {
-      const result = await this.communicator.balance(ccy);
+      const result = await this.communicator.balance(
+        this.selectedTicker?.instId?.replace("-", ",")
+      );
       this.balances = result[0].details;
       this.isLogin = true;
       console.log(`getBalances this.balances`, this.balances);

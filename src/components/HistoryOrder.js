@@ -164,9 +164,11 @@ const HistoryOrder = (props) => {
             )} */}
             <ul className="order-list">
               {!!storeCtx.balances?.length &&
-                storeCtx.balances.map((balance) => (
-                  <BalanceTile balance={balance} />
-                ))}
+                storeCtx.balances
+                  .filter((balance) =>
+                    storeCtx.selectedTicker?.pair?.includes(balance.ccy)
+                  )
+                  .map((balance) => <BalanceTile balance={balance} />)}
             </ul>
           </Tab>
         </Tabs>
