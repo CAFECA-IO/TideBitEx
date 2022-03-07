@@ -470,6 +470,8 @@ class ExchangeHub extends Bot {
         { dbTransaction: t }
       )
 
+      await this.database.updateOrder(newOrder, { dbTransaction: t });
+
       await t.commit();
     } catch (error) {
       this.logger.error(error);
