@@ -456,16 +456,16 @@ class ExchangeHub extends Bot {
       await this.database.insertVouchers(
         memberId,
         orderId,
-        formatOrder.tradeId,
+        tradeId,
         null,
         'eth',    // -- need change
         'usdt',   // -- need change
-        formatOrder.fillPx,
-        formatOrder.fillSz,
-        SafeMath.mult(formatOrder.fillPx, formatOrder.fillSz),
+        fillPx,
+        fillSz,
+        value,
         order.type === this.database.TYPE.ORDER_ASK ? 'ask' : 'bid',
-        order.type === this.database.TYPE.ORDER_ASK ? formatOrder.fee : '0',
-        order.type === this.database.TYPE.ORDER_ASK ? '0' : formatOrder.fee,
+        order.type === this.database.TYPE.ORDER_ASK ? feeB : '0',  // get bid, so fee is bid
+        order.type === this.database.TYPE.ORDER_ASK ? '0' : feeA,  // get ask, so fee is ask
         created_at,
         { dbTransaction: t }
       )
