@@ -27,7 +27,7 @@ const OrderTile = (props) => {
   );
 };
 
-const BalanceTile = (props) => {
+export const BalanceTile = (props) => {
   return (
     <ul className="d-flex justify-content-between market-order-item market-balance">
       {/* <li>{dateFormatter(parseInt(props.balance.uTime)).text}</li> */}
@@ -164,9 +164,13 @@ const HistoryOrder = (props) => {
             )} */}
             <ul className="order-list">
               {!!storeCtx.balances?.length &&
-                storeCtx.balances.map((balance) => (
-                  <BalanceTile balance={balance} />
-                ))}
+                storeCtx.balances
+                  .filter(
+                    (balance) =>
+                      storeCtx.selectedTicker?.baseCcy === balance.ccy ||
+                      storeCtx.selectedTicker?.quoteCcy === balance.ccy
+                  )
+                  .map((balance) => <BalanceTile balance={balance} />)}
             </ul>
           </Tab>
         </Tabs>
