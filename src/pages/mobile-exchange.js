@@ -20,7 +20,7 @@ const MobileExchange = (props) => {
         storeCtx.activePage === "trade") && <SelectedPair />}
       <section
         className={`section${
-          storeCtx.activePage === "section--assets" ? " assets" : ""
+          storeCtx.activePage === "assets" ? " section--assets" : ""
         }`}
       >
         {storeCtx.activePage === "chart" && (
