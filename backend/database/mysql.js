@@ -113,6 +113,27 @@ class mysql {
     }
   }
 
+  async getVouchersByOrderId(orderId, { dbTransaction }) {
+    const query = 'SELECT * FROM `vouchers` WHERE `order_id` = ?;';
+    try {
+      this.logger.log('getVouchersByOrderId', query, orderId);
+      const [vouchers] = await this.db.query(
+        {
+          query,
+          values: [orderId]
+        },
+        {
+          transaction: dbTransaction,
+        }
+      );
+      return vouchers;
+    } catch (error) {
+      this.logger.log(error);
+      if (dbTransaction) throw error;
+      return [];
+    }
+  }
+
   /* !!! HIGH RISK (start) !!! */
   async insertOrder(
     bid,

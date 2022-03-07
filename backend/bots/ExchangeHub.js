@@ -495,6 +495,25 @@ class ExchangeHub extends Bot {
     await this.database.updateAccount(newAccount, { dbTransaction });
     /* !!! HIGH RISK (end) !!! */
   }
+
+  async _calculateFee(orderId, trend, totalFee, dbTransaction) {
+    const vouchers = await this.database.getVouchersByOrderId(orderId, { dbTransaction });
+    let totalVfee = '0';
+    for (const voucher of vouchers) {
+      if (voucher.trend === trend) {
+        switch (trend) {
+          case 'ask':
+            totalVfee = SafeMath.plus(totalVfee, voucher.ask_fee);
+            break;
+          case 'bid':
+            totalVfee = SafeMath.plus(totalVfee, voucher.bid_fee);
+            break;
+          default:
+        }
+      }
+    }
+    return SafeMath.minus(totalFee, totalVfee);
+  }
 }
 
 module.exports = ExchangeHub;

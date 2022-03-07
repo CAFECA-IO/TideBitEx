@@ -78,6 +78,10 @@ class DBOperator {
     return this.database.getOrder(orderId, { dbTransaction });
   }
 
+  async getVouchersByOrderId(orderId, { dbTransaction }) {
+    return this.database.getVouchersByOrderId(orderId, { dbTransaction });
+  }
+
   /* !!! HIGH RISK (start) !!! */
   async insertOrder(
     bid,
