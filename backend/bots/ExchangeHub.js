@@ -163,20 +163,10 @@ class ExchangeHub extends Bot {
       const volume = orderData.volume;
       const locked = orderData.locked;
       const balance = orderData.balance;
+      const fee = '0';
 
       const created_at = new Date().toISOString();
       const updated_at = created_at;
-      
-      const oriAccBal = account.balance;
-      const oriAccLoc = account.locked;
-      const newAccBal = SafeMath.plus(oriAccBal, balance);
-      const newAccLoc = SafeMath.plus(oriAccLoc, locked);
-      const amount = SafeMath.plus(newAccBal, newAccLoc);
-      const newAccount = {
-        id: account.id,
-        balance: newAccBal,
-        locked: newAccLoc,
-      };
 
       const order = await this.database.insertOrder(
         orderData.bid,
@@ -200,26 +190,11 @@ class ExchangeHub extends Bot {
         0,
         { dbTransaction: t }
       );
+      const orderId = order[0];
 
-      await this.database.insertAccountVersion(
-        memberId,
-        account.id,
-        this.database.REASON.ORDER_SUBMIT,
-        balance,
-        locked,
-        '0',
-        amount,
-        order[0],
-        this.database.MODIFIABLE_TYPE.ORDER,
-        created_at,
-        updated_at,
-        account.currency,
-        this.database.FUNC.LOCK_FUNDS,
-        { dbTransaction: t }
-      );
-      await this.database.updateAccount(newAccount, { dbTransaction: t });
+      await this._updateAccount(account, t, balance, locked, fee, this.database.MODIFIABLE_TYPE.ORDER, orderId, created_at, this.database.FUNC.LOCK_FUNDS);
 
-      const okexOrderRes = await this.okexConnector.router('postPlaceOrder', { memberId, orderId: order[0], params, query, body });
+      const okexOrderRes = await this.okexConnector.router('postPlaceOrder', { memberId, orderId, params, query, body });
       if (!okexOrderRes.success) {
         await t.rollback();
         return okexOrderRes;
@@ -307,41 +282,13 @@ class ExchangeHub extends Bot {
       }
       const locked = SafeMath.mult(order.locked, '-1');
       const balance = order.locked;
+      const fee = '0';
 
       const created_at = new Date().toISOString();
-      const updated_at = created_at;
-      
-      const oriAccBal = account.balance;
-      const oriAccLoc = account.locked;
-      const newAccBal = SafeMath.plus(oriAccBal, balance);
-      const newAccLoc = SafeMath.plus(oriAccLoc, locked);
-      const amount = SafeMath.plus(newAccBal, newAccLoc);
-      const newAccount = {
-        id: account.id,
-        balance: newAccBal,
-        locked: newAccLoc,
-      };
 
       await this.database.updateOrder(newOrder, { dbTransaction: t });
 
-      await this.database.insertAccountVersion(
-        memberId,
-        account.id,
-        this.database.REASON.ORDER_CANCEL,
-        balance,
-        locked,
-        '0',
-        amount,
-        orderId,
-        this.database.MODIFIABLE_TYPE.ORDER,
-        created_at,
-        updated_at,
-        account.currency,
-        this.database.FUNC.UNLOCK_FUNDS,
-        { dbTransaction: t }
-      );
-
-      await this.database.updateAccount(newAccount, { dbTransaction: t });
+      await this._updateAccount(account, t, balance, locked, fee, this.database.MODIFIABLE_TYPE.ORDER, orderId, created_at, this.database.FUNC.UNLOCK_FUNDS);
 
       const okexCancelOrderRes = await this.okexConnector.router('postCancelOrder', { params, query, body });
       if (!okexCancelOrderRes.success) {
@@ -438,7 +385,7 @@ class ExchangeHub extends Bot {
       const order = await this.database.getOrder(orderId, { dbTransaction: t });
       if (order.state !== this.database.ORDER_STATE.WAIT) {
         await t.rollback();
-        this.logger.error('order has been close');
+        this.logger.error('order has been closed');
       }
       const currencyId = order.type === this.database.TYPE.ORDER_ASK ? order.ask : order.bid;
       const accountAsk = await this.database.getAccountByMemberIdCurrency(memberId, currencyId, { dbTransaction: t });
@@ -512,6 +459,41 @@ class ExchangeHub extends Bot {
       currencyId: body.side === 'buy' ? bid : ask,
     };
     return EthUsdtData;
+  }
+
+  async _updateAccount(account, dbTransaction, balance, locked, fee, modifiable_type, modifiable_id, created_at, fun) {
+    /* !!! HIGH RISK (start) !!! */
+    const updated_at = created_at;
+    const oriAccBal = account.balance;
+    const oriAccLoc = account.locked;
+    const newAccBal = SafeMath.plus(oriAccBal, balance);
+    const newAccLoc = SafeMath.plus(oriAccLoc, locked);
+    const amount = SafeMath.plus(newAccBal, newAccLoc);
+    const newAccount = {
+      id: account.id,
+      balance: newAccBal,
+      locked: newAccLoc,
+    };
+
+    await this.database.insertAccountVersion(
+      account.member_id,
+      account.id,
+      this.database.REASON.ORDER_CANCEL,
+      balance,
+      locked,
+      fee,
+      amount,
+      modifiable_id,
+      modifiable_type,
+      created_at,
+      updated_at,
+      account.currency,
+      fun,
+      { dbTransaction }
+    );
+
+    await this.database.updateAccount(newAccount, { dbTransaction });
+    /* !!! HIGH RISK (end) !!! */
   }
 }
 
