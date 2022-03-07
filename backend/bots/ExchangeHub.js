@@ -472,6 +472,38 @@ class ExchangeHub extends Bot {
 
       await this.database.updateOrder(newOrder, { dbTransaction: t });
 
+      await this._updateAccount(
+        accountAsk,
+        t,
+        balanceA,
+        lockedA,
+        feeA,
+        this.database.MODIFIABLE_TYPE.TRADE,
+        orderId,
+        created_at,
+        order.type === this.database.TYPE.ORDER_ASK ? this.database.FUNC.UNLOCK_AND_SUB_FUNDS : this.database.FUNC.PLUS_FUNDS
+      );
+      await this._updateAccount(
+        accountBid,
+        t,
+        balanceB,
+        lockedB,
+        feeB,
+        this.database.MODIFIABLE_TYPE.TRADE,
+        orderId,
+        created_at,
+        order.type === this.database.TYPE.ORDER_ASK ?  this.database.FUNC.PLUS_FUNDS: this.database.FUNC.UNLOCK_AND_SUB_FUNDS
+      );
+
+      // order 完成，解鎖剩餘沒用完的
+      if (orderState === this.database.ORDER_STATE.DONE && SafeMath.gt(newOrderLocked, '0')) {
+        if (order.type === this.database.TYPE.ORDER_ASK) {
+          await this._updateAccount(accountAsk, t, changeLocked, changeBalance, '0', this.database.MODIFIABLE_TYPE.TRADE, orderId, created_at, this.database.FUNC.UNLOCK_FUNDS);
+        } else if (order.type === this.database.TYPE.ORDER_BID) {
+          await this._updateAccount(accountBid, t, changeLocked, changeBalance, '0', this.database.MODIFIABLE_TYPE.TRADE, orderId, created_at, this.database.FUNC.UNLOCK_FUNDS);
+        }
+      }
+
       await t.commit();
     } catch (error) {
       this.logger.error(error);
