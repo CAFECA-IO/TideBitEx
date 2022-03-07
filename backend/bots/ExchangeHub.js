@@ -380,38 +380,79 @@ class ExchangeHub extends Bot {
     // 8. add account_version
     // 9. update account balance and locked
     try {
+      const {
+        accFillSz, clOrdId, tradeId, state, side, fillPx, fillSz, fee, uTime, 
+      } = formatOrder;
       // get orderId from formatOrder.clOrdId
-      const { memberId, orderId } = Utils.parseClOrdId(formatOrder.clOrdId);
+      const { memberId, orderId } = Utils.parseClOrdId(clOrdId);
       const order = await this.database.getOrder(orderId, { dbTransaction: t });
       if (order.state !== this.database.ORDER_STATE.WAIT) {
         await t.rollback();
         this.logger.error('order has been closed');
       }
       const currencyId = order.type === this.database.TYPE.ORDER_ASK ? order.ask : order.bid;
-      const accountAsk = await this.database.getAccountByMemberIdCurrency(memberId, currencyId, { dbTransaction: t });
-      const accountBid = await this.database.getAccountByMemberIdCurrency(memberId, currencyId, { dbTransaction: t });
+      const accountAsk = await this.database.getAccountByMemberIdCurrency(memberId, order.ask, { dbTransaction: t });
+      const accountBid = await this.database.getAccountByMemberIdCurrency(memberId, order.bid, { dbTransaction: t });
 
       /*******************************************
        * formatOrder.clOrdId: custom orderId for okex
+       * formatOrder.accFillSz: valume which already matched
        * formatOrder.state: 'live', 'canceled', 'filled', 'partially_filled', but 'cancel' may not enter this function
-       * lockedA: Ask locked value, 
-       * balanceA: formatOrder.fillSz
+       * lockedA: Ask locked value, this value would be negative 
+       *   if formatOrder.side === 'sell', formatOrder.fillSz || '0'
+       * feeA: Ask fee value
+       *   if formatOrder.side === 'buy', formatOrder.fee - all this order ask vouchers.fee || 0
+       * balanceA: Ask Balance, this value would be positive;
+       *   if formatOrder.side === 'buy', formatOrder.fillSz - feeA || '0'
+       * lockedB: Bid locked value, this value would be negative
+       *   if formatOrder.side === 'buy',value = formatOrder.fillSz * formatOrder.fillPx - feeA, else value = '0'
+       * feeB: Bid fee value
+       *   if formatOrder.side === 'sell', formatOrder.fee - all this order bid vouchers.fee || 0
+       * balanceB: Bid Blance, this value would be positive;
+       *   if formatOrder.side === 'sell',value = formatOrder.fillSz * formatOrder.fillPx - feeB, else value = '0'
+       * newOrderVolume: remain volume to be matched
+       * newOrderLocked: remain locked to be matched
+       * newFundReceive:
+       *   if formatOrder.side === 'sell': formatOrder.fillSz * formatOrder.fillPx
+       *   if formatOrder.side === 'buy': formatOrder.fillSz
+       * changeBalance: if order is done, euqal to newOrderLocked
+       * changeLocked: if order is done, euqal to newOrderLocked * -1
        *******************************************/
-      let state = this.database.ORDER_STATE.WAIT;
-      if (formatOrder.state === 'filled') {
-        state = this.database.ORDER_STATE.DONE;
+      
+      let orderState = this.database.ORDER_STATE.WAIT;
+      if (state === 'filled') {
+        orderState = this.database.ORDER_STATE.DONE;
       }
-      const newOrder = {
-        id: orderId,
-        state,
-      }
-      // const lockedA = ;
-      // const balanceA = formatOrder.fillSz;
+
+      const lockedA = side === 'sell' ? SafeMath.mult(fillSz, '-1') : '0';
+      const totalFee = SafeMath.abs(fee);
+      const feeA = side === 'buy' ? await this._calculateFee(orderId, 'ask', totalFee, t) : '0';
+      const balanceA = side === 'buy' ? SafeMath.minus(fillSz, feeA) : '0';
+
+      const value = SafeMath.mult(fillPx, fillSz);
+      const lockedB = side === 'buy' ? SafeMath.mult(value, '-1') : '0';
+      const feeB = side === 'sell' ? await this._calculateFee(orderId, 'bid', totalFee, t) : '0';
+      const balanceB = side === 'sell' ? SafeMath.minus(value, feeB) : '0';
+
+      const newOrderVolume = SafeMath.minus(order.origin_volume, accFillSz);
+      const newOrderLocked = SafeMath.plus(order.locked, side === 'buy' ? lockedB : lockedA);
+      const newFundReceive = side === 'buy' ? fillSz : value;
+
+      const changeBalance = newOrderLocked;
+      const changeLocked = SafeMath.mult(newOrderLocked, '-1');
 
       const created_at = new Date().toISOString();
       const updated_at = created_at;
       
-      // !!!!!! CAUTION temp for demo, still not finish !!!!!!!
+      const newOrder = {
+        id: orderId,
+        volume: newOrderVolume,
+        state: orderState,
+        locked: newOrderLocked,
+        funds_received: newFundReceive,
+        trades_count: order.trades_count + 1
+      }
+
       await this.database.insertVouchers(
         memberId,
         orderId,
