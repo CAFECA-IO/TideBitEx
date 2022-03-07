@@ -8,7 +8,7 @@ import {
   FaSignInAlt,
   FaUserPlus,
   FaExchangeAlt,
-  FaInfoCircle
+  FaInfoCircle,
 } from "react-icons/fa";
 import { BiLineChart, BiShare } from "react-icons/bi";
 import { GrAnnounce } from "react-icons/gr";

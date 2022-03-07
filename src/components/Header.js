@@ -7,7 +7,6 @@ import DropDown from "./DropDown";
 const Header = (props) => {
   const storeCtx = useContext(StoreContext);
   const { t } = useTranslation();
-  
 
   return (
     <Navbar bg="teal" variant="dark" expand="lg">

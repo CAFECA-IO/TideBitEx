@@ -12,13 +12,27 @@ const languages = {
   // "zh-TW": "繁體中文",
 };
 
+// const languages = {
+//   "en-US": {
+//     value: "English",
+//     nameAlis: ["en", "en_us", "en-US", "en-us"],
+//   },
+//   "zh-HK": {
+//     value: "繁體中文",
+//     nameAlis: ["zh-HK", "zh_hk", "zh-TW", "zh_tw"],
+//   },
+//   jp: { value: "日本語", nameAlis: ["jp"] },
+//   "zh-CN": { value: "简体中文", nameAlis: ["zh-CN", "zh_cn"] },
+// };
+
 const Layout = ({ children }) => {
   const { i18n } = useTranslation();
   const [languageKey, setLanguageKey] = useState("en");
   const [active, setActive] = useState(false);
   const changeLanguage = useCallback(
-    async (key) => {
-      await window.cookieStore.set("lang", key);
+    (key) => {
+      // await window.cookieStore.set("lang", key);
+      document.cookie = `lang=${key}`;
       setLanguageKey(key);
       i18n.changeLanguage(key);
     },
@@ -26,17 +40,40 @@ const Layout = ({ children }) => {
   );
 
   useEffect(() => {
-    // const key =
-    //   document.cookie
-    //     .split(";")
-    //     .filter((v) => /lang/.test(v))
-    //     .pop()
-    //     ?.split("=")[1] || navigator.language;
-    window.cookieStore.get("lang").then((lang) => {
-      const key = lang.value;
-      console.log(`lang`, lang, `key`, key);
-      setLanguageKey(key);
-    });
+    const lang = document.cookie
+      .split(";")
+      .filter((v) => /lang/.test(v))
+      .pop()
+      ?.split("=")[1];
+    console.log(`lang`, lang);
+    switch (lang.toLowerCase()) {
+      case "en":
+      case "en-us":
+      case "en_us":
+        setLanguageKey("en-US");
+        break;
+      case "zh-hk":
+      case "zh_hk":
+      case "zh_tw":
+      case "zh-tw":
+        setLanguageKey("zh-HK");
+        break;
+      case "zh_cn":
+      case "zh-cn":
+        setLanguageKey("zh-CN");
+        break;
+      case "jp":
+        setLanguageKey("jp");
+        break;
+      default:
+        setLanguageKey("en-US");
+        break;
+    }
+    // window.cookieStore.get("lang").then((lang) => {
+    //   const key = lang.value;
+    //   console.log(`lang`, lang, `key`, key);
+    //   setLanguageKey(key);
+    // });
   }, []);
 
   return (
