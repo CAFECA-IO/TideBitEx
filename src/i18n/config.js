@@ -36,7 +36,6 @@ const DETECTION_OPTIONS = {
   order: [
     "querystring",
     "cookie",
-    "localStorage",
     // "sessionStorage",
     // "navigator",
     "htmlTag",
@@ -45,10 +44,9 @@ const DETECTION_OPTIONS = {
   ],
   lookupQuerystring: "lang",
   lookupCookie: "lang",
-  lookupLocalStorage: "lang",
   htmlTag: document.documentElement,
   // lookupSessionStorage: "lang",
-  caches: ["cookie", "localStorage"],
+  caches: ["cookie"],
 };
 
 i18n

@@ -32,7 +32,7 @@ const Layout = ({ children }) => {
   const changeLanguage = useCallback(
     (key) => {
       // await window.cookieStore.set("lang", key);
-      document.cookie = `lang=${key}`;
+      // document.cookie = `lang=${key}`;
       setLanguageKey(key);
       i18n.changeLanguage(key);
     },
