@@ -375,7 +375,7 @@ class ExchangeHub extends Bot {
     // 3. find and lock account
     // 4. update order state
     // 5. get balance and locked value from order
-    // 6. add trade
+    // 6. add trade // -- CAUTION!!! skip now, tradeId use okex tradeId
     // 7. add vouchers
     // 8. add account_version
     // 9. update account balance and locked
@@ -479,7 +479,7 @@ class ExchangeHub extends Bot {
         lockedA,
         feeA,
         this.database.MODIFIABLE_TYPE.TRADE,
-        orderId,
+        tradeId,
         created_at,
         order.type === this.database.TYPE.ORDER_ASK ? this.database.FUNC.UNLOCK_AND_SUB_FUNDS : this.database.FUNC.PLUS_FUNDS
       );
@@ -490,7 +490,7 @@ class ExchangeHub extends Bot {
         lockedB,
         feeB,
         this.database.MODIFIABLE_TYPE.TRADE,
-        orderId,
+        tradeId,
         created_at,
         order.type === this.database.TYPE.ORDER_ASK ?  this.database.FUNC.PLUS_FUNDS: this.database.FUNC.UNLOCK_AND_SUB_FUNDS
       );
@@ -498,9 +498,9 @@ class ExchangeHub extends Bot {
       // order 完成，解鎖剩餘沒用完的
       if (orderState === this.database.ORDER_STATE.DONE && SafeMath.gt(newOrderLocked, '0')) {
         if (order.type === this.database.TYPE.ORDER_ASK) {
-          await this._updateAccount(accountAsk, t, changeLocked, changeBalance, '0', this.database.MODIFIABLE_TYPE.TRADE, orderId, created_at, this.database.FUNC.UNLOCK_FUNDS);
+          await this._updateAccount(accountAsk, t, changeLocked, changeBalance, '0', this.database.MODIFIABLE_TYPE.TRADE, tradeId, created_at, this.database.FUNC.UNLOCK_FUNDS);
         } else if (order.type === this.database.TYPE.ORDER_BID) {
-          await this._updateAccount(accountBid, t, changeLocked, changeBalance, '0', this.database.MODIFIABLE_TYPE.TRADE, orderId, created_at, this.database.FUNC.UNLOCK_FUNDS);
+          await this._updateAccount(accountBid, t, changeLocked, changeBalance, '0', this.database.MODIFIABLE_TYPE.TRADE, tradeId, created_at, this.database.FUNC.UNLOCK_FUNDS);
         }
       }
 
