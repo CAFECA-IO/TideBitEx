@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import HistoryOrder from "../components/HistoryOrder";
+import HistoryOrder, { BalanceTile } from "../components/HistoryOrder";
 import MarketHistory from "../components/MarketHistory";
 import MarketTrade from "../components/MarketTrade";
 import OrderBook from "../components/OrderBook";
@@ -18,7 +18,11 @@ const MobileExchange = (props) => {
       {(storeCtx.activePage === "chart" ||
         storeCtx.activePage === "market" ||
         storeCtx.activePage === "trade") && <SelectedPair />}
-      <section className="section">
+      <section
+        className={`section${
+          storeCtx.activePage === "section--assets" ? " assets" : ""
+        }`}
+      >
         {storeCtx.activePage === "chart" && (
           <>
             <ThemeConsumer>
@@ -51,7 +55,21 @@ const MobileExchange = (props) => {
             </div>
           </>
         )}
-        {storeCtx.activePage === "assets" && <></>}
+        {storeCtx.activePage === "assets" && (
+          <div className="section__container">
+            <ul className="d-flex justify-content-between market-order-item market-order__title">
+              <li>{t("currency")}</li>
+              <li>{t("cashBal")}</li>
+              <li>{t("frozenBal")}</li>
+            </ul>
+            <ul className="order-list">
+              {!!storeCtx.balances?.length &&
+                storeCtx.balances.map((balance) => (
+                  <BalanceTile balance={balance} />
+                ))}
+            </ul>
+          </div>
+        )}
       </section>
     </main>
   );

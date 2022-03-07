@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import Header from "./Header";
 import SideBar from "./SideBar";
 import { useTranslation } from "react-i18next";
@@ -18,37 +18,33 @@ const Layout = ({ children }) => {
   const [active, setActive] = useState(false);
   const changeLanguage = useCallback(
     async (key) => {
-      console.log(`1 key`, key);
-      if (!key) {
-        key =
-          document.cookie
-            .split(";")
-            .filter((v) => /lang/.test(v))
-            .pop()
-            ?.split("=")[1] ||
-          navigator.language ||
-          Object.keys(languages)[0];
-        // const lang = await window.cookieStore.get("lang");
-        // key = lang.value;
-        // console.log(`lang`, lang);
-        console.log(`2 key`, key);
-      } else {
-        console.log(`3 key`, key);
-        // document.cookie.replace(
-        //   `${document.cookie.split(";").find((v) => /lang/.test(v))};`,
-        //   ""
-        // );
-        // document.cookie = `lang=${key}`;
-        await window.cookieStore.set("lang", key);
-      }
+      // console.log(`1 key`, key);
+      // if (!key) {
+      //   key =
+      //     document.cookie
+      //       .split(";")
+      //       .filter((v) => /lang/.test(v))
+      //       .pop()
+      //       ?.split("=")[1] ||
+      //     navigator.language ||
+      //     Object.keys(languages)[0];
+      //   // const lang = await window.cookieStore.get("lang");
+      //   // key = lang.value;
+      //   // console.log(`lang`, lang);
+      //   console.log(`2 key`, key);
+      // } else {
+      // document.cookie.replace(
+      //   `${document.cookie.split(";").find((v) => /lang/.test(v))};`,
+      //   ""
+      // );
+      // document.cookie = `lang=${key}`;
+      await window.cookieStore.set("lang", key);
+      // }
       setLanguageKey(key);
       i18n.changeLanguage(key);
     },
     [i18n]
   );
-  useEffect(() => {
-    changeLanguage();
-  }, [changeLanguage]);
 
   return (
     <div id="layout" className="layout layout--pushable">

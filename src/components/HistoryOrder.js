@@ -27,7 +27,7 @@ const OrderTile = (props) => {
   );
 };
 
-const BalanceTile = (props) => {
+export const BalanceTile = (props) => {
   return (
     <ul className="d-flex justify-content-between market-order-item market-balance">
       {/* <li>{dateFormatter(parseInt(props.balance.uTime)).text}</li> */}

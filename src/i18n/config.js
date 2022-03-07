@@ -1,30 +1,56 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
+import LanguageDetector from "i18next-browser-languagedetector";
 
-i18n.use(initReactI18next).init({
-  // fallbackLng: "en",
-  // lng: "en",
-  resources: {
-    "en-US": {
-      translations: require("./locales/en/translations.json"),
-    },
-    jp: {
-      translations: require("./locales/jp/translations.json"),
-    },
-    "zh-CN": {
-      translations: require("./locales/zh_CN/translations.json"),
-    },
-    "zh-HK": {
-      translations: require("./locales/zh_HK/translations.json"),
-    },
-    "zh-TW": {
-      translations: require("./locales/zh_TW/translations.json"),
-    },
+const resources = {
+  "en-US": {
+    translations: require("./locales/en/translations.json"),
   },
-  ns: ["translations"],
-  defaultNS: "translations",
-});
+  jp: {
+    translations: require("./locales/jp/translations.json"),
+  },
+  "zh-CN": {
+    translations: require("./locales/zh_CN/translations.json"),
+  },
+  "zh-HK": {
+    translations: require("./locales/zh_HK/translations.json"),
+  },
+  "zh-TW": {
+    translations: require("./locales/zh_TW/translations.json"),
+  },
+};
 
-i18n.languages = ["en-US", "jp", "zh-CN", "zh-HK", "zh-TW"];
+const DETECTION_OPTIONS = {
+  order: [
+    "querystring",
+    "cookie",
+    "localStorage",
+    // "sessionStorage",
+    // "navigator",
+    // "htmlTag",
+    // "path",
+    // "subdomain",
+  ],
+  lookupQuerystring: "lang",
+  lookupCookie: "lang",
+  lookupLocalStorage: "lang",
+  // lookupSessionStorage: "lang",
+  caches: ["cookie", "localStorage"],
+};
+
+i18n
+  .use(initReactI18next)
+  .use(LanguageDetector)
+  .init({
+    detection: DETECTION_OPTIONS,
+    resources,
+    fallbackLng: "en-US",
+    ns: ["translations"],
+    defaultNS: "translations",
+    supportedLngs: ["en-US", "jp", "zh-CN", "zh-HK", "zh-TW"],
+    interpolation: {
+      escapeValue: false, // react already safes from xss
+    },
+  });
 
 export default i18n;

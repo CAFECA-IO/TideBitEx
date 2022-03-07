@@ -86,13 +86,18 @@
     &__header {
       display: none;
     }
-    &__title{
+    &__title {
       border-bottom: 1px solid #333;
       background-color: #4597e6;
       color: white;
       font-weight: 700;
       font-size: 14px;
       padding: 8px 5px;
+    }
+
+    & > .nav.nav-tabs > [role="tab"][data-rb-event-key="balance"],
+    & > .tab-content > [role="tabpanel"]:last-child {
+      display: none;
     }
   }
 }
