@@ -163,20 +163,10 @@ class ExchangeHub extends Bot {
       const volume = orderData.volume;
       const locked = orderData.locked;
       const balance = orderData.balance;
+      const fee = '0';
 
       const created_at = new Date().toISOString();
       const updated_at = created_at;
-      
-      const oriAccBal = account.balance;
-      const oriAccLoc = account.locked;
-      const newAccBal = SafeMath.plus(oriAccBal, balance);
-      const newAccLoc = SafeMath.plus(oriAccLoc, locked);
-      const amount = SafeMath.plus(newAccBal, newAccLoc);
-      const newAccount = {
-        id: account.id,
-        balance: newAccBal,
-        locked: newAccLoc,
-      };
 
       const order = await this.database.insertOrder(
         orderData.bid,
@@ -200,26 +190,11 @@ class ExchangeHub extends Bot {
         0,
         { dbTransaction: t }
       );
+      const orderId = order[0];
 
-      await this.database.insertAccountVersion(
-        memberId,
-        account.id,
-        this.database.REASON.ORDER_SUBMIT,
-        balance,
-        locked,
-        '0',
-        amount,
-        order[0],
-        this.database.MODIFIABLE_TYPE.ORDER,
-        created_at,
-        updated_at,
-        account.currency,
-        this.database.FUNC.LOCK_FUNDS,
-        { dbTransaction: t }
-      );
-      await this.database.updateAccount(newAccount, { dbTransaction: t });
+      await this._updateAccount(account, t, balance, locked, fee, this.database.MODIFIABLE_TYPE.ORDER, orderId, created_at, this.database.FUNC.LOCK_FUNDS);
 
-      const okexOrderRes = await this.okexConnector.router('postPlaceOrder', { memberId, orderId: order[0], params, query, body });
+      const okexOrderRes = await this.okexConnector.router('postPlaceOrder', { memberId, orderId, params, query, body });
       if (!okexOrderRes.success) {
         await t.rollback();
         return okexOrderRes;
@@ -307,41 +282,13 @@ class ExchangeHub extends Bot {
       }
       const locked = SafeMath.mult(order.locked, '-1');
       const balance = order.locked;
+      const fee = '0';
 
       const created_at = new Date().toISOString();
-      const updated_at = created_at;
-      
-      const oriAccBal = account.balance;
-      const oriAccLoc = account.locked;
-      const newAccBal = SafeMath.plus(oriAccBal, balance);
-      const newAccLoc = SafeMath.plus(oriAccLoc, locked);
-      const amount = SafeMath.plus(newAccBal, newAccLoc);
-      const newAccount = {
-        id: account.id,
-        balance: newAccBal,
-        locked: newAccLoc,
-      };
 
       await this.database.updateOrder(newOrder, { dbTransaction: t });
 
-      await this.database.insertAccountVersion(
-        memberId,
-        account.id,
-        this.database.REASON.ORDER_CANCEL,
-        balance,
-        locked,
-        '0',
-        amount,
-        orderId,
-        this.database.MODIFIABLE_TYPE.ORDER,
-        created_at,
-        updated_at,
-        account.currency,
-        this.database.FUNC.UNLOCK_FUNDS,
-        { dbTransaction: t }
-      );
-
-      await this.database.updateAccount(newAccount, { dbTransaction: t });
+      await this._updateAccount(account, t, balance, locked, fee, this.database.MODIFIABLE_TYPE.ORDER, orderId, created_at, this.database.FUNC.UNLOCK_FUNDS);
 
       const okexCancelOrderRes = await this.okexConnector.router('postCancelOrder', { params, query, body });
       if (!okexCancelOrderRes.success) {
@@ -433,54 +380,129 @@ class ExchangeHub extends Bot {
     // 8. add account_version
     // 9. update account balance and locked
     try {
+      const {
+        accFillSz, clOrdId, tradeId, state, side, fillPx, fillSz, fee, uTime, 
+      } = formatOrder;
       // get orderId from formatOrder.clOrdId
-      const { memberId, orderId } = Utils.parseClOrdId(formatOrder.clOrdId);
+      const { memberId, orderId } = Utils.parseClOrdId(clOrdId);
       const order = await this.database.getOrder(orderId, { dbTransaction: t });
       if (order.state !== this.database.ORDER_STATE.WAIT) {
         await t.rollback();
-        this.logger.error('order has been close');
+        this.logger.error('order has been closed');
       }
       const currencyId = order.type === this.database.TYPE.ORDER_ASK ? order.ask : order.bid;
-      const accountAsk = await this.database.getAccountByMemberIdCurrency(memberId, currencyId, { dbTransaction: t });
-      const accountBid = await this.database.getAccountByMemberIdCurrency(memberId, currencyId, { dbTransaction: t });
+      const accountAsk = await this.database.getAccountByMemberIdCurrency(memberId, order.ask, { dbTransaction: t });
+      const accountBid = await this.database.getAccountByMemberIdCurrency(memberId, order.bid, { dbTransaction: t });
 
       /*******************************************
        * formatOrder.clOrdId: custom orderId for okex
+       * formatOrder.accFillSz: valume which already matched
        * formatOrder.state: 'live', 'canceled', 'filled', 'partially_filled', but 'cancel' may not enter this function
-       * lockedA: Ask locked value, 
-       * balanceA: formatOrder.fillSz
+       * lockedA: Ask locked value, this value would be negative 
+       *   if formatOrder.side === 'sell', formatOrder.fillSz || '0'
+       * feeA: Ask fee value
+       *   if formatOrder.side === 'buy', formatOrder.fee - all this order ask vouchers.fee || 0
+       * balanceA: Ask Balance, this value would be positive;
+       *   if formatOrder.side === 'buy', formatOrder.fillSz - feeA || '0'
+       * lockedB: Bid locked value, this value would be negative
+       *   if formatOrder.side === 'buy',value = formatOrder.fillSz * formatOrder.fillPx - feeA, else value = '0'
+       * feeB: Bid fee value
+       *   if formatOrder.side === 'sell', formatOrder.fee - all this order bid vouchers.fee || 0
+       * balanceB: Bid Blance, this value would be positive;
+       *   if formatOrder.side === 'sell',value = formatOrder.fillSz * formatOrder.fillPx - feeB, else value = '0'
+       * newOrderVolume: remain volume to be matched
+       * newOrderLocked: remain locked to be matched
+       * newFundReceive:
+       *   if formatOrder.side === 'sell': formatOrder.fillSz * formatOrder.fillPx
+       *   if formatOrder.side === 'buy': formatOrder.fillSz
+       * changeBalance: if order is done, euqal to newOrderLocked
+       * changeLocked: if order is done, euqal to newOrderLocked * -1
        *******************************************/
-      let state = this.database.ORDER_STATE.WAIT;
-      if (formatOrder.state === 'filled') {
-        state = this.database.ORDER_STATE.DONE;
+      
+      let orderState = this.database.ORDER_STATE.WAIT;
+      if (state === 'filled') {
+        orderState = this.database.ORDER_STATE.DONE;
       }
-      const newOrder = {
-        id: orderId,
-        state,
-      }
-      // const lockedA = ;
-      // const balanceA = formatOrder.fillSz;
+
+      const lockedA = side === 'sell' ? SafeMath.mult(fillSz, '-1') : '0';
+      const totalFee = SafeMath.abs(fee);
+      const feeA = side === 'buy' ? await this._calculateFee(orderId, 'ask', totalFee, t) : '0';
+      const balanceA = side === 'buy' ? SafeMath.minus(fillSz, feeA) : '0';
+
+      const value = SafeMath.mult(fillPx, fillSz);
+      const lockedB = side === 'buy' ? SafeMath.mult(value, '-1') : '0';
+      const feeB = side === 'sell' ? await this._calculateFee(orderId, 'bid', totalFee, t) : '0';
+      const balanceB = side === 'sell' ? SafeMath.minus(value, feeB) : '0';
+
+      const newOrderVolume = SafeMath.minus(order.origin_volume, accFillSz);
+      const newOrderLocked = SafeMath.plus(order.locked, side === 'buy' ? lockedB : lockedA);
+      const newFundReceive = side === 'buy' ? fillSz : value;
+
+      const changeBalance = newOrderLocked;
+      const changeLocked = SafeMath.mult(newOrderLocked, '-1');
 
       const created_at = new Date().toISOString();
       const updated_at = created_at;
       
-      // !!!!!! CAUTION temp for demo, still not finish !!!!!!!
+      const newOrder = {
+        id: orderId,
+        volume: newOrderVolume,
+        state: orderState,
+        locked: newOrderLocked,
+        funds_received: newFundReceive,
+        trades_count: order.trades_count + 1
+      }
+
       await this.database.insertVouchers(
         memberId,
         orderId,
-        formatOrder.tradeId,
+        tradeId,
         null,
         'eth',    // -- need change
         'usdt',   // -- need change
-        formatOrder.fillPx,
-        formatOrder.fillSz,
-        SafeMath.mult(formatOrder.fillPx, formatOrder.fillSz),
+        fillPx,
+        fillSz,
+        value,
         order.type === this.database.TYPE.ORDER_ASK ? 'ask' : 'bid',
-        order.type === this.database.TYPE.ORDER_ASK ? formatOrder.fee : '0',
-        order.type === this.database.TYPE.ORDER_ASK ? '0' : formatOrder.fee,
+        order.type === this.database.TYPE.ORDER_ASK ? feeB : '0',  // get bid, so fee is bid
+        order.type === this.database.TYPE.ORDER_ASK ? '0' : feeA,  // get ask, so fee is ask
         created_at,
         { dbTransaction: t }
       )
+
+      await this.database.updateOrder(newOrder, { dbTransaction: t });
+
+      await this._updateAccount(
+        accountAsk,
+        t,
+        balanceA,
+        lockedA,
+        feeA,
+        this.database.MODIFIABLE_TYPE.TRADE,
+        orderId,
+        created_at,
+        order.type === this.database.TYPE.ORDER_ASK ? this.database.FUNC.UNLOCK_AND_SUB_FUNDS : this.database.FUNC.PLUS_FUNDS
+      );
+      await this._updateAccount(
+        accountBid,
+        t,
+        balanceB,
+        lockedB,
+        feeB,
+        this.database.MODIFIABLE_TYPE.TRADE,
+        orderId,
+        created_at,
+        order.type === this.database.TYPE.ORDER_ASK ?  this.database.FUNC.PLUS_FUNDS: this.database.FUNC.UNLOCK_AND_SUB_FUNDS
+      );
+
+      // order 完成，解鎖剩餘沒用完的
+      if (orderState === this.database.ORDER_STATE.DONE && SafeMath.gt(newOrderLocked, '0')) {
+        if (order.type === this.database.TYPE.ORDER_ASK) {
+          await this._updateAccount(accountAsk, t, changeLocked, changeBalance, '0', this.database.MODIFIABLE_TYPE.TRADE, orderId, created_at, this.database.FUNC.UNLOCK_FUNDS);
+        } else if (order.type === this.database.TYPE.ORDER_BID) {
+          await this._updateAccount(accountBid, t, changeLocked, changeBalance, '0', this.database.MODIFIABLE_TYPE.TRADE, orderId, created_at, this.database.FUNC.UNLOCK_FUNDS);
+        }
+      }
 
       await t.commit();
     } catch (error) {
@@ -512,6 +534,60 @@ class ExchangeHub extends Bot {
       currencyId: body.side === 'buy' ? bid : ask,
     };
     return EthUsdtData;
+  }
+
+  async _updateAccount(account, dbTransaction, balance, locked, fee, modifiable_type, modifiable_id, created_at, fun) {
+    /* !!! HIGH RISK (start) !!! */
+    const updated_at = created_at;
+    const oriAccBal = account.balance;
+    const oriAccLoc = account.locked;
+    const newAccBal = SafeMath.plus(oriAccBal, balance);
+    const newAccLoc = SafeMath.plus(oriAccLoc, locked);
+    const amount = SafeMath.plus(newAccBal, newAccLoc);
+    const newAccount = {
+      id: account.id,
+      balance: newAccBal,
+      locked: newAccLoc,
+    };
+
+    await this.database.insertAccountVersion(
+      account.member_id,
+      account.id,
+      this.database.REASON.ORDER_CANCEL,
+      balance,
+      locked,
+      fee,
+      amount,
+      modifiable_id,
+      modifiable_type,
+      created_at,
+      updated_at,
+      account.currency,
+      fun,
+      { dbTransaction }
+    );
+
+    await this.database.updateAccount(newAccount, { dbTransaction });
+    /* !!! HIGH RISK (end) !!! */
+  }
+
+  async _calculateFee(orderId, trend, totalFee, dbTransaction) {
+    const vouchers = await this.database.getVouchersByOrderId(orderId, { dbTransaction });
+    let totalVfee = '0';
+    for (const voucher of vouchers) {
+      if (voucher.trend === trend) {
+        switch (trend) {
+          case 'ask':
+            totalVfee = SafeMath.plus(totalVfee, voucher.ask_fee);
+            break;
+          case 'bid':
+            totalVfee = SafeMath.plus(totalVfee, voucher.bid_fee);
+            break;
+          default:
+        }
+      }
+    }
+    return SafeMath.minus(totalFee, totalVfee);
   }
 }
 

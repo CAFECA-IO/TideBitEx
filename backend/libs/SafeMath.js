@@ -41,6 +41,11 @@ class SafeMath {
     return result;
   }
 
+  static abs(a) {
+    const bnA = SafeMath.toBn(a);
+    return bnA.abs().toFixed();
+  }
+
   /**
    * a + b
    * @param {string | number} a
