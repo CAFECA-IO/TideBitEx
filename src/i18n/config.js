@@ -3,16 +3,28 @@ import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 
 const resources = {
+  en: {
+    translations: require("./locales/en/translations.json"),
+  },
+  en_us: {
+    translations: require("./locales/en/translations.json"),
+  },
   "en-US": {
     translations: require("./locales/en/translations.json"),
   },
   jp: {
     translations: require("./locales/jp/translations.json"),
   },
+  zh_cn: {
+    translations: require("./locales/zh_CN/translations.json"),
+  },
   "zh-CN": {
     translations: require("./locales/zh_CN/translations.json"),
   },
   "zh-HK": {
+    translations: require("./locales/zh_HK/translations.json"),
+  },
+  zh_hk: {
     translations: require("./locales/zh_HK/translations.json"),
   },
   "zh-TW": {
@@ -27,13 +39,14 @@ const DETECTION_OPTIONS = {
     "localStorage",
     // "sessionStorage",
     // "navigator",
-    // "htmlTag",
+    "htmlTag",
     // "path",
     // "subdomain",
   ],
   lookupQuerystring: "lang",
   lookupCookie: "lang",
   lookupLocalStorage: "lang",
+  htmlTag: document.documentElement,
   // lookupSessionStorage: "lang",
   caches: ["cookie", "localStorage"],
 };
@@ -47,7 +60,17 @@ i18n
     fallbackLng: "en-US",
     ns: ["translations"],
     defaultNS: "translations",
-    supportedLngs: ["en-US", "jp", "zh-CN", "zh-HK", "zh-TW"],
+    supportedLngs: [
+      "en",
+      "en_us",
+      "en-US",
+      "jp",
+      "zh-CN",
+      "zh_cn",
+      "zh_hk",
+      "zh-HK",
+      "zh-TW",
+    ],
     interpolation: {
       escapeValue: false, // react already safes from xss
     },
