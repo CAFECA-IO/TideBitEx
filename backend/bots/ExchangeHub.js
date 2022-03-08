@@ -9,6 +9,7 @@ const EventBus = require('../libs/EventBus');
 const Events = require('../constants/Events');
 const SafeMath = require('../libs/SafeMath');
 const Utils = require('../libs/Utils');
+const SupportedExchange = require('../constants/SupportedExchange')
 
 class ExchangeHub extends Bot {
   constructor() {
@@ -30,7 +31,10 @@ class ExchangeHub extends Bot {
           wssPrivate: this.config.okex.wssPrivate,
         })
       })
-      .then(() => this);
+      .then(() => {
+        this.tidebitMarkets = this.getTidebitMarkets();
+        return this;
+      });
   }
 
   async start() {
@@ -38,6 +42,46 @@ class ExchangeHub extends Bot {
     await this.okexConnector.start();
     this._eventListener();
     return this;
+  }
+
+  getTidebitMarkets() {
+    try {
+      const p = path.join(this.config.base.TideBitLegacyPath, 'config/markets/markets.yml');
+      const markets = Utils.marketParser(p);
+      const formatMarket = markets.map((market) => {
+        const instId = market.name.split('/').join('-').toUpperCase();
+        return {
+          ...market,
+          alias: "",
+          baseCcy: market.base_unit.toUpperCase(),
+          category: "",
+          ctMult: "",
+          ctType: "",
+          ctVal: "",
+          ctValCcy: "",
+          expTime: "",
+          instId,
+          instType: "",
+          lever: "",
+          listTime: Math.floor(Date.now() / 1000) * 1000,
+          lotSz: "",
+          minSz: "",
+          optType: "",
+          quoteCcy: market.quote_unit,
+          settleCcy: "",
+          state: market.visible,
+          stk: "",
+          tickSz: "",
+          uly: "",
+          ts: null,
+          source: SupportedExchange.TIDEBIT
+        }
+      });
+      return formatMarket;
+    } catch (error) {
+      this.logger.log(error);
+      process.exit(1);
+    }
   }
 
   async getMemberIdFromRedis(peatioSession) {
@@ -111,19 +155,80 @@ class ExchangeHub extends Bot {
   // account api end
   // market api
   async getTickers({ params, query }) {
-    return this.okexConnector.router('getTickers', { params, query });
+    const list = [];
+    try {
+      const okexRes = await this.okexConnector.router('getTickers', { params, query });
+      if (okexRes.success) {
+        const okexInstruments = okexRes.payload;
+        const includeTidebitMarket = Utils.marketFilterInclude(this.tidebitMarkets, okexInstruments);
+        includeTidebitMarket.forEach((market) => market.source = SupportedExchange.OKEX)
+        list.push(...includeTidebitMarket);
+      } else {
+        return okexRes;
+      }
+    } catch (error) {
+      this.logger.log(error);
+      return new ResponseFormat({
+        message: error.stack,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+
+    // ++ TODO: get market data from api
+    try {
+      const tideBitOnlyMarkets = Utils.marketFilterExclude(list, this.tidebitMarkets);
+      list.push(...tideBitOnlyMarkets);
+    } catch (error) {
+      this.logger.log(error);
+      return new ResponseFormat({
+        message: error.stack,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+
+    return new ResponseFormat({
+      message: 'getTickers',
+      payload: list
+    })
   }
 
   async getOrderBooks({ params, query }) {
-    return this.okexConnector.router('getOrderBooks', { params, query });
+    switch (this._findSource(query.instId)) {
+      case SupportedExchange.OKEX:
+        return this.okexConnector.router('getOrderBooks', { params, query });
+      case SupportedExchange.TIDEBIT:  // ++ TODO 
+      default:
+        return new ResponseFormat({
+          message: 'getOrderBooks',
+          payload: [{}],
+        });
+    }
   }
 
   async getCandlesticks({ params, query }) {
-    return this.okexConnector.router('getCandlesticks', { params, query });
+    switch (this._findSource(query.instId)) {
+      case SupportedExchange.OKEX:
+        return this.okexConnector.router('getCandlesticks', { params, query });
+      case SupportedExchange.TIDEBIT:  // ++ TODO 
+      default:
+        return new ResponseFormat({
+          message: 'getCandlesticks',
+          payload: [],
+        });
+    }
   }
 
   async getTrades({ params, query }) {
-    return this.okexConnector.router('getTrades', { params, query });
+    switch (this._findSource(query.instId)) {
+      case SupportedExchange.OKEX:
+        return this.okexConnector.router('getTrades', { params, query });
+      case SupportedExchange.TIDEBIT:  // ++ TODO 
+      default:
+        return new ResponseFormat({
+          message: 'getTrades',
+          payload: [{}],
+        });
+    }
   }
   // market api end
   // trade api
@@ -194,13 +299,23 @@ class ExchangeHub extends Bot {
 
       await this._updateAccount(account, t, balance, locked, fee, this.database.MODIFIABLE_TYPE.ORDER, orderId, created_at, this.database.FUNC.LOCK_FUNDS);
 
-      const okexOrderRes = await this.okexConnector.router('postPlaceOrder', { memberId, orderId, params, query, body });
-      if (!okexOrderRes.success) {
-        await t.rollback();
-        return okexOrderRes;
+      switch (this._findSource(body.instId)) {
+        case SupportedExchange.OKEX:
+          const okexOrderRes = await this.okexConnector.router('postPlaceOrder', { memberId, orderId, params, query, body });
+          if (!okexOrderRes.success) {
+            await t.rollback();
+            return okexOrderRes;
+          }
+          await t.commit();
+          return okexOrderRes;
+        case SupportedExchange.TIDEBIT:  // ++ TODO 
+        default:
+          await t.rollback();
+          return new ResponseFormat({
+            message: 'instId not Support now',
+            code: Codes.API_NOT_SUPPORTED
+          });
       }
-      await t.commit();
-      return okexOrderRes;
     } catch (error) {
       this.logger.error(error);
       await t.rollback();
@@ -220,13 +335,22 @@ class ExchangeHub extends Bot {
         code: Codes.MEMBER_ID_NOT_FOUND,
       });
     }
-    const res = await this.okexConnector.router('getOrderList', { params, query });
-    const list = res.payload;
-    if (Array.isArray(list)) {
-      const newList = list.filter((order) => order.clOrdId.includes(`${memberId}m`));   // 可能發生與brokerId, randomId碰撞
-      res.payload = newList;
+    switch (this._findSource(query.instId)) {
+      case SupportedExchange.OKEX:
+        const res = await this.okexConnector.router('getOrderList', { params, query });
+        const list = res.payload;
+        if (Array.isArray(list)) {
+          const newList = list.filter((order) => order.clOrdId.includes(`${memberId}m`));   // 可能發生與brokerId, randomId碰撞
+          res.payload = newList;
+        }
+        return res;
+      case SupportedExchange.TIDEBIT:  // ++ TODO 
+      default:
+        return new ResponseFormat({
+          message: 'getOrderList',
+          payload: [],
+        });
     }
-    return res;
   }
   async getOrderHistory ({ params, query, token }) {
     const memberId = await this.getMemberIdFromRedis(token);
@@ -236,13 +360,22 @@ class ExchangeHub extends Bot {
         code: Codes.MEMBER_ID_NOT_FOUND,
       });
     }
-    const res = await this.okexConnector.router('getOrderHistory', { params, query });
-    const list = res.payload;
-    if (Array.isArray(list)) {
-      const newList = list.filter((order) => order.clOrdId.includes(`${memberId}m`));   // 可能發生與brokerId, randomId碰撞
-      res.payload = newList;
+    switch (this._findSource(query.instId)) {
+      case SupportedExchange.OKEX:
+        const res = await this.okexConnector.router('getOrderHistory', { params, query });
+        const list = res.payload;
+        if (Array.isArray(list)) {
+          const newList = list.filter((order) => order.clOrdId.includes(`${memberId}m`));   // 可能發生與brokerId, randomId碰撞
+          res.payload = newList;
+        }
+        return res;
+      case SupportedExchange.TIDEBIT:  // ++ TODO 
+      default:
+        return new ResponseFormat({
+          message: 'getOrderList',
+          payload: [],
+        });
     }
-    return res;
   }
   async postCancelOrder ({ params, query, body, token }) {
     const memberId = await this.getMemberIdFromRedis(token);
@@ -290,13 +423,23 @@ class ExchangeHub extends Bot {
 
       await this._updateAccount(account, t, balance, locked, fee, this.database.MODIFIABLE_TYPE.ORDER, orderId, created_at, this.database.FUNC.UNLOCK_FUNDS);
 
-      const okexCancelOrderRes = await this.okexConnector.router('postCancelOrder', { params, query, body });
-      if (!okexCancelOrderRes.success) {
-        await t.rollback();
-        return okexCancelOrderRes;
+      switch (this._findSource(body.instId)) {
+        case SupportedExchange.OKEX:
+          const okexCancelOrderRes = await this.okexConnector.router('postCancelOrder', { params, query, body });
+          if (!okexCancelOrderRes.success) {
+            await t.rollback();
+            return okexCancelOrderRes;
+          }
+          await t.commit();
+          return okexCancelOrderRes;
+        case SupportedExchange.TIDEBIT:  // ++ TODO 
+        default:
+          await t.rollback();
+          return new ResponseFormat({
+            message: 'instId not Support now',
+            code: Codes.API_NOT_SUPPORTED
+          });
       }
-      await t.commit();
-      return okexCancelOrderRes;
     } catch (error) {
       this.logger.error(error);
       await t.rollback();
@@ -311,48 +454,91 @@ class ExchangeHub extends Bot {
 
   // public api
   async getInstruments ({ params, query }) {
-    return this.okexConnector.router('getInstruments', { params, query });
+    const list = [];
+    try {
+      const okexRes = await this.okexConnector.router('getInstruments', { params, query });
+      if (okexRes.success) {
+        const okexInstruments = okexRes.payload;
+        const includeTidebitMarket = Utils.marketFilterInclude(this.tidebitMarkets, okexInstruments);
+        includeTidebitMarket.forEach((market) => {
+          market.source = SupportedExchange.OKEX;
+        })
+        list.push(...includeTidebitMarket);
+      } else {
+        return okexRes;
+      }
+    } catch (error) {
+      this.logger.log(error);
+      return new ResponseFormat({
+        message: error.stack,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+
+    try {
+      const tideBitOnlyMarkets = Utils.marketFilterExclude(list, this.tidebitMarkets);
+      list.push(...tideBitOnlyMarkets);
+    } catch (error) {
+      this.logger.log(error);
+      return new ResponseFormat({
+        message: error.stack,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+
+    return new ResponseFormat({
+      message: 'getInstruments',
+      payload: list
+    })
   }
   // public api end
 
   async _eventListener() {
     EventBus.on(Events.tradeDataOnUpdate, (instId, tradeData) => {
-      this.broadcast(
-        instId,
-        {
-          type: Events.tradeDataOnUpdate,
-          data: tradeData,
-        }
-      )
+      if (this._isIncludeTideBitMarket(instId)) {
+        this.broadcast(
+          instId,
+          {
+            type: Events.tradeDataOnUpdate,
+            data: tradeData,
+          }
+        )
+      }
     });
 
     EventBus.on(Events.orderOnUpdate, (instId, booksData) => {
-      this.broadcast(
-        instId,
-        {
-          type: Events.orderOnUpdate,
-          data: booksData,
-        }
-      )
+      if (this._isIncludeTideBitMarket(instId)) {
+        this.broadcast(
+          instId,
+          {
+            type: Events.orderOnUpdate,
+            data: booksData,
+          }
+        )
+      }
     });
 
     EventBus.on(Events.candleOnUpdate, (instId, formatCandle) => {
-      this.broadcast(
-        instId,
-        {
-          type: Events.candleOnUpdate,
-          data: formatCandle,
-        }
-      )
+      if (this._isIncludeTideBitMarket(instId)) {
+        this.broadcast(
+          instId,
+          {
+            type: Events.candleOnUpdate,
+            data: formatCandle,
+          }
+        )
+      }
     });
 
     EventBus.on(Events.pairOnUpdate, (formatPair) => {
-      this.broadcastAllClient(
-        {
-          type: Events.pairOnUpdate,
-          data: formatPair,
-        }
-      )
+      if (this._isIncludeTideBitMarket(formatPair.instId)) {
+        this.broadcastAllClient(
+          {
+            type: Events.pairOnUpdate,
+            data: formatPair,
+          }
+        )
+      }
     });
 
     EventBus.on(Events.orderDetailUpdate, async(instType, formatOrders) => {
@@ -588,6 +774,14 @@ class ExchangeHub extends Bot {
       }
     }
     return SafeMath.minus(totalFee, totalVfee);
+  }
+
+  _isIncludeTideBitMarket(instId) {
+    return Utils.marketFilterInclude(this.tidebitMarkets, [{ instId }]).length > 0
+  }
+
+  _findSource(instId) {
+    return this.config.markets[`tb${instId}`];
   }
 }
 

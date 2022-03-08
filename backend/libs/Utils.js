@@ -6,6 +6,7 @@ const toml = require('toml');
 const i18n = require("i18n");
 const dvalue = require('dvalue');
 const colors = require('colors');
+const yaml = require('js-yaml');
 
 const DBOperator = require(path.resolve(__dirname, '../database/dbOperator'));
 const Codes = require('../constants/Codes');
@@ -181,6 +182,10 @@ class Utils {
       logger: rs[2],
       i18n: rs[3]
     }))
+    .then((rs) => {
+      this.marketParser();
+      return rs;
+    })
     .catch(console.trace);
   }
 
@@ -215,6 +220,10 @@ class Utils {
     const packageInfo = await this.readPackageInfo();
     const basePath = path.resolve(os.homedir(), packageInfo.name);
     const fileExists = await this.fileExists({ filePath });
+    const marketsCFGP = path.resolve(path.dirname(filePath), 'markets.toml');
+    const marketsExists = await this.fileExists({ filePath: marketsCFGP})
+    const defaultMarketsCFGP = path.resolve(__dirname, '../../default.markets.toml');
+    const defaultMarketsCFGTOML = await this.readFile({ filePath: defaultMarketsCFGP });
     const defaultCFGP = path.resolve(__dirname, '../../default.config.toml');
     const defaultCFGTOML = await this.readFile({ filePath: defaultCFGP });
     try {
@@ -235,6 +244,25 @@ class Utils {
       }
       config = dvalue.default(currentCFG, defaultCFG);
     }
+
+    try {
+      currentCFG = toml.parse(defaultMarketsCFGTOML);
+    } catch(e) {
+      return Promise.reject(new Error(`Invalid config file: ${defaultMarketsCFGTOML}`));
+    }
+    config = dvalue.default(currentCFG, config);
+
+    if (marketsExists) {
+      const currentCFGP = marketsCFGP;
+      const currentCFGTOML = await this.readFile({ filePath: currentCFGP });
+      try {
+        currentCFG = toml.parse(currentCFGTOML);
+      } catch(e) {
+        return Promise.reject(new Error(`Invalid config file: ${currentCFGP}`));
+      }
+      config = dvalue.default(currentCFG, config);
+    }
+
     config.packageInfo = packageInfo;
     config.runtime = {
       filePath,
@@ -635,6 +663,30 @@ class Utils {
       memberId: split1[0],
       orderId: split2[0],
     }
+  }
+
+  static marketParser(filePath) {
+    const p = filePath || path.resolve(__dirname, '../../markets.yml');
+    const doc = yaml.load(fs.readFileSync(p, 'utf8'));
+    return doc;
+  }
+
+  static marketFilterInclude(marketListMask, marketList) {
+    const newList = marketList.filter((market) => {
+      // i don't know why every return false
+      const res = marketListMask.find((mask) => mask.instId === market.instId);
+      return !!res;
+    });
+    return newList;
+  }
+
+  static marketFilterExclude(marketListMask, marketList) {
+    const newList = marketList.filter((market) => {
+      // i don't know why every return false
+      const res = marketListMask.find((mask) => mask.instId === market.instId);
+      return !res;
+    });
+    return newList;
   }
 }
 
