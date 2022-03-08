@@ -6,6 +6,7 @@ const toml = require('toml');
 const i18n = require("i18n");
 const dvalue = require('dvalue');
 const colors = require('colors');
+const yaml = require('js-yaml');
 
 const DBOperator = require(path.resolve(__dirname, '../database/dbOperator'));
 const Codes = require('../constants/Codes');
@@ -181,6 +182,10 @@ class Utils {
       logger: rs[2],
       i18n: rs[3]
     }))
+    .then((rs) => {
+      this.marketParser();
+      return rs;
+    })
     .catch(console.trace);
   }
 
@@ -635,6 +640,35 @@ class Utils {
       memberId: split1[0],
       orderId: split2[0],
     }
+  }
+
+  static marketParser(filePath) {
+    try {
+      const p = filePath || path.resolve(__dirname, '../../markets.yml');
+      const doc = yaml.load(fs.readFileSync(p, 'utf8'));
+      return doc;
+    } catch (e) {
+      console.error(e);
+      process.exit(1);
+    }
+  }
+
+  static marketFilterInclude(marketListMask, marketList) {
+    const newList = marketList.filter((market) => {
+      // i don't know why every return false
+      const res = marketListMask.find((mask) => mask.instId === market.instId);
+      return !!res;
+    });
+    return newList;
+  }
+
+  static marketFilterExclude(marketListMask, marketList) {
+    const newList = marketList.filter((market) => {
+      // i don't know why every return false
+      const res = marketListMask.find((mask) => mask.instId === market.instId);
+      return !res;
+    });
+    return newList;
   }
 }
 

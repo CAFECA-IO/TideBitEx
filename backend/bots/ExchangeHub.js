@@ -9,6 +9,7 @@ const EventBus = require('../libs/EventBus');
 const Events = require('../constants/Events');
 const SafeMath = require('../libs/SafeMath');
 const Utils = require('../libs/Utils');
+const SupportedExchange = require('../constants/SupportedExchange')
 
 class ExchangeHub extends Bot {
   constructor() {
@@ -30,7 +31,10 @@ class ExchangeHub extends Bot {
           wssPrivate: this.config.okex.wssPrivate,
         })
       })
-      .then(() => this);
+      .then(() => {
+        this.tidebitMarkets = this.getTidebitMarkets();
+        return this;
+      });
   }
 
   async start() {
@@ -38,6 +42,41 @@ class ExchangeHub extends Bot {
     await this.okexConnector.start();
     this._eventListener();
     return this;
+  }
+
+  getTidebitMarkets() {
+    const p = path.resolve('~/TideBit-Lagacy/config/markets/markets.yml');
+    const markets = Utils.marketParser(p);
+    const formatMarket = markets.map((market) => {
+      const instId = market.name.split('/').join('-').toUpperCase();
+      return {
+        ...market,
+        alias: "",
+        baseCcy: market.base_unit.toUpperCase(),
+        category: "",
+        ctMult: "",
+        ctType: "",
+        ctVal: "",
+        ctValCcy: "",
+        expTime: "",
+        instId,
+        instType: "",
+        lever: "",
+        listTime: Math.floor(Date.now() / 1000) * 1000,
+        lotSz: "",
+        minSz: "",
+        optType: "",
+        quoteCcy: market.quote_unit,
+        settleCcy: "",
+        state: market.visible,
+        stk: "",
+        tickSz: "",
+        uly: "",
+        ts: null,
+        source: SupportedExchange.TIDEBIT
+      }
+    });
+    return formatMarket;
   }
 
   async getMemberIdFromRedis(peatioSession) {
@@ -111,7 +150,41 @@ class ExchangeHub extends Bot {
   // account api end
   // market api
   async getTickers({ params, query }) {
-    return this.okexConnector.router('getTickers', { params, query });
+    const list = [];
+    try {
+      const okexRes = await this.okexConnector.router('getTickers', { params, query });
+      if (okexRes.success) {
+        const okexInstruments = okexRes.payload;
+        const includeTidebitMarket = Utils.marketFilterInclude(this.tidebitMarkets, okexInstruments);
+        includeTidebitMarket.forEach((market) => market.source = SupportedExchange.OKEX)
+        list.push(...includeTidebitMarket);
+      } else {
+        return okexRes;
+      }
+    } catch (error) {
+      this.logger.log(error);
+      return new ResponseFormat({
+        message: error.stack,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+
+    // ++ TODO: get market data from api
+    try {
+      const tideBitOnlyMarkets = Utils.marketFilterExclude(list, this.tidebitMarkets);
+      list.push(...tideBitOnlyMarkets);
+    } catch (error) {
+      this.logger.log(error);
+      return new ResponseFormat({
+        message: error.stack,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+
+    return new ResponseFormat({
+      message: 'getInstruments',
+      payload: list
+    })
   }
 
   async getOrderBooks({ params, query }) {
@@ -311,48 +384,89 @@ class ExchangeHub extends Bot {
 
   // public api
   async getInstruments ({ params, query }) {
-    return this.okexConnector.router('getInstruments', { params, query });
+    const list = [];
+    try {
+      const okexRes = await this.okexConnector.router('getInstruments', { params, query });
+      if (okexRes.success) {
+        const okexInstruments = okexRes.payload;
+        const includeTidebitMarket = Utils.marketFilterInclude(this.tidebitMarkets, okexInstruments);
+        includeTidebitMarket.forEach((market) => market.source = SupportedExchange.OKEX)
+        list.push(...includeTidebitMarket);
+      } else {
+        return okexRes;
+      }
+    } catch (error) {
+      this.logger.log(error);
+      return new ResponseFormat({
+        message: error.stack,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+
+    try {
+      const tideBitOnlyMarkets = Utils.marketFilterExclude(list, this.tidebitMarkets);
+      list.push(...tideBitOnlyMarkets);
+    } catch (error) {
+      this.logger.log(error);
+      return new ResponseFormat({
+        message: error.stack,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+
+    return new ResponseFormat({
+      message: 'getInstruments',
+      payload: list
+    })
   }
   // public api end
 
   async _eventListener() {
     EventBus.on(Events.tradeDataOnUpdate, (instId, tradeData) => {
-      this.broadcast(
-        instId,
-        {
-          type: Events.tradeDataOnUpdate,
-          data: tradeData,
-        }
-      )
+      if (this._isIncludeTideBitMarket(instId)) {
+        this.broadcast(
+          instId,
+          {
+            type: Events.tradeDataOnUpdate,
+            data: tradeData,
+          }
+        )
+      }
     });
 
     EventBus.on(Events.orderOnUpdate, (instId, booksData) => {
-      this.broadcast(
-        instId,
-        {
-          type: Events.orderOnUpdate,
-          data: booksData,
-        }
-      )
+      if (this._isIncludeTideBitMarket(instId)) {
+        this.broadcast(
+          instId,
+          {
+            type: Events.orderOnUpdate,
+            data: booksData,
+          }
+        )
+      }
     });
 
     EventBus.on(Events.candleOnUpdate, (instId, formatCandle) => {
-      this.broadcast(
-        instId,
-        {
-          type: Events.candleOnUpdate,
-          data: formatCandle,
-        }
-      )
+      if (this._isIncludeTideBitMarket(instId)) {
+        this.broadcast(
+          instId,
+          {
+            type: Events.candleOnUpdate,
+            data: formatCandle,
+          }
+        )
+      }
     });
 
     EventBus.on(Events.pairOnUpdate, (formatPair) => {
-      this.broadcastAllClient(
-        {
-          type: Events.pairOnUpdate,
-          data: formatPair,
-        }
-      )
+      if (this._isIncludeTideBitMarket(formatPair.instId)) {
+        this.broadcastAllClient(
+          {
+            type: Events.pairOnUpdate,
+            data: formatPair,
+          }
+        )
+      }
     });
 
     EventBus.on(Events.orderDetailUpdate, async(instType, formatOrders) => {
@@ -588,6 +702,10 @@ class ExchangeHub extends Bot {
       }
     }
     return SafeMath.minus(totalFee, totalVfee);
+  }
+
+  _isIncludeTideBitMarket(instId) {
+    return Utils.marketFilterInclude(this.tidebitMarkets, [{ instId }]).length > 0
   }
 }
 
