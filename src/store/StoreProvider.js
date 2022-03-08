@@ -30,6 +30,19 @@ const StoreProvider = (props) => {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [selectedTicker, setSelectedTicker] = useState(null);
   const [activePage, setActivePage] = useState("market");
+  const [buyPx, setBuyPx] = useState(null);
+  const [sellPx, setSellPx] = useState(null);
+
+  const buyPxHandler = useCallback((value) => {
+    let _value = +value < 0 ? "0" : value;
+    setBuyPx(_value);
+  }, []);
+
+  const sellPxHandler = useCallback((value) => {
+    let _value = value < 0 ? "0" : value;
+    setSellPx(_value);
+  }, []);
+
   let tickerTimestamp = 0,
     tradeTimestamp = 0,
     bookTimestamp = 0,
@@ -410,6 +423,10 @@ const StoreProvider = (props) => {
         selectedTicker,
         updateTickerIndexs,
         activePage,
+        buyPx,
+        sellPx,
+        buyPxHandler,
+        sellPxHandler,
         setInit,
         findTicker,
         selectTickerHandler,
