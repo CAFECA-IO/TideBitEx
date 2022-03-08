@@ -65,7 +65,10 @@ const OrderBook = (props) => {
             storeCtx.books?.bids &&
             storeCtx.books.bids.map((book, index) => (
               <BookTile
-                onClick={() => storeCtx.buyPxHandler(book.price)}
+                onClick={() => {
+                  storeCtx.buyPxHandler(book.price);
+                  storeCtx.sellPxHandler(book.price);
+                }}
                 type="bids"
                 book={book}
                 key={`bids-${storeCtx.selectedTicker.instId}-${index}`}
@@ -91,7 +94,10 @@ const OrderBook = (props) => {
             storeCtx.books.asks.map((book, index) => (
               <BookTile
                 type="asks"
-                onClick={() => storeCtx.sellPxHandler(book.price)}
+                onClick={() => {
+                  storeCtx.buyPxHandler(book.price);
+                  storeCtx.sellPxHandler(book.price);
+                }}
                 book={book}
                 key={`asks-${storeCtx.selectedTicker.instId}-${index}`}
                 dataWidth={`${parseFloat(
