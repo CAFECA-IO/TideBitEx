@@ -47,7 +47,6 @@ class ExchangeHub extends Bot {
   getTidebitMarkets() {
     try {
       const p = path.join(this.config.base.TideBitLegacyPath, 'config/markets/markets.yml');
-      console.log('TideBitLegacyPath', p);
       const markets = Utils.marketParser(p);
       const formatMarket = markets.map((market) => {
         const instId = market.name.split('/').join('-').toUpperCase();
@@ -188,7 +187,7 @@ class ExchangeHub extends Bot {
     }
 
     return new ResponseFormat({
-      message: 'getInstruments',
+      message: 'getTickers',
       payload: list
     })
   }
@@ -197,7 +196,7 @@ class ExchangeHub extends Bot {
     switch (this._findSource(query.instId)) {
       case SupportedExchange.OKEX:
         return this.okexConnector.router('getOrderBooks', { params, query });
-      case SupportedExchange.TIDEBIT:
+      case SupportedExchange.TIDEBIT:  // ++ TODO 
       default:
         return new ResponseFormat({
           message: 'getOrderBooks',
@@ -210,7 +209,7 @@ class ExchangeHub extends Bot {
     switch (this._findSource(query.instId)) {
       case SupportedExchange.OKEX:
         return this.okexConnector.router('getCandlesticks', { params, query });
-      case SupportedExchange.TIDEBIT:
+      case SupportedExchange.TIDEBIT:  // ++ TODO 
       default:
         return new ResponseFormat({
           message: 'getCandlesticks',
@@ -223,7 +222,7 @@ class ExchangeHub extends Bot {
     switch (this._findSource(query.instId)) {
       case SupportedExchange.OKEX:
         return this.okexConnector.router('getTrades', { params, query });
-      case SupportedExchange.TIDEBIT:
+      case SupportedExchange.TIDEBIT:  // ++ TODO 
       default:
         return new ResponseFormat({
           message: 'getTrades',
@@ -309,7 +308,7 @@ class ExchangeHub extends Bot {
           }
           await t.commit();
           return okexOrderRes;
-        case SupportedExchange.TIDEBIT:
+        case SupportedExchange.TIDEBIT:  // ++ TODO 
         default:
           await t.rollback();
           return new ResponseFormat({
@@ -345,7 +344,7 @@ class ExchangeHub extends Bot {
           res.payload = newList;
         }
         return res;
-      case SupportedExchange.TIDEBIT:
+      case SupportedExchange.TIDEBIT:  // ++ TODO 
       default:
         return new ResponseFormat({
           message: 'getOrderList',
@@ -370,7 +369,7 @@ class ExchangeHub extends Bot {
           res.payload = newList;
         }
         return res;
-      case SupportedExchange.TIDEBIT:
+      case SupportedExchange.TIDEBIT:  // ++ TODO 
       default:
         return new ResponseFormat({
           message: 'getOrderList',
@@ -433,7 +432,7 @@ class ExchangeHub extends Bot {
           }
           await t.commit();
           return okexCancelOrderRes;
-        case SupportedExchange.TIDEBIT:
+        case SupportedExchange.TIDEBIT:  // ++ TODO 
         default:
           await t.rollback();
           return new ResponseFormat({
