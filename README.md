@@ -123,6 +123,26 @@ ormEnable = false
 
 ```
 
+### 設定markets
+```sh
+vi private/markets.toml
+```
+可參照`default.markets.toml`，所有的instId都以tb開頭
+| 欄位名稱 | 解釋 |
+| ---- | ---- |
+| key | instId(大寫)，以`tb`開頭，ex: tbETH-USDT |
+| value | 來源字串，請參考```backend/bots/constants/SupportedExchange.js``` |
+
+sample:
+```toml
+[markets]
+tbBTC-USDT = 'OKEx'
+tbETH-USDT = 'OKEx'
+tbXPA-ETH = 'TideBit'
+tbCBT-XPA = 'TideBit'
+```
+
+
 ### 啟動
 ```sh
 npm start
