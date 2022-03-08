@@ -220,6 +220,8 @@ class Utils {
     const packageInfo = await this.readPackageInfo();
     const basePath = path.resolve(os.homedir(), packageInfo.name);
     const fileExists = await this.fileExists({ filePath });
+    const marketsCFGP = path.resolve(path.dirname(filePath), 'markets.toml');
+    const marketExists = await this.fileExists({ filePath: marketsCFGP})
     const defaultCFGP = path.resolve(__dirname, '../../default.config.toml');
     const defaultCFGTOML = await this.readFile({ filePath: defaultCFGP });
     try {
@@ -240,6 +242,17 @@ class Utils {
       }
       config = dvalue.default(currentCFG, defaultCFG);
     }
+    if (marketExists) {
+      const currentCFGP = marketsCFGP;
+      const currentCFGTOML = await this.readFile({ filePath: currentCFGP });
+      try {
+        currentCFG = toml.parse(currentCFGTOML);
+      } catch(e) {
+        return Promise.reject(new Error(`Invalid config file: ${currentCFGP}`));
+      }
+      config = dvalue.default(currentCFG, config);
+    }
+
     config.packageInfo = packageInfo;
     config.runtime = {
       filePath,
@@ -248,6 +261,7 @@ class Utils {
     config.homeFolder = config.base.folder ?
       path.resolve(basePath, config.base.folder) :
       basePath;
+    console.log('!!!config', config)
     return Promise.resolve(config);
   }
 
