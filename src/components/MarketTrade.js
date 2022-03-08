@@ -42,7 +42,7 @@ const TradeForm = (props) => {
           className="market-trade__input form-control"
           placeholder={t("price")}
           value={props.px}
-          onInput={props.onPxInput}
+          onInput={(e) => props.onPxInput(e.target.value)}
           required={!props.readyOnly}
           disabled={!!props.readyOnly}
           step="any"
@@ -156,14 +156,12 @@ const TradeForm = (props) => {
 };
 
 const TradePannel = (props) => {
-  const { width } = useViewport();
-  const breakpoint = 414;
   const storeCtx = useContext(StoreContext);
   const [selectedTicker, setSelectedTicker] = useState(null);
   const [buyPx, setBuyPx] = useState(null);
+  const [sellPx, setSellPx] = useState(null);
   const [buySz, setBuySz] = useState(null);
   const [tdMode, setTdMode] = useState("cash");
-  const [sellPx, setSellPx] = useState(null);
   const [sellSz, setSellSz] = useState(null);
   const [selectedBuyPct, setSelectedBuyPct] = useState(null);
   const [selectedSellPct, setSelectedSellPct] = useState(null);
@@ -171,19 +169,21 @@ const TradePannel = (props) => {
   const [sellErrorMessage, setSellErrorMessage] = useState(null);
   const { t } = useTranslation();
 
-  const buyPxHandler = (event) => {
-    let value = +event.target.value < 0 ? "0" : event.target.value;
-    setBuyPx(value);
-  };
   const buySzHandler = (event) => {
     let value = SafeMath.lt(event.target.value, "0")
       ? "0"
       : SafeMath.gt(storeCtx.selectedTicker?.quoteCcyAvailable, "0") &&
         SafeMath.gte(
-          SafeMath.mult(event.target.value, buyPx),
+          SafeMath.mult(
+            event.target.value,
+            props.orderType === "market" ? buyPx : storeCtx.buyPx
+          ),
           storeCtx.selectedTicker?.quoteCcyAvailable
         )
-      ? SafeMath.div(storeCtx.selectedTicker?.quoteCcyAvailable, buyPx)
+      ? SafeMath.div(
+          storeCtx.selectedTicker?.quoteCcyAvailable,
+          props.orderType === "market" ? buyPx : storeCtx.buyPx
+        )
       : event.target.value;
     setBuySz(value);
     if (SafeMath.gt(value, "0")) {
@@ -191,7 +191,10 @@ const TradePannel = (props) => {
         setBuyErrorMessage(`Minimum order size is ${selectedTicker?.minSz}`);
       if (
         SafeMath.gte(
-          SafeMath.mult(value, buyPx),
+          SafeMath.mult(
+            value,
+            props.orderType === "market" ? buyPx : storeCtx.buyPx
+          ),
           storeCtx.selectedTicker?.quoteCcyAvailable
         )
       )
@@ -201,10 +204,6 @@ const TradePannel = (props) => {
     } else {
       setBuyErrorMessage(null);
     }
-  };
-  const sellPxHandler = (event) => {
-    let value = +event.target.value < 0 ? "0" : event.target.value;
-    setSellPx(value);
   };
   const sellSzHandler = (event) => {
     let value = SafeMath.lt(event.target.value, "0")
@@ -252,7 +251,7 @@ const TradePannel = (props) => {
               tdMode,
               side,
               ordType: props.orderType,
-              px: buyPx,
+              px: storeCtx.buyPx,
               sz: buySz,
             }
           : {
@@ -260,7 +259,7 @@ const TradePannel = (props) => {
               tdMode,
               side,
               ordType: props.orderType,
-              px: sellPx,
+              px: storeCtx.sellPx,
               sz: sellSz,
             }
         : {
@@ -299,6 +298,8 @@ const TradePannel = (props) => {
         storeCtx.selectedTicker.instId !== selectedTicker?.instId)
     ) {
       setSelectedTicker(storeCtx.selectedTicker);
+      storeCtx.buyPxHandler(storeCtx.selectedTicker.last);
+      storeCtx.sellPxHandler(storeCtx.selectedTicker.last);
       setBuyPx(storeCtx.selectedTicker.last);
       setSellPx(storeCtx.selectedTicker.last);
       buyPctHandler(
@@ -321,73 +322,37 @@ const TradePannel = (props) => {
     storeCtx.selectedTicker,
     buyPctHandler,
     sellPctHandler,
+    storeCtx,
   ]);
 
   return (
     <div className="market-trade__panel">
-      {width <= breakpoint ? (
-        <Tabs defaultActiveKey="buy">
-          <Tab eventKey="buy" title={t("buy")}>
-            <TradeForm
-              px={buyPx}
-              sz={buySz}
-              selectedTicker={selectedTicker}
-              selectedPct={selectedBuyPct}
-              onPxInput={buyPxHandler}
-              onSzInput={buySzHandler}
-              percentageHandler={buyPctHandler}
-              onSubmit={onSubmit}
-              side="buy"
-              readyOnly={!!props.readyOnly}
-              errorMessage={buyErrorMessage}
-            />
-          </Tab>
-          <Tab eventKey="sell" title={t("sell")}>
-            <TradeForm
-              px={sellPx}
-              sz={sellSz}
-              selectedTicker={selectedTicker}
-              selectedPct={selectedSellPct}
-              onPxInput={sellPxHandler}
-              onSzInput={sellSzHandler}
-              percentageHandler={sellPctHandler}
-              onSubmit={onSubmit}
-              side="sell"
-              readyOnly={!!props.readyOnly}
-              errorMessage={sellErrorMessage}
-            />
-          </Tab>
-        </Tabs>
-      ) : (
-        <>
-          <TradeForm
-            px={buyPx}
-            sz={buySz}
-            selectedTicker={selectedTicker}
-            selectedPct={selectedBuyPct}
-            onPxInput={buyPxHandler}
-            onSzInput={buySzHandler}
-            percentageHandler={buyPctHandler}
-            onSubmit={onSubmit}
-            side="buy"
-            readyOnly={!!props.readyOnly}
-            errorMessage={buyErrorMessage}
-          />
-          <TradeForm
-            px={sellPx}
-            sz={sellSz}
-            selectedTicker={selectedTicker}
-            selectedPct={selectedSellPct}
-            onPxInput={sellPxHandler}
-            onSzInput={sellSzHandler}
-            percentageHandler={sellPctHandler}
-            onSubmit={onSubmit}
-            side="sell"
-            readyOnly={!!props.readyOnly}
-            errorMessage={sellErrorMessage}
-          />
-        </>
-      )}
+      <TradeForm
+        px={props.orderType === "market" ? buyPx : storeCtx.buyPx}
+        sz={buySz}
+        selectedTicker={selectedTicker}
+        selectedPct={selectedBuyPct}
+        onPxInput={!!props.readyOnly ? () => {} : storeCtx.buyPxHandler}
+        onSzInput={buySzHandler}
+        percentageHandler={buyPctHandler}
+        onSubmit={onSubmit}
+        side="buy"
+        readyOnly={!!props.readyOnly}
+        errorMessage={buyErrorMessage}
+      />
+      <TradeForm
+        px={props.orderType === "market" ? sellPx : storeCtx.sellPx}
+        sz={sellSz}
+        selectedTicker={selectedTicker}
+        selectedPct={selectedSellPct}
+        onPxInput={!!props.readyOnly ? () => {} : storeCtx.sellPxHandler}
+        onSzInput={sellSzHandler}
+        percentageHandler={sellPctHandler}
+        onSubmit={onSubmit}
+        side="sell"
+        readyOnly={!!props.readyOnly}
+        errorMessage={sellErrorMessage}
+      />
     </div>
   );
 };

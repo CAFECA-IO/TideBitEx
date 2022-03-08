@@ -128,7 +128,7 @@ class Middleman {
       askPx,
       bidPx;
     this.rawBooks.asks
-      ?.sort((a, b) => +b[0] - +a[0])
+      ?.sort((a, b) => +a[0] - +b[0])
       ?.forEach((d, i) => {
         totalAsks = SafeMath.plus(SafeMath.plus(d[2], d[3]), totalAsks);
         let ask = {
@@ -145,9 +145,8 @@ class Middleman {
         }
         if (this.rawBooks.asks[i][4]) this.rawBooks.asks[i].splice(4, 1);
       });
-    // asks = asks.sort((a, b) => +b.price - +a.price);
     this.rawBooks.bids
-      ?.sort((a, b) => +a[0] - +b[0])
+      ?.sort((a, b) => +b[0] - +a[0])
       ?.forEach((d, i) => {
         totalBids = SafeMath.plus(SafeMath.plus(d[2], d[3]), totalBids);
         let bid = {
@@ -164,14 +163,12 @@ class Middleman {
         }
         if (this.rawBooks.bids[i][4]) this.rawBooks.bids[i].splice(4, 1);
       });
-    // bids = bids.sort((a, b) => +a.price - +b.price);
     const updateBooks = {
       asks,
       bids,
       ts: Date.now(),
       total: SafeMath.plus(totalAsks, totalBids),
     };
-    // console.log(`updateBooks.total`, updateBooks.total);
     return updateBooks;
   }
 
