@@ -643,14 +643,9 @@ class Utils {
   }
 
   static marketParser(filePath) {
-    try {
-      const p = filePath || path.resolve(__dirname, '../../markets.yml');
-      const doc = yaml.load(fs.readFileSync(p, 'utf8'));
-      return doc;
-    } catch (e) {
-      console.error(e);
-      process.exit(1);
-    }
+    const p = filePath || path.resolve(__dirname, '../../markets.yml');
+    const doc = yaml.load(fs.readFileSync(p, 'utf8'));
+    return doc;
   }
 
   static marketFilterInclude(marketListMask, marketList) {

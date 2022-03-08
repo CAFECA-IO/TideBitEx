@@ -3,6 +3,7 @@ title = "TideBitEx"
 [base]
 folder = "CAFECA-framework"
 static = "./build/"
+TideBitLegacyPath = '~/TideBit-Lagacy'
 debug = false
 
 [blockchain]

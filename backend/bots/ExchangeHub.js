@@ -45,38 +45,44 @@ class ExchangeHub extends Bot {
   }
 
   getTidebitMarkets() {
-    const p = path.resolve('~/TideBit-Lagacy/config/markets/markets.yml');
-    const markets = Utils.marketParser(p);
-    const formatMarket = markets.map((market) => {
-      const instId = market.name.split('/').join('-').toUpperCase();
-      return {
-        ...market,
-        alias: "",
-        baseCcy: market.base_unit.toUpperCase(),
-        category: "",
-        ctMult: "",
-        ctType: "",
-        ctVal: "",
-        ctValCcy: "",
-        expTime: "",
-        instId,
-        instType: "",
-        lever: "",
-        listTime: Math.floor(Date.now() / 1000) * 1000,
-        lotSz: "",
-        minSz: "",
-        optType: "",
-        quoteCcy: market.quote_unit,
-        settleCcy: "",
-        state: market.visible,
-        stk: "",
-        tickSz: "",
-        uly: "",
-        ts: null,
-        source: SupportedExchange.TIDEBIT
-      }
-    });
-    return formatMarket;
+    try {
+      const p = path.join(this.config.base.TideBitLegacyPath, 'config/markets/markets.yml');
+      console.log('TideBitLegacyPath', p);
+      const markets = Utils.marketParser(p);
+      const formatMarket = markets.map((market) => {
+        const instId = market.name.split('/').join('-').toUpperCase();
+        return {
+          ...market,
+          alias: "",
+          baseCcy: market.base_unit.toUpperCase(),
+          category: "",
+          ctMult: "",
+          ctType: "",
+          ctVal: "",
+          ctValCcy: "",
+          expTime: "",
+          instId,
+          instType: "",
+          lever: "",
+          listTime: Math.floor(Date.now() / 1000) * 1000,
+          lotSz: "",
+          minSz: "",
+          optType: "",
+          quoteCcy: market.quote_unit,
+          settleCcy: "",
+          state: market.visible,
+          stk: "",
+          tickSz: "",
+          uly: "",
+          ts: null,
+          source: SupportedExchange.TIDEBIT
+        }
+      });
+      return formatMarket;
+    } catch (error) {
+      this.logger.log(error);
+      process.exit(1);
+    }
   }
 
   async getMemberIdFromRedis(peatioSession) {
