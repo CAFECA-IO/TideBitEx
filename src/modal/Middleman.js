@@ -114,6 +114,8 @@ class Middleman {
               ),
               "100"
             )
+          : SafeMath.eq(SafeMath.minus(ticker.last, ticker.open24h), "0")
+          ? "0"
           : "100",
       }));
       this.tickers = tickers;
