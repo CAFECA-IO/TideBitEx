@@ -182,10 +182,6 @@ class Utils {
       logger: rs[2],
       i18n: rs[3]
     }))
-    .then((rs) => {
-      this.marketParser();
-      return rs;
-    })
     .catch(console.trace);
   }
 
@@ -666,7 +662,7 @@ class Utils {
   }
 
   static marketParser(filePath) {
-    const p = filePath || path.resolve(__dirname, '../../markets.yml');
+    const p = filePath;
     const doc = yaml.load(fs.readFileSync(p, 'utf8'));
     return doc;
   }
