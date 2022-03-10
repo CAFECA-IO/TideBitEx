@@ -106,7 +106,7 @@ class Middleman {
         //   .split("-")
         //   .reduce((acc, curr, i) => (i === 0 ? `${curr}` : `${acc}/${curr}`), ""),
         change: SafeMath.minus(ticker.last, ticker.open24h),
-        changePct: ticker.open24h
+        changePct: SafeMath.gt(ticker.open24h, "0")
           ? SafeMath.mult(
               SafeMath.div(
                 SafeMath.minus(ticker.last, ticker.open24h),
