@@ -277,9 +277,7 @@ class ExchangeHub extends Bot {
       default:
         return new ResponseFormat({
           message: 'getTrades',
-          payload: [{
-            ts: Math.floor(Date.now() / 1000),
-          }],
+          payload: [],
         });
     }
   }
