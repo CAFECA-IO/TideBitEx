@@ -96,6 +96,7 @@ class Middleman {
   async getTickers(instType, from, limit) {
     try {
       const rawTickers = await this.communicator.tickers(instType, from, limit);
+      console.log(`getTickers rawTickers`, rawTickers);
       const tickers = rawTickers.map((ticker) => ({
         ...ticker,
         baseCcy: ticker.instId.split("-")[0],
@@ -105,13 +106,15 @@ class Middleman {
         //   .split("-")
         //   .reduce((acc, curr, i) => (i === 0 ? `${curr}` : `${acc}/${curr}`), ""),
         change: SafeMath.minus(ticker.last, ticker.open24h),
-        changePct: SafeMath.mult(
-          SafeMath.div(
-            SafeMath.minus(ticker.last, ticker.open24h),
-            ticker.open24h
-          ),
-          "100"
-        ),
+        changePct: ticker.open24h
+          ? SafeMath.mult(
+              SafeMath.div(
+                SafeMath.minus(ticker.last, ticker.open24h),
+                ticker.open24h
+              ),
+              "100"
+            )
+          : "100",
       }));
       this.tickers = tickers;
       return tickers;
