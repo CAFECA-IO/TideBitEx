@@ -753,11 +753,22 @@ class ExchangeHub extends Bot {
   }
 
   async _getPlaceOrderData(body) {
-    // ++ TODO: get data by instId
-    // -- temp for demo
-    const bid = 34; // USDT
-    const ask = 3;  // ETH
-    const currency = -1;   // it doesn't in markets.yml
+    const market = this.tidebitMarkets.find((m) => m.instId === body.instId);
+    this.logger.debug('!!!_getPlaceOrderData market', market);
+    if (!market) {
+      throw new Error(`this.tidebitMarkets.instId ${body.instId} not found.`);
+    }
+    const { id: bid } = await this.database.getCurrencyByKey(market.quoteUnit);
+    const { id: ask } = await this.database.getCurrencyByKey(market.baseUnit);
+    this.logger.debug('!!!_getPlaceOrderData bid', bid);
+    this.logger.debug('!!!_getPlaceOrderData ask', ask);
+    if (!bid) {
+      throw new Error(`bid not found`);
+    }
+    if (!ask) {
+      throw new Error(`ask not found`);
+    }
+    const currency = market.code;
     const locked = body.side === 'buy' ? SafeMath.mult(body.px, body.sz) : body.sz;
     const balance = SafeMath.mult(locked, '-1');
 
