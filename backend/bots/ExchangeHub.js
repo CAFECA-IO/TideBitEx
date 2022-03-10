@@ -9,7 +9,8 @@ const EventBus = require('../libs/EventBus');
 const Events = require('../constants/Events');
 const SafeMath = require('../libs/SafeMath');
 const Utils = require('../libs/Utils');
-const SupportedExchange = require('../constants/SupportedExchange')
+const SupportedExchange = require('../constants/SupportedExchange');
+const { default: axios } = require('axios');
 
 class ExchangeHub extends Bot {
   constructor() {
@@ -174,10 +175,60 @@ class ExchangeHub extends Bot {
       });
     }
 
-    // ++ TODO: get market data from api
     try {
       const tideBitOnlyMarkets = Utils.marketFilterExclude(list, this.tidebitMarkets);
-      list.push(...tideBitOnlyMarkets);
+      const isVisibles = tideBitOnlyMarkets.filter((m) => m.visible === true || m.visible === undefined); // default visible is true, so if visible is undefined still need to show on list.
+      const tBTickersRes = await axios.get(`${this.config.peatio.domain}/api/v2/tickers`);
+      if (!tBTickersRes || !tBTickersRes.data) {
+        return new ResponseFormat({
+          message: 'Something went wrong',
+          code: Codes.API_UNKNOWN_ERROR,
+        });
+      }
+      const tBTickers = tBTickersRes.data;
+      const formatTBTickers = isVisibles.map((market) => {
+        const tBTicker = tBTickers[market.id];
+        let formatTBTicker = {
+          instType: "",
+          instId: market.instId,
+          last: "0.0",
+          lastSz: "0.0",
+          askPx: "0.0",
+          askSz: "0.0",
+          bidPx: "0.0",
+          bidSz: "0.0",
+          open24h: "0.0",
+          high24h: "0.0",
+          low24h: "0.0",
+          volCcy24h: '0.0',
+          vol24h: "0.0",
+          ts: "0.0",
+          sodUtc0: "0.0",
+          sodUtc8: "0.0",
+        }
+        if (tBTicker) {
+          formatTBTicker = {
+            instType: "",
+            instId: market.instId,
+            last: tBTicker.ticker.last.toString(),
+            lastSz: tBTicker.ticker.vol.toString(),
+            askPx: tBTicker.ticker.sell.toString(),
+            askSz: "0.0",
+            bidPx: tBTicker.ticker.buy.toString(),
+            bidSz: "0.0",
+            open24h: tBTicker.ticker.open.toString(),
+            high24h: tBTicker.ticker.high.toString(),
+            low24h: tBTicker.ticker.low.toString(),
+            volCcy24h: '0.0',
+            vol24h: "0.0",
+            ts: tBTicker.at * 1000,
+            sodUtc0: "0.0",
+            sodUtc8: tBTicker.ticker.open.toString(),
+          }
+        }
+        return formatTBTicker;
+      });
+      list.push(...formatTBTickers);
     } catch (error) {
       this.logger.log(error);
       return new ResponseFormat({
@@ -226,7 +277,7 @@ class ExchangeHub extends Bot {
       default:
         return new ResponseFormat({
           message: 'getTrades',
-          payload: [{}],
+          payload: [],
         });
     }
   }
@@ -477,7 +528,8 @@ class ExchangeHub extends Bot {
 
     try {
       const tideBitOnlyMarkets = Utils.marketFilterExclude(list, this.tidebitMarkets);
-      list.push(...tideBitOnlyMarkets);
+      const isVisibles = tideBitOnlyMarkets.filter((m) => m.visible === true || m.visible === undefined); // default visible is true, so if visible is undefined still need to show on list.
+      list.push(...isVisibles);
     } catch (error) {
       this.logger.log(error);
       return new ResponseFormat({
@@ -699,15 +751,26 @@ class ExchangeHub extends Bot {
   }
 
   async _getPlaceOrderData(body) {
-    // ++ TODO: get data by instId
-    // -- temp for demo
-    const bid = 34; // USDT
-    const ask = 3;  // ETH
-    const currency = -1;   // it doesn't in markets.yml
+    const market = this.tidebitMarkets.find((m) => m.instId === body.instId);
+    this.logger.debug('!!!_getPlaceOrderData market', market);
+    if (!market) {
+      throw new Error(`this.tidebitMarkets.instId ${body.instId} not found.`);
+    }
+    const { id: bid } = await this.database.getCurrencyByKey(market.quote_unit);
+    const { id: ask } = await this.database.getCurrencyByKey(market.base_unit);
+    this.logger.debug('!!!_getPlaceOrderData bid', bid);
+    this.logger.debug('!!!_getPlaceOrderData ask', ask);
+    if (!bid) {
+      throw new Error(`bid not found`);
+    }
+    if (!ask) {
+      throw new Error(`ask not found`);
+    }
+    const currency = market.code;
     const locked = body.side === 'buy' ? SafeMath.mult(body.px, body.sz) : body.sz;
     const balance = SafeMath.mult(locked, '-1');
 
-    const EthUsdtData = {
+    const orderData = {
       bid, 
       ask,
       currency,
@@ -719,7 +782,7 @@ class ExchangeHub extends Bot {
       balance,
       currencyId: body.side === 'buy' ? bid : ask,
     };
-    return EthUsdtData;
+    return orderData;
   }
 
   async _updateAccount(account, dbTransaction, balance, locked, fee, modifiable_type, modifiable_id, created_at, fun) {
