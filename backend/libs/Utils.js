@@ -216,9 +216,9 @@ class Utils {
     const packageInfo = await this.readPackageInfo();
     const basePath = path.resolve(os.homedir(), packageInfo.name);
     const fileExists = await this.fileExists({ filePath });
-    const marketsCFGP = path.resolve(path.dirname(filePath), 'markets.toml');
+    const marketsCFGP = path.resolve(path.dirname(filePath), 'marketsSource.toml');
     const marketsExists = await this.fileExists({ filePath: marketsCFGP})
-    const defaultMarketsCFGP = path.resolve(__dirname, '../../default.markets.toml');
+    const defaultMarketsCFGP = path.resolve(__dirname, '../../default.marketsSource.toml');
     const defaultMarketsCFGTOML = await this.readFile({ filePath: defaultMarketsCFGP });
     const defaultCFGP = path.resolve(__dirname, '../../default.config.toml');
     const defaultCFGTOML = await this.readFile({ filePath: defaultCFGP });

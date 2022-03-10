@@ -125,9 +125,9 @@ ormEnable = false
 
 ### 設定markets
 ```sh
-vi private/markets.toml
+vi private/marketsSource.toml
 ```
-可參照`default.markets.toml`，所有的instId都以tb開頭
+可參照`default.marketsSource.toml`，所有的instId都以tb開頭
 | 欄位名稱 | 解釋 |
 | ---- | ---- |
 | key | instId(大寫)，以`tb`開頭，ex: tbETH-USDT |
