@@ -69,6 +69,24 @@ class mysql {
     }
   }
 
+  async getCurrencyByKey(currencyKey) {
+    const query = 'SELECT * FROM `asset_bases` WHERE `asset_bases`.`key` = ?;';
+    try {
+      this.logger.log('getCurrencyByKey', query, currencyKey);
+      const [[currency]] = await this.db.query(
+        {
+          query,
+          values: [currencyKey]
+        }
+      );
+      
+      return currency;
+    } catch (error) {
+      this.logger.log(error);
+      return [];
+    }
+  }
+
   async getAccountByMemberIdCurrency(memberId, currencyId, { dbTransaction }) {
     const query = 'SELECT * FROM `accounts` WHERE `accounts`.`member_id` = ? AND `accounts`.`currency` = ?;';
     try {
