@@ -770,7 +770,7 @@ class ExchangeHub extends Bot {
     const locked = body.side === 'buy' ? SafeMath.mult(body.px, body.sz) : body.sz;
     const balance = SafeMath.mult(locked, '-1');
 
-    const EthUsdtData = {
+    const orderData = {
       bid, 
       ask,
       currency,
@@ -782,7 +782,7 @@ class ExchangeHub extends Bot {
       balance,
       currencyId: body.side === 'buy' ? bid : ask,
     };
-    return EthUsdtData;
+    return orderData;
   }
 
   async _updateAccount(account, dbTransaction, balance, locked, fee, modifiable_type, modifiable_id, created_at, fun) {
