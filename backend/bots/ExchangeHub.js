@@ -758,8 +758,8 @@ class ExchangeHub extends Bot {
     if (!market) {
       throw new Error(`this.tidebitMarkets.instId ${body.instId} not found.`);
     }
-    const { id: bid } = await this.database.getCurrencyByKey(market.quoteUnit);
-    const { id: ask } = await this.database.getCurrencyByKey(market.baseUnit);
+    const { id: bid } = await this.database.getCurrencyByKey(market.quote_unit);
+    const { id: ask } = await this.database.getCurrencyByKey(market.base_unit);
     this.logger.debug('!!!_getPlaceOrderData bid', bid);
     this.logger.debug('!!!_getPlaceOrderData ask', ask);
     if (!bid) {
