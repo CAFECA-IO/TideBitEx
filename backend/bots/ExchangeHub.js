@@ -1,5 +1,7 @@
 const path = require('path');
 const redis = require('redis');
+const { default: axios } = require('axios');
+const URL = require('url');
 
 const Bot = require(path.resolve(__dirname, 'Bot.js'));
 const OkexConnector = require('../libs/Connectors/OkexConnector');
@@ -10,7 +12,7 @@ const Events = require('../constants/Events');
 const SafeMath = require('../libs/SafeMath');
 const Utils = require('../libs/Utils');
 const SupportedExchange = require('../constants/SupportedExchange');
-const { default: axios } = require('axios');
+const TideBitLegacyAdapter = require('../libs/TideBitLegacyAdapter');
 
 class ExchangeHub extends Bot {
   constructor() {
@@ -283,7 +285,7 @@ class ExchangeHub extends Bot {
   }
   // market api end
   // trade api
-  async postPlaceOrder ({ params, query, body, token }) {
+  async postPlaceOrder ({ header, params, query, body, token }) {
     const memberId = await this.getMemberIdFromRedis(token);
     if (memberId === -1) {
       return new ResponseFormat({
@@ -300,58 +302,58 @@ class ExchangeHub extends Bot {
     // 6. update account balance and locked
     // 7. post okex placeOrder
     const t = await this.database.transaction();
-    try {
-      
-      /*******************************************
-       * body.side: order is 'buy' or 'sell'
-       * orderData.price: body.px, price value
-       * orderData.volume: body.sz, volume value
-       * orderData.locked:
-       *   if body.side === 'buy', locked = body.px * body.sz
-       *   if body.side === 'sell', locked = body.sz
-       * 
-       * orderData.balance: locked value * -1
-       *******************************************/
-      
-      const orderData = await this._getPlaceOrderData(body);
-      const account = await this.database.getAccountByMemberIdCurrency(memberId, orderData.currencyId, { dbTransaction: t});
-      const price = orderData.price;
-      const volume = orderData.volume;
-      const locked = orderData.locked;
-      const balance = orderData.balance;
-      const fee = '0';
 
-      const created_at = new Date().toISOString();
-      const updated_at = created_at;
+    switch (this._findSource(body.instId)) {
+      case SupportedExchange.OKEX:
+        try {
+          /*******************************************
+           * body.side: order is 'buy' or 'sell'
+           * orderData.price: body.px, price value
+           * orderData.volume: body.sz, volume value
+           * orderData.locked:
+           *   if body.side === 'buy', locked = body.px * body.sz
+           *   if body.side === 'sell', locked = body.sz
+           * 
+           * orderData.balance: locked value * -1
+           *******************************************/
+          
+          const orderData = await this._getPlaceOrderData(body);
+          const account = await this.database.getAccountByMemberIdCurrency(memberId, orderData.currencyId, { dbTransaction: t});
+          const price = orderData.price;
+          const volume = orderData.volume;
+          const locked = orderData.locked;
+          const balance = orderData.balance;
+          const fee = '0';
+    
+          const created_at = new Date().toISOString();
+          const updated_at = created_at;
+    
+          const order = await this.database.insertOrder(
+            orderData.bid,
+            orderData.ask,
+            orderData.currency,
+            price,
+            volume,
+            volume,
+            this.database.ORDER_STATE.WAIT,
+            null,
+            orderData.type,
+            memberId,
+            created_at,
+            updated_at,
+            null,
+            'Web',
+            orderData.ordType,
+            locked,
+            locked,
+            '0',
+            0,
+            { dbTransaction: t }
+          );
+          const orderId = order[0];
+    
+          await this._updateAccount(account, t, balance, locked, fee, this.database.MODIFIABLE_TYPE.ORDER, orderId, created_at, this.database.FUNC.LOCK_FUNDS);
 
-      const order = await this.database.insertOrder(
-        orderData.bid,
-        orderData.ask,
-        orderData.currency,
-        price,
-        volume,
-        volume,
-        this.database.ORDER_STATE.WAIT,
-        null,
-        orderData.type,
-        memberId,
-        created_at,
-        updated_at,
-        null,
-        'Web',
-        orderData.ordType,
-        locked,
-        locked,
-        '0',
-        0,
-        { dbTransaction: t }
-      );
-      const orderId = order[0];
-
-      await this._updateAccount(account, t, balance, locked, fee, this.database.MODIFIABLE_TYPE.ORDER, orderId, created_at, this.database.FUNC.LOCK_FUNDS);
-
-      switch (this._findSource(body.instId)) {
-        case SupportedExchange.OKEX:
           const okexOrderRes = await this.okexConnector.router('postPlaceOrder', { memberId, orderId, params, query, body });
           if (!okexOrderRes.success) {
             await t.rollback();
@@ -359,23 +361,39 @@ class ExchangeHub extends Bot {
           }
           await t.commit();
           return okexOrderRes;
-        case SupportedExchange.TIDEBIT:  // ++ TODO 
-        default:
+        } catch (error) {
+          this.logger.error(error);
           await t.rollback();
           return new ResponseFormat({
-            message: 'instId not Support now',
-            code: Codes.API_NOT_SUPPORTED
+            message: error.message,
+            code: Codes.API_UNKNOWN_ERROR,
           });
-      }
-    } catch (error) {
-      this.logger.error(error);
-      await t.rollback();
-      return new ResponseFormat({
-        message: error.message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
+        }
+        /* !!! HIGH RISK (end) !!! */
+      case SupportedExchange.TIDEBIT:  // ++ TODO 待驗證
+        try {
+          const market = this._findMarket(body.instId);
+          const url = body.side === 'buy' ? `${this.config.peatio.domain}/markets/${market.id}/order_bids` : `${this.config.peatio.domain}/markets/${market.id}/order_asks`;
+          this.logger.debug('postPlaceOrder', url);
+          header.host = URL.parse(url, true).host;
+          header['content-type'] = 'application/x-www-form-urlencoded';
+          const tbOrdersRes = await axios.post(url, TideBitLegacyAdapter.peatioOrderBody({ header, body }), {
+            headers: header,
+          });
+
+          console.log(tbOrdersRes);
+          return tbOrdersRes
+        } catch (error) {
+          console.log(error.stack);
+          return error;
+        }
+        break;
+      default:
+        return new ResponseFormat({
+          message: 'instId not Support now',
+          code: Codes.API_NOT_SUPPORTED
+        });
     }
-    /* !!! HIGH RISK (end) !!! */
   }
 
   async getOrderList ({ params, query, token }) {
@@ -691,10 +709,14 @@ class ExchangeHub extends Bot {
         trades_count: order.trades_count + 1
       }
 
+      // TODO: ++ 6. add trade
+      // -- CAUTION!!! skip now, tradeId use okex tradeId,
+      // because it need columns 'ask_member_id' and 'bid_member_id' with foreign key
+
       await this.database.insertVouchers(
         memberId,
         orderId,
-        tradeId,
+        tradeId,  // ++ TODO reference step6 trade.id
         null,
         'eth',    // -- need change
         'usdt',   // -- need change
@@ -717,7 +739,7 @@ class ExchangeHub extends Bot {
         lockedA,
         feeA,
         this.database.MODIFIABLE_TYPE.TRADE,
-        tradeId,
+        tradeId,  // ++ TODO reference step6 trade.id
         created_at,
         order.type === this.database.TYPE.ORDER_ASK ? this.database.FUNC.UNLOCK_AND_SUB_FUNDS : this.database.FUNC.PLUS_FUNDS
       );
@@ -728,7 +750,7 @@ class ExchangeHub extends Bot {
         lockedB,
         feeB,
         this.database.MODIFIABLE_TYPE.TRADE,
-        tradeId,
+        tradeId,  // ++ TODO reference step6 trade.id
         created_at,
         order.type === this.database.TYPE.ORDER_ASK ?  this.database.FUNC.PLUS_FUNDS: this.database.FUNC.UNLOCK_AND_SUB_FUNDS
       );
@@ -736,8 +758,10 @@ class ExchangeHub extends Bot {
       // order 完成，解鎖剩餘沒用完的
       if (orderState === this.database.ORDER_STATE.DONE && SafeMath.gt(newOrderLocked, '0')) {
         if (order.type === this.database.TYPE.ORDER_ASK) {
+          // ++ TODO reference step6 trade.id
           await this._updateAccount(accountAsk, t, changeLocked, changeBalance, '0', this.database.MODIFIABLE_TYPE.TRADE, tradeId, created_at, this.database.FUNC.UNLOCK_FUNDS);
         } else if (order.type === this.database.TYPE.ORDER_BID) {
+          // ++ TODO reference step6 trade.id
           await this._updateAccount(accountBid, t, changeLocked, changeBalance, '0', this.database.MODIFIABLE_TYPE.TRADE, tradeId, created_at, this.database.FUNC.UNLOCK_FUNDS);
         }
       }
@@ -751,7 +775,7 @@ class ExchangeHub extends Bot {
   }
 
   async _getPlaceOrderData(body) {
-    const market = this.tidebitMarkets.find((m) => m.instId === body.instId);
+    const market = this._findMarket(body.instId);
     this.logger.debug('!!!_getPlaceOrderData market', market);
     if (!market) {
       throw new Error(`this.tidebitMarkets.instId ${body.instId} not found.`);
@@ -845,6 +869,10 @@ class ExchangeHub extends Bot {
 
   _findSource(instId) {
     return this.config.markets[`tb${instId}`];
+  }
+
+  _findMarket(instId) {
+    return this.tidebitMarkets.find((m) => m.instId === instId);
   }
 }
 
