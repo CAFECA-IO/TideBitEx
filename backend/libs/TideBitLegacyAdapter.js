@@ -11,7 +11,7 @@ class TideBitLegacyAdapter {
   static peatioOrderBody({ header, body }) {
     const bodyFormData = new FormData();
     bodyFormData.append('utf8', true);
-    console.log('header!!!', header);
+    // console.log('header!!!', header);
     bodyFormData.append('authenticity_token', header['X-CSRF-Token'] || header['X-CSRF-Token'.toLocaleLowerCase()]);
 
     if (body.side === 'buy') {

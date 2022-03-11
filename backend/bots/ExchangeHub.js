@@ -381,10 +381,12 @@ class ExchangeHub extends Bot {
             headers: header,
           });
 
-          console.log(tbOrdersRes);
+          this.logger.log(tbOrdersRes); 
+          // TODO: ResponseFormat
           return tbOrdersRes
         } catch (error) {
-          console.log(error.stack);
+          this.logger.log(error.stack);
+          // debug for postman so return error
           return error;
         }
         break;
