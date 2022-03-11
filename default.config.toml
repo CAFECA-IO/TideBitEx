@@ -21,6 +21,7 @@ brokerId = ''
 
 [peatio]
 domain = 'http://127.0.0.1:3000'      # 要與TideBit-Legacy application.yml中URL_HOST相同
+systemMemberId = 60976
 
 [redis]
 domain = 'redis://127.0.0.1:6379'
