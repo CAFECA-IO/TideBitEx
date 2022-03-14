@@ -5,6 +5,7 @@ import { Config } from "../constant/Config";
 import Middleman from "../modal/Middleman";
 import StoreContext from "./store-context";
 import SafeMath from "../utils/SafeMath";
+import { getToken } from "../utils/Token";
 
 // const wsServer = "wss://exchange.tidebit.network/ws/v1";
 // const wsServer = "ws://127.0.0.1";
@@ -32,6 +33,7 @@ const StoreProvider = (props) => {
   const [activePage, setActivePage] = useState("market");
   const [buyPx, setBuyPx] = useState(null);
   const [sellPx, setSellPx] = useState(null);
+  const [token, setToken] = useState(null);
 
   const buyPxHandler = useCallback((value) => {
     let _value = +value < 0 ? "0" : value;
@@ -251,7 +253,10 @@ const StoreProvider = (props) => {
     async (order) => {
       console.log(`postOrder order`, order);
       try {
-        const result = await middleman.postOrder(order);
+        const result = await middleman.postOrder({
+          ...order,
+          "X-CSRF-Token": token,
+        });
         await getCloseOrders();
         await getPendingOrders();
         await getBalances();
@@ -283,14 +288,24 @@ const StoreProvider = (props) => {
         );
       }
     },
-    [enqueueSnackbar, getBalances, getCloseOrders, getPendingOrders, middleman]
+    [
+      enqueueSnackbar,
+      getBalances,
+      getCloseOrders,
+      getPendingOrders,
+      middleman,
+      token,
+    ]
   );
 
   const cancelOrder = useCallback(
     async (order) => {
       try {
         console.log(`cancelOrder order`, order);
-        const result = await middleman.cancelOrder(order);
+        const result = await middleman.cancelOrder({
+          ...order,
+          "X-CSRF-Token": token,
+        });
         await getPendingOrders();
         await getBalances();
         enqueueSnackbar(
@@ -320,7 +335,7 @@ const StoreProvider = (props) => {
         return false;
       }
     },
-    [enqueueSnackbar, getBalances, getPendingOrders, middleman]
+    [enqueueSnackbar, getBalances, getPendingOrders, middleman, token]
   );
 
   const activePageHandler = (page) => {
@@ -402,8 +417,31 @@ const StoreProvider = (props) => {
     [getBalances, getCloseOrders, getPendingOrders, getTickers, middleman]
   );
 
-  useEffect(() => {
+  const start = useCallback(async () => {
     sync(true);
+    const XSRF = document.cookie
+      .split(";")
+      .filter((v) => /XSRF-TOKEN/.test(v))
+      .pop()
+      ?.split("=")[1];
+    try {
+      if (XSRF) {
+        const token = await getToken(XSRF);
+        if (token) {
+          setToken(token);
+          setIsLogin(true);
+        }
+      }
+    } catch (error) {
+      console.log("getToken", error);
+      enqueueSnackbar(`${error?.message || "Some went wrong with getToken"}`, {
+        variant: "error",
+      });
+    }
+  }, [enqueueSnackbar, sync]);
+
+  useEffect(() => {
+    start();
   }, []);
 
   return (
