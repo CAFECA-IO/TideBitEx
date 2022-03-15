@@ -29,7 +29,11 @@ class TideBitLegacyAdapter {
         bodyFormData.append("order_ask[total", SafeMath.mult(body.px, body.sz));
       }
     }
-    console.log(`bodyFormData+++++++++++++`, bodyFormData.toString());
+    console.log(`bodyFormData+++++++++++++`);
+    for (var pair of bodyFormData.entries()) {
+      console.log(pair[0]+ ', ' + pair[1]); 
+  }
+  
     return bodyFormData;
   }
 }
