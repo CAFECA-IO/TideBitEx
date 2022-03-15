@@ -420,13 +420,13 @@ class ExchangeHub extends Bot {
               ? `${this.config.peatio.domain}/markets/${market.id}/order_bids`
               : `${this.config.peatio.domain}/markets/${market.id}/order_asks`;
           this.logger.debug("postPlaceOrder", url);
+          header.host = URL.parse(url, true).host;
+          header["content-type"] = "application/x-www-form-urlencoded";
+          header["x-csrf-token"] = body["X-CSRF-Token"];
           const formbody = TideBitLegacyAdapter.peatioOrderBody({
             header,
             body,
           });
-          header.host = URL.parse(url, true).host;
-          header["content-type"] = "multipart/form-data";
-          header["x-csrf-token"] = body["X-CSRF-Token"];
           const tbOrdersRes = await axios.post(url, formbody, {
             headers: header,
           });
@@ -439,6 +439,7 @@ class ExchangeHub extends Bot {
           // debug for postman so return error
           return error;
         }
+        break;
       default:
         return new ResponseFormat({
           message: "instId not Support now",

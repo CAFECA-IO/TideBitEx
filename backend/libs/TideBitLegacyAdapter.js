@@ -10,28 +10,27 @@ class TideBitLegacyAdapter {
   }
 
   static peatioOrderBody({ header, body }) {
-    const bodyFormData = new FormData();
-    bodyFormData.append("utf8", "true");
-    bodyFormData.append("authenticity_token", body["X-CSRF-Token"]);
-
+    let obj = {};
     if (body.side === "buy") {
-      bodyFormData.append("order_bid[ord_type]", body.ordType);
-      bodyFormData.append("order_bid[origin_volume]", body.sz);
+      obj["order_bid[ord_type]"] = body.ordType;
+      obj["order_bid[origin_volume]"] = body.sz;
       if (body.ordType === "limit") {
-        bodyFormData.append("order_bid[price]", body.px);
-        bodyFormData.append("order_bid[total]", SafeMath.mult(body.px, body.sz));
+        obj["order_bid[price]"] = body.px;
+        obj["order_bid[total]"] = SafeMath.mult(body.px, body.sz);
       }
     } else if (body.side === "sell") {
-      bodyFormData.append("order_ask[ord_type]", body.ordType);
-      bodyFormData.append("order_ask[origin_volume]", body.sz);
+      obj["order_ask[ord_type]"] = body.ordType;
+      obj["order_ask[origin_volume]"] = body.sz;
       if (body.ordType === "limit") {
-        bodyFormData.append("order_ask[price]", body.px);
-        bodyFormData.append("order_ask[total]", SafeMath.mult(body.px, body.sz));
+        obj["order_ask[price]"] = body.px;
+        obj["order_ask[total]"] = SafeMath.mult(body.px, body.sz);
       }
     }
-    console.log(`bodyFormData+++++++++++++`, bodyFormData.getBuffer().toString());
-    
-    return bodyFormData;
+    const data = Object.keys(obj)
+      .map((key) => `${key}=${encodeURIComponent(obj[key])}`)
+      .join("&");
+
+    return data;
   }
 }
 module.exports = TideBitLegacyAdapter;
