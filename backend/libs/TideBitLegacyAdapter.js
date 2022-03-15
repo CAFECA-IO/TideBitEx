@@ -19,7 +19,7 @@ class TideBitLegacyAdapter {
       bodyFormData.append("order_bid[origin_volume]", body.sz);
       if (body.ordType === "limit") {
         bodyFormData.append("order_bid[price]", body.px);
-        bodyFormData.append("order_bid[total", SafeMath.mult(body.px, body.sz));
+        bodyFormData.append("order_bid[total]", SafeMath.mult(body.px, body.sz));
       }
     } else if (body.side === "sell") {
       bodyFormData.append("order_ask[ord_type]", body.ordType);
