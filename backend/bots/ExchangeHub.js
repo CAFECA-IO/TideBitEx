@@ -420,23 +420,28 @@ class ExchangeHub extends Bot {
               ? `${this.config.peatio.domain}/markets/${market.id}/order_bids`
               : `${this.config.peatio.domain}/markets/${market.id}/order_asks`;
           this.logger.debug("postPlaceOrder", url);
-          header.host = URL.parse(url, true).host;
-          header["content-type"] = "application/x-www-form-urlencoded";
-          header["x-csrf-token"] = body["X-CSRF-Token"];
+
+          const headers = {
+            "content-type": "application/x-www-form-urlencoded",
+            "x-csrf-token": body["X-CSRF-Token"],
+            cookie: header.cookie,
+          };
+
           const formbody = TideBitLegacyAdapter.peatioOrderBody({
             header,
             body,
           });
-          console.info(` ++++++++++ header ++++++++++`);
-          console.log(header);
-          console.info(` ++++++++++ header ++++++++++`);
+
+          console.info(` ++++++++++ headers ++++++++++`);
+          console.log(headers);
+          console.info(` ++++++++++ headers ++++++++++`);
 
           console.info(` ========== formbody ==========`);
           console.log(formbody);
           console.info(` ========== formbody ==========`);
 
           const tbOrdersRes = await axios.post(url, formbody, {
-            headers: header,
+            headers,
           });
 
           this.logger.log(tbOrdersRes);
