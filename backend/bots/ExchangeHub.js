@@ -373,7 +373,7 @@ class ExchangeHub extends Bot {
       case SupportedExchange.TIDEBIT:  // ++ TODO 待驗證
         try {
           const market = this._findMarket(body.instId);
-          const url = body.side === 'buy' ? `${this.config.peatio.domain}/markets/${market.id}/order_bids` : `${this.config.peatio.domain}/markets/${market.id}/order_asks`;
+          const url = body.side === 'buy' ? `${this.config.peatio.domain}/markets_origin/${market.id}/order_bids` : `${this.config.peatio.domain}/markets_origin/${market.id}/order_asks`;
           this.logger.debug('postPlaceOrder', url);
           header.host = URL.parse(url, true).host;
           header['content-type'] = 'application/x-www-form-urlencoded';
