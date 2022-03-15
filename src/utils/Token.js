@@ -4,22 +4,23 @@ import { request } from "http";
 
 export const getToken = (XSRF) => {
   return new Promise((resolve, reject) => {
-    const headers = {
-      Cookie: `XSRF-TOKEN=${XSRF}`,
-    };
+    console.info(`getToken`);
+    // const headers = {
+    //   Cookie: `XSRF-TOKEN=${XSRF}`,
+    // };
 
-    const options = {
-      protocol: "http",
-      hostname: "15.164.99.239",
-      port: 80,
-      headers,
-      url: "/markets/ethusd",
-      method: "GET",
-    };
+    // const options = {
+    //   protocol: "http",
+    //   hostname: "15.164.99.239",
+    //   port: 80,
+    //   headers,
+    //   url: "/markets/ethusd",
+    //   method: "GET",
+    // };
 
     let response = "";
     const req = request(
-      `${window.location.href.replace(`markets`, "consumer_token_markets")}`,
+      `${window.location.href.replace(`markets`, "markets_origin")}`,
       (res) => {
         console.info(`getToken statusCode: ${res.statusCode}`);
 

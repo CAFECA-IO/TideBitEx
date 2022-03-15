@@ -251,12 +251,13 @@ const StoreProvider = (props) => {
 
   const postOrder = useCallback(
     async (order) => {
-      console.log(`postOrder order`, order);
+      const _order = {
+        ...order,
+        "X-CSRF-Token": token,
+      };
+      console.log(`postOrder _order`, _order);
       try {
-        const result = await middleman.postOrder({
-          ...order,
-          "X-CSRF-Token": token,
-        });
+        const result = await middleman.postOrder(_order);
         await getCloseOrders();
         await getPendingOrders();
         await getBalances();
@@ -300,12 +301,13 @@ const StoreProvider = (props) => {
 
   const cancelOrder = useCallback(
     async (order) => {
+      const _order = {
+        ...order,
+        "X-CSRF-Token": token,
+      };
       try {
-        console.log(`cancelOrder order`, order);
-        const result = await middleman.cancelOrder({
-          ...order,
-          "X-CSRF-Token": token,
-        });
+        console.log(`cancelOrder _order`, _order);
+        const result = await middleman.cancelOrder(_order);
         await getPendingOrders();
         await getBalances();
         enqueueSnackbar(
@@ -427,13 +429,14 @@ const StoreProvider = (props) => {
     try {
       if (XSRF) {
         const token = await getToken(XSRF);
+        console.log("getToken token", token);
         if (token) {
           setToken(token);
           setIsLogin(true);
         }
       }
     } catch (error) {
-      console.log("getToken", error);
+      console.log("getToken error", error);
       enqueueSnackbar(`${error?.message || "Some went wrong with getToken"}`, {
         variant: "error",
       });
