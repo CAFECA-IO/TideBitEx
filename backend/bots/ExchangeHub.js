@@ -426,33 +426,32 @@ class ExchangeHub extends Bot {
             "x-csrf-token": body["X-CSRF-Token"],
             cookie: header.cookie,
           };
-
           const formbody = TideBitLegacyAdapter.peatioOrderBody({
             header,
             body,
           });
-
-          console.info(` ++++++++++ headers ++++++++++`);
-          console.log(headers);
-          console.info(` ++++++++++ headers ++++++++++`);
-
-          console.info(` ========== formbody ==========`);
-          console.log(formbody);
-          console.info(` ========== formbody ==========`);
-
           const tbOrdersRes = await axios.post(url, formbody, {
             headers,
           });
-
           this.logger.log(tbOrdersRes);
-          // TODO: ResponseFormat
-          return tbOrdersRes;
+          // TODO: payload
+          return new ResponseFormat({
+            message: "postPlaceOrder",
+            payload: [
+              {
+                clOrdId: "",
+                ordId: "",
+                sCode: "",
+                sMsg: "",
+                tag: "",
+              },
+            ],
+          });
         } catch (error) {
           this.logger.log(error.stack);
           // debug for postman so return error
           return error;
         }
-        break;
       default:
         return new ResponseFormat({
           message: "instId not Support now",
