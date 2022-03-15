@@ -45,7 +45,6 @@ const Layout = ({ children }) => {
       .filter((v) => /lang/.test(v))
       .pop()
       ?.split("=")[1];
-    console.log(`lang`, lang);
     switch (lang.toLowerCase()) {
       case "en":
       case "en-us":

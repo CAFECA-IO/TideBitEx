@@ -100,7 +100,6 @@ const MarketPairs = (props) => {
       (storeCtx.selectedTicker &&
         storeCtx.selectedTicker?.instId !== selectedTicker?.instId)
     ) {
-      console.log(`storeCtx.selectedTicker`, storeCtx.selectedTicker);
       setSelectedTicker(storeCtx.selectedTicker);
       setDefaultActiveKey(storeCtx.selectedTicker?.quoteCcy?.toLowerCase());
     }

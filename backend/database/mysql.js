@@ -46,7 +46,7 @@ class mysql {
       this.logger.log(query, values);
       return accounts;
     } catch (error) {
-      console.log(error);
+      this.logger.error(error);
       return [];
     }
   }

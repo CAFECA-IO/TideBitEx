@@ -142,7 +142,6 @@ class Communicator {
       }${options?.before ? `&before=${options.before}` : ""}${
         options?.limit ? `&limit=${options.limit}` : ""
       }`;
-      console.log(`getPendingOrders url`, url);
       const res = await this._get(url);
       if (res.success) {
         return res.data;
@@ -165,7 +164,6 @@ class Communicator {
       }${options?.before ? `&before=${options.before}` : ""}${
         options?.limit ? `&limit=${options.limit}` : ""
       }`;
-      console.log(`closeOrders url`, url);
       const res = await this._get(url);
       if (res.success) {
         return res.data;
@@ -180,7 +178,6 @@ class Communicator {
   async balance(ccy) {
     try {
       const url = `/account/balance?${ccy ? `&ccy=${ccy}` : ""}`;
-      console.log(`balance url`, url);
       const res = await this._get(url);
       if (res.success) {
         return res.data;
@@ -195,13 +192,11 @@ class Communicator {
   async order(order) {
     try {
       const res = await this._post(`/trade/order`, order);
-      console.log(`order res`,res)
       if (res.success) {
         return res.data;
       }
       return Promise.reject({ message: res.message, code: res.code });
     } catch (error) {
-      console.log(`order error`,error)
       return Promise.reject({ message: error });
     }
   }
@@ -338,7 +333,6 @@ class Communicator {
     try {
       const data = decode(token);
       const time = data.exp * 1000 - Date.now() - 5000;
-      console.log("renew token timeout", time);
       if (this.tokenRenewTimeout) {
         clearTimeout(this.tokenRenewTimeout);
         this.tokenRenewTimeout = null;

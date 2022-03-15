@@ -15,6 +15,7 @@
     "colors": "^1.4.0",
     "command-line-args": "^5.2.0",
     "dvalue": "^1.1.0",
+    "form-data": "^4.0.0",
     "i18n": "^0.13.4",
     "i18next": "^21.6.12",
     "i18next-browser-languagedetector": "^6.1.3",

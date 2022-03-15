@@ -145,7 +145,7 @@ const TradeForm = (props) => {
               : props.selectedTicker?.baseCcyAvailable
           ) ||
           SafeMath.lte(props.sz, "0") ||
-          SafeMath.lte(props.sz, props.selectedTicker?.minSz)
+          SafeMath.lt(props.sz, props.selectedTicker?.minSz)
         }
       >
         {props.side === "buy" ? t("buy") : t("sell")}
@@ -156,6 +156,8 @@ const TradeForm = (props) => {
 };
 
 const TradePannel = (props) => {
+  const { width } = useViewport();
+  const breakpoint = 414;
   const storeCtx = useContext(StoreContext);
   const [selectedTicker, setSelectedTicker] = useState(null);
   const [buyPx, setBuyPx] = useState(null);
@@ -327,32 +329,69 @@ const TradePannel = (props) => {
 
   return (
     <div className="market-trade__panel">
-      <TradeForm
-        px={props.orderType === "market" ? buyPx : storeCtx.buyPx}
-        sz={buySz}
-        selectedTicker={selectedTicker}
-        selectedPct={selectedBuyPct}
-        onPxInput={!!props.readyOnly ? () => {} : storeCtx.buyPxHandler}
-        onSzInput={buySzHandler}
-        percentageHandler={buyPctHandler}
-        onSubmit={onSubmit}
-        side="buy"
-        readyOnly={!!props.readyOnly}
-        errorMessage={buyErrorMessage}
-      />
-      <TradeForm
-        px={props.orderType === "market" ? sellPx : storeCtx.sellPx}
-        sz={sellSz}
-        selectedTicker={selectedTicker}
-        selectedPct={selectedSellPct}
-        onPxInput={!!props.readyOnly ? () => {} : storeCtx.sellPxHandler}
-        onSzInput={sellSzHandler}
-        percentageHandler={sellPctHandler}
-        onSubmit={onSubmit}
-        side="sell"
-        readyOnly={!!props.readyOnly}
-        errorMessage={sellErrorMessage}
-      />
+      {width <= breakpoint ? (
+        <Tabs defaultActiveKey="buy">
+          <Tab eventKey="buy" title={t("buy")}>
+            <TradeForm
+              px={props.orderType === "market" ? buyPx : storeCtx.buyPx}
+              sz={buySz}
+              selectedTicker={selectedTicker}
+              selectedPct={selectedBuyPct}
+              onPxInput={!!props.readyOnly ? () => {} : storeCtx.buyPxHandler}
+              onSzInput={buySzHandler}
+              percentageHandler={buyPctHandler}
+              onSubmit={onSubmit}
+              side="buy"
+              readyOnly={!!props.readyOnly}
+              errorMessage={buyErrorMessage}
+            />
+          </Tab>
+          <Tab eventKey="sell" title={t("sell")}>
+            <TradeForm
+              px={props.orderType === "market" ? sellPx : storeCtx.sellPx}
+              sz={sellSz}
+              selectedTicker={selectedTicker}
+              selectedPct={selectedSellPct}
+              onPxInput={!!props.readyOnly ? () => {} : storeCtx.sellPxHandler}
+              onSzInput={sellSzHandler}
+              percentageHandler={sellPctHandler}
+              onSubmit={onSubmit}
+              side="sell"
+              readyOnly={!!props.readyOnly}
+              errorMessage={sellErrorMessage}
+            />
+          </Tab>
+        </Tabs>
+      ) : (
+        <>
+          <TradeForm
+            px={props.orderType === "market" ? buyPx : storeCtx.buyPx}
+            sz={buySz}
+            selectedTicker={selectedTicker}
+            selectedPct={selectedBuyPct}
+            onPxInput={!!props.readyOnly ? () => {} : storeCtx.buyPxHandler}
+            onSzInput={buySzHandler}
+            percentageHandler={buyPctHandler}
+            onSubmit={onSubmit}
+            side="buy"
+            readyOnly={!!props.readyOnly}
+            errorMessage={buyErrorMessage}
+          />
+          <TradeForm
+            px={props.orderType === "market" ? sellPx : storeCtx.sellPx}
+            sz={sellSz}
+            selectedTicker={selectedTicker}
+            selectedPct={selectedSellPct}
+            onPxInput={!!props.readyOnly ? () => {} : storeCtx.sellPxHandler}
+            onSzInput={sellSzHandler}
+            percentageHandler={sellPctHandler}
+            onSubmit={onSubmit}
+            side="sell"
+            readyOnly={!!props.readyOnly}
+            errorMessage={sellErrorMessage}
+          />
+        </>
+      )}
     </div>
   );
 };

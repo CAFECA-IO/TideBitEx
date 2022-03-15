@@ -1,28 +1,29 @@
-const path = require('path');
-const redis = require('redis');
-const { default: axios } = require('axios');
-const URL = require('url');
+const path = require("path");
+const redis = require("redis");
+const { default: axios } = require("axios");
+const URL = require("url");
 
-const Bot = require(path.resolve(__dirname, 'Bot.js'));
-const OkexConnector = require('../libs/Connectors/OkexConnector');
-const ResponseFormat = require('../libs/ResponseFormat');
-const Codes = require('../constants/Codes');
-const EventBus = require('../libs/EventBus');
-const Events = require('../constants/Events');
-const SafeMath = require('../libs/SafeMath');
-const Utils = require('../libs/Utils');
-const SupportedExchange = require('../constants/SupportedExchange');
-const TideBitLegacyAdapter = require('../libs/TideBitLegacyAdapter');
+const Bot = require(path.resolve(__dirname, "Bot.js"));
+const OkexConnector = require("../libs/Connectors/OkexConnector");
+const ResponseFormat = require("../libs/ResponseFormat");
+const Codes = require("../constants/Codes");
+const EventBus = require("../libs/EventBus");
+const Events = require("../constants/Events");
+const SafeMath = require("../libs/SafeMath");
+const Utils = require("../libs/Utils");
+const SupportedExchange = require("../constants/SupportedExchange");
+const TideBitLegacyAdapter = require("../libs/TideBitLegacyAdapter");
 
 class ExchangeHub extends Bot {
   constructor() {
     super();
-    this.name = 'ExchangeHub';
+    this.name = "ExchangeHub";
   }
 
   init({ config, database, logger, i18n }) {
-    return super.init({ config, database, logger, i18n })
-      .then(async() => {
+    return super
+      .init({ config, database, logger, i18n })
+      .then(async () => {
         this.okexConnector = new OkexConnector({ logger });
         await this.okexConnector.init({
           domain: this.config.okex.domain,
@@ -32,7 +33,7 @@ class ExchangeHub extends Bot {
           brokerId: this.config.okex.brokerId,
           wssPublic: this.config.okex.wssPublic,
           wssPrivate: this.config.okex.wssPrivate,
-        })
+        });
       })
       .then(() => {
         this.tidebitMarkets = this.getTidebitMarkets();
@@ -49,10 +50,13 @@ class ExchangeHub extends Bot {
 
   getTidebitMarkets() {
     try {
-      const p = path.join(this.config.base.TideBitLegacyPath, 'config/markets/markets.yml');
+      const p = path.join(
+        this.config.base.TideBitLegacyPath,
+        "config/markets/markets.yml"
+      );
       const markets = Utils.marketParser(p);
       const formatMarket = markets.map((market) => {
-        const instId = market.name.split('/').join('-').toUpperCase();
+        const instId = market.name.split("/").join("-").toUpperCase();
         return {
           ...market,
           alias: "",
@@ -77,8 +81,8 @@ class ExchangeHub extends Bot {
           tickSz: "",
           uly: "",
           ts: null,
-          source: SupportedExchange.TIDEBIT
-        }
+          source: SupportedExchange.TIDEBIT,
+        };
       });
       return formatMarket;
     } catch (error) {
@@ -89,29 +93,30 @@ class ExchangeHub extends Bot {
 
   async getMemberIdFromRedis(peatioSession) {
     const client = redis.createClient({
-      url: this.config.redis.domain
+      url: this.config.redis.domain,
     });
 
-    client.on('error', (err) => console.log('Redis Client Error', err));
+    client.on("error", (err) => this.logger.error("Redis Client Error", err));
 
     try {
-      await client.connect();   // 會因為連線不到卡住
+      await client.connect(); // 會因為連線不到卡住
       const value = await client.get(
         redis.commandOptions({ returnBuffers: true }),
         peatioSession
-        );
+      );
       await client.quit();
-      console.log('getMemberIdFromRedis peatioSession', peatioSession);
-      console.log('getMemberIdFromRedis value', value);
       // ++ TODO: 下面補error handle
-      const split1 = value.toString('latin1').split('member_id\x06:\x06EFi\x02');
+      const split1 = value
+        .toString("latin1")
+        .split("member_id\x06:\x06EFi\x02");
       const memberIdLatin1 = split1[1].split('I"')[0];
-      const memberIdString = Buffer.from(memberIdLatin1, 'latin1').reverse().toString('hex');
+      const memberIdString = Buffer.from(memberIdLatin1, "latin1")
+        .reverse()
+        .toString("hex");
       const memberId = parseInt(memberIdString, 16);
-      console.log('memberId', memberIdString, memberId);
       return memberId;
     } catch (error) {
-      console.log(error)
+      this.logger.error(error);
       await client.quit();
       return -1;
     }
@@ -121,9 +126,11 @@ class ExchangeHub extends Bot {
   async getBalance({ token, params, query }) {
     try {
       const memberId = await this.getMemberIdFromRedis(token);
-      if (memberId === -1) throw new Error('get member_id fail');
+      if (memberId === -1) throw new Error("get member_id fail");
       const accounts = await this.database.getBalance(memberId);
-      const jobs = accounts.map((acc) => this.database.getCurrency(acc.currency));
+      const jobs = accounts.map((acc) =>
+        this.database.getCurrency(acc.currency)
+      );
       const currencies = await Promise.all(jobs);
 
       const details = accounts.map((account, i) => ({
@@ -138,11 +145,11 @@ class ExchangeHub extends Bot {
       const payload = [
         {
           details,
-        }
-      ]
+        },
+      ];
 
       return new ResponseFormat({
-        message: 'getBalance',
+        message: "getBalance",
         payload,
       });
     } catch (error) {
@@ -160,11 +167,19 @@ class ExchangeHub extends Bot {
   async getTickers({ params, query }) {
     const list = [];
     try {
-      const okexRes = await this.okexConnector.router('getTickers', { params, query });
+      const okexRes = await this.okexConnector.router("getTickers", {
+        params,
+        query,
+      });
       if (okexRes.success) {
         const okexInstruments = okexRes.payload;
-        const includeTidebitMarket = Utils.marketFilterInclude(this.tidebitMarkets, okexInstruments);
-        includeTidebitMarket.forEach((market) => market.source = SupportedExchange.OKEX)
+        const includeTidebitMarket = Utils.marketFilterInclude(
+          this.tidebitMarkets,
+          okexInstruments
+        );
+        includeTidebitMarket.forEach(
+          (market) => (market.source = SupportedExchange.OKEX)
+        );
         list.push(...includeTidebitMarket);
       } else {
         return okexRes;
@@ -178,12 +193,19 @@ class ExchangeHub extends Bot {
     }
 
     try {
-      const tideBitOnlyMarkets = Utils.marketFilterExclude(list, this.tidebitMarkets);
-      const isVisibles = tideBitOnlyMarkets.filter((m) => m.visible === true || m.visible === undefined); // default visible is true, so if visible is undefined still need to show on list.
-      const tBTickersRes = await axios.get(`${this.config.peatio.domain}/api/v2/tickers`);
+      const tideBitOnlyMarkets = Utils.marketFilterExclude(
+        list,
+        this.tidebitMarkets
+      );
+      const isVisibles = tideBitOnlyMarkets.filter(
+        (m) => m.visible === true || m.visible === undefined
+      ); // default visible is true, so if visible is undefined still need to show on list.
+      const tBTickersRes = await axios.get(
+        `${this.config.peatio.domain}/api/v2/tickers`
+      );
       if (!tBTickersRes || !tBTickersRes.data) {
         return new ResponseFormat({
-          message: 'Something went wrong',
+          message: "Something went wrong",
           code: Codes.API_UNKNOWN_ERROR,
         });
       }
@@ -202,12 +224,12 @@ class ExchangeHub extends Bot {
           open24h: "0.0",
           high24h: "0.0",
           low24h: "0.0",
-          volCcy24h: '0.0',
+          volCcy24h: "0.0",
           vol24h: "0.0",
           ts: "0.0",
           sodUtc0: "0.0",
           sodUtc8: "0.0",
-        }
+        };
         if (tBTicker) {
           formatTBTicker = {
             instType: "",
@@ -221,12 +243,12 @@ class ExchangeHub extends Bot {
             open24h: tBTicker.ticker.open.toString(),
             high24h: tBTicker.ticker.high.toString(),
             low24h: tBTicker.ticker.low.toString(),
-            volCcy24h: '0.0',
+            volCcy24h: "0.0",
             vol24h: "0.0",
             ts: tBTicker.at * 1000,
             sodUtc0: "0.0",
             sodUtc8: tBTicker.ticker.open.toString(),
-          }
+          };
         }
         return formatTBTicker;
       });
@@ -240,19 +262,19 @@ class ExchangeHub extends Bot {
     }
 
     return new ResponseFormat({
-      message: 'getTickers',
-      payload: list
-    })
+      message: "getTickers",
+      payload: list,
+    });
   }
 
   async getOrderBooks({ params, query }) {
     switch (this._findSource(query.instId)) {
       case SupportedExchange.OKEX:
-        return this.okexConnector.router('getOrderBooks', { params, query });
-      case SupportedExchange.TIDEBIT:  // ++ TODO 
+        return this.okexConnector.router("getOrderBooks", { params, query });
+      case SupportedExchange.TIDEBIT: // ++ TODO
       default:
         return new ResponseFormat({
-          message: 'getOrderBooks',
+          message: "getOrderBooks",
           payload: [{}],
         });
     }
@@ -261,11 +283,11 @@ class ExchangeHub extends Bot {
   async getCandlesticks({ params, query }) {
     switch (this._findSource(query.instId)) {
       case SupportedExchange.OKEX:
-        return this.okexConnector.router('getCandlesticks', { params, query });
-      case SupportedExchange.TIDEBIT:  // ++ TODO 
+        return this.okexConnector.router("getCandlesticks", { params, query });
+      case SupportedExchange.TIDEBIT: // ++ TODO
       default:
         return new ResponseFormat({
-          message: 'getCandlesticks',
+          message: "getCandlesticks",
           payload: [],
         });
     }
@@ -274,22 +296,22 @@ class ExchangeHub extends Bot {
   async getTrades({ params, query }) {
     switch (this._findSource(query.instId)) {
       case SupportedExchange.OKEX:
-        return this.okexConnector.router('getTrades', { params, query });
-      case SupportedExchange.TIDEBIT:  // ++ TODO 
+        return this.okexConnector.router("getTrades", { params, query });
+      case SupportedExchange.TIDEBIT: // ++ TODO
       default:
         return new ResponseFormat({
-          message: 'getTrades',
+          message: "getTrades",
           payload: [],
         });
     }
   }
   // market api end
   // trade api
-  async postPlaceOrder ({ header, params, query, body, token }) {
+  async postPlaceOrder({ header, params, query, body, token }) {
     const memberId = await this.getMemberIdFromRedis(token);
     if (memberId === -1) {
       return new ResponseFormat({
-        message: 'member_id not found',
+        message: "member_id not found",
         code: Codes.MEMBER_ID_NOT_FOUND,
       });
     }
@@ -313,21 +335,25 @@ class ExchangeHub extends Bot {
            * orderData.locked:
            *   if body.side === 'buy', locked = body.px * body.sz
            *   if body.side === 'sell', locked = body.sz
-           * 
+           *
            * orderData.balance: locked value * -1
            *******************************************/
-          
+
           const orderData = await this._getPlaceOrderData(body);
-          const account = await this.database.getAccountByMemberIdCurrency(memberId, orderData.currencyId, { dbTransaction: t});
+          const account = await this.database.getAccountByMemberIdCurrency(
+            memberId,
+            orderData.currencyId,
+            { dbTransaction: t }
+          );
           const price = orderData.price;
           const volume = orderData.volume;
           const locked = orderData.locked;
           const balance = orderData.balance;
-          const fee = '0';
-    
+          const fee = "0";
+
           const created_at = new Date().toISOString();
           const updated_at = created_at;
-    
+
           const order = await this.database.insertOrder(
             orderData.bid,
             orderData.ask,
@@ -342,19 +368,32 @@ class ExchangeHub extends Bot {
             created_at,
             updated_at,
             null,
-            'Web',
+            "Web",
             orderData.ordType,
             locked,
             locked,
-            '0',
+            "0",
             0,
             { dbTransaction: t }
           );
           const orderId = order[0];
-    
-          await this._updateAccount(account, t, balance, locked, fee, this.database.MODIFIABLE_TYPE.ORDER, orderId, created_at, this.database.FUNC.LOCK_FUNDS);
 
-          const okexOrderRes = await this.okexConnector.router('postPlaceOrder', { memberId, orderId, params, query, body });
+          await this._updateAccount(
+            account,
+            t,
+            balance,
+            locked,
+            fee,
+            this.database.MODIFIABLE_TYPE.ORDER,
+            orderId,
+            created_at,
+            this.database.FUNC.LOCK_FUNDS
+          );
+
+          const okexOrderRes = await this.okexConnector.router(
+            "postPlaceOrder",
+            { memberId, orderId, params, query, body }
+          );
           if (!okexOrderRes.success) {
             await t.rollback();
             return okexOrderRes;
@@ -369,86 +408,116 @@ class ExchangeHub extends Bot {
             code: Codes.API_UNKNOWN_ERROR,
           });
         }
-        /* !!! HIGH RISK (end) !!! */
-      case SupportedExchange.TIDEBIT:  // ++ TODO 待驗證
+      /* !!! HIGH RISK (end) !!! */
+      case SupportedExchange.TIDEBIT: // ++ TODO 待驗證
         try {
           const market = this._findMarket(body.instId);
-          const url = body.side === 'buy' ? `${this.config.peatio.domain}/markets/${market.id}/order_bids` : `${this.config.peatio.domain}/markets/${market.id}/order_asks`;
-          this.logger.debug('postPlaceOrder', url);
-          header.host = URL.parse(url, true).host;
-          header['content-type'] = 'application/x-www-form-urlencoded';
-          const tbOrdersRes = await axios.post(url, TideBitLegacyAdapter.peatioOrderBody({ header, body }), {
-            headers: header,
-          });
+          const url =
+            body.side === "buy"
+              ? `${this.config.peatio.domain}/markets/${market.id}/order_bids`
+              : `${this.config.peatio.domain}/markets/${market.id}/order_asks`;
+          this.logger.debug("postPlaceOrder", url);
 
-          this.logger.log(tbOrdersRes); 
-          // TODO: ResponseFormat
-          return tbOrdersRes
+          const headers = {
+            "content-type": "application/x-www-form-urlencoded",
+            "x-csrf-token": body["X-CSRF-Token"],
+            cookie: header.cookie,
+          };
+          const formbody = TideBitLegacyAdapter.peatioOrderBody({
+            header,
+            body,
+          });
+          const tbOrdersRes = await axios.post(url, formbody, {
+            headers,
+          });
+          this.logger.log(tbOrdersRes);
+          // TODO: payload
+          return new ResponseFormat({
+            message: "postPlaceOrder",
+            payload: [
+              {
+                clOrdId: "",
+                ordId: "",
+                sCode: "",
+                sMsg: "",
+                tag: "",
+              },
+            ],
+          });
         } catch (error) {
           this.logger.log(error.stack);
           // debug for postman so return error
           return error;
         }
-        break;
       default:
         return new ResponseFormat({
-          message: 'instId not Support now',
-          code: Codes.API_NOT_SUPPORTED
+          message: "instId not Support now",
+          code: Codes.API_NOT_SUPPORTED,
         });
     }
   }
 
-  async getOrderList ({ params, query, token }) {
+  async getOrderList({ params, query, token }) {
     const memberId = await this.getMemberIdFromRedis(token);
     if (memberId === -1) {
       return new ResponseFormat({
-        message: 'member_id not found',
+        message: "member_id not found",
         code: Codes.MEMBER_ID_NOT_FOUND,
       });
     }
     switch (this._findSource(query.instId)) {
       case SupportedExchange.OKEX:
-        const res = await this.okexConnector.router('getOrderList', { params, query });
+        const res = await this.okexConnector.router("getOrderList", {
+          params,
+          query,
+        });
         const list = res.payload;
         if (Array.isArray(list)) {
-          const newList = list.filter((order) => order.clOrdId.includes(`${memberId}m`));   // 可能發生與brokerId, randomId碰撞
+          const newList = list.filter((order) =>
+            order.clOrdId.includes(`${memberId}m`)
+          ); // 可能發生與brokerId, randomId碰撞
           res.payload = newList;
         }
         return res;
-      case SupportedExchange.TIDEBIT:  // ++ TODO 
+      case SupportedExchange.TIDEBIT: // ++ TODO
       default:
         return new ResponseFormat({
-          message: 'getOrderList',
+          message: "getOrderList",
           payload: [],
         });
     }
   }
-  async getOrderHistory ({ params, query, token }) {
+  async getOrderHistory({ params, query, token }) {
     const memberId = await this.getMemberIdFromRedis(token);
     if (memberId === -1) {
       return new ResponseFormat({
-        message: 'member_id not found',
+        message: "member_id not found",
         code: Codes.MEMBER_ID_NOT_FOUND,
       });
     }
     switch (this._findSource(query.instId)) {
       case SupportedExchange.OKEX:
-        const res = await this.okexConnector.router('getOrderHistory', { params, query });
+        const res = await this.okexConnector.router("getOrderHistory", {
+          params,
+          query,
+        });
         const list = res.payload;
         if (Array.isArray(list)) {
-          const newList = list.filter((order) => order.clOrdId.includes(`${memberId}m`));   // 可能發生與brokerId, randomId碰撞
+          const newList = list.filter((order) =>
+            order.clOrdId.includes(`${memberId}m`)
+          ); // 可能發生與brokerId, randomId碰撞
           res.payload = newList;
         }
         return res;
-      case SupportedExchange.TIDEBIT:  // ++ TODO 
+      case SupportedExchange.TIDEBIT: // ++ TODO
       default:
         return new ResponseFormat({
-          message: 'getOrderList',
+          message: "getOrderList",
           payload: [],
         });
     }
   }
-  async postCancelOrder ({ params, query, body, token }) {
+  async postCancelOrder({ params, query, body, token }) {
     const memberId = await this.getMemberIdFromRedis(token);
 
     /* !!! HIGH RISK (start) !!! */
@@ -469,11 +538,16 @@ class ExchangeHub extends Bot {
         await t.rollback();
         return new ResponseFormat({
           code: Codes.ORDER_HAS_BEEN_CLOSED,
-          message: 'order has been close',
-        })
+          message: "order has been close",
+        });
       }
-      const currencyId = order.type === this.database.TYPE.ORDER_ASK ? order.ask : order.bid;
-      const account = await this.database.getAccountByMemberIdCurrency(memberId, currencyId, { dbTransaction: t});
+      const currencyId =
+        order.type === this.database.TYPE.ORDER_ASK ? order.ask : order.bid;
+      const account = await this.database.getAccountByMemberIdCurrency(
+        memberId,
+        currencyId,
+        { dbTransaction: t }
+      );
 
       /*******************************************
        * body.clOrdId: custom orderId for okex
@@ -483,32 +557,45 @@ class ExchangeHub extends Bot {
       const newOrder = {
         id: orderId,
         state: this.database.ORDER_STATE.CANCEL,
-      }
-      const locked = SafeMath.mult(order.locked, '-1');
+      };
+      const locked = SafeMath.mult(order.locked, "-1");
       const balance = order.locked;
-      const fee = '0';
+      const fee = "0";
 
       const created_at = new Date().toISOString();
 
       await this.database.updateOrder(newOrder, { dbTransaction: t });
 
-      await this._updateAccount(account, t, balance, locked, fee, this.database.MODIFIABLE_TYPE.ORDER, orderId, created_at, this.database.FUNC.UNLOCK_FUNDS);
+      await this._updateAccount(
+        account,
+        t,
+        balance,
+        locked,
+        fee,
+        this.database.MODIFIABLE_TYPE.ORDER,
+        orderId,
+        created_at,
+        this.database.FUNC.UNLOCK_FUNDS
+      );
 
       switch (this._findSource(body.instId)) {
         case SupportedExchange.OKEX:
-          const okexCancelOrderRes = await this.okexConnector.router('postCancelOrder', { params, query, body });
+          const okexCancelOrderRes = await this.okexConnector.router(
+            "postCancelOrder",
+            { params, query, body }
+          );
           if (!okexCancelOrderRes.success) {
             await t.rollback();
             return okexCancelOrderRes;
           }
           await t.commit();
           return okexCancelOrderRes;
-        case SupportedExchange.TIDEBIT:  // ++ TODO 
+        case SupportedExchange.TIDEBIT: // ++ TODO
         default:
           await t.rollback();
           return new ResponseFormat({
-            message: 'instId not Support now',
-            code: Codes.API_NOT_SUPPORTED
+            message: "instId not Support now",
+            code: Codes.API_NOT_SUPPORTED,
           });
       }
     } catch (error) {
@@ -524,16 +611,22 @@ class ExchangeHub extends Bot {
   // trade api end
 
   // public api
-  async getInstruments ({ params, query }) {
+  async getInstruments({ params, query }) {
     const list = [];
     try {
-      const okexRes = await this.okexConnector.router('getInstruments', { params, query });
+      const okexRes = await this.okexConnector.router("getInstruments", {
+        params,
+        query,
+      });
       if (okexRes.success) {
         const okexInstruments = okexRes.payload;
-        const includeTidebitMarket = Utils.marketFilterInclude(this.tidebitMarkets, okexInstruments);
+        const includeTidebitMarket = Utils.marketFilterInclude(
+          this.tidebitMarkets,
+          okexInstruments
+        );
         includeTidebitMarket.forEach((market) => {
           market.source = SupportedExchange.OKEX;
-        })
+        });
         list.push(...includeTidebitMarket);
       } else {
         return okexRes;
@@ -547,8 +640,13 @@ class ExchangeHub extends Bot {
     }
 
     try {
-      const tideBitOnlyMarkets = Utils.marketFilterExclude(list, this.tidebitMarkets);
-      const isVisibles = tideBitOnlyMarkets.filter((m) => m.visible === true || m.visible === undefined); // default visible is true, so if visible is undefined still need to show on list.
+      const tideBitOnlyMarkets = Utils.marketFilterExclude(
+        list,
+        this.tidebitMarkets
+      );
+      const isVisibles = tideBitOnlyMarkets.filter(
+        (m) => m.visible === true || m.visible === undefined
+      ); // default visible is true, so if visible is undefined still need to show on list.
       list.push(...isVisibles);
     } catch (error) {
       this.logger.log(error);
@@ -559,65 +657,57 @@ class ExchangeHub extends Bot {
     }
 
     return new ResponseFormat({
-      message: 'getInstruments',
-      payload: list
-    })
+      message: "getInstruments",
+      payload: list,
+    });
   }
   // public api end
 
   async _eventListener() {
     EventBus.on(Events.tradeDataOnUpdate, (instId, tradeData) => {
       if (this._isIncludeTideBitMarket(instId)) {
-        this.broadcast(
-          instId,
-          {
-            type: Events.tradeDataOnUpdate,
-            data: tradeData,
-          }
-        )
+        this.broadcast(instId, {
+          type: Events.tradeDataOnUpdate,
+          data: tradeData,
+        });
       }
     });
 
     EventBus.on(Events.orderOnUpdate, (instId, booksData) => {
       if (this._isIncludeTideBitMarket(instId)) {
-        this.broadcast(
-          instId,
-          {
-            type: Events.orderOnUpdate,
-            data: booksData,
-          }
-        )
+        this.broadcast(instId, {
+          type: Events.orderOnUpdate,
+          data: booksData,
+        });
       }
     });
 
     EventBus.on(Events.candleOnUpdate, (instId, formatCandle) => {
       if (this._isIncludeTideBitMarket(instId)) {
-        this.broadcast(
-          instId,
-          {
-            type: Events.candleOnUpdate,
-            data: formatCandle,
-          }
-        )
+        this.broadcast(instId, {
+          type: Events.candleOnUpdate,
+          data: formatCandle,
+        });
       }
     });
 
     EventBus.on(Events.pairOnUpdate, (formatPair) => {
       if (this._isIncludeTideBitMarket(formatPair.instId)) {
-        this.broadcastAllClient(
-          {
-            type: Events.pairOnUpdate,
-            data: formatPair,
-          }
-        )
+        this.broadcastAllClient({
+          type: Events.pairOnUpdate,
+          data: formatPair,
+        });
       }
     });
 
-    EventBus.on(Events.orderDetailUpdate, async(instType, formatOrders) => {
-      if (instType === 'SPOT') {
+    EventBus.on(Events.orderDetailUpdate, async (instType, formatOrders) => {
+      if (instType === "SPOT") {
         // TODO: using message queue
-        for(const formatOrder of formatOrders) {
-          if (formatOrder.state !== 'canceled' /* cancel order */ && formatOrder.accFillSz !== '0'/* create order */) {
+        for (const formatOrder of formatOrders) {
+          if (
+            formatOrder.state !== "canceled" /* cancel order */ &&
+            formatOrder.accFillSz !== "0" /* create order */
+          ) {
             await this._updateOrderDetail(formatOrder);
           }
         }
@@ -639,24 +729,41 @@ class ExchangeHub extends Bot {
     // 9. update account balance and locked
     try {
       const {
-        accFillSz, clOrdId, tradeId, state, side, fillPx, fillSz, fee, uTime, 
+        accFillSz,
+        clOrdId,
+        tradeId,
+        state,
+        side,
+        fillPx,
+        fillSz,
+        fee,
+        uTime,
       } = formatOrder;
       // get orderId from formatOrder.clOrdId
       const { memberId, orderId } = Utils.parseClOrdId(clOrdId);
       const order = await this.database.getOrder(orderId, { dbTransaction: t });
       if (order.state !== this.database.ORDER_STATE.WAIT) {
         await t.rollback();
-        this.logger.error('order has been closed');
+        this.logger.error("order has been closed");
       }
-      const currencyId = order.type === this.database.TYPE.ORDER_ASK ? order.ask : order.bid;
-      const accountAsk = await this.database.getAccountByMemberIdCurrency(memberId, order.ask, { dbTransaction: t });
-      const accountBid = await this.database.getAccountByMemberIdCurrency(memberId, order.bid, { dbTransaction: t });
+      const currencyId =
+        order.type === this.database.TYPE.ORDER_ASK ? order.ask : order.bid;
+      const accountAsk = await this.database.getAccountByMemberIdCurrency(
+        memberId,
+        order.ask,
+        { dbTransaction: t }
+      );
+      const accountBid = await this.database.getAccountByMemberIdCurrency(
+        memberId,
+        order.bid,
+        { dbTransaction: t }
+      );
 
       /*******************************************
        * formatOrder.clOrdId: custom orderId for okex
        * formatOrder.accFillSz: valume which already matched
        * formatOrder.state: 'live', 'canceled', 'filled', 'partially_filled', but 'cancel' may not enter this function
-       * lockedA: Ask locked value, this value would be negative 
+       * lockedA: Ask locked value, this value would be negative
        *   if formatOrder.side === 'sell', formatOrder.fillSz || '0'
        * feeA: Ask fee value
        *   if formatOrder.side === 'buy', formatOrder.fee - all this order ask vouchers.fee || 0
@@ -676,40 +783,49 @@ class ExchangeHub extends Bot {
        * changeBalance: if order is done, euqal to newOrderLocked
        * changeLocked: if order is done, euqal to newOrderLocked * -1
        *******************************************/
-      
+
       let orderState = this.database.ORDER_STATE.WAIT;
-      if (state === 'filled') {
+      if (state === "filled") {
         orderState = this.database.ORDER_STATE.DONE;
       }
 
-      const lockedA = side === 'sell' ? SafeMath.mult(fillSz, '-1') : '0';
+      const lockedA = side === "sell" ? SafeMath.mult(fillSz, "-1") : "0";
       const totalFee = SafeMath.abs(fee);
-      const feeA = side === 'buy' ? await this._calculateFee(orderId, 'ask', totalFee, t) : '0';
-      const balanceA = side === 'buy' ? SafeMath.minus(fillSz, feeA) : '0';
+      const feeA =
+        side === "buy"
+          ? await this._calculateFee(orderId, "ask", totalFee, t)
+          : "0";
+      const balanceA = side === "buy" ? SafeMath.minus(fillSz, feeA) : "0";
 
       const value = SafeMath.mult(fillPx, fillSz);
-      const lockedB = side === 'buy' ? SafeMath.mult(value, '-1') : '0';
-      const feeB = side === 'sell' ? await this._calculateFee(orderId, 'bid', totalFee, t) : '0';
-      const balanceB = side === 'sell' ? SafeMath.minus(value, feeB) : '0';
+      const lockedB = side === "buy" ? SafeMath.mult(value, "-1") : "0";
+      const feeB =
+        side === "sell"
+          ? await this._calculateFee(orderId, "bid", totalFee, t)
+          : "0";
+      const balanceB = side === "sell" ? SafeMath.minus(value, feeB) : "0";
 
       const newOrderVolume = SafeMath.minus(order.origin_volume, accFillSz);
-      const newOrderLocked = SafeMath.plus(order.locked, side === 'buy' ? lockedB : lockedA);
-      const newFundReceive = side === 'buy' ? fillSz : value;
+      const newOrderLocked = SafeMath.plus(
+        order.locked,
+        side === "buy" ? lockedB : lockedA
+      );
+      const newFundReceive = side === "buy" ? fillSz : value;
 
       const changeBalance = newOrderLocked;
-      const changeLocked = SafeMath.mult(newOrderLocked, '-1');
+      const changeLocked = SafeMath.mult(newOrderLocked, "-1");
 
       const created_at = new Date().toISOString();
       const updated_at = created_at;
-      
+
       const newOrder = {
         id: orderId,
         volume: newOrderVolume,
         state: orderState,
         locked: newOrderLocked,
         funds_received: newFundReceive,
-        trades_count: order.trades_count + 1
-      }
+        trades_count: order.trades_count + 1,
+      };
 
       // TODO: ++ 6. add trade
       // -- CAUTION!!! skip now, tradeId use okex tradeId,
@@ -718,19 +834,19 @@ class ExchangeHub extends Bot {
       await this.database.insertVouchers(
         memberId,
         orderId,
-        tradeId,  // ++ TODO reference step6 trade.id
+        tradeId, // ++ TODO reference step6 trade.id
         null,
-        'eth',    // -- need change
-        'usdt',   // -- need change
+        "eth", // -- need change
+        "usdt", // -- need change
         fillPx,
         fillSz,
         value,
-        order.type === this.database.TYPE.ORDER_ASK ? 'ask' : 'bid',
-        order.type === this.database.TYPE.ORDER_ASK ? feeB : '0',  // get bid, so fee is bid
-        order.type === this.database.TYPE.ORDER_ASK ? '0' : feeA,  // get ask, so fee is ask
+        order.type === this.database.TYPE.ORDER_ASK ? "ask" : "bid",
+        order.type === this.database.TYPE.ORDER_ASK ? feeB : "0", // get bid, so fee is bid
+        order.type === this.database.TYPE.ORDER_ASK ? "0" : feeA, // get ask, so fee is ask
         created_at,
         { dbTransaction: t }
-      )
+      );
 
       await this.database.updateOrder(newOrder, { dbTransaction: t });
 
@@ -741,9 +857,11 @@ class ExchangeHub extends Bot {
         lockedA,
         feeA,
         this.database.MODIFIABLE_TYPE.TRADE,
-        tradeId,  // ++ TODO reference step6 trade.id
+        tradeId, // ++ TODO reference step6 trade.id
         created_at,
-        order.type === this.database.TYPE.ORDER_ASK ? this.database.FUNC.UNLOCK_AND_SUB_FUNDS : this.database.FUNC.PLUS_FUNDS
+        order.type === this.database.TYPE.ORDER_ASK
+          ? this.database.FUNC.UNLOCK_AND_SUB_FUNDS
+          : this.database.FUNC.PLUS_FUNDS
       );
       await this._updateAccount(
         accountBid,
@@ -752,19 +870,44 @@ class ExchangeHub extends Bot {
         lockedB,
         feeB,
         this.database.MODIFIABLE_TYPE.TRADE,
-        tradeId,  // ++ TODO reference step6 trade.id
+        tradeId, // ++ TODO reference step6 trade.id
         created_at,
-        order.type === this.database.TYPE.ORDER_ASK ?  this.database.FUNC.PLUS_FUNDS: this.database.FUNC.UNLOCK_AND_SUB_FUNDS
+        order.type === this.database.TYPE.ORDER_ASK
+          ? this.database.FUNC.PLUS_FUNDS
+          : this.database.FUNC.UNLOCK_AND_SUB_FUNDS
       );
 
       // order 完成，解鎖剩餘沒用完的
-      if (orderState === this.database.ORDER_STATE.DONE && SafeMath.gt(newOrderLocked, '0')) {
+      if (
+        orderState === this.database.ORDER_STATE.DONE &&
+        SafeMath.gt(newOrderLocked, "0")
+      ) {
         if (order.type === this.database.TYPE.ORDER_ASK) {
           // ++ TODO reference step6 trade.id
-          await this._updateAccount(accountAsk, t, changeLocked, changeBalance, '0', this.database.MODIFIABLE_TYPE.TRADE, tradeId, created_at, this.database.FUNC.UNLOCK_FUNDS);
+          await this._updateAccount(
+            accountAsk,
+            t,
+            changeLocked,
+            changeBalance,
+            "0",
+            this.database.MODIFIABLE_TYPE.TRADE,
+            tradeId,
+            created_at,
+            this.database.FUNC.UNLOCK_FUNDS
+          );
         } else if (order.type === this.database.TYPE.ORDER_BID) {
           // ++ TODO reference step6 trade.id
-          await this._updateAccount(accountBid, t, changeLocked, changeBalance, '0', this.database.MODIFIABLE_TYPE.TRADE, tradeId, created_at, this.database.FUNC.UNLOCK_FUNDS);
+          await this._updateAccount(
+            accountBid,
+            t,
+            changeLocked,
+            changeBalance,
+            "0",
+            this.database.MODIFIABLE_TYPE.TRADE,
+            tradeId,
+            created_at,
+            this.database.FUNC.UNLOCK_FUNDS
+          );
         }
       }
 
@@ -778,14 +921,14 @@ class ExchangeHub extends Bot {
 
   async _getPlaceOrderData(body) {
     const market = this._findMarket(body.instId);
-    this.logger.debug('!!!_getPlaceOrderData market', market);
+    this.logger.debug("!!!_getPlaceOrderData market", market);
     if (!market) {
       throw new Error(`this.tidebitMarkets.instId ${body.instId} not found.`);
     }
     const { id: bid } = await this.database.getCurrencyByKey(market.quote_unit);
     const { id: ask } = await this.database.getCurrencyByKey(market.base_unit);
-    this.logger.debug('!!!_getPlaceOrderData bid', bid);
-    this.logger.debug('!!!_getPlaceOrderData ask', ask);
+    this.logger.debug("!!!_getPlaceOrderData bid", bid);
+    this.logger.debug("!!!_getPlaceOrderData ask", ask);
     if (!bid) {
       throw new Error(`bid not found`);
     }
@@ -793,25 +936,39 @@ class ExchangeHub extends Bot {
       throw new Error(`ask not found`);
     }
     const currency = market.code;
-    const locked = body.side === 'buy' ? SafeMath.mult(body.px, body.sz) : body.sz;
-    const balance = SafeMath.mult(locked, '-1');
+    const locked =
+      body.side === "buy" ? SafeMath.mult(body.px, body.sz) : body.sz;
+    const balance = SafeMath.mult(locked, "-1");
 
     const orderData = {
-      bid, 
+      bid,
       ask,
       currency,
       price: body.px || null,
       volume: body.sz,
-      type: body.side === 'buy' ? this.database.TYPE.ORDER_BID : this.database.TYPE.ORDER_ASK,
+      type:
+        body.side === "buy"
+          ? this.database.TYPE.ORDER_BID
+          : this.database.TYPE.ORDER_ASK,
       ordType: body.ordType,
       locked,
       balance,
-      currencyId: body.side === 'buy' ? bid : ask,
+      currencyId: body.side === "buy" ? bid : ask,
     };
     return orderData;
   }
 
-  async _updateAccount(account, dbTransaction, balance, locked, fee, modifiable_type, modifiable_id, created_at, fun) {
+  async _updateAccount(
+    account,
+    dbTransaction,
+    balance,
+    locked,
+    fee,
+    modifiable_type,
+    modifiable_id,
+    created_at,
+    fun
+  ) {
     /* !!! HIGH RISK (start) !!! */
     const updated_at = created_at;
     const oriAccBal = account.balance;
@@ -847,15 +1004,17 @@ class ExchangeHub extends Bot {
   }
 
   async _calculateFee(orderId, trend, totalFee, dbTransaction) {
-    const vouchers = await this.database.getVouchersByOrderId(orderId, { dbTransaction });
-    let totalVfee = '0';
+    const vouchers = await this.database.getVouchersByOrderId(orderId, {
+      dbTransaction,
+    });
+    let totalVfee = "0";
     for (const voucher of vouchers) {
       if (voucher.trend === trend) {
         switch (trend) {
-          case 'ask':
+          case "ask":
             totalVfee = SafeMath.plus(totalVfee, voucher.ask_fee);
             break;
-          case 'bid':
+          case "bid":
             totalVfee = SafeMath.plus(totalVfee, voucher.bid_fee);
             break;
           default:
@@ -866,7 +1025,9 @@ class ExchangeHub extends Bot {
   }
 
   _isIncludeTideBitMarket(instId) {
-    return Utils.marketFilterInclude(this.tidebitMarkets, [{ instId }]).length > 0
+    return (
+      Utils.marketFilterInclude(this.tidebitMarkets, [{ instId }]).length > 0
+    );
   }
 
   _findSource(instId) {
