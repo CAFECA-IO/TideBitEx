@@ -425,8 +425,7 @@ class ExchangeHub extends Bot {
             body,
           });
           header.host = URL.parse(url, true).host;
-          header["content-type"] =
-            "multipart/form-data; boundary=" + formbody.getBoundary();
+          header["content-type"] = "multipart/form-data";
           header["x-csrf-token"] = body["X-CSRF-Token"];
           const tbOrdersRes = await axios.post(url, formbody, {
             headers: header,
