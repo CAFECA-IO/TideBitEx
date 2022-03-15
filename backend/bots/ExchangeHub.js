@@ -422,13 +422,18 @@ class ExchangeHub extends Bot {
           this.logger.debug("postPlaceOrder", url);
           header.host = URL.parse(url, true).host;
           header["content-type"] = "application/x-www-form-urlencoded";
-          const tbOrdersRes = await axios.post(
-            url,
-            TideBitLegacyAdapter.peatioOrderBody({ header, body }),
-            {
-              headers: { ...header, "x-csrf-token": body["X-CSRF-Token"] },
-            }
-          );
+          const formbody = TideBitLegacyAdapter.peatioOrderBody({
+            header,
+            body,
+          });
+          const tbOrdersRes = await axios.post(url, formbody, {
+            headers: {
+              ...header,
+              "x-csrf-token": body["X-CSRF-Token"],
+              "Content-Type":
+                "multipart/form-data; boundary=" + formbody.getBoundary(),
+            },
+          });
 
           this.logger.log(tbOrdersRes);
           // TODO: ResponseFormat

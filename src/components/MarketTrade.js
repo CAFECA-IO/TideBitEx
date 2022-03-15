@@ -145,7 +145,7 @@ const TradeForm = (props) => {
               : props.selectedTicker?.baseCcyAvailable
           ) ||
           SafeMath.lte(props.sz, "0") ||
-          SafeMath.lte(props.sz, props.selectedTicker?.minSz)
+          SafeMath.lt(props.sz, props.selectedTicker?.minSz)
         }
       >
         {props.side === "buy" ? t("buy") : t("sell")}
