@@ -385,7 +385,7 @@ class ExchangeHub extends Bot {
           // TODO: ResponseFormat
           return tbOrdersRes
         } catch (error) {
-          this.logger.log(error.stack);
+          this.logger.log(error);
           // debug for postman so return error
           return error;
         }
