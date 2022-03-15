@@ -310,7 +310,6 @@ class Utils {
         return Promise.all(jobs)
         .then((d) => {
           const bar = new Array(20).fill('-').join('');
-          console.log(`${bar}\r\n${d.join('\r\n')}\r\n${bar}`);
         });
       });
     });
@@ -439,7 +438,6 @@ class Utils {
 
   static initialDB({ homeFolder, database }) {
     const dbPath = path.resolve(homeFolder, 'dataset');
-    console.log('dbPath', dbPath)
     const dbo = new DBOperator();
     return dbo.init({ dir: dbPath, database})
     .then(() => dbo);

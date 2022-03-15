@@ -36,7 +36,6 @@ export const getToken = (XSRF) => {
           const csrf = response.match(
             /(?<=<meta name="csrf-token" content=").*(?=" \/>)/g
           );
-          console.info("getToken token: ", csrf);
           if (csrf.length > 0) {
             resolve(csrf[0]);
           } else {

@@ -96,7 +96,7 @@ class ExchangeHub extends Bot {
       url: this.config.redis.domain,
     });
 
-    client.on("error", (err) => console.log("Redis Client Error", err));
+    client.on("error", (err) => this.logger.error("Redis Client Error", err));
 
     try {
       await client.connect(); // 會因為連線不到卡住
@@ -105,8 +105,6 @@ class ExchangeHub extends Bot {
         peatioSession
       );
       await client.quit();
-      console.log("getMemberIdFromRedis peatioSession", peatioSession);
-      console.log("getMemberIdFromRedis value", value);
       // ++ TODO: 下面補error handle
       const split1 = value
         .toString("latin1")
@@ -116,10 +114,9 @@ class ExchangeHub extends Bot {
         .reverse()
         .toString("hex");
       const memberId = parseInt(memberIdString, 16);
-      console.log("memberId", memberIdString, memberId);
       return memberId;
     } catch (error) {
-      console.log(error);
+      this.logger.error(error);
       await client.quit();
       return -1;
     }

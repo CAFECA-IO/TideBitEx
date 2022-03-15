@@ -87,16 +87,14 @@ class Middleman {
       this.instruments = instruments;
       return instruments;
     } catch (error) {
-      console.log(`getInstruments error`, error);
-      this.instruments = [];
-      // throw error;
+      // this.instruments = [];
+      throw error;
     }
   }
 
   async getTickers(instType, from, limit) {
     try {
       const rawTickers = await this.communicator.tickers(instType, from, limit);
-      console.log(`getTickers rawTickers`, rawTickers);
       const tickers = rawTickers.map((ticker) => ({
         ...ticker,
         baseCcy: ticker.instId.split("-")[0],
@@ -236,7 +234,7 @@ class Middleman {
       const rawBooks = await this.communicator.books(instId, sz);
       this.rawBooks = rawBooks[0];
       this.books = this.handleBooks();
-      console.log(`getBooks this.books`, this.books);
+      // console.log(`getBooks this.books`, this.books);
       // console.log(`getBooks this.rawBooks`, this.rawBooks);
       // console.log(`getBooks this.books`, this.books);
       return this.books;
@@ -343,10 +341,8 @@ class Middleman {
         candles.push(candle.slice(0, 5));
         volumes.push([candle[0], candle[5]]);
       });
-      console.log(`getCandles`, { candles, volumes });
       return { candles, volumes };
     } catch (error) {
-      console.log(`getCandles error`, error);
       throw error;
     }
   }
@@ -374,10 +370,8 @@ class Middleman {
       );
       this.balances = result[0].details;
       this.isLogin = true;
-      console.log(`getBalances this.balances`, this.balances);
       return this.balances;
     } catch (error) {
-      console.log(`getBalances error`, error);
       this.isLogin = false;
       this.balances = [];
       return this.balances;
@@ -389,13 +383,11 @@ class Middleman {
   }
   async cancelOrder(order) {
     if (this.isLogin) {
-      console.log(`cancelOrder order`, order);
       const body = {
         ordId: order.ordId,
         clOrdId: order.clOrdId,
         instId: order.instId,
       };
-      console.log(`cancelOrder body`, body);
       return await this.communicator.cancel(body);
     }
   }

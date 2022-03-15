@@ -58,7 +58,6 @@ const StoreProvider = (props) => {
         setInit(true);
         // return result;
       } catch (error) {
-        console.log(`getBooks`, error);
         enqueueSnackbar(
           `${error?.message || "Some went wrong"}. Failed to get market book`,
           {
@@ -77,7 +76,6 @@ const StoreProvider = (props) => {
         setTrades(result);
         // return result;
       } catch (error) {
-        console.log(`getTrades`, error);
         enqueueSnackbar(
           `${error?.message || "Some went wrong"}. Failed to get market trade`,
           {
@@ -102,7 +100,6 @@ const StoreProvider = (props) => {
         setCandles(result);
         // return result;
       } catch (error) {
-        console.log(`getCandles`, error);
         enqueueSnackbar(
           `${error?.message || "Some went wrong"}. Failed to get market price`,
           {
@@ -134,7 +131,6 @@ const StoreProvider = (props) => {
 
   const selectTickerHandler = useCallback(
     async (ticker) => {
-      console.log(`SelectedTicker`, ticker);
       const _ticker = middleman.updateSelectedTicker(ticker);
       setSelectedTicker(_ticker);
       document.title = `${_ticker.last} ${_ticker.pair}`;
@@ -145,7 +141,6 @@ const StoreProvider = (props) => {
         await getBooks(ticker.instId);
         await getTrades(ticker.instId);
         await getCandles(ticker.instId, selectedBar);
-        console.log(`wsClient switchTradingPair`, _ticker);
         wsClient.send(
           JSON.stringify({
             op: "switchTradingPair",
@@ -176,7 +171,6 @@ const StoreProvider = (props) => {
           const id = location.pathname.includes("/markets/")
             ? location.pathname.replace("/markets/", "")
             : null;
-          console.log(`id`, id);
           const ticker = middleman.findTicker(id);
           selectTickerHandler(ticker ?? result[0]);
         }
@@ -206,7 +200,6 @@ const StoreProvider = (props) => {
         setPendingOrders(result);
         return result;
       } catch (error) {
-        console.log(`getPendingOrders error`, error);
         enqueueSnackbar(
           `${error?.message || "Some went wrong"}. Failed to get pending order`,
           {
@@ -226,7 +219,6 @@ const StoreProvider = (props) => {
         setCloseOrders(result);
         return result;
       } catch (error) {
-        console.log(`getCloseOrders error`, error);
         enqueueSnackbar(
           `${error?.message || "Some went wrong"}. Failed to get close order`,
           {
@@ -241,9 +233,6 @@ const StoreProvider = (props) => {
   const getBalances = useCallback(
     async (ccy) => {
       await middleman.getBalances(ccy);
-      console.log(`isLogin`, middleman.isLogin);
-      console.log(`balances`, middleman.balances);
-      setIsLogin(middleman.isLogin);
       setBalances(middleman.balances);
     },
     [middleman]
@@ -255,14 +244,12 @@ const StoreProvider = (props) => {
         ...order,
         "X-CSRF-Token": token,
       };
-      console.log(`postOrder _order`, _order);
       try {
         const result = await middleman.postOrder(_order);
         await getCloseOrders();
         await getPendingOrders();
         await getBalances();
         // return result;
-        console.log(`postOrder result`, result);
         enqueueSnackbar(
           `${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
             order.instId.split("-")[0]
@@ -273,7 +260,6 @@ const StoreProvider = (props) => {
           { variant: "success" }
         );
       } catch (error) {
-        console.log(`postOrder error`, error);
         enqueueSnackbar(
           `${error?.message || "Some went wrong"}. Failed to post order:
            ${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
@@ -306,7 +292,6 @@ const StoreProvider = (props) => {
         "X-CSRF-Token": token,
       };
       try {
-        console.log(`cancelOrder _order`, _order);
         const result = await middleman.cancelOrder(_order);
         await getPendingOrders();
         await getBalances();
@@ -320,7 +305,6 @@ const StoreProvider = (props) => {
         );
         return result;
       } catch (error) {
-        console.log(`cancelOrder error`, error);
         enqueueSnackbar(
           `${error?.message || "Some went wrong"}. Failed to cancel order(${
             order.ordId
@@ -346,17 +330,14 @@ const StoreProvider = (props) => {
 
   const sync = useCallback(
     async (isInit = false) => {
-      console.log("useCallback 只用一遍");
       await middleman.getInstruments();
       await getBalances();
       await getTickers(true);
       if (isInit) {
         wsClient.addEventListener("open", function () {
-          console.log("連結建立成功。");
           setWsConnected(true);
         });
         wsClient.addEventListener("close", function () {
-          console.log("連結關閉。");
           setWsConnected(false);
         });
         wsClient.addEventListener("message", (msg) => {
@@ -408,8 +389,6 @@ const StoreProvider = (props) => {
               }
               break;
             default:
-              console.log("default");
-              console.log(metaData.data);
           }
         });
         await getPendingOrders();
@@ -429,14 +408,12 @@ const StoreProvider = (props) => {
     try {
       if (XSRF) {
         const token = await getToken(XSRF);
-        console.log("getToken token", token);
         if (token) {
           setToken(token);
           setIsLogin(true);
         }
       }
     } catch (error) {
-      console.log("getToken error", error);
       enqueueSnackbar(`${error?.message || "Some went wrong with getToken"}`, {
         variant: "error",
       });
