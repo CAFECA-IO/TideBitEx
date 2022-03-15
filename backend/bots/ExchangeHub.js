@@ -427,17 +427,17 @@ class ExchangeHub extends Bot {
             header,
             body,
           });
+          console.info(` ++++++++++ header ++++++++++`);
+          console.log(header);
+          console.info(` ++++++++++ header ++++++++++`);
+
+          console.info(` ========== formbody ==========`);
+          console.log(formbody);
+          console.info(` ========== formbody ==========`);
+
           const tbOrdersRes = await axios.post(url, formbody, {
             headers: header,
           });
-
-          console.info(` ++++++++++ header ++++++++++`)
-          console.log(header)
-          console.info(` ++++++++++ header ++++++++++`)
-
-          console.info(` ========== body ==========`)
-          console.log(body)
-          console.info(` ========== body ==========`)
 
           this.logger.log(tbOrdersRes);
           // TODO: ResponseFormat
