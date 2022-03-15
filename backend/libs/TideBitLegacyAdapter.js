@@ -1,4 +1,5 @@
 const SafeMath = require('./SafeMath');
+const FormData = require('form-data');
 
 class TideBitLegacyAdapter {
   constructor({ config, database, logger }) {
