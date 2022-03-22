@@ -330,10 +330,83 @@ class ExchangeHub extends Bot {
   }
 
   async getCandlesticks({ params, query }) {
+    this.logger.debug(`params`, params);
+    this.logger.debug(`query`, query);
     switch (this._findSource(query.instId)) {
       case SupportedExchange.OKEX:
         return this.okexConnector.router("getCandlesticks", { params, query });
-      case SupportedExchange.TIDEBIT: // ++ TODO
+      case SupportedExchange.TIDEBIT:
+        try {
+          const trades = await this._tbGetTradeHistory({
+            instId: query.instId,
+            increase: true,
+          });
+          // ++ TODO
+          // let time = new Date().getTime();
+          let interval;
+          switch (query.bar) {
+            case "1m":
+              interval = 1 * 60 * 1000;
+              break;
+            case "30m":
+              interval = 30 * 60 * 1000;
+              break;
+            case "1H":
+              interval = 60 * 60 * 1000;
+              break;
+            case "1W":
+              interval = 7 * 24 * 60 * 60 * 1000;
+              break;
+            case "M":
+              interval = 30 * 24 * 60 * 60 * 1000;
+              break;
+            case "1D":
+            default:
+              interval = 24 * 60 * 60 * 1000;
+          }
+          let candles;
+          const now = Math.floor(new Date().getTime() / interval);
+          const defaultObj = {};
+          defaultObj[now] = [now * interval, 0, 0, 0, 0, 0, 0];
+          for (let i = 0; i < 100; i++) {
+            defaultObj[now - i] = [(now - i) * interval, 0, 0, 0, 0, 0, 0];
+          }
+          candles = trades.reduce((prev, curr) => {
+            const index = Math.floor(curr.ts / interval);
+            let point = prev[index];
+            if (point) {
+              point[2] = Math.max(point[2], +curr.px);
+              point[3] = Math.min(point[3], +curr.px);
+              point[4] = +curr.px;
+              point[5] += +curr.sz;
+              point[6] += +curr.sz * +curr.px;
+            } else {
+              point = [
+                index * interval,
+                +curr.px,
+                +curr.px,
+                +curr.px,
+                +curr.px,
+                +curr.sz,
+                +curr.sz * +curr.px,
+              ];
+            }
+            prev[index] = point;
+            return prev;
+          }, defaultObj);
+          console.log(`candles`, candles);
+          return new ResponseFormat({
+            message: "getCandlesticks",
+            payload: Object.values(candles),
+          });
+        } catch (error) {
+          this.logger.error(error);
+          const message = error.message;
+          return new ResponseFormat({
+            message,
+            code: Codes.API_UNKNOWN_ERROR,
+          });
+        }
       default:
         return new ResponseFormat({
           message: "getCandlesticks",
@@ -346,7 +419,23 @@ class ExchangeHub extends Bot {
     switch (this._findSource(query.instId)) {
       case SupportedExchange.OKEX:
         return this.okexConnector.router("getTrades", { params, query });
-      case SupportedExchange.TIDEBIT: // ++ TODO
+      case SupportedExchange.TIDEBIT:
+        try {
+          const trades = await this._tbGetTradeHistory({
+            instId: query.instId,
+          });
+          return new ResponseFormat({
+            message: "getTrades",
+            payload: trades,
+          });
+        } catch (error) {
+          this.logger.error(error);
+          const message = error.message;
+          return new ResponseFormat({
+            message,
+            code: Codes.API_UNKNOWN_ERROR,
+          });
+        }
       default:
         return new ResponseFormat({
           message: "getTrades",
@@ -505,6 +594,41 @@ class ExchangeHub extends Bot {
         });
     }
   }
+  async _tbGetTradeHistory({ instId, increase }) {
+    const market = this._findMarket(instId);
+    if (!market) {
+      throw new Error(`this.tidebitMarkets.instId ${instId} not found.`);
+    }
+    const { id: quoteCcy } = await this.database.getCurrencyByKey(
+      market.quote_unit
+    );
+    const { id: baseCcy } = await this.database.getCurrencyByKey(
+      market.base_unit
+    );
+    if (!quoteCcy) {
+      throw new Error(`quoteCcy not found`);
+    }
+    if (!baseCcy) {
+      throw new Error(`baseCcy not found`);
+    }
+    let trades;
+    trades = await this.database.getTrades(quoteCcy, baseCcy);
+    this.logger.debug(`_tbGetTradeHistory trades:`, trades);
+    const tradeHistory = trades
+      .map((trade) => ({
+        instId: instId,
+        side: "",
+        sz: trade.volume,
+        px: trade.price,
+        tradeId: trade.id,
+        trend: trade.trend,
+        ts: new Date(trade.created_at).getTime(),
+      }))
+      .sort((a, b) => (increase ? a.ts - b.ts : b.ts - a.ts));
+    this.logger.debug(`_tbGetTradeHistory tradeHistory:`, tradeHistory);
+    return tradeHistory;
+  }
+
   async _tbGetOrderList({ token, instId, state }) {
     const market = this._findMarket(instId);
     if (!market) {

@@ -8,7 +8,6 @@ import { useViewport } from "../store/ViewportProvider";
 
 const TradeForm = (props) => {
   const { t } = useTranslation();
-
   return (
     <form
       onSubmit={(e) => {
@@ -34,7 +33,7 @@ const TradeForm = (props) => {
           {props.side === "buy"
             ? props.selectedTicker?.quoteCcy || "--"
             : props.selectedTicker?.baseCcy || "--"}
-          = 0 USD
+          {/* = 0 USD */}
         </span>
       </p>
       <div className="market-trade__input-group input-group">
@@ -142,8 +141,8 @@ const TradeForm = (props) => {
           SafeMath.gt(
             props.sz,
             props.side === "buy"
-              ? SafeMath.div(props.selectedTicker?.quoteCcyAvailable, props.px)
-              : props.selectedTicker?.baseCcyAvailable
+              ? SafeMath.div(props.quoteCcyAvailable, props.px)
+              : props.baseCcyAvailable
           ) ||
           SafeMath.lte(props.sz, "0") ||
           SafeMath.lt(props.sz, props.selectedTicker?.minSz)
@@ -161,8 +160,8 @@ const TradePannel = (props) => {
   const breakpoint = 414;
   const storeCtx = useContext(StoreContext);
   const [selectedTicker, setSelectedTicker] = useState(null);
-  const [quoteCcyAvailable, setQuoteCcyAvailable] = useState(null);
-  const [baseCcyAvailable, setBaseCcyAvailable] = useState(null);
+  const [quoteCcyAvailable, setQuoteCcyAvailable] = useState("0");
+  const [baseCcyAvailable, setBaseCcyAvailable] = useState("0");
   const [buyPx, setBuyPx] = useState(null);
   const [sellPx, setSellPx] = useState(null);
   const [buySz, setBuySz] = useState(null);
@@ -177,16 +176,16 @@ const TradePannel = (props) => {
   const buySzHandler = (event) => {
     let value = SafeMath.lt(event.target.value, "0")
       ? "0"
-      : SafeMath.gt(storeCtx.selectedTicker?.quoteCcyAvailable, "0") &&
+      : SafeMath.gt(quoteCcyAvailable, "0") &&
         SafeMath.gte(
           SafeMath.mult(
             event.target.value,
             props.orderType === "market" ? buyPx : storeCtx.buyPx
           ),
-          storeCtx.selectedTicker?.quoteCcyAvailable
+          quoteCcyAvailable
         )
       ? SafeMath.div(
-          storeCtx.selectedTicker?.quoteCcyAvailable,
+          quoteCcyAvailable,
           props.orderType === "market" ? buyPx : storeCtx.buyPx
         )
       : event.target.value;
@@ -200,7 +199,7 @@ const TradePannel = (props) => {
             value,
             props.orderType === "market" ? buyPx : storeCtx.buyPx
           ),
-          storeCtx.selectedTicker?.quoteCcyAvailable
+          quoteCcyAvailable
         )
       )
         setBuyErrorMessage(
@@ -213,18 +212,15 @@ const TradePannel = (props) => {
   const sellSzHandler = (event) => {
     let value = SafeMath.lt(event.target.value, "0")
       ? "0"
-      : SafeMath.gt(storeCtx.selectedTicker?.baseCcyAvailable, "0") &&
-        SafeMath.gte(
-          event.target.value,
-          storeCtx.selectedTicker?.baseCcyAvailable
-        )
-      ? storeCtx.selectedTicker?.baseCcyAvailable
+      : SafeMath.gt(baseCcyAvailable, "0") &&
+        SafeMath.gte(event.target.value, baseCcyAvailable)
+      ? baseCcyAvailable
       : event.target.value;
     setSellSz(value);
     if (SafeMath.gt(value, "0")) {
       if (!!selectedTicker?.minSz && SafeMath.lt(value, selectedTicker?.minSz))
         setSellErrorMessage(`Minimum order size is ${selectedTicker?.minSz}`);
-      if (SafeMath.gte(value, storeCtx.selectedTicker?.baseCcyAvailable))
+      if (SafeMath.gte(value, baseCcyAvailable))
         setSellErrorMessage(
           `Available ${selectedTicker?.baseCcy} is not enough`
         );
@@ -336,6 +332,20 @@ const TradePannel = (props) => {
     props.selectedTicker?.baseCcy,
   ]);
 
+  useEffect(() => {
+    if (storeCtx.balances.length > 0 && storeCtx.selectedTicker?.quoteCcy) {
+      let quoteCcy = storeCtx.balances.find((balance) => {
+        return balance.ccy === storeCtx.selectedTicker?.quoteCcy;
+      });
+
+      if (quoteCcy) setQuoteCcyAvailable(quoteCcy?.availBal);
+      let baseCcy = storeCtx.balances.find(
+        (balance) => balance.ccy === storeCtx.selectedTicker?.baseCcy
+      );
+      if (baseCcy) setBaseCcyAvailable(baseCcy?.availBal);
+    }
+  }, [storeCtx.selectedTicker, storeCtx.balances]);
+
   return (
     <div className="market-trade__panel">
       {width <= breakpoint ? (
@@ -345,16 +355,8 @@ const TradePannel = (props) => {
               px={props.orderType === "market" ? buyPx : storeCtx.buyPx}
               sz={buySz}
               selectedTicker={selectedTicker}
-              quoteCcyAvailable={
-                storeCtx.balances.filter(
-                  (balance) => balance.ccy === selectedTicker.quoteCcy
-                ).availBal
-              }
-              baseCcyAvailable={
-                storeCtx.balances.filter(
-                  (balance) => balance.ccy === selectedTicker.baseCcy
-                ).availBal
-              }
+              quoteCcyAvailable={quoteCcyAvailable}
+              baseCcyAvailable={baseCcyAvailable}
               selectedPct={selectedBuyPct}
               onPxInput={!!props.readyOnly ? () => {} : storeCtx.buyPxHandler}
               onSzInput={buySzHandler}
@@ -369,6 +371,8 @@ const TradePannel = (props) => {
             <TradeForm
               px={props.orderType === "market" ? sellPx : storeCtx.sellPx}
               sz={sellSz}
+              quoteCcyAvailable={quoteCcyAvailable}
+              baseCcyAvailable={baseCcyAvailable}
               selectedTicker={selectedTicker}
               selectedPct={selectedSellPct}
               onPxInput={!!props.readyOnly ? () => {} : storeCtx.sellPxHandler}
@@ -386,6 +390,8 @@ const TradePannel = (props) => {
           <TradeForm
             px={props.orderType === "market" ? buyPx : storeCtx.buyPx}
             sz={buySz}
+            quoteCcyAvailable={quoteCcyAvailable}
+            baseCcyAvailable={baseCcyAvailable}
             selectedTicker={selectedTicker}
             selectedPct={selectedBuyPct}
             onPxInput={!!props.readyOnly ? () => {} : storeCtx.buyPxHandler}
@@ -399,6 +405,8 @@ const TradePannel = (props) => {
           <TradeForm
             px={props.orderType === "market" ? sellPx : storeCtx.sellPx}
             sz={sellSz}
+            quoteCcyAvailable={quoteCcyAvailable}
+            baseCcyAvailable={baseCcyAvailable}
             selectedTicker={selectedTicker}
             selectedPct={selectedSellPct}
             onPxInput={!!props.readyOnly ? () => {} : storeCtx.sellPxHandler}

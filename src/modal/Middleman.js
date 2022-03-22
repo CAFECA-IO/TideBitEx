@@ -266,7 +266,18 @@ class Middleman {
   async getTrades(instId, limit) {
     try {
       const trades = await this.communicator.trades(instId, limit);
-      this.trades = trades;
+      this.trades = trades.reduce(
+        (prev, curr, i) => [
+          ...prev,
+          i === 0
+            ? { ...curr, trend: 1 }
+            : {
+                ...curr,
+                trend: SafeMath.gte(curr.px, prev[prev.length - 1].px) ? 1 : 0,
+              },
+        ],
+        []
+      );
       return trades;
     } catch (error) {
       throw error;
@@ -368,11 +379,12 @@ class Middleman {
       const result = await this.communicator.balance(
         this.selectedTicker?.instId?.replace("-", ",")
       );
-      this.balances = result[0].details.filter(
-        (balance) =>
-          this.selectedTicker?.baseCcy === balance.ccy ||
-          this.selectedTicker?.quoteCcy === balance.ccy
-      );
+      this.balances = result[0].details
+      // .filter(
+      //   (balance) =>
+      //     this.selectedTicker?.baseCcy === balance.ccy ||
+      //     this.selectedTicker?.quoteCcy === balance.ccy
+      // );
       this.isLogin = true;
       return this.balances;
     } catch (error) {

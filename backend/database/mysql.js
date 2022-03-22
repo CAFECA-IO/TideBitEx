@@ -156,6 +156,22 @@ class mysql {
     }
   }
 
+  async getTrades(quoteCcy, baseCcy) {
+    const query =
+      "SELECT `trades`.* FROM `trades`, `orders` WHERE `orders`.`id` = `trades`.`ask_id` AND `trades`.`currency` = ? AND `orders`.`ask` = ?;";
+    try {
+      this.logger.log("getTrades", query, `[${quoteCcy}, ${baseCcy}]`);
+      const [trades] = await this.db.query({
+        query,
+        values: [quoteCcy, baseCcy],
+      });
+      return trades;
+    } catch (error) {
+      this.logger.log(error);
+      return [];
+    }
+  }
+
   async getOrder(orderId, { dbTransaction }) {
     const query = "SELECT * FROM `orders` WHERE `orders`.`id` = ?;";
     try {
