@@ -574,7 +574,7 @@ class ExchangeHub extends Bot {
     }
   }
   async postCancelOrder({ header, params, query, body, token }) {
-    console.log(`postCancelOrder body`, body);
+    this.logger.debug(`postCancelOrder body`, body);
     const source = this._findSource(body.instId);
     const memberId = await this.getMemberIdFromRedis(token);
     /* !!! HIGH RISK (start) !!! */
