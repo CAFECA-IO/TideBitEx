@@ -290,7 +290,7 @@ class ExchangeHub extends Bot {
                 updateAsk[3] += order.sz;
                 asks[index] = updateAsk;
               } else {
-                let newAsk = [order.px, 1, 0, order.sz];
+                let newAsk = [order.px, 1, 0, order.sz]; // [價格, 價格訂單張數, ?, volume]
                 asks.push(newAsk);
               }
             }
