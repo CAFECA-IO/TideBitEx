@@ -36,7 +36,8 @@
   "close_orders": "Close Orders",
   "balance": "Balance",
   "currency": "Currency",
-  "cashBal": "Available balance",
+  "totalBal": "Total balance",
+  "availBal": "Available balance",
   "frozenBal": "Frozen balance",
   "time": "Time",
   "price": "Price",
@@ -50,5 +51,6 @@
   "navigator_chart": "Chart",
   "navigator_market": "Market",
   "navigator_trade": "Trade",
-  "navigator_assets": "Assets"
+  "navigator_assets": "Assets",
+  "status": "Status"
 }

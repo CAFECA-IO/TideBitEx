@@ -59,7 +59,8 @@ const MobileExchange = (props) => {
           <div className="section__container">
             <ul className="d-flex justify-content-between market-order-item market-order__title">
               <li>{t("currency")}</li>
-              <li>{t("cashBal")}</li>
+              <li>{t("totalBal")}</li>
+              <li>{t("availBal")}</li>
               <li>{t("frozenBal")}</li>
             </ul>
             <ul className="order-list">

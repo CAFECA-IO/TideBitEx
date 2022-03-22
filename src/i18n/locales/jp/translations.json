@@ -36,7 +36,8 @@
   "close_orders": "注文履歴",
   "balance": "資産",
   "currency": "通貨",
-  "cashBal": "通貨残高",
+  "totalBal": "通貨金額",
+  "availBal": "通貨残高",
   "frozenBal": "通貨が占める金額",
   "time": "時間",
   "price": "価格",
@@ -50,5 +51,6 @@
   "navigator_chart": "チャート",
   "navigator_market": "市場",
   "navigator_trade": "トレード",
-  "navigator_assets": "資産"
+  "navigator_assets": "資産",
+  "status": "现状"
 }

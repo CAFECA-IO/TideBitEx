@@ -11,17 +11,40 @@ const OrderTile = (props) => {
     <ul className="d-flex justify-content-between market-order-item">
       {/* <li>{dateFormatter(parseInt(props.order.cTime)).text}</li>
       <li>{props.order.instId.replace("-", "/")}</li>
-      <li>{props.order.instType}</li>
-      <li>{props.order.side}</li> */}
+      <li>{props.order.instType}</li>*/}
+      <li className={`order-tile__label-box`}>
+        <div
+          className={`order-tile__label ${
+            props.order.side === "buy"
+              ? "order-tile__label--green"
+              : "order-tile__label--red"
+          }`}
+        >
+          {props.order.side === "buy" ? "Bid" : "Ask"}
+        </div>
+        {SafeMath.gt(props.order.sz, "0") && (
+          <div
+            className={`order-tile__label ${
+              props.order.filled
+                ? "order-tile__label--blue"
+                : "order-tile__label--grey"
+            }`}
+          >
+            {props.order.filled ? "Partial" : "Ask"}
+          </div>
+        )}
+      </li>
       <li>{props.order.px}</li>
       <li>{props.order.sz}</li>
       <li>{SafeMath.mult(props.order.px, props.order.sz)}</li>
       {/* <li>{props.order.fillSz}</li> */}
       {/* <li>{SafeMath.minus(props.order.sz, props.order.fillSz)}</li> */}
-      {props.type === "pending" && (
+      {props.type === "pending" ? (
         <li onClick={(_) => props.cancelOrder(props.order)}>
           <FaTrashAlt />
         </li>
+      ) : (
+        <li>{props.order.state}</li>
       )}
     </ul>
   );
@@ -33,9 +56,9 @@ export const BalanceTile = (props) => {
       {/* <li>{dateFormatter(parseInt(props.balance.uTime)).text}</li> */}
       <li>{props.balance.ccy || "--"}</li>
       {/* <li>{props.balance.eq || "--"}</li>
+      <li>{props.balance.cashBal || "--"}</li>*/}
       <li>{props.balance.cashBal || "--"}</li>
-      <li>{props.balance.availEq || "--"}</li> */}
-      <li>{props.balance?.cashBal || props.balance?.availBal || "--"}</li>{" "}
+      <li>{props.balance.availBal || "--"}</li>{" "}
       {/* -- TODO: check api return object */}
       <li>{props.balance.frozenBal || "--"}</li>
       {/* <li>{props.balance.interest || "--"}</li> */}
@@ -72,7 +95,7 @@ const HistoryOrder = (props) => {
               {/* <li>Time</li> */}
               {/* <li>All pairs</li>
               <li>All Types</li> */}
-              {/* <li>Buy/Sell</li> */}
+              <li>Buy/Sell</li>
               <li>{t("price")}</li>
               <li>{t("volume")}</li>
               <li>{t("amount")}</li>
@@ -101,13 +124,14 @@ const HistoryOrder = (props) => {
             <ul className="d-flex justify-content-between market-order-item market-order__title">
               {/* <li>Time</li> */}
               {/* <li>All pairs</li>
-              <li>All Types</li>
-              <li>Buy/Sell</li> */}
+              <li>All Types</li>*/}
+              <li>Buy/Sell</li>
               <li>{t("price")}</li>
               <li>{t("volume")}</li>
               <li>{t("amount")}</li>
               {/* <li>Executed</li>
               <li>Unexecuted</li> */}
+              <li>{t("status")}</li>
             </ul>
             {/* {!storeCtx.closeOrders.length && (
               <span className="no-data">
@@ -152,7 +176,8 @@ const HistoryOrder = (props) => {
               {/* <li>Currency Equity</li>
               <li>Cash balance</li>
               <li>Available Equity</li> */}
-              <li>{t("cashBal")}</li>
+              <li>{t("totalBal")}</li>
+              <li>{t("availBal")}</li>
               <li>{t("frozenBal")}</li>
               {/* <li>Interest</li> */}
             </ul>
@@ -165,11 +190,11 @@ const HistoryOrder = (props) => {
             <ul className="order-list">
               {!!storeCtx.balances?.length &&
                 storeCtx.balances
-                  .filter(
-                    (balance) =>
-                      storeCtx.selectedTicker?.baseCcy === balance.ccy ||
-                      storeCtx.selectedTicker?.quoteCcy === balance.ccy
-                  )
+                  // .filter(
+                  //   (balance) =>
+                  //     storeCtx.selectedTicker?.baseCcy === balance.ccy ||
+                  //     storeCtx.selectedTicker?.quoteCcy === balance.ccy
+                  // )
                   .map((balance) => <BalanceTile balance={balance} />)}
             </ul>
           </Tab>

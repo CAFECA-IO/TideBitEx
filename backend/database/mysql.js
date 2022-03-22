@@ -116,23 +116,43 @@ class mysql {
       return [];
     }
   }
-  async getOrderList(memberId, quoteCcy, baseCcy, state) {
-    const query =
-      "SELECT * FROM `orders` WHERE `orders`.`member_id` = ? AND `orders`.`currency` = ? AND `orders`.`ask` = ? AND `orders`.`state` = ?;";
-    try {
-      this.logger.log(
-        "getOrderList",
-        query,
-        `[${memberId}, ${quoteCcy}, ${baseCcy}, ${state}]`
-      );
-      const [orders] = await this.db.query({
-        query,
-        values: [memberId, quoteCcy, baseCcy, state],
-      });
-      return orders;
-    } catch (error) {
-      this.logger.log(error);
-      return [];
+  async getOrderList({ quoteCcy, baseCcy, state, memberId }) {
+    if (memberId) {
+      const query =
+        "SELECT * FROM `orders` WHERE `orders`.`member_id` = ? AND `orders`.`currency` = ? AND `orders`.`ask` = ? AND `orders`.`state` = ?;";
+      try {
+        this.logger.log(
+          "getOrderList",
+          query,
+          `[${memberId}, ${quoteCcy}, ${baseCcy}, ${state}]`
+        );
+        const [orders] = await this.db.query({
+          query,
+          values: [memberId, quoteCcy, baseCcy, state],
+        });
+        return orders;
+      } catch (error) {
+        this.logger.log(error);
+        return [];
+      }
+    } else {
+      const query =
+        "SELECT * FROM `orders` WHERE `orders`.`currency` = ? AND `orders`.`ask` = ? AND `orders`.`state` = ?;";
+      try {
+        this.logger.log(
+          "getOrderList",
+          query,
+          `[${quoteCcy}, ${baseCcy}, ${state}]`
+        );
+        const [orders] = await this.db.query({
+          query,
+          values: [quoteCcy, baseCcy, state],
+        });
+        return orders;
+      } catch (error) {
+        this.logger.log(error);
+        return [];
+      }
     }
   }
 

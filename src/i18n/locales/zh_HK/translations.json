@@ -36,8 +36,9 @@
   "close_orders": "歷史委託",
   "balance": "資產",
   "currency": "幣種",
-  "cashBal": "幣種餘額",
-  "frozenBal": "幣種佔用餘額",
+  "totalBal": "總餘額",
+  "availBal": "可用餘額",
+  "frozenBal": "鎖定餘額",
   "time": "時間",
   "price": "價格",
   "cancel": "撤銷",
@@ -50,5 +51,6 @@
   "navigator_chart": "圖表",
   "navigator_market": "市場",
   "navigator_trade": "交易",
-  "navigator_assets": "資產"
+  "navigator_assets": "資產",
+  "status": "狀態"
 }

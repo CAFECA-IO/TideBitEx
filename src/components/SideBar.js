@@ -29,7 +29,7 @@ const SideBar = (props) => {
         </a>
       </li>
       <li className="sidebar__item">
-        <a className="sidebar__link" href="/markets/btchkd">
+        <a className="sidebar__link" href="/markets/ethhkd">
           <BiLineChart size="1.8em" />
           <p>{t("trading")}</p>
         </a>

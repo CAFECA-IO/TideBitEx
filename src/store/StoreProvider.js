@@ -129,69 +129,6 @@ const StoreProvider = (props) => {
     [middleman]
   );
 
-  const selectTickerHandler = useCallback(
-    async (ticker) => {
-      const _ticker = middleman.updateSelectedTicker(ticker);
-      setSelectedTicker(_ticker);
-      document.title = `${_ticker.last} ${_ticker.pair}`;
-      if (ticker.instId !== selectedTicker?.instId || !selectedTicker) {
-        history.push({
-          pathname: `/markets/${ticker.instId.replace("-", "").toLowerCase()}`,
-        });
-        await getBooks(ticker.instId);
-        await getTrades(ticker.instId);
-        await getCandles(ticker.instId, selectedBar);
-        wsClient.send(
-          JSON.stringify({
-            op: "switchTradingPair",
-            args: {
-              instId: ticker.instId,
-            },
-          })
-        );
-      }
-    },
-    [
-      middleman,
-      selectedTicker,
-      history,
-      getBooks,
-      getTrades,
-      getCandles,
-      selectedBar,
-    ]
-  );
-
-  const getTickers = useCallback(
-    async (force = false, instType = "SPOT", from = 0, limit = 100) => {
-      try {
-        const result = await middleman.getTickers(instType, from, limit);
-        setTickers(result);
-        if (selectedTicker === null || force) {
-          const id = location.pathname.includes("/markets/")
-            ? location.pathname.replace("/markets/", "")
-            : null;
-          const ticker = middleman.findTicker(id);
-          selectTickerHandler(ticker ?? result[0]);
-        }
-      } catch (error) {
-        enqueueSnackbar(
-          `${error?.message || "Some went wrong"}. Failed to get market pairs`,
-          {
-            variant: "error",
-          }
-        );
-      }
-    },
-    [
-      enqueueSnackbar,
-      location.pathname,
-      middleman,
-      selectTickerHandler,
-      selectedTicker,
-    ]
-  );
-
   const getPendingOrders = useCallback(
     async (options) => {
       try {
@@ -228,6 +165,73 @@ const StoreProvider = (props) => {
       }
     },
     [enqueueSnackbar, middleman]
+  );
+
+  const selectTickerHandler = useCallback(
+    async (ticker) => {
+      const _ticker = middleman.updateSelectedTicker(ticker);
+      setSelectedTicker(_ticker);
+      document.title = `${_ticker.last} ${_ticker.pair}`;
+      if (ticker.instId !== selectedTicker?.instId || !selectedTicker) {
+        history.push({
+          pathname: `/markets/${ticker.instId.replace("-", "").toLowerCase()}`,
+        });
+        await getBooks(ticker.instId);
+        await getTrades(ticker.instId);
+        await getCandles(ticker.instId, selectedBar);
+        await getPendingOrders();
+        await getCloseOrders();
+        wsClient.send(
+          JSON.stringify({
+            op: "switchTradingPair",
+            args: {
+              instId: ticker.instId,
+            },
+          })
+        );
+      }
+    },
+    [
+      middleman,
+      selectedTicker,
+      history,
+      getBooks,
+      getTrades,
+      getCandles,
+      getPendingOrders,
+      getCloseOrders,
+      selectedBar,
+    ]
+  );
+
+  const getTickers = useCallback(
+    async (force = false, instType = "SPOT", from = 0, limit = 100) => {
+      try {
+        const result = await middleman.getTickers(instType, from, limit);
+        setTickers(result);
+        if (selectedTicker === null || force) {
+          const id = location.pathname.includes("/markets/")
+            ? location.pathname.replace("/markets/", "")
+            : null;
+          const ticker = middleman.findTicker(id);
+          selectTickerHandler(ticker ?? result[0]);
+        }
+      } catch (error) {
+        enqueueSnackbar(
+          `${error?.message || "Some went wrong"}. Failed to get market pairs`,
+          {
+            variant: "error",
+          }
+        );
+      }
+    },
+    [
+      enqueueSnackbar,
+      location.pathname,
+      middleman,
+      selectTickerHandler,
+      selectedTicker,
+    ]
   );
 
   const getBalances = useCallback(
@@ -391,8 +395,6 @@ const StoreProvider = (props) => {
             default:
           }
         });
-        await getPendingOrders();
-        await getCloseOrders();
       }
     },
     [getBalances, getCloseOrders, getPendingOrders, getTickers, middleman]
