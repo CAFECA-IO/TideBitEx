@@ -8,7 +8,6 @@ import { useViewport } from "../store/ViewportProvider";
 
 const TradeForm = (props) => {
   const { t } = useTranslation();
-  console.log(`TradeForm props`, props);
   return (
     <form
       onSubmit={(e) => {
@@ -371,6 +370,8 @@ const TradePannel = (props) => {
             <TradeForm
               px={props.orderType === "market" ? sellPx : storeCtx.sellPx}
               sz={sellSz}
+              quoteCcyAvailable={quoteCcyAvailable}
+              baseCcyAvailable={baseCcyAvailable}
               selectedTicker={selectedTicker}
               selectedPct={selectedSellPct}
               onPxInput={!!props.readyOnly ? () => {} : storeCtx.sellPxHandler}
@@ -388,6 +389,8 @@ const TradePannel = (props) => {
           <TradeForm
             px={props.orderType === "market" ? buyPx : storeCtx.buyPx}
             sz={buySz}
+            quoteCcyAvailable={quoteCcyAvailable}
+            baseCcyAvailable={baseCcyAvailable}
             selectedTicker={selectedTicker}
             selectedPct={selectedBuyPct}
             onPxInput={!!props.readyOnly ? () => {} : storeCtx.buyPxHandler}
@@ -401,6 +404,8 @@ const TradePannel = (props) => {
           <TradeForm
             px={props.orderType === "market" ? sellPx : storeCtx.sellPx}
             sz={sellSz}
+            quoteCcyAvailable={quoteCcyAvailable}
+            baseCcyAvailable={baseCcyAvailable}
             selectedTicker={selectedTicker}
             selectedPct={selectedSellPct}
             onPxInput={!!props.readyOnly ? () => {} : storeCtx.sellPxHandler}

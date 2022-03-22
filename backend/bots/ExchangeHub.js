@@ -523,18 +523,30 @@ class ExchangeHub extends Bot {
   }
   async _tbGetTradeHistory({ instId }) {
     const market = this._findMarket(instId);
+    const t = await this.database.transaction();
     if (!market) {
       throw new Error(`this.tidebitMarkets.instId ${instId} not found.`);
     }
     const { id: quoteCcy } = await this.database.getCurrencyByKey(
       market.quote_unit
     );
-
+    const { id: baseCcy } = await this.database.getCurrencyByKey(
+      market.base_unit
+    );
     if (!quoteCcy) {
       throw new Error(`quoteCcy not found`);
     }
+    if (!baseCcy) {
+      throw new Error(`baseCcy not found`);
+    }
     let trades;
     trades = await this.database.getTrades(quoteCcy);
+    trades = trades.filter(async (trade) => {
+      const order = await this.database.getOrder(trade.ask_id, {
+        dbTransaction: t,
+      });
+      return order.ask === baseCcy;
+    });
     this.logger.debug(`_tbGetTradeHistory trades:`, trades);
     const tradeHistory = trades.map((trade) => ({
       instId: instId,
