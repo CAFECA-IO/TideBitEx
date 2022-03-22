@@ -509,7 +509,7 @@ class ExchangeHub extends Bot {
             bid,
             ask
           );
-          this.logger.log(`orderList:${orderList}`);
+          this.logger.log(`orderList:`,orderList);
           const orders = orderList.map((order, i) => ({
             cTime: new Date(order.created_at).getTime(),
             clOrdId: order.id,
