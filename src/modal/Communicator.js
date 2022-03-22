@@ -204,6 +204,7 @@ class Communicator {
     // Trade
     async cancel(order) {
       try {
+        console.log(`cancel order`,order)
         const res = await this._post(`/trade/cancel-order`, order);
         if (res.success) {
           return res.data;

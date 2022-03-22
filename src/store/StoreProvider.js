@@ -287,6 +287,7 @@ const StoreProvider = (props) => {
 
   const cancelOrder = useCallback(
     async (order) => {
+      console.log(`cancelOrder order`,order)
       const _order = {
         ...order,
         "X-CSRF-Token": token,
