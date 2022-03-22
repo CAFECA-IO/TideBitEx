@@ -480,6 +480,62 @@ class ExchangeHub extends Bot {
         }
         return res;
       case SupportedExchange.TIDEBIT: // ++ TODO
+        const market = this._findMarket(query.instId);
+        this.logger.debug("!!!_getPlaceOrderData market", market);
+        if (!market) {
+          throw new Error(
+            `this.tidebitMarkets.instId ${query.instId} not found.`
+          );
+        }
+        const { id: bid } = await this.database.getCurrencyByKey(
+          market.quote_unit
+        );
+        const { id: ask } = await this.database.getCurrencyByKey(
+          market.base_unit
+        );
+        this.logger.debug("!!!_getPlaceOrderData bid", bid);
+        this.logger.debug("!!!_getPlaceOrderData ask", ask);
+        if (!bid) {
+          throw new Error(`bid not found`);
+        }
+        if (!ask) {
+          throw new Error(`ask not found`);
+        }
+        try {
+          const memberId = await this.getMemberIdFromRedis(token);
+          if (memberId === -1) throw new Error("get member_id fail");
+          const orderList = await this.database.getOrderList(
+            memberId,
+            bid,
+            ask,
+            this.database.ORDER_STATE.WAIT
+          );
+          this.logger.log(`orderList:`, orderList);
+          const orders = orderList
+            .map((order, i) => ({
+              cTime: new Date(order.created_at).getTime(),
+              clOrdId: order.id,
+              instId: query.instId,
+              ordId: order.id,
+              ordType: order.ord_type,
+              px: Utils.removeZeroEnd(order.price),
+              side: order.type === "OrderAsk" ? "sell" : "buy",
+              sz: Utils.removeZeroEnd(order.volume),
+              uTime: new Date(order.updated_at).getTime(),
+            }))
+            .sort((a, b) => b.cTime - a.cTime);
+          return new ResponseFormat({
+            message: "getOrderList",
+            payload: orders,
+          });
+        } catch (error) {
+          this.logger.error(error);
+          const message = error.message;
+          return new ResponseFormat({
+            message,
+            code: Codes.API_UNKNOWN_ERROR,
+          });
+        }
       default:
         return new ResponseFormat({
           message: "getOrderList",
@@ -512,14 +568,15 @@ class ExchangeHub extends Bot {
       case SupportedExchange.TIDEBIT: // ++ TODO
       default:
         return new ResponseFormat({
-          message: "getOrderList",
+          message: "getOrderHistory",
           payload: [],
         });
     }
   }
-  async postCancelOrder({ params, query, body, token }) {
+  async postCancelOrder({ header, params, query, body, token }) {
+    this.logger.debug(`postCancelOrder body`, body);
+    const source = this._findSource(body.instId);
     const memberId = await this.getMemberIdFromRedis(token);
-
     /* !!! HIGH RISK (start) !!! */
     // 1. get orderId from body
     // 2. get order data from table
@@ -530,56 +587,60 @@ class ExchangeHub extends Bot {
     // 7. update account balance and locked
     // 8. post okex cancel order
     const t = await this.database.transaction();
+    // get orderId from body.clOrdId
     try {
-      // get orderId from body.clOrdId
-      const { orderId } = Utils.parseClOrdId(body.clOrdId);
-      const order = await this.database.getOrder(orderId, { dbTransaction: t });
-      if (order.state !== this.database.ORDER_STATE.WAIT) {
-        await t.rollback();
-        return new ResponseFormat({
-          code: Codes.ORDER_HAS_BEEN_CLOSED,
-          message: "order has been close",
-        });
-      }
-      const currencyId =
-        order.type === this.database.TYPE.ORDER_ASK ? order.ask : order.bid;
-      const account = await this.database.getAccountByMemberIdCurrency(
-        memberId,
-        currencyId,
-        { dbTransaction: t }
-      );
-
-      /*******************************************
-       * body.clOrdId: custom orderId for okex
-       * locked: value from order.locked, used for unlock balance, negative in account_version
-       * balance: order.locked
-       *******************************************/
-      const newOrder = {
-        id: orderId,
-        state: this.database.ORDER_STATE.CANCEL,
-      };
-      const locked = SafeMath.mult(order.locked, "-1");
-      const balance = order.locked;
-      const fee = "0";
-
-      const created_at = new Date().toISOString();
-
-      await this.database.updateOrder(newOrder, { dbTransaction: t });
-
-      await this._updateAccount(
-        account,
-        t,
-        balance,
-        locked,
-        fee,
-        this.database.MODIFIABLE_TYPE.ORDER,
-        orderId,
-        created_at,
-        this.database.FUNC.UNLOCK_FUNDS
-      );
-
-      switch (this._findSource(body.instId)) {
+      let { orderId } =
+        source === SupportedExchange.OKEX
+          ? Utils.parseClOrdId(body.clOrdId)
+          : { orderId: body.ordId };
+      switch (source) {
         case SupportedExchange.OKEX:
+          const order = await this.database.getOrder(orderId, {
+            dbTransaction: t,
+          });
+          if (order.state !== this.database.ORDER_STATE.WAIT) {
+            await t.rollback();
+            return new ResponseFormat({
+              code: Codes.ORDER_HAS_BEEN_CLOSED,
+              message: "order has been close",
+            });
+          }
+          const currencyId =
+            order.type === this.database.TYPE.ORDER_ASK ? order.ask : order.bid;
+          const account = await this.database.getAccountByMemberIdCurrency(
+            memberId,
+            currencyId,
+            { dbTransaction: t }
+          );
+
+          /*******************************************
+           * body.clOrdId: custom orderId for okex
+           * locked: value from order.locked, used for unlock balance, negative in account_version
+           * balance: order.locked
+           *******************************************/
+          const newOrder = {
+            id: orderId,
+            state: this.database.ORDER_STATE.CANCEL,
+          };
+          const locked = SafeMath.mult(order.locked, "-1");
+          const balance = order.locked;
+          const fee = "0";
+
+          const created_at = new Date().toISOString();
+
+          await this.database.updateOrder(newOrder, { dbTransaction: t });
+
+          await this._updateAccount(
+            account,
+            t,
+            balance,
+            locked,
+            fee,
+            this.database.MODIFIABLE_TYPE.ORDER,
+            orderId,
+            created_at,
+            this.database.FUNC.UNLOCK_FUNDS
+          );
           const okexCancelOrderRes = await this.okexConnector.router(
             "postCancelOrder",
             { params, query, body }
@@ -590,7 +651,28 @@ class ExchangeHub extends Bot {
           }
           await t.commit();
           return okexCancelOrderRes;
-        case SupportedExchange.TIDEBIT: // ++ TODO
+
+        /* !!! HIGH RISK (end) !!! */
+        case SupportedExchange.TIDEBIT:
+          const market = this._findMarket(body.instId);
+          const url = `${this.config.peatio.domain}/markets/${market.id}/orders/${orderId}`;
+          this.logger.debug("postCancelOrder", url);
+          const headers = {
+            Accept: "*/*",
+            "x-csrf-token": body["X-CSRF-Token"],
+            cookie: header.cookie,
+          };
+          const tbCancelOrderRes = await axios({
+            method: "DELETE",
+            url,
+            headers,
+          });
+          this.logger.debug(tbCancelOrderRes);
+          return new ResponseFormat({
+            message: "postCancelOrder",
+            code: Codes.SUCCESS,
+          });
+
         default:
           await t.rollback();
           return new ResponseFormat({
@@ -606,7 +688,6 @@ class ExchangeHub extends Bot {
         code: Codes.API_UNKNOWN_ERROR,
       });
     }
-    /* !!! HIGH RISK (end) !!! */
   }
   // trade api end
 

@@ -383,12 +383,7 @@ class Middleman {
   }
   async cancelOrder(order) {
     if (this.isLogin) {
-      const body = {
-        ordId: order.ordId,
-        clOrdId: order.clOrdId,
-        instId: order.instId,
-      };
-      return await this.communicator.cancel(body);
+      return await this.communicator.cancel(order);
     }
   }
 }
