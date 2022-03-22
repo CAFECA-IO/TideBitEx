@@ -539,14 +539,16 @@ class ExchangeHub extends Bot {
     if (!baseCcy) {
       throw new Error(`baseCcy not found`);
     }
+    let orders = await this._tbGetOrderList(
+      instId,
+      this.database.ORDER_STATE.DONE
+    );
     let trades;
-    trades = await this.database.getTrades(quoteCcy);
-    trades = trades.filter(async (trade) => {
-      const order = await this.database.getOrder(trade.ask_id, {
-        dbTransaction: t,
-      });
-      return order.ask === baseCcy;
-    });
+    trades = await this.database.getTrades(quoteCcy, baseCcy);
+    // trades = trades.filter((trade) => {
+    //   const order = orders.find((order) => order.id === trade.ask_id);
+    //   return order && order.ask === baseCcy;
+    // });
     this.logger.debug(`_tbGetTradeHistory trades:`, trades);
     const tradeHistory = trades.map((trade) => ({
       instId: instId,

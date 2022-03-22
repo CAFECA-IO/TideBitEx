@@ -156,16 +156,15 @@ class mysql {
     }
   }
 
-  async getTrades(quoteCcy) {
-    const query = "SELECT * FROM `trades` WHERE `trades`.`currency` = ?;";
+  async getTrades(quoteCcy, baseCcy) {
+    const query =
+      "SELECT * FROM `trades`, `orders` WHERE `orders`.`id` = `trades`.`ask_id` AND `trades`.`currency` = ? AND `orders`.`ask` = ?;";
     try {
-      this.logger.log("getTrades", query, `[${quoteCcy}]`);
-      const [trades] = await this.db.query(
-        {
-          query,
-          values: [quoteCcy],
-        }
-      );
+      this.logger.log("getTrades", query, `[${quoteCcy}, ${baseCcy}]`);
+      const [trades] = await this.db.query({
+        query,
+        values: [quoteCcy, baseCcy],
+      });
       return trades;
     } catch (error) {
       this.logger.log(error);
