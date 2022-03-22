@@ -277,6 +277,7 @@ class ExchangeHub extends Bot {
             instId: query.instId,
             state: this.database.ORDER_STATE.WAIT,
           });
+          this.logger.debug(`getOrderBooks orders:`, orders);
           const asks = [];
           const bids = [];
           orders.forEach((order) => {
@@ -306,9 +307,11 @@ class ExchangeHub extends Bot {
               }
             }
           });
+          const books = { asks, bids, ts: new Date().toISOString() };
+          this.logger.debug(`getOrderBooks books:`, books);
           return new ResponseFormat({
             message: "getOrderList",
-            payload: [{ asks, bids, ts: new Date().toISOString() }],
+            payload: [books],
           });
         } catch (error) {
           this.logger.error(error);
@@ -504,14 +507,11 @@ class ExchangeHub extends Bot {
   }
   async _tbGetOrderList({ token, instId, state }) {
     const market = this._findMarket(instId);
-    this.logger.debug("!!!_getPlaceOrderData market", market);
     if (!market) {
       throw new Error(`this.tidebitMarkets.instId ${instId} not found.`);
     }
     const { id: bid } = await this.database.getCurrencyByKey(market.quote_unit);
     const { id: ask } = await this.database.getCurrencyByKey(market.base_unit);
-    this.logger.debug("!!!_getPlaceOrderData bid", bid);
-    this.logger.debug("!!!_getPlaceOrderData ask", ask);
     if (!bid) {
       throw new Error(`bid not found`);
     }
@@ -553,7 +553,6 @@ class ExchangeHub extends Bot {
           ? "done"
           : "waiting",
     }));
-    this.logger.log(`orders:`, orders);
     return orders;
   }
 
