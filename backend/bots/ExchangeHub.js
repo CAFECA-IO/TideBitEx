@@ -377,7 +377,7 @@ class ExchangeHub extends Bot {
             if (point) {
               point[2] = Math.max(point[2], curr.px);
               point[3] = Math.min(point[3], curr.px);
-              point[4] = curr.px;
+              point[4] = +curr.px;
               point[5] += +curr.sz;
               point[6] += +curr.sz * +curr.px;
             } else {
