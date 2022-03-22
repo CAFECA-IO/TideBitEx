@@ -120,7 +120,11 @@ class mysql {
     const query =
       "SELECT * FROM `orders` WHERE `orders`.`member_id` = ? AND `orders`.`currency` = ? AND `orders`.`ask` = ? AND `orders`.`state` = ?;";
     try {
-      this.logger.log("getOrderList", query, `[${memberId}]`);
+      this.logger.log(
+        "getOrderList",
+        query,
+        `[${memberId},${quoteCcy},${baseCcy},${100}]`
+      );
       const [[order]] = await this.db.query({
         query,
         values: [memberId, quoteCcy, baseCcy, 100],
