@@ -50,5 +50,6 @@
   "navigator_chart": "チャート",
   "navigator_market": "市場",
   "navigator_trade": "トレード",
-  "navigator_assets": "資産"
+  "navigator_assets": "資産",
+  "status": "现状"
 }

@@ -456,6 +456,51 @@ class ExchangeHub extends Bot {
         });
     }
   }
+  async _tbGetOrderList({ instId, token, state }) {
+    const market = this._findMarket(instId);
+    this.logger.debug("!!!_getPlaceOrderData market", market);
+    if (!market) {
+      throw new Error(`this.tidebitMarkets.instId ${instId} not found.`);
+    }
+    const { id: bid } = await this.database.getCurrencyByKey(market.quote_unit);
+    const { id: ask } = await this.database.getCurrencyByKey(market.base_unit);
+    this.logger.debug("!!!_getPlaceOrderData bid", bid);
+    this.logger.debug("!!!_getPlaceOrderData ask", ask);
+    if (!bid) {
+      throw new Error(`bid not found`);
+    }
+    if (!ask) {
+      throw new Error(`ask not found`);
+    }
+    const memberId = await this.getMemberIdFromRedis(token);
+    if (memberId === -1) throw new Error("get member_id fail");
+    const orderList = await this.database.getOrderList(
+      memberId,
+      bid,
+      ask,
+      state
+      // this.database.ORDER_STATE.WAIT
+    );
+    this.logger.log(`orderList:`, orderList);
+    const orders = orderList.map((order) => ({
+      cTime: new Date(order.created_at).getTime(),
+      clOrdId: order.id,
+      instId: instId,
+      ordId: order.id,
+      ordType: order.ord_type,
+      px: Utils.removeZeroEnd(order.price),
+      side: order.type === "OrderAsk" ? "sell" : "buy",
+      sz: Utils.removeZeroEnd(order.volume),
+      uTime: new Date(order.updated_at).getTime(),
+      state:
+        state === this.database.ORDER_STATE.CANCEL
+          ? "cancelled"
+          : state === this.database.ORDER_STATE.DONE
+          ? "done"
+          : "waiting",
+    }));
+    return orders;
+  }
 
   async getOrderList({ params, query, token }) {
     const memberId = await this.getMemberIdFromRedis(token);
@@ -479,51 +524,13 @@ class ExchangeHub extends Bot {
           res.payload = newList;
         }
         return res;
-      case SupportedExchange.TIDEBIT: // ++ TODO
-        const market = this._findMarket(query.instId);
-        this.logger.debug("!!!_getPlaceOrderData market", market);
-        if (!market) {
-          throw new Error(
-            `this.tidebitMarkets.instId ${query.instId} not found.`
-          );
-        }
-        const { id: bid } = await this.database.getCurrencyByKey(
-          market.quote_unit
-        );
-        const { id: ask } = await this.database.getCurrencyByKey(
-          market.base_unit
-        );
-        this.logger.debug("!!!_getPlaceOrderData bid", bid);
-        this.logger.debug("!!!_getPlaceOrderData ask", ask);
-        if (!bid) {
-          throw new Error(`bid not found`);
-        }
-        if (!ask) {
-          throw new Error(`ask not found`);
-        }
+      case SupportedExchange.TIDEBIT:
         try {
-          const memberId = await this.getMemberIdFromRedis(token);
-          if (memberId === -1) throw new Error("get member_id fail");
-          const orderList = await this.database.getOrderList(
-            memberId,
-            bid,
-            ask,
-            this.database.ORDER_STATE.WAIT
-          );
-          this.logger.log(`orderList:`, orderList);
-          const orders = orderList
-            .map((order, i) => ({
-              cTime: new Date(order.created_at).getTime(),
-              clOrdId: order.id,
-              instId: query.instId,
-              ordId: order.id,
-              ordType: order.ord_type,
-              px: Utils.removeZeroEnd(order.price),
-              side: order.type === "OrderAsk" ? "sell" : "buy",
-              sz: Utils.removeZeroEnd(order.volume),
-              uTime: new Date(order.updated_at).getTime(),
-            }))
-            .sort((a, b) => b.cTime - a.cTime);
+          const orders = this._tbGetOrderList({
+            instId: query.instId,
+            token,
+            state: this.database.ORDER_STATE.WAIT,
+          }).sort((a, b) => b.cTime - a.cTime);
           return new ResponseFormat({
             message: "getOrderList",
             payload: orders,
@@ -565,7 +572,33 @@ class ExchangeHub extends Bot {
           res.payload = newList;
         }
         return res;
-      case SupportedExchange.TIDEBIT: // ++ TODO
+      case SupportedExchange.TIDEBIT:
+        try {
+          const cancelOrders = this._tbGetOrderList({
+            instId: query.instId,
+            token,
+            state: this.database.ORDER_STATE.CANCEL,
+          });
+          const doneOrders = this._tbGetOrderList({
+            instId: query.instId,
+            token,
+            state: this.database.ORDER_STATE.DONE,
+          });
+          const orders = doneOrders
+            .concat(cancelOrders)
+            .sort((a, b) => b.cTime - a.cTime);
+          return new ResponseFormat({
+            message: "getOrderHistory",
+            payload: orders,
+          });
+        } catch (error) {
+          this.logger.error(error);
+          const message = error.message;
+          return new ResponseFormat({
+            message,
+            code: Codes.API_UNKNOWN_ERROR,
+          });
+        }
       default:
         return new ResponseFormat({
           message: "getOrderHistory",

@@ -50,5 +50,6 @@
   "navigator_chart": "Chart",
   "navigator_market": "Market",
   "navigator_trade": "Trade",
-  "navigator_assets": "Assets"
+  "navigator_assets": "Assets",
+  "status": "Status"
 }

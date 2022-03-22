@@ -11,18 +11,20 @@ const OrderTile = (props) => {
     <ul className="d-flex justify-content-between market-order-item">
       {/* <li>{dateFormatter(parseInt(props.order.cTime)).text}</li>
       <li>{props.order.instId.replace("-", "/")}</li>
-      <li>{props.order.instType}</li>
-      <li>{props.order.side}</li> */}
+      <li>{props.order.instType}</li>*/}
+      <li className={`${props.order.side === "buy" ? "green" : "red"}`}>
+        {props.order.side === "buy" ? "Bid" : "Ask"}
+      </li>
       <li>{props.order.px}</li>
       <li>{props.order.sz}</li>
       <li>{SafeMath.mult(props.order.px, props.order.sz)}</li>
       {/* <li>{props.order.fillSz}</li> */}
       {/* <li>{SafeMath.minus(props.order.sz, props.order.fillSz)}</li> */}
-      {props.type === "pending" && (
+      {props.type === "pending" ? (
         <li onClick={(_) => props.cancelOrder(props.order)}>
           <FaTrashAlt />
         </li>
-      )}
+      ): <li>{props.order.state}</li>}
     </ul>
   );
 };
@@ -72,7 +74,7 @@ const HistoryOrder = (props) => {
               {/* <li>Time</li> */}
               {/* <li>All pairs</li>
               <li>All Types</li> */}
-              {/* <li>Buy/Sell</li> */}
+              <li>Buy/Sell</li>
               <li>{t("price")}</li>
               <li>{t("volume")}</li>
               <li>{t("amount")}</li>
@@ -108,6 +110,7 @@ const HistoryOrder = (props) => {
               <li>{t("amount")}</li>
               {/* <li>Executed</li>
               <li>Unexecuted</li> */}
+               <li>{t("status")}</li>
             </ul>
             {/* {!storeCtx.closeOrders.length && (
               <span className="no-data">
