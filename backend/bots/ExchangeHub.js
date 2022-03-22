@@ -598,8 +598,6 @@ class ExchangeHub extends Bot {
           ? Utils.parseClOrdId(body.clOrdId)
           : { orderId: body.ordId };
 
-      console.log(`postCancelOrder orderId`, orderId, body.ordId);
-
       const order = await this.database.getOrder(orderId, { dbTransaction: t });
       if (order.state !== this.database.ORDER_STATE.WAIT) {
         await t.rollback();
@@ -658,8 +656,7 @@ class ExchangeHub extends Bot {
           await t.commit();
           return okexCancelOrderRes;
         case SupportedExchange.TIDEBIT: // ++ TODO
-          const market = this._findMarket(body.instId);
-          const url = `${this.config.peatio.domain}/markets/${market.id}/orders/${orderId}`;
+          const url = `${this.config.peatio.domain}/orders/${orderId}`;
           this.logger.debug("postCancelOrder", url);
           const headers = {
             "content-type": "application/x-www-form-urlencoded",
