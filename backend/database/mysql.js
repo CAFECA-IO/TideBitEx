@@ -158,7 +158,7 @@ class mysql {
 
   async getTrades(quoteCcy, baseCcy) {
     const query =
-      "SELECT * FROM `trades`, `orders` WHERE `orders`.`id` = `trades`.`ask_id` AND `trades`.`currency` = ? AND `orders`.`ask` = ?;";
+      "SELECT `trades`.* FROM `trades`, `orders` WHERE `orders`.`id` = `trades`.`ask_id` AND `trades`.`currency` = ? AND `orders`.`ask` = ?;";
     try {
       this.logger.log("getTrades", query, `[${quoteCcy}, ${baseCcy}]`);
       const [trades] = await this.db.query({
