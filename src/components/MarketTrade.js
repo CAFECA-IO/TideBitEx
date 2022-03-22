@@ -304,9 +304,9 @@ const TradePannel = (props) => {
     ) {
       setSelectedTicker(storeCtx.selectedTicker);
       storeCtx.balances.forEach((balance) => {
-        if (balance.ccy === props.selectedTicker?.quoteCcy)
+        if (balance.ccy === storeCtx.selectedTicker?.quoteCcy)
           setQuoteCcyAvailable(balance.availBal);
-        else if (balance.ccy === props.selectedTicker?.baseCcy)
+        else if (balance.ccy === storeCtx.selectedTicker?.baseCcy)
           setBaseCcyAvailable(balance.availBal);
       });
       storeCtx.buyPxHandler(storeCtx.selectedTicker.last);
