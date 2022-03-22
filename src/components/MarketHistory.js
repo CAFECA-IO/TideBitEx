@@ -11,7 +11,7 @@ const TradeTile = (props) => {
       }`}
       trade-id={props.trade.tradeId}
     >
-      <div>{dateFormatter(parseInt(props.trade.ts)).time}</div>
+      <div>{dateFormatter(parseInt(props.trade.ts), true).time}</div>
       <div className={props.trade.trend === 0 ? "red" : "green"}>
         {formateDecimal(props.trade.px, 8)}
       </div>
