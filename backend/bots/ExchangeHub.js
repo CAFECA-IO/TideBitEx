@@ -367,9 +367,9 @@ class ExchangeHub extends Bot {
           let candles;
           const now = Math.floor(new Date().getTime() / interval);
           const defaultObj = {};
-          defaultObj[now] = [now, 0, 0, 0, 0, 0, 0];
+          defaultObj[now] = [now * interval, 0, 0, 0, 0, 0, 0];
           for (let i = 0; i < 100; i++) {
-            defaultObj[now - i] = [now, 0, 0, 0, 0, 0, 0];
+            defaultObj[now - i] = [now * interval, 0, 0, 0, 0, 0, 0];
           }
           candles = trades.reduce((prev, curr) => {
             const index = Math.floor(curr.ts / interval);
