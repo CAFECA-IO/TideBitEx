@@ -656,14 +656,15 @@ class ExchangeHub extends Bot {
           await t.commit();
           return okexCancelOrderRes;
         case SupportedExchange.TIDEBIT: // ++ TODO
-          const url = `${this.config.peatio.domain}/orders/${orderId}`;
+          const market = this._findMarket(body.instId);
+          const url = `${this.config.peatio.domain}/${market.id}/orders/${orderId}`;
           this.logger.debug("postCancelOrder", url);
           const headers = {
             "content-type": "application/x-www-form-urlencoded",
             "x-csrf-token": body["X-CSRF-Token"],
             cookie: header.cookie,
           };
-          const tbCancelOrderRes = await axios.patch(url, {
+          const tbCancelOrderRes = await axios.delete(url, {
             headers,
           });
           this.logger.log(tbCancelOrderRes);
