@@ -663,7 +663,9 @@ class ExchangeHub extends Bot {
             "x-csrf-token": body["X-CSRF-Token"],
             cookie: header.cookie,
           };
-          const tbCancelOrderRes = await axios.delete(url, {
+          const tbCancelOrderRes = await axios({
+            method: "DELETE",
+            url,
             headers,
           });
           this.logger.log(tbCancelOrderRes);
