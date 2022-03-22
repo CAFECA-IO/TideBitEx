@@ -535,6 +535,7 @@ class ExchangeHub extends Bot {
         state,
       });
     }
+    this.logger.debug(`_tbGetOrderList orderList:`, orderList);
     const orders = orderList.map((order) => ({
       cTime: new Date(order.created_at).getTime(),
       clOrdId: order.id,
