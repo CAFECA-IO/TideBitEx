@@ -146,7 +146,7 @@ class mysql {
         );
         const [orders] = await this.db.query({
           query,
-          values: [memberId, quoteCcy, baseCcy, state],
+          values: [quoteCcy, baseCcy, state],
         });
         return orders;
       } catch (error) {
