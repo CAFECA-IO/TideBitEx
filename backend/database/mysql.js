@@ -125,11 +125,11 @@ class mysql {
         query,
         `[${memberId},${quoteCcy},${baseCcy},${100}]`
       );
-      const [[order]] = await this.db.query({
+      const [orders] = await this.db.query({
         query,
         values: [memberId, quoteCcy, baseCcy, 100],
       });
-      return order;
+      return orders;
     } catch (error) {
       this.logger.log(error);
       return [];
