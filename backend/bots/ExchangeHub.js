@@ -382,7 +382,7 @@ class ExchangeHub extends Bot {
               point[6] += curr.sz * curr.px;
             } else {
               point = [
-                index,
+                index * interval,
                 curr.px,
                 curr.px,
                 curr.px,
