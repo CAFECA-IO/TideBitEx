@@ -391,7 +391,7 @@ class ExchangeHub extends Bot {
           console.log(`candles`, candles);
           return new ResponseFormat({
             message: "getCandlesticks",
-            payload: candles,
+            payload: Object.values(candles),
           });
         } catch (error) {
           this.logger.error(error);
