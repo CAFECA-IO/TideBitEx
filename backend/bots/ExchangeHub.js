@@ -657,7 +657,7 @@ class ExchangeHub extends Bot {
           return okexCancelOrderRes;
         case SupportedExchange.TIDEBIT: // ++ TODO
           const market = this._findMarket(body.instId);
-          const url = `${this.config.peatio.domain}/${market.id}/orders/${orderId}`;
+          const url = `${this.config.peatio.domain}/markets/${market.id}/orders/${orderId}`;
           this.logger.debug("postCancelOrder", url);
           const headers = {
             "content-type": "application/x-www-form-urlencoded",
