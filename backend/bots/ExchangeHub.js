@@ -530,10 +530,10 @@ class ExchangeHub extends Bot {
             instId: query.instId,
             token,
             state: this.database.ORDER_STATE.WAIT,
-          }).sort((a, b) => b.cTime - a.cTime);
+          })
           return new ResponseFormat({
             message: "getOrderList",
-            payload: orders,
+            payload: orders.sort((a, b) => b.cTime - a.cTime),
           });
         } catch (error) {
           this.logger.error(error);
