@@ -509,18 +509,20 @@ class ExchangeHub extends Bot {
             bid,
             ask
           );
-          this.logger.log(`orderList:`,orderList);
-          const orders = orderList.map((order, i) => ({
-            cTime: new Date(order.created_at).getTime(),
-            clOrdId: order.id,
-            instId: query.instId,
-            ordId: order.id,
-            ordType: order.ord_type,
-            px: Utils.removeZeroEnd(order.price),
-            side: order.type === "OrderAsk" ? "sell" : "buy",
-            sz: Utils.removeZeroEnd(order.volume),
-            uTime: new Date(order.updated_at).getTime(),
-          }));
+          this.logger.log(`orderList:`, orderList);
+          const orders = orderList
+            .map((order, i) => ({
+              cTime: new Date(order.created_at).getTime(),
+              clOrdId: order.id,
+              instId: query.instId,
+              ordId: order.id,
+              ordType: order.ord_type,
+              px: Utils.removeZeroEnd(order.price),
+              side: order.type === "OrderAsk" ? "sell" : "buy",
+              sz: Utils.removeZeroEnd(order.volume),
+              uTime: new Date(order.updated_at).getTime(),
+            }))
+            .sort((a, b) => b.cTime - a.cTime);
           return new ResponseFormat({
             message: "getOrderList",
             payload: orders,
