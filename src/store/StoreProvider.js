@@ -291,6 +291,7 @@ const StoreProvider = (props) => {
         ...order,
         "X-CSRF-Token": token,
       };
+      console.log(`cancelOrder _order`,_order)
       try {
         const result = await middleman.cancelOrder(_order);
         await getPendingOrders();
