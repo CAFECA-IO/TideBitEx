@@ -383,12 +383,12 @@ class ExchangeHub extends Bot {
             } else {
               point = [
                 index * interval,
-                curr.px,
-                curr.px,
-                curr.px,
-                curr.px,
-                curr.sz,
-                curr.sz * curr.px,
+                +curr.px,
+                +curr.px,
+                +curr.px,
+                +curr.px,
+                +curr.sz,
+                +curr.sz * +curr.px,
               ];
             }
             prev[index] = point;
