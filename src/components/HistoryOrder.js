@@ -24,7 +24,9 @@ const OrderTile = (props) => {
         <li onClick={(_) => props.cancelOrder(props.order)}>
           <FaTrashAlt />
         </li>
-      ): <li>{props.order.state}</li>}
+      ) : (
+        <li>{props.order.state}</li>
+      )}
     </ul>
   );
 };
@@ -35,9 +37,9 @@ export const BalanceTile = (props) => {
       {/* <li>{dateFormatter(parseInt(props.balance.uTime)).text}</li> */}
       <li>{props.balance.ccy || "--"}</li>
       {/* <li>{props.balance.eq || "--"}</li>
+      <li>{props.balance.cashBal || "--"}</li>*/}
       <li>{props.balance.cashBal || "--"}</li>
-      <li>{props.balance.availEq || "--"}</li> */}
-      <li>{props.balance?.cashBal || props.balance?.availBal || "--"}</li>{" "}
+      <li>{props.balance.availBal || "--"}</li>{" "}
       {/* -- TODO: check api return object */}
       <li>{props.balance.frozenBal || "--"}</li>
       {/* <li>{props.balance.interest || "--"}</li> */}
@@ -104,13 +106,13 @@ const HistoryOrder = (props) => {
               {/* <li>Time</li> */}
               {/* <li>All pairs</li>
               <li>All Types</li>*/}
-              <li>Buy/Sell</li> 
+              <li>Buy/Sell</li>
               <li>{t("price")}</li>
               <li>{t("volume")}</li>
               <li>{t("amount")}</li>
               {/* <li>Executed</li>
               <li>Unexecuted</li> */}
-               <li>{t("status")}</li>
+              <li>{t("status")}</li>
             </ul>
             {/* {!storeCtx.closeOrders.length && (
               <span className="no-data">
@@ -155,7 +157,8 @@ const HistoryOrder = (props) => {
               {/* <li>Currency Equity</li>
               <li>Cash balance</li>
               <li>Available Equity</li> */}
-              <li>{t("cashBal")}</li>
+              <li>{t("totalBal")}</li>
+              <li>{t("availBal")}</li>
               <li>{t("frozenBal")}</li>
               {/* <li>Interest</li> */}
             </ul>

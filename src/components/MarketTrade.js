@@ -8,6 +8,7 @@ import { useViewport } from "../store/ViewportProvider";
 
 const TradeForm = (props) => {
   const { t } = useTranslation();
+
   return (
     <form
       onSubmit={(e) => {
@@ -24,8 +25,8 @@ const TradeForm = (props) => {
             props.selectedTicker
               ? formateDecimal(
                   props.side === "buy"
-                    ? props.selectedTicker?.quoteCcyAvailable
-                    : props.selectedTicker?.baseCcyAvailable,
+                    ? props.quoteCcyAvailable
+                    : props.baseCcyAvailable,
                   4
                 )
               : "0"
@@ -160,6 +161,8 @@ const TradePannel = (props) => {
   const breakpoint = 414;
   const storeCtx = useContext(StoreContext);
   const [selectedTicker, setSelectedTicker] = useState(null);
+  const [quoteCcyAvailable, setQuoteCcyAvailable] = useState(null);
+  const [baseCcyAvailable, setBaseCcyAvailable] = useState(null);
   const [buyPx, setBuyPx] = useState(null);
   const [sellPx, setSellPx] = useState(null);
   const [buySz, setBuySz] = useState(null);
@@ -300,6 +303,12 @@ const TradePannel = (props) => {
         storeCtx.selectedTicker.instId !== selectedTicker?.instId)
     ) {
       setSelectedTicker(storeCtx.selectedTicker);
+      storeCtx.balances.forEach((balance) => {
+        if (balance.ccy === props.selectedTicker?.quoteCcy)
+          setQuoteCcyAvailable(balance.availBal);
+        else if (balance.ccy === props.selectedTicker?.baseCcy)
+          setBaseCcyAvailable(balance.availBal);
+      });
       storeCtx.buyPxHandler(storeCtx.selectedTicker.last);
       storeCtx.sellPxHandler(storeCtx.selectedTicker.last);
       setBuyPx(storeCtx.selectedTicker.last);
@@ -325,6 +334,8 @@ const TradePannel = (props) => {
     buyPctHandler,
     sellPctHandler,
     storeCtx,
+    props.selectedTicker?.quoteCcy,
+    props.selectedTicker?.baseCcy,
   ]);
 
   return (
@@ -336,6 +347,8 @@ const TradePannel = (props) => {
               px={props.orderType === "market" ? buyPx : storeCtx.buyPx}
               sz={buySz}
               selectedTicker={selectedTicker}
+              quoteCcyAvailable={quoteCcyAvailable}
+              baseCcyAvailable={baseCcyAvailable}
               selectedPct={selectedBuyPct}
               onPxInput={!!props.readyOnly ? () => {} : storeCtx.buyPxHandler}
               onSzInput={buySzHandler}
