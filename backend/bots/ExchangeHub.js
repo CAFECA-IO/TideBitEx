@@ -507,7 +507,8 @@ class ExchangeHub extends Bot {
           const orderList = await this.database.getOrderList(
             memberId,
             bid,
-            ask
+            ask,
+            this.database.ORDER_STATE.WAIT
           );
           this.logger.log(`orderList:`, orderList);
           const orders = orderList
@@ -572,7 +573,7 @@ class ExchangeHub extends Bot {
         });
     }
   }
-  async postCancelOrder({ params, query, body, token }) {
+  async postCancelOrder({ header, params, query, body, token }) {
     const memberId = await this.getMemberIdFromRedis(token);
 
     /* !!! HIGH RISK (start) !!! */
@@ -646,6 +647,22 @@ class ExchangeHub extends Bot {
           await t.commit();
           return okexCancelOrderRes;
         case SupportedExchange.TIDEBIT: // ++ TODO
+          const market = this._findMarket(body.instId);
+          const url = `${this.config.peatio.domain}/markets/${market.id}/orders/${orderId}`;
+          this.logger.debug("postCancelOrder", url);
+          const headers = {
+            "content-type": "application/x-www-form-urlencoded",
+            "x-csrf-token": body["X-CSRF-Token"],
+            cookie: header.cookie,
+          };
+          const tbCancelOrderRes = await axios.patch(url, {
+            headers,
+          });
+          this.logger.log(tbCancelOrderRes);
+          return new ResponseFormat({
+            message: "postCancelOrder",
+            code: Codes.SUCCESS,
+          });
         default:
           await t.rollback();
           return new ResponseFormat({

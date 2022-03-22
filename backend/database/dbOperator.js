@@ -1,6 +1,6 @@
-const path = require('path');
+const path = require("path");
 
-const mysql = require('./mysql');
+const mysql = require("./mysql");
 
 class DBOperator {
   database = null;
@@ -25,19 +25,19 @@ class DBOperator {
     CANCEL: 0,
     WAIT: 100,
     DONE: 200,
-  }
+  };
   TYPE = {
-    ORDER_ASK: 'OrderAsk',
-    ORDER_BID: 'OrderBid',
+    ORDER_ASK: "OrderAsk",
+    ORDER_BID: "OrderBid",
   };
   ORD_TYPE = {
-    LIMIT: 'limit',
-    MARKET: 'market',
+    LIMIT: "limit",
+    MARKET: "market",
   };
   MODIFIABLE_TYPE = {
-    ORDER: 'Order',
-    TRADE: 'Trade',
-  }
+    ORDER: "Order",
+    TRADE: "Trade",
+  };
 
   constructor() {
     return this;
@@ -75,11 +75,13 @@ class DBOperator {
   }
 
   async getAccountByMemberIdCurrency(memberId, currencyId, { dbTransaction }) {
-    return this.database.getAccountByMemberIdCurrency(memberId, currencyId, { dbTransaction });
+    return this.database.getAccountByMemberIdCurrency(memberId, currencyId, {
+      dbTransaction,
+    });
   }
 
-  async getOrderList(memberId, quoteCcy, baseCcy) {
-    return this.database.getOrderList(memberId, quoteCcy, baseCcy);
+  async getOrderList(memberId, quoteCcy, baseCcy, state) {
+    return this.database.getOrderList(memberId, quoteCcy, baseCcy, state);
   }
 
   async getOrder(orderId, { dbTransaction }) {

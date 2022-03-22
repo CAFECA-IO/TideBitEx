@@ -116,18 +116,18 @@ class mysql {
       return [];
     }
   }
-  async getOrderList(memberId, quoteCcy, baseCcy) {
+  async getOrderList(memberId, quoteCcy, baseCcy, state) {
     const query =
       "SELECT * FROM `orders` WHERE `orders`.`member_id` = ? AND `orders`.`currency` = ? AND `orders`.`ask` = ? AND `orders`.`state` = ?;";
     try {
       this.logger.log(
         "getOrderList",
         query,
-        `[${memberId},${quoteCcy},${baseCcy},${100}]`
+        `[${memberId}, ${quoteCcy}, ${baseCcy}, ${state}]`
       );
       const [orders] = await this.db.query({
         query,
-        values: [memberId, quoteCcy, baseCcy, 100],
+        values: [memberId, quoteCcy, baseCcy, state],
       });
       return orders;
     } catch (error) {
