@@ -29,7 +29,7 @@ const TradeForm = (props) => {
                     : props.baseCcyAvailable,
                   4
                 )
-              : "0"
+              : "0" || "--"
           } `}
           {props.side === "buy"
             ? props.selectedTicker?.quoteCcy || "--"
@@ -233,17 +233,21 @@ const TradePannel = (props) => {
     }
   };
 
-  const buyPctHandler = useCallback((selectedTicker, pct, buyPx) => {
-    setBuySz(
-      SafeMath.div(SafeMath.mult(pct, selectedTicker?.quoteCcyAvailable), buyPx)
-    );
-    setSelectedBuyPct(pct);
-  }, []);
+  const buyPctHandler = useCallback(
+    (selectedTicker, pct, buyPx) => {
+      setBuySz(SafeMath.div(SafeMath.mult(pct, quoteCcyAvailable), buyPx));
+      setSelectedBuyPct(pct);
+    },
+    [quoteCcyAvailable]
+  );
 
-  const sellPctHandler = useCallback((selectedTicker, pct) => {
-    setSellSz(SafeMath.mult(pct, selectedTicker.baseCcyAvailable));
-    setSelectedSellPct(pct);
-  }, []);
+  const sellPctHandler = useCallback(
+    (selectedTicker, pct) => {
+      setSellSz(SafeMath.mult(pct, baseCcyAvailable));
+      setSelectedSellPct(pct);
+    },
+    [baseCcyAvailable]
+  );
 
   const onSubmit = async (event, side) => {
     event.preventDefault();
@@ -303,12 +307,6 @@ const TradePannel = (props) => {
         storeCtx.selectedTicker.instId !== selectedTicker?.instId)
     ) {
       setSelectedTicker(storeCtx.selectedTicker);
-      storeCtx.balances.forEach((balance) => {
-        if (balance.ccy === storeCtx.selectedTicker?.quoteCcy)
-          setQuoteCcyAvailable(balance.availBal);
-        else if (balance.ccy === storeCtx.selectedTicker?.baseCcy)
-          setBaseCcyAvailable(balance.availBal);
-      });
       storeCtx.buyPxHandler(storeCtx.selectedTicker.last);
       storeCtx.sellPxHandler(storeCtx.selectedTicker.last);
       setBuyPx(storeCtx.selectedTicker.last);
@@ -347,8 +345,16 @@ const TradePannel = (props) => {
               px={props.orderType === "market" ? buyPx : storeCtx.buyPx}
               sz={buySz}
               selectedTicker={selectedTicker}
-              quoteCcyAvailable={quoteCcyAvailable}
-              baseCcyAvailable={baseCcyAvailable}
+              quoteCcyAvailable={
+                storeCtx.balances.filter(
+                  (balance) => balance.ccy === selectedTicker.quoteCcy
+                ).availBal
+              }
+              baseCcyAvailable={
+                storeCtx.balances.filter(
+                  (balance) => balance.ccy === selectedTicker.baseCcy
+                ).availBal
+              }
               selectedPct={selectedBuyPct}
               onPxInput={!!props.readyOnly ? () => {} : storeCtx.buyPxHandler}
               onSzInput={buySzHandler}

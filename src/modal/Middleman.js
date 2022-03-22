@@ -368,7 +368,11 @@ class Middleman {
       const result = await this.communicator.balance(
         this.selectedTicker?.instId?.replace("-", ",")
       );
-      this.balances = result[0].details;
+      this.balances = result[0].details.filter(
+        (balance) =>
+          this.selectedTicker?.baseCcy === balance.ccy ||
+          this.selectedTicker?.quoteCcy === balance.ccy
+      );
       this.isLogin = true;
       return this.balances;
     } catch (error) {

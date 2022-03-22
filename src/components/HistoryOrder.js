@@ -12,8 +12,25 @@ const OrderTile = (props) => {
       {/* <li>{dateFormatter(parseInt(props.order.cTime)).text}</li>
       <li>{props.order.instId.replace("-", "/")}</li>
       <li>{props.order.instType}</li>*/}
-      <li className={`${props.order.side === "buy" ? "green" : "red"}`}>
-        {props.order.side === "buy" ? "Bid" : "Ask"}
+      <li className={`order-tile__label-box`}>
+        <div
+          className={`order-tile__label ${
+            props.order.side === "buy"
+              ? "order-tile__label--green"
+              : "order-tile__label--red"
+          }`}
+        >
+          {props.order.side === "buy" ? "Bid" : "Ask"}
+        </div>
+        <div
+          className={`order-tile__label ${
+            props.order.filled
+              ? "order-tile__label--blue"
+              : "order-tile__label--grey"
+          }`}
+        >
+          {props.order.filled ? "Partial" : "New"}
+        </div>
       </li>
       <li>{props.order.px}</li>
       <li>{props.order.sz}</li>
@@ -171,11 +188,11 @@ const HistoryOrder = (props) => {
             <ul className="order-list">
               {!!storeCtx.balances?.length &&
                 storeCtx.balances
-                  .filter(
-                    (balance) =>
-                      storeCtx.selectedTicker?.baseCcy === balance.ccy ||
-                      storeCtx.selectedTicker?.quoteCcy === balance.ccy
-                  )
+                  // .filter(
+                  //   (balance) =>
+                  //     storeCtx.selectedTicker?.baseCcy === balance.ccy ||
+                  //     storeCtx.selectedTicker?.quoteCcy === balance.ccy
+                  // )
                   .map((balance) => <BalanceTile balance={balance} />)}
             </ul>
           </Tab>
