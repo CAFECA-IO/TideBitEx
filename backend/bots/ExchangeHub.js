@@ -458,23 +458,6 @@ class ExchangeHub extends Bot {
   }
 
   async getOrderList({ params, query, token }) {
-    this.logger.log(`orderList params:${params}`);
-    this.logger.log(`orderList query:${query}`);
-    const market = this._findMarket(query.instId);
-    this.logger.debug("!!!_getPlaceOrderData market", market);
-    if (!market) {
-      throw new Error(`this.tidebitMarkets.instId ${query.instId} not found.`);
-    }
-    const { id: bid } = await this.database.getCurrencyByKey(market.quote_unit);
-    const { id: ask } = await this.database.getCurrencyByKey(market.base_unit);
-    this.logger.debug("!!!_getPlaceOrderData bid", bid);
-    this.logger.debug("!!!_getPlaceOrderData ask", ask);
-    if (!bid) {
-      throw new Error(`bid not found`);
-    }
-    if (!ask) {
-      throw new Error(`ask not found`);
-    }
     const memberId = await this.getMemberIdFromRedis(token);
     if (memberId === -1) {
       return new ResponseFormat({
@@ -497,6 +480,29 @@ class ExchangeHub extends Bot {
         }
         return res;
       case SupportedExchange.TIDEBIT: // ++ TODO
+        this.logger.log(`orderList params:${params}`);
+        this.logger.log(`orderList query:${query}`);
+        const market = this._findMarket(query.instId);
+        this.logger.debug("!!!_getPlaceOrderData market", market);
+        if (!market) {
+          throw new Error(
+            `this.tidebitMarkets.instId ${query.instId} not found.`
+          );
+        }
+        const { id: bid } = await this.database.getCurrencyByKey(
+          market.quote_unit
+        );
+        const { id: ask } = await this.database.getCurrencyByKey(
+          market.base_unit
+        );
+        this.logger.debug("!!!_getPlaceOrderData bid", bid);
+        this.logger.debug("!!!_getPlaceOrderData ask", ask);
+        if (!bid) {
+          throw new Error(`bid not found`);
+        }
+        if (!ask) {
+          throw new Error(`ask not found`);
+        }
         try {
           const memberId = await this.getMemberIdFromRedis(token);
           if (memberId === -1) throw new Error("get member_id fail");
