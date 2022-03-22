@@ -481,7 +481,6 @@ class ExchangeHub extends Bot {
       state
       // this.database.ORDER_STATE.WAIT
     );
-    this.logger.log(`orderList:`, orderList);
     const orders = orderList.map((order) => ({
       cTime: new Date(order.created_at).getTime(),
       clOrdId: order.id,
@@ -499,6 +498,7 @@ class ExchangeHub extends Bot {
           ? "done"
           : "waiting",
     }));
+    this.logger.log(`orders:`, orders);
     return orders;
   }
 
@@ -526,7 +526,7 @@ class ExchangeHub extends Bot {
         return res;
       case SupportedExchange.TIDEBIT:
         try {
-          const orders = this._tbGetOrderList({
+          const orders = await this._tbGetOrderList({
             instId: query.instId,
             token,
             state: this.database.ORDER_STATE.WAIT,
@@ -574,12 +574,12 @@ class ExchangeHub extends Bot {
         return res;
       case SupportedExchange.TIDEBIT:
         try {
-          const cancelOrders = this._tbGetOrderList({
+          const cancelOrders = await this._tbGetOrderList({
             instId: query.instId,
             token,
             state: this.database.ORDER_STATE.CANCEL,
           });
-          const doneOrders = this._tbGetOrderList({
+          const doneOrders = await this._tbGetOrderList({
             instId: query.instId,
             token,
             state: this.database.ORDER_STATE.DONE,
