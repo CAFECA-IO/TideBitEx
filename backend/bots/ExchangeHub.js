@@ -458,6 +458,23 @@ class ExchangeHub extends Bot {
   }
 
   async getOrderList({ params, query, token }) {
+    this.logger.log(`orderList params:${params}`);
+    this.logger.log(`orderList query:${query}`);
+    const market = this._findMarket(query.instId);
+    this.logger.debug("!!!_getPlaceOrderData market", market);
+    if (!market) {
+      throw new Error(`this.tidebitMarkets.instId ${query.instId} not found.`);
+    }
+    const { id: bid } = await this.database.getCurrencyByKey(market.quote_unit);
+    const { id: ask } = await this.database.getCurrencyByKey(market.base_unit);
+    this.logger.debug("!!!_getPlaceOrderData bid", bid);
+    this.logger.debug("!!!_getPlaceOrderData ask", ask);
+    if (!bid) {
+      throw new Error(`bid not found`);
+    }
+    if (!ask) {
+      throw new Error(`ask not found`);
+    }
     const memberId = await this.getMemberIdFromRedis(token);
     if (memberId === -1) {
       return new ResponseFormat({
@@ -480,6 +497,38 @@ class ExchangeHub extends Bot {
         }
         return res;
       case SupportedExchange.TIDEBIT: // ++ TODO
+        try {
+          const memberId = await this.getMemberIdFromRedis(token);
+          if (memberId === -1) throw new Error("get member_id fail");
+          const orderList = await this.database.getOrderList(
+            memberId,
+            bid,
+            ask
+          );
+          this.logger.log(`orderList:${orderList}`);
+          const orders = orderList.map((order, i) => ({
+            cTime: new Date(order.created_at).getTime(),
+            clOrdId: order.id,
+            instId: query.instId,
+            ordId: order.id,
+            ordType: order.ord_type,
+            px: order.price,
+            side: order.type === "OrderAsk" ? "sell" : "buy",
+            sz: order.volume,
+            uTime: new Date(order.updated_at).getTime(),
+          }));
+          return new ResponseFormat({
+            message: "getOrderList",
+            payload: orders,
+          });
+        } catch (error) {
+          this.logger.error(error);
+          const message = error.message;
+          return new ResponseFormat({
+            message,
+            code: Codes.API_UNKNOWN_ERROR,
+          });
+        }
       default:
         return new ResponseFormat({
           message: "getOrderList",
@@ -512,7 +561,7 @@ class ExchangeHub extends Bot {
       case SupportedExchange.TIDEBIT: // ++ TODO
       default:
         return new ResponseFormat({
-          message: "getOrderList",
+          message: "getOrderHistory",
           payload: [],
         });
     }

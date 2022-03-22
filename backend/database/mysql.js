@@ -1,4 +1,4 @@
-const { Sequelize, DataTypes } = require('sequelize');
+const { Sequelize, DataTypes } = require("sequelize");
 class mysql {
   constructor() {
     return this;
@@ -8,19 +8,28 @@ class mysql {
     try {
       this.logger = logger;
       // initial all database
-      const initDB = {...database};
+      const initDB = { ...database };
       initDB.dialect = initDB.protocal;
       initDB.username = initDB.user;
       initDB.database = initDB.dbName;
-      this.logger.log('initDB', initDB)
-      const initDBSequelize = new Sequelize(initDB.dbName, initDB.user, initDB.password, initDB);
-  
+      this.logger.log("initDB", initDB);
+      const initDBSequelize = new Sequelize(
+        initDB.dbName,
+        initDB.user,
+        initDB.password,
+        initDB
+      );
+
       await initDBSequelize.authenticate();
-      this.logger.log(`\x1b[1m\x1b[32mDB   \x1b[0m\x1b[21m ${initDB.dbName} connect success`);
+      this.logger.log(
+        `\x1b[1m\x1b[32mDB   \x1b[0m\x1b[21m ${initDB.dbName} connect success`
+      );
       this.db = initDBSequelize;
       return this;
     } catch (error) {
-      this.logger.error('\x1b[1m\x1b[31mDB   \x1b[0m\x1b[21m \x1b[1m\x1b[31mconnect fails\x1b[0m\x1b[21m');
+      this.logger.error(
+        "\x1b[1m\x1b[31mDB   \x1b[0m\x1b[21m \x1b[1m\x1b[31mconnect fails\x1b[0m\x1b[21m"
+      );
       throw error;
     }
   }
@@ -34,15 +43,13 @@ class mysql {
   }
 
   async getBalance(memberId, options) {
-    const query = 'SELECT * FROM `accounts` WHERE `accounts`.member_id = ?;';
+    const query = "SELECT * FROM `accounts` WHERE `accounts`.member_id = ?;";
     const values = [memberId];
     try {
-      const [accounts] = await this.db.query(
-        {
-          query,
-          values
-        }
-      );
+      const [accounts] = await this.db.query({
+        query,
+        values,
+      });
       this.logger.log(query, values);
       return accounts;
     } catch (error) {
@@ -52,16 +59,14 @@ class mysql {
   }
 
   async getCurrency(currencyId) {
-    const query = 'SELECT * FROM `asset_bases` WHERE `asset_bases`.`id` = ?;';
+    const query = "SELECT * FROM `asset_bases` WHERE `asset_bases`.`id` = ?;";
     try {
-      this.logger.log('getCurrency', query, currencyId);
-      const [[currency]] = await this.db.query(
-        {
-          query,
-          values: [currencyId]
-        }
-      );
-      
+      this.logger.log("getCurrency", query, currencyId);
+      const [[currency]] = await this.db.query({
+        query,
+        values: [currencyId],
+      });
+
       return currency;
     } catch (error) {
       this.logger.log(error);
@@ -70,16 +75,14 @@ class mysql {
   }
 
   async getCurrencyByKey(currencyKey) {
-    const query = 'SELECT * FROM `asset_bases` WHERE `asset_bases`.`key` = ?;';
+    const query = "SELECT * FROM `asset_bases` WHERE `asset_bases`.`key` = ?;";
     try {
-      this.logger.log('getCurrencyByKey', query, currencyKey);
-      const [[currency]] = await this.db.query(
-        {
-          query,
-          values: [currencyKey]
-        }
-      );
-      
+      this.logger.log("getCurrencyByKey", query, currencyKey);
+      const [[currency]] = await this.db.query({
+        query,
+        values: [currencyKey],
+      });
+
       return currency;
     } catch (error) {
       this.logger.log(error);
@@ -88,13 +91,18 @@ class mysql {
   }
 
   async getAccountByMemberIdCurrency(memberId, currencyId, { dbTransaction }) {
-    const query = 'SELECT * FROM `accounts` WHERE `accounts`.`member_id` = ? AND `accounts`.`currency` = ?;';
+    const query =
+      "SELECT * FROM `accounts` WHERE `accounts`.`member_id` = ? AND `accounts`.`currency` = ?;";
     try {
-      this.logger.log('getAccountByMemberIdCurrency', query, `[${memberId}, ${currencyId}]`);
+      this.logger.log(
+        "getAccountByMemberIdCurrency",
+        query,
+        `[${memberId}, ${currencyId}]`
+      );
       const [[account]] = await this.db.query(
         {
           query,
-          values: [memberId, currencyId]
+          values: [memberId, currencyId],
         },
         {
           transaction: dbTransaction,
@@ -108,15 +116,30 @@ class mysql {
       return [];
     }
   }
+  async getOrderList(memberId, quoteCcy, baseCcy) {
+    const query =
+      "SELECT * FROM `orders` WHERE `orders`.`member_id` = ? AND `orders`.`ask` = ? AND `orders`.`currency` = ? AND `orders`.`state` = ?;";
+    try {
+      this.logger.log("getOrderList", query, `[${memberId}]`);
+      const [[order]] = await this.db.query({
+        query,
+        values: [memberId, quoteCcy, baseCcy, 100],
+      });
+      return order;
+    } catch (error) {
+      this.logger.log(error);
+      return [];
+    }
+  }
 
   async getOrder(orderId, { dbTransaction }) {
-    const query = 'SELECT * FROM `orders` WHERE `orders`.`id` = ?;';
+    const query = "SELECT * FROM `orders` WHERE `orders`.`id` = ?;";
     try {
-      this.logger.log('getOrder', query, `[${orderId}]`);
+      this.logger.log("getOrder", query, `[${orderId}]`);
       const [[order]] = await this.db.query(
         {
           query,
-          values: [orderId]
+          values: [orderId],
         },
         {
           transaction: dbTransaction,
@@ -132,13 +155,13 @@ class mysql {
   }
 
   async getVouchersByOrderId(orderId, { dbTransaction }) {
-    const query = 'SELECT * FROM `vouchers` WHERE `order_id` = ?;';
+    const query = "SELECT * FROM `vouchers` WHERE `order_id` = ?;";
     try {
-      this.logger.log('getVouchersByOrderId', query, orderId);
+      this.logger.log("getVouchersByOrderId", query, orderId);
       const [vouchers] = await this.db.query(
         {
           query,
-          values: [orderId]
+          values: [orderId],
         },
         {
           transaction: dbTransaction,
@@ -175,16 +198,17 @@ class mysql {
     trades_count,
     { dbTransaction }
   ) {
-    const query = 'INSERT INTO `tidebitstaging`.`orders` ('
-      + '`id`, `bid`, `ask`, `currency`, `price`, `volume`, `origin_volume`, `state`,'
-      + ' `done_at`, `type`, `member_id`, `created_at`, `updated_at`, `sn`, `source`,'
-      + ' `ord_type`, `locked`, `origin_locked`, `funds_received`, `trades_count`)'
-      + ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);'
+    const query =
+      "INSERT INTO `tidebitstaging`.`orders` (" +
+      "`id`, `bid`, `ask`, `currency`, `price`, `volume`, `origin_volume`, `state`," +
+      " `done_at`, `type`, `member_id`, `created_at`, `updated_at`, `sn`, `source`," +
+      " `ord_type`, `locked`, `origin_locked`, `funds_received`, `trades_count`)" +
+      " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
     try {
       this.logger.log(
-        'insertOrder',
-        'DEFAULT',
+        "insertOrder",
+        "DEFAULT",
         query,
         bid,
         ask,
@@ -204,13 +228,13 @@ class mysql {
         locked,
         origin_locked,
         funds_received,
-        trades_count,
+        trades_count
       );
       return this.db.query(
         {
           query,
           values: [
-            'DEFAULT',
+            "DEFAULT",
             bid,
             ask,
             currency,
@@ -258,13 +282,14 @@ class mysql {
     fun,
     { dbTransaction }
   ) {
-    const query = 'INSERT INTO `tidebitstaging`.`account_versions` (`id`, `member_id`, `account_id`, `reason`, `balance`, `locked`, `fee`, `amount`, `modifiable_id`, `modifiable_type`, `created_at`, `updated_at`, `currency`, `fun`)'
-      + ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);'
+    const query =
+      "INSERT INTO `tidebitstaging`.`account_versions` (`id`, `member_id`, `account_id`, `reason`, `balance`, `locked`, `fee`, `amount`, `modifiable_id`, `modifiable_type`, `created_at`, `updated_at`, `currency`, `fun`)" +
+      " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
     try {
       this.logger.log(
-        'insertAccountVersion',
+        "insertAccountVersion",
         query,
-        'DEFAULT',
+        "DEFAULT",
         member_id,
         accountId,
         reason,
@@ -281,7 +306,7 @@ class mysql {
         {
           query,
           values: [
-            'DEFAULT',
+            "DEFAULT",
             member_id,
             accountId,
             reason,
@@ -323,13 +348,14 @@ class mysql {
     created_at,
     { dbTransaction }
   ) {
-    const query = 'INSERT INTO `tidebitstaging`.`vouchers` (`id`,`member_id`,`order_id`,`trade_id`,`designated_trading_fee_asset_history_id`,`ask`,`bid`,`price`,`volume`,`value`,`trend`,`ask_fee`,`bid_fee`,`created_at`)'
-      + ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);'
+    const query =
+      "INSERT INTO `tidebitstaging`.`vouchers` (`id`,`member_id`,`order_id`,`trade_id`,`designated_trading_fee_asset_history_id`,`ask`,`bid`,`price`,`volume`,`value`,`trend`,`ask_fee`,`bid_fee`,`created_at`)" +
+      " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
     try {
       this.logger.log(
-        'insertAccountVersion',
+        "insertAccountVersion",
         query,
-        'DEFAULT',
+        "DEFAULT",
         member_id,
         order_id,
         trade_id,
@@ -342,13 +368,13 @@ class mysql {
         trend,
         ask_fee,
         bid_fee,
-        created_at,
+        created_at
       );
       await this.db.query(
         {
           query,
           values: [
-            'DEFAULT',
+            "DEFAULT",
             member_id,
             order_id,
             trade_id,
@@ -377,14 +403,19 @@ class mysql {
   async updateAccount(datas, { dbTransaction }) {
     try {
       const id = datas.id;
-      const where = '`id` = ' + id;
+      const where = "`id` = " + id;
       delete datas.id;
       const set = Object.keys(datas).map((key) => `\`${key}\` = ${datas[key]}`);
-      let query = 'UPDATE `tidebitstaging`.`accounts` SET ' + set.join(', ') + ' WHERE ' + where + ';';
-      this.logger.log('updateAccount', query);
+      let query =
+        "UPDATE `tidebitstaging`.`accounts` SET " +
+        set.join(", ") +
+        " WHERE " +
+        where +
+        ";";
+      this.logger.log("updateAccount", query);
       await this.db.query(
         {
-          query
+          query,
         },
         {
           transaction: dbTransaction,
@@ -399,14 +430,19 @@ class mysql {
   async updateOrder(datas, { dbTransaction }) {
     try {
       const id = datas.id;
-      const where = '`id` = ' + id;
+      const where = "`id` = " + id;
       delete datas.id;
       const set = Object.keys(datas).map((key) => `\`${key}\` = ${datas[key]}`);
-      let query = 'UPDATE `tidebitstaging`.`orders` SET ' + set.join(', ') + ' WHERE ' + where + ';';
-      this.logger.log('updateOrder', query);
+      let query =
+        "UPDATE `tidebitstaging`.`orders` SET " +
+        set.join(", ") +
+        " WHERE " +
+        where +
+        ";";
+      this.logger.log("updateOrder", query);
       await this.db.query(
         {
-          query
+          query,
         },
         {
           transaction: dbTransaction,
