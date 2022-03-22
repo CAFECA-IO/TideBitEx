@@ -575,11 +575,8 @@ class ExchangeHub extends Bot {
   }
   async postCancelOrder({ header, params, query, body, token }) {
     console.log(`postCancelOrder body`, body);
-    console.log(`postCancelOrder params`, params);
-    console.log(`postCancelOrder query`, query);
     const source = this._findSource(body.instId);
     const memberId = await this.getMemberIdFromRedis(token);
-
     /* !!! HIGH RISK (start) !!! */
     // 1. get orderId from body
     // 2. get order data from table
@@ -590,12 +587,12 @@ class ExchangeHub extends Bot {
     // 7. update account balance and locked
     // 8. post okex cancel order
     const t = await this.database.transaction();
+    // get orderId from body.clOrdId
+    let { orderId } =
+      source === SupportedExchange.OKEX
+        ? Utils.parseClOrdId(body.clOrdId)
+        : { orderId: body.ordId };
     try {
-      // get orderId from body.clOrdId
-      let { orderId } =
-        source === SupportedExchange.OKEX
-          ? Utils.parseClOrdId(body.clOrdId)
-          : { orderId: body.ordId };
       switch (source) {
         case SupportedExchange.OKEX:
           const order = await this.database.getOrder(orderId, {
@@ -656,7 +653,8 @@ class ExchangeHub extends Bot {
           return okexCancelOrderRes;
         case SupportedExchange.TIDEBIT: // ++ TODO
           const market = this._findMarket(body.instId);
-          const url = `${this.config.peatio.domain}/markets/${market.id}/orders/${orderId}`;
+          // const url = `${this.config.peatio.domain}/markets/${market.id}/orders/${orderId}`;
+          const url = `${this.config.peatio.domain}/orders/${orderId}`;
           this.logger.debug("postCancelOrder", url);
           const headers = {
             "x-csrf-token": body["X-CSRF-Token"],
