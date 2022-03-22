@@ -480,8 +480,6 @@ class ExchangeHub extends Bot {
         }
         return res;
       case SupportedExchange.TIDEBIT: // ++ TODO
-        this.logger.log(`orderList params:${params}`);
-        this.logger.log(`orderList query:${query}`);
         const market = this._findMarket(query.instId);
         this.logger.debug("!!!_getPlaceOrderData market", market);
         if (!market) {
