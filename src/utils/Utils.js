@@ -302,11 +302,11 @@ export const dateFormatter = (timestamp, t24) => {
   let hours = dateTime.getHours();
   const minutes = dateTime.getMinutes();
   const seconds = dateTime.getSeconds();
-  let suffix = "AM";
-  if (!t24 && hours - 12 > 0) {
-    hours -= 12;
-    suffix = "PM";
-  }
+  // let suffix = "AM";
+  // if (!t24 && hours - 12 > 0) {
+  //   hours -= 12;
+  //   suffix = "PM";
+  // }
   const mmddyyyykkmm =
     monthNames[month] +
     " " +
@@ -316,15 +316,18 @@ export const dateFormatter = (timestamp, t24) => {
     " " +
     hours +
     ":" +
-    pad(minutes) +
-    " " +
-    suffix;
+    pad(minutes) ;
+    // +
+    // " " +
+    // suffix;
   return {
     text: mmddyyyykkmm,
     date: monthNames[month] + " " + pad(date) + ", " + year,
-    time: !t24
-      ? hours + ":" + pad(minutes) + ":" + pad(seconds) + " " + suffix
-      : hours + ":" + pad(minutes) + ":" + pad(seconds),
+    time:
+      // !t24
+      // ? hours + ":" + pad(minutes) + ":" + pad(seconds) + " " + suffix
+      // :
+      hours + ":" + pad(minutes) + ":" + pad(seconds),
     month: monthNames[month],
     day: pad(date),
     year: year,
