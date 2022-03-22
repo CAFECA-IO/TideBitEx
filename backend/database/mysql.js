@@ -156,6 +156,23 @@ class mysql {
     }
   }
 
+  async getTrades(quoteCcy) {
+    const query = "SELECT * FROM `trades` WHERE `trades`.`currency` = ?;";
+    try {
+      this.logger.log("getTrades", query, `[${quoteCcy}]`);
+      const [trades] = await this.db.query(
+        {
+          query,
+          values: [quoteCcy],
+        }
+      );
+      return trades;
+    } catch (error) {
+      this.logger.log(error);
+      return [];
+    }
+  }
+
   async getOrder(orderId, { dbTransaction }) {
     const query = "SELECT * FROM `orders` WHERE `orders`.`id` = ?;";
     try {

@@ -346,7 +346,23 @@ class ExchangeHub extends Bot {
     switch (this._findSource(query.instId)) {
       case SupportedExchange.OKEX:
         return this.okexConnector.router("getTrades", { params, query });
-      case SupportedExchange.TIDEBIT: // ++ TODO
+      case SupportedExchange.TIDEBIT:
+        try {
+          const trades = await this._tbGetTradeHistory({
+            instId: query.instId,
+          });
+          return new ResponseFormat({
+            message: "getTrades",
+            payload: trades.sort((a, b) => b.ts - a.ts),
+          });
+        } catch (error) {
+          this.logger.error(error);
+          const message = error.message;
+          return new ResponseFormat({
+            message,
+            code: Codes.API_UNKNOWN_ERROR,
+          });
+        }
       default:
         return new ResponseFormat({
           message: "getTrades",
@@ -505,6 +521,33 @@ class ExchangeHub extends Bot {
         });
     }
   }
+  async _tbGetTradeHistory({ instId }) {
+    const market = this._findMarket(instId);
+    if (!market) {
+      throw new Error(`this.tidebitMarkets.instId ${instId} not found.`);
+    }
+    const { id: quoteCcy } = await this.database.getCurrencyByKey(
+      market.quote_unit
+    );
+
+    if (!quoteCcy) {
+      throw new Error(`quoteCcy not found`);
+    }
+    let trades;
+    trades = await this.database.getTrades(quoteCcy);
+    this.logger.debug(`_tbGetTradeHistory trades:`, trades);
+    const tradeHistory = trades.map((trade) => ({
+      instId: instId,
+      side: "",
+      sz: trade.volume,
+      px: trade.price,
+      tradeId: trade.id,
+      trend: trade.trend,
+      ts: new Date(trade.created_at).getTime(),
+    }));
+    return tradeHistory;
+  }
+
   async _tbGetOrderList({ token, instId, state }) {
     const market = this._findMarket(instId);
     if (!market) {
