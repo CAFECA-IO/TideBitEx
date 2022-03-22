@@ -365,6 +365,12 @@ class ExchangeHub extends Bot {
               interval = 24 * 60 * 60 * 1000;
           }
           let candles;
+          const now = Math.floor(new Date().getTime() / interval);
+          const defaultObj = {};
+          defaultObj[now] = [now, 0, 0, 0, 0, 0, 0];
+          for (let i = 0; i < 100; i++) {
+            defaultObj[now - i] = [now, 0, 0, 0, 0, 0, 0];
+          }
           candles = trades.reduce((prev, curr) => {
             const index = Math.floor(curr.ts / interval);
             let point = prev[index];
@@ -387,7 +393,7 @@ class ExchangeHub extends Bot {
             }
             prev[index] = point;
             return prev;
-          }, {});
+          }, defaultObj);
           console.log(`candles`, candles);
           return new ResponseFormat({
             message: "getCandlesticks",
@@ -619,7 +625,7 @@ class ExchangeHub extends Bot {
         ts: new Date(trade.created_at).getTime(),
       }))
       .sort((a, b) => (increase ? a.ts - b.ts : b.ts - a.ts));
-      this.logger.debug(`_tbGetTradeHistory tradeHistory:`, tradeHistory);
+    this.logger.debug(`_tbGetTradeHistory tradeHistory:`, tradeHistory);
     return tradeHistory;
   }
 
