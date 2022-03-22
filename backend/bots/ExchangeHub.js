@@ -574,6 +574,10 @@ class ExchangeHub extends Bot {
     }
   }
   async postCancelOrder({ header, params, query, body, token }) {
+    console.log(`postCancelOrder body`, body);
+    console.log(`postCancelOrder params`, params);
+    console.log(`postCancelOrder query`, query);
+    const source = this._findSource(body.instId);
     const memberId = await this.getMemberIdFromRedis(token);
 
     /* !!! HIGH RISK (start) !!! */
@@ -588,7 +592,10 @@ class ExchangeHub extends Bot {
     const t = await this.database.transaction();
     try {
       // get orderId from body.clOrdId
-      const { orderId } = Utils.parseClOrdId(body.clOrdId);
+      const { orderId } =
+        source === SupportedExchange.OKEX
+          ? Utils.parseClOrdId(body.clOrdId)
+          : body.ordId;
       const order = await this.database.getOrder(orderId, { dbTransaction: t });
       if (order.state !== this.database.ORDER_STATE.WAIT) {
         await t.rollback();
@@ -634,7 +641,7 @@ class ExchangeHub extends Bot {
         this.database.FUNC.UNLOCK_FUNDS
       );
 
-      switch (this._findSource(body.instId)) {
+      switch (source) {
         case SupportedExchange.OKEX:
           const okexCancelOrderRes = await this.okexConnector.router(
             "postCancelOrder",

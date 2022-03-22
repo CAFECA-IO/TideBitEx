@@ -382,6 +382,7 @@ class Middleman {
     if (this.isLogin) return await this.communicator.order(order);
   }
   async cancelOrder(order) {
+    console.log(`cancelOrder order`, order)
     if (this.isLogin) {
       const body = {
         ordId: order.ordId,
