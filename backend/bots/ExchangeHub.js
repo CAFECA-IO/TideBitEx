@@ -368,7 +368,7 @@ class ExchangeHub extends Bot {
           candles = trades.reduce((prev, curr) => {
             const times = Math.floor(SafeMath.div(curr.ts, interval));
             if (
-              prev[prev.length - 1].length > 0 &&
+              prev[prev.length - 1]?.length > 0 &&
               prev[prev.length - 1][0].times < times
             ) {
               return [...prev, [{ ...curr, times }]];
