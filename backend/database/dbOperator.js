@@ -80,8 +80,8 @@ class DBOperator {
     });
   }
 
-  async getOrderList(memberId, quoteCcy, baseCcy, state) {
-    return this.database.getOrderList(memberId, quoteCcy, baseCcy, state);
+  async getOrderList({ quoteCcy, baseCcy, state, memberId }) {
+    return this.database.getOrderList({ quoteCcy, baseCcy, state, memberId });
   }
 
   async getOrder(orderId, { dbTransaction }) {

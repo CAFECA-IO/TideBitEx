@@ -8,6 +8,7 @@ import { useViewport } from "../store/ViewportProvider";
 
 const TradeForm = (props) => {
   const { t } = useTranslation();
+
   return (
     <form
       onSubmit={(e) => {
@@ -24,11 +25,11 @@ const TradeForm = (props) => {
             props.selectedTicker
               ? formateDecimal(
                   props.side === "buy"
-                    ? props.selectedTicker?.quoteCcyAvailable
-                    : props.selectedTicker?.baseCcyAvailable,
+                    ? props.quoteCcyAvailable
+                    : props.baseCcyAvailable,
                   4
                 )
-              : "0"
+              : "0" || "--"
           } `}
           {props.side === "buy"
             ? props.selectedTicker?.quoteCcy || "--"
@@ -160,6 +161,8 @@ const TradePannel = (props) => {
   const breakpoint = 414;
   const storeCtx = useContext(StoreContext);
   const [selectedTicker, setSelectedTicker] = useState(null);
+  const [quoteCcyAvailable, setQuoteCcyAvailable] = useState(null);
+  const [baseCcyAvailable, setBaseCcyAvailable] = useState(null);
   const [buyPx, setBuyPx] = useState(null);
   const [sellPx, setSellPx] = useState(null);
   const [buySz, setBuySz] = useState(null);
@@ -230,17 +233,21 @@ const TradePannel = (props) => {
     }
   };
 
-  const buyPctHandler = useCallback((selectedTicker, pct, buyPx) => {
-    setBuySz(
-      SafeMath.div(SafeMath.mult(pct, selectedTicker?.quoteCcyAvailable), buyPx)
-    );
-    setSelectedBuyPct(pct);
-  }, []);
+  const buyPctHandler = useCallback(
+    (selectedTicker, pct, buyPx) => {
+      setBuySz(SafeMath.div(SafeMath.mult(pct, quoteCcyAvailable), buyPx));
+      setSelectedBuyPct(pct);
+    },
+    [quoteCcyAvailable]
+  );
 
-  const sellPctHandler = useCallback((selectedTicker, pct) => {
-    setSellSz(SafeMath.mult(pct, selectedTicker.baseCcyAvailable));
-    setSelectedSellPct(pct);
-  }, []);
+  const sellPctHandler = useCallback(
+    (selectedTicker, pct) => {
+      setSellSz(SafeMath.mult(pct, baseCcyAvailable));
+      setSelectedSellPct(pct);
+    },
+    [baseCcyAvailable]
+  );
 
   const onSubmit = async (event, side) => {
     event.preventDefault();
@@ -325,6 +332,8 @@ const TradePannel = (props) => {
     buyPctHandler,
     sellPctHandler,
     storeCtx,
+    props.selectedTicker?.quoteCcy,
+    props.selectedTicker?.baseCcy,
   ]);
 
   return (
@@ -336,6 +345,16 @@ const TradePannel = (props) => {
               px={props.orderType === "market" ? buyPx : storeCtx.buyPx}
               sz={buySz}
               selectedTicker={selectedTicker}
+              quoteCcyAvailable={
+                storeCtx.balances.filter(
+                  (balance) => balance.ccy === selectedTicker.quoteCcy
+                ).availBal
+              }
+              baseCcyAvailable={
+                storeCtx.balances.filter(
+                  (balance) => balance.ccy === selectedTicker.baseCcy
+                ).availBal
+              }
               selectedPct={selectedBuyPct}
               onPxInput={!!props.readyOnly ? () => {} : storeCtx.buyPxHandler}
               onSzInput={buySzHandler}

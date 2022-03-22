@@ -36,8 +36,9 @@
   "close_orders": "历史委托",
   "balance": "资产",
   "currency": "币种",
-  "cashBal": "币种余额",
-  "frozenBal": "币种占用金额",
+  "totalBal": "总余额",
+  "availBal": "可用余额",
+  "frozenBal": "锁定金额",
   "time": "时间",
   "price": "价格",
   "cancel": "撤销",
@@ -50,5 +51,6 @@
   "navigator_chart": "图表",
   "navigator_market": "市场",
   "navigator_trade": "交易",
-  "navigator_assets": "资产"
+  "navigator_assets": "资产",
+  "status": "状态"
 }
