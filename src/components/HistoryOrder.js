@@ -103,8 +103,8 @@ const HistoryOrder = (props) => {
             <ul className="d-flex justify-content-between market-order-item market-order__title">
               {/* <li>Time</li> */}
               {/* <li>All pairs</li>
-              <li>All Types</li>
-              <li>Buy/Sell</li> */}
+              <li>All Types</li>*/}
+              <li>Buy/Sell</li> 
               <li>{t("price")}</li>
               <li>{t("volume")}</li>
               <li>{t("amount")}</li>
