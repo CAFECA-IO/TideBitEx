@@ -118,7 +118,7 @@ class mysql {
   }
   async getOrderList(memberId, quoteCcy, baseCcy) {
     const query =
-      "SELECT * FROM `orders` WHERE `orders`.`member_id` = ? AND `orders`.`ask` = ? AND `orders`.`currency` = ? AND `orders`.`state` = ?;";
+      "SELECT * FROM `orders` WHERE `orders`.`member_id` = ? AND `orders`.`currency` = ? AND `orders`.`ask` = ? AND `orders`.`state` = ?;";
     try {
       this.logger.log("getOrderList", query, `[${memberId}]`);
       const [[order]] = await this.db.query({
