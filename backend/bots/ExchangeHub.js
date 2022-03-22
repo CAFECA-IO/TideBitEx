@@ -660,7 +660,6 @@ class ExchangeHub extends Bot {
           const url = `${this.config.peatio.domain}/markets/${market.id}/orders/${orderId}`;
           this.logger.debug("postCancelOrder", url);
           const headers = {
-            "content-type": "application/x-www-form-urlencoded",
             "x-csrf-token": body["X-CSRF-Token"],
             cookie: header.cookie,
           };

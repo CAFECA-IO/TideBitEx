@@ -383,7 +383,6 @@ class Middleman {
   }
   async cancelOrder(order) {
     if (this.isLogin) {
-      console.log(`cancelOrder order`,order)
       return await this.communicator.cancel(order);
     }
   }
