@@ -330,10 +330,65 @@ class ExchangeHub extends Bot {
   }
 
   async getCandlesticks({ params, query }) {
+    this.logger.debug(`params`, params);
+    this.logger.debug(`query`, query);
     switch (this._findSource(query.instId)) {
       case SupportedExchange.OKEX:
         return this.okexConnector.router("getCandlesticks", { params, query });
-      case SupportedExchange.TIDEBIT: // ++ TODO
+      case SupportedExchange.TIDEBIT:
+        try {
+          const trades = await this._tbGetTradeHistory({
+            instId: query.instId,
+            increase: true,
+          });
+          // ++ TODO
+          let time = new Date().getTime();
+          let interval;
+          switch (query.bar) {
+            case "1m":
+              interval = 1 * 60 * 1000;
+              break;
+            case "30m":
+              interval = 30 * 60 * 1000;
+              break;
+            case "1H":
+              interval = 60 * 60 * 1000;
+              break;
+            case "1W":
+              interval = 7 * 24 * 60 * 60 * 1000;
+              break;
+            case "M":
+              interval = 30 * 24 * 60 * 60 * 1000;
+              break;
+            case "1D":
+            default:
+              interval = 24 * 60 * 60 * 1000;
+          }
+          let candles;
+          candles = trades.reduce((prev, curr) => {
+            const times = Math.floor(SafeMath.div(curr.ts, interval));
+            if (
+              prev[prev.length - 1].length > 0 &&
+              prev[prev.length - 1][0].times < times
+            ) {
+              return [...prev, [{ ...curr, times }]];
+            } else {
+              return [...prev.push({ ...curr, times })];
+            }
+          }, []);
+          console.log(`candles`, candles)
+          return new ResponseFormat({
+            message: "getCandlesticks",
+            payload: candles,
+          });
+        } catch (error) {
+          this.logger.error(error);
+          const message = error.message;
+          return new ResponseFormat({
+            message,
+            code: Codes.API_UNKNOWN_ERROR,
+          });
+        }
       default:
         return new ResponseFormat({
           message: "getCandlesticks",
@@ -353,7 +408,7 @@ class ExchangeHub extends Bot {
           });
           return new ResponseFormat({
             message: "getTrades",
-            payload: trades.sort((a, b) => b.ts - a.ts),
+            payload: trades,
           });
         } catch (error) {
           this.logger.error(error);
@@ -521,9 +576,8 @@ class ExchangeHub extends Bot {
         });
     }
   }
-  async _tbGetTradeHistory({ instId }) {
+  async _tbGetTradeHistory({ instId, increase }) {
     const market = this._findMarket(instId);
-    const t = await this.database.transaction();
     if (!market) {
       throw new Error(`this.tidebitMarkets.instId ${instId} not found.`);
     }
@@ -542,15 +596,17 @@ class ExchangeHub extends Bot {
     let trades;
     trades = await this.database.getTrades(quoteCcy, baseCcy);
     this.logger.debug(`_tbGetTradeHistory trades:`, trades);
-    const tradeHistory = trades.map((trade) => ({
-      instId: instId,
-      side: "",
-      sz: trade.volume,
-      px: trade.price,
-      tradeId: trade.id,
-      trend: trade.trend,
-      ts: new Date(trade.created_at).getTime(),
-    }));
+    const tradeHistory = trades
+      .map((trade) => ({
+        instId: instId,
+        side: "",
+        sz: trade.volume,
+        px: trade.price,
+        tradeId: trade.id,
+        trend: trade.trend,
+        ts: new Date(trade.created_at).getTime(),
+      }))
+      .sort((a, b) => (increase ? a.ts - b.ts : b.ts - a.ts));
     return tradeHistory;
   }
 

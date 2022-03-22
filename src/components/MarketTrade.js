@@ -33,7 +33,7 @@ const TradeForm = (props) => {
           {props.side === "buy"
             ? props.selectedTicker?.quoteCcy || "--"
             : props.selectedTicker?.baseCcy || "--"}
-          = 0 USD
+          {/* = 0 USD */}
         </span>
       </p>
       <div className="market-trade__input-group input-group">
@@ -333,17 +333,21 @@ const TradePannel = (props) => {
   ]);
 
   useEffect(() => {
-    if (storeCtx.balances.length > 0 && selectedTicker?.quoteCcy) {
-      let quoteCcyAvailable = storeCtx.balances.filter(
-        (balance) => balance.ccy === selectedTicker?.quoteCcy
-      ).availBal;
-      if (quoteCcyAvailable) setQuoteCcyAvailable(quoteCcyAvailable);
-      let baseCcyAvailable = storeCtx.balances.filter(
-        (balance) => balance.ccy === selectedTicker?.baseCcy
-      ).availBal;
-      if (baseCcyAvailable) setBaseCcyAvailable(baseCcyAvailable);
+    if (storeCtx.balances.length > 0 && storeCtx.selectedTicker?.quoteCcy) {
+      console.log(`storeCtx.balances`, storeCtx.balances);
+      console.log(`storeCtx.selectedTicker`, storeCtx.selectedTicker);
+      let quoteCcy = storeCtx.balances.filter((balance) => {
+        return balance.ccy === storeCtx.selectedTicker?.quoteCcy;
+      });
+      console.log(`quoteCcy`, quoteCcy);
+      if (quoteCcy) setQuoteCcyAvailable(quoteCcy?.availBal);
+      let baseCcy = storeCtx.balances.filter(
+        (balance) => balance.ccy === storeCtx.selectedTicker?.baseCcy
+      );
+      console.log(`baseCcy`, baseCcy);
+      if (baseCcy) setBaseCcyAvailable(baseCcy?.availBal);
     }
-  }, [selectedTicker?.baseCcy, selectedTicker?.quoteCcy, storeCtx.balances]);
+  }, [storeCtx.selectedTicker, storeCtx.balances]);
 
   return (
     <div className="market-trade__panel">
