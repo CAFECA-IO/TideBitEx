@@ -681,12 +681,6 @@ class ExchangeHub extends Bot {
             code: Codes.SUCCESS,
           });
         } catch (error) {
-          /**
-           *  ++ TODO
-           * Missing template private/orders/destroy, private/base/destroy, application/destroy with {:locale=>[:"en-US", :"zh-HK"], :formats=>[:html], :variants=>[], :handlers=>[:erb, :builder, :raw, :ruby, :jbuilder, :slim, :coffee, :arb, :md]}. Searched in:\n' +
-           * "/home/ubuntu/TideBit-Lagacy/assets"\n' +
-           * "/home/ubuntu/TideBit-Lagacy/app/views"\n' +
-           */
           this.logger.error(error);
           return new ResponseFormat({
             message: "postCancelOrder",
