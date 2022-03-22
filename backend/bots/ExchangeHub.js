@@ -592,9 +592,9 @@ class ExchangeHub extends Bot {
       source === SupportedExchange.OKEX
         ? Utils.parseClOrdId(body.clOrdId)
         : { orderId: body.ordId };
-    try {
-      switch (source) {
-        case SupportedExchange.OKEX:
+    switch (source) {
+      case SupportedExchange.OKEX:
+        try {
           const order = await this.database.getOrder(orderId, {
             dbTransaction: t,
           });
@@ -651,7 +651,17 @@ class ExchangeHub extends Bot {
           }
           await t.commit();
           return okexCancelOrderRes;
-        case SupportedExchange.TIDEBIT: // ++ TODO
+        } catch (error) {
+          this.logger.error(error);
+          await t.rollback();
+          return new ResponseFormat({
+            message: error.message,
+            code: Codes.API_UNKNOWN_ERROR,
+          });
+        }
+      /* !!! HIGH RISK (end) !!! */
+      case SupportedExchange.TIDEBIT:
+        try {
           const market = this._findMarket(body.instId);
           const url = `${this.config.peatio.domain}/markets/${market.id}/orders/${orderId}`;
           this.logger.debug("postCancelOrder", url);
@@ -669,22 +679,21 @@ class ExchangeHub extends Bot {
             message: "postCancelOrder",
             code: Codes.SUCCESS,
           });
-        default:
-          await t.rollback();
+        } catch (error) {
+          // ++ TODO
+          this.logger.error(error);
           return new ResponseFormat({
-            message: "instId not Support now",
-            code: Codes.API_NOT_SUPPORTED,
+            message: "postCancelOrder",
+            code: Codes.SUCCESS,
           });
-      }
-    } catch (error) {
-      this.logger.error(error);
-      await t.rollback();
-      return new ResponseFormat({
-        message: error.message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
+        }
+      default:
+        await t.rollback();
+        return new ResponseFormat({
+          message: "instId not Support now",
+          code: Codes.API_NOT_SUPPORTED,
+        });
     }
-    /* !!! HIGH RISK (end) !!! */
   }
   // trade api end
 
