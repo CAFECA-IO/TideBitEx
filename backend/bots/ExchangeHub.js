@@ -588,13 +588,13 @@ class ExchangeHub extends Bot {
     // 8. post okex cancel order
     const t = await this.database.transaction();
     // get orderId from body.clOrdId
-    let { orderId } =
-      source === SupportedExchange.OKEX
-        ? Utils.parseClOrdId(body.clOrdId)
-        : { orderId: body.ordId };
-    switch (source) {
-      case SupportedExchange.OKEX:
-        try {
+    try {
+      let { orderId } =
+        source === SupportedExchange.OKEX
+          ? Utils.parseClOrdId(body.clOrdId)
+          : { orderId: body.ordId };
+      switch (source) {
+        case SupportedExchange.OKEX:
           const order = await this.database.getOrder(orderId, {
             dbTransaction: t,
           });
@@ -651,22 +651,14 @@ class ExchangeHub extends Bot {
           }
           await t.commit();
           return okexCancelOrderRes;
-        } catch (error) {
-          this.logger.error(error);
-          await t.rollback();
-          return new ResponseFormat({
-            message: error.message,
-            code: Codes.API_UNKNOWN_ERROR,
-          });
-        }
-      /* !!! HIGH RISK (end) !!! */
-      case SupportedExchange.TIDEBIT:
-        try {
+
+        /* !!! HIGH RISK (end) !!! */
+        case SupportedExchange.TIDEBIT:
           const market = this._findMarket(body.instId);
           const url = `${this.config.peatio.domain}/markets/${market.id}/orders/${orderId}`;
           this.logger.debug("postCancelOrder", url);
           const headers = {
-            Accept:"*/*",
+            Accept: "*/*",
             "x-csrf-token": body["X-CSRF-Token"],
             cookie: header.cookie,
           };
@@ -675,24 +667,26 @@ class ExchangeHub extends Bot {
             url,
             headers,
           });
-          this.logger.log(tbCancelOrderRes);
+          this.logger.debug(tbCancelOrderRes);
           return new ResponseFormat({
             message: "postCancelOrder",
             code: Codes.SUCCESS,
           });
-        } catch (error) {
-          this.logger.error(error);
+
+        default:
+          await t.rollback();
           return new ResponseFormat({
-            message: "postCancelOrder",
-            code: Codes.SUCCESS,
+            message: "instId not Support now",
+            code: Codes.API_NOT_SUPPORTED,
           });
-        }
-      default:
-        await t.rollback();
-        return new ResponseFormat({
-          message: "instId not Support now",
-          code: Codes.API_NOT_SUPPORTED,
-        });
+      }
+    } catch (error) {
+      this.logger.error(error);
+      await t.rollback();
+      return new ResponseFormat({
+        message: error.message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
     }
   }
   // trade api end
