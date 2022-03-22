@@ -334,17 +334,14 @@ const TradePannel = (props) => {
 
   useEffect(() => {
     if (storeCtx.balances.length > 0 && storeCtx.selectedTicker?.quoteCcy) {
-      console.log(`storeCtx.balances`, storeCtx.balances);
-      console.log(`storeCtx.selectedTicker`, storeCtx.selectedTicker);
       let quoteCcy = storeCtx.balances.find((balance) => {
         return balance.ccy === storeCtx.selectedTicker?.quoteCcy;
       });
-      console.log(`quoteCcy`, quoteCcy);
+
       if (quoteCcy) setQuoteCcyAvailable(quoteCcy?.availBal);
       let baseCcy = storeCtx.balances.find(
         (balance) => balance.ccy === storeCtx.selectedTicker?.baseCcy
       );
-      console.log(`baseCcy`, baseCcy);
       if (baseCcy) setBaseCcyAvailable(baseCcy?.availBal);
     }
   }, [storeCtx.selectedTicker, storeCtx.balances]);

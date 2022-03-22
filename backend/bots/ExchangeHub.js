@@ -366,17 +366,27 @@ class ExchangeHub extends Bot {
           }
           let candles;
           candles = trades.reduce((prev, curr) => {
-            const times = Math.floor(SafeMath.div(curr.ts, interval));
-            if (!prev[prev.length - 1]?.length > 0) {
-              return [[{ ...curr, times }]];
-            } else if (
-              prev[prev.length - 1]?.length > 0 &&
-              prev[prev.length - 1][0].times < times
-            ) {
-              return [...prev, [{ ...curr, times }]];
+            const index = Math.floor(curr.ts / interval);
+            let point = prev[index];
+            if (point) {
+              point[2] = Math.max(point[2], curr.px);
+              point[3] = Math.min(point[3], curr.px);
+              point[4] = curr.px;
+              point[5] += curr.sz;
+              point[6] += curr.sz * curr.px;
             } else {
+              point = [
+                index,
+                curr.px,
+                curr.px,
+                curr.px,
+                curr.px,
+                curr.sz,
+                curr.sz * curr.px,
+              ];
             }
-          }, []);
+            return prev;
+          }, {});
           console.log(`candles`, candles);
           return new ResponseFormat({
             message: "getCandlesticks",
