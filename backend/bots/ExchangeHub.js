@@ -516,9 +516,9 @@ class ExchangeHub extends Bot {
             instId: query.instId,
             ordId: order.id,
             ordType: order.ord_type,
-            px: order.price,
+            px: Utils.removeZeroEnd(order.price),
             side: order.type === "OrderAsk" ? "sell" : "buy",
-            sz: order.volume,
+            sz: Utils.removeZeroEnd(order.volume),
             uTime: new Date(order.updated_at).getTime(),
           }));
           return new ResponseFormat({
