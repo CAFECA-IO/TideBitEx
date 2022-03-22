@@ -590,12 +590,15 @@ class ExchangeHub extends Bot {
     // 7. update account balance and locked
     // 8. post okex cancel order
     const t = await this.database.transaction();
+    console.log(`postCancelOrder source`, source);
     try {
       // get orderId from body.clOrdId
       const { orderId } =
         source === SupportedExchange.OKEX
           ? Utils.parseClOrdId(body.clOrdId)
           : body.ordId;
+
+      console.log(`postCancelOrder orderId`, orderId);
       const order = await this.database.getOrder(orderId, { dbTransaction: t });
       if (order.state !== this.database.ORDER_STATE.WAIT) {
         await t.rollback();
