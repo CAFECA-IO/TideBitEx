@@ -342,7 +342,7 @@ class ExchangeHub extends Bot {
             increase: true,
           });
           // ++ TODO
-          let time = new Date().getTime();
+          // let time = new Date().getTime();
           let interval;
           switch (query.bar) {
             case "1m":
@@ -385,6 +385,7 @@ class ExchangeHub extends Bot {
                 curr.sz * curr.px,
               ];
             }
+            prev[index] = point;
             return prev;
           }, {});
           console.log(`candles`, candles);
@@ -618,6 +619,7 @@ class ExchangeHub extends Bot {
         ts: new Date(trade.created_at).getTime(),
       }))
       .sort((a, b) => (increase ? a.ts - b.ts : b.ts - a.ts));
+      this.logger.debug(`_tbGetTradeHistory tradeHistory:`, tradeHistory);
     return tradeHistory;
   }
 
