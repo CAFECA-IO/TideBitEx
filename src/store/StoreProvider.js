@@ -413,6 +413,9 @@ const StoreProvider = (props) => {
         if (token) {
           setToken(token);
           setIsLogin(true);
+          enqueueSnackbar(`User Login`, {
+            variant: "success",
+          });
         }
       }
     } catch (error) {
