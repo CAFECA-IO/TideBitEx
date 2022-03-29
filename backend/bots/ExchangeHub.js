@@ -806,6 +806,9 @@ class ExchangeHub extends Bot {
           const trades = await this._tbGetTradeHistory({
             instId: query.instId,
           });
+          this.logger.debug('========================')
+          this.logger.debug(trades)
+          this.logger.debug('========================')
           const orders = doneOrders
             .map((order) => {
               if (order.ordType === "market") {
