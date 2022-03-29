@@ -230,12 +230,15 @@ class ExchangeHub extends Bot {
       (market) => query.instId === market.instId
     );
     this.logger.debug(`getTicker index:`, index);
+    this.logger.debug(`getTicker query:`, query,`${query.instId
+      .replace("-", "")
+      .toLowerCase()}`);
     if (index !== -1) {
       const url = `${this.config.peatio.domain}/api/v2/tickers/${query.instId
         .replace("-", "")
         .toLowerCase()}`;
-      const tBTickerRes = await axios.get(`url`);
       this.logger.debug(`getTicker url:`, url);
+      const tBTickerRes = await axios.get(`url`);
       this.logger.debug(`getTicker tBTickerRes:`, tBTickerRes);
       if (!tBTickerRes || !tBTickerRes.data) {
         return new ResponseFormat({
@@ -608,7 +611,7 @@ class ExchangeHub extends Bot {
           });
           const tbOrdersRes = await axios.post(url, formbody, {
             headers,
-          });          // TODO: payload
+          }); // TODO: payload
           return new ResponseFormat({
             message: "postPlaceOrder",
             payload: [
@@ -618,7 +621,7 @@ class ExchangeHub extends Bot {
                 sCode: "",
                 sMsg: "",
                 tag: "",
-                data: tbOrdersRes.data
+                data: tbOrdersRes.data,
               },
             ],
           });
