@@ -261,7 +261,10 @@ class ExchangeHub extends Bot {
         sodUtc0: "0.0",
         sodUtc8: tBTicker.ticker.open.toString(),
       };
-      return formatTBTicker;
+      return new ResponseFormat({
+        message: "getTicker",
+        payload: formatTBTicker,
+      });
     }
   }
   // account api end
