@@ -49,6 +49,7 @@ pathname = [
   "get | /api/v1/account/balance | Bot.ExchangeHub.getBalance",
 
   # exchange - market
+  "get | /api/v1/market/ticker | Bot.ExchangeHub.getTicker",
   "get | /api/v1/market/tickers | Bot.ExchangeHub.getTickers",
   "get | /api/v1/market/books | Bot.ExchangeHub.getOrderBooks",
   "get | /api/v1/market/candles | Bot.ExchangeHub.getCandlesticks",

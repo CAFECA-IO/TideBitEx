@@ -162,6 +162,109 @@ class ExchangeHub extends Bot {
     }
     // return this.okexConnector.router('getBalance', { memberId: null, params, query });
   }
+
+  async _tbGetTickers({ list }) {
+    const tideBitOnlyMarkets = Utils.marketFilterExclude(
+      list,
+      this.tidebitMarkets
+    );
+    const isVisibles = tideBitOnlyMarkets.filter(
+      (m) => m.visible === true || m.visible === undefined
+    ); // default visible is true, so if visible is undefined still need to show on list.
+    const tBTickersRes = await axios.get(
+      `${this.config.peatio.domain}/api/v2/tickers`
+    );
+    if (!tBTickersRes || !tBTickersRes.data) {
+      return new ResponseFormat({
+        message: "Something went wrong",
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+    const tBTickers = tBTickersRes.data;
+    console.debug(`tBTickers[${tBTickers.length}]`, tBTickers);
+    const formatTBTickers = isVisibles.map((market) => {
+      const tBTicker = tBTickers[market.id];
+      let formatTBTicker = {
+        instType: "",
+        instId: market.instId,
+        last: "0.0",
+        lastSz: "0.0",
+        askPx: "0.0",
+        askSz: "0.0",
+        bidPx: "0.0",
+        bidSz: "0.0",
+        open24h: "0.0",
+        high24h: "0.0",
+        low24h: "0.0",
+        volCcy24h: "0.0",
+        vol24h: "0.0",
+        ts: "0.0",
+        sodUtc0: "0.0",
+        sodUtc8: "0.0",
+      };
+      if (tBTicker) {
+        formatTBTicker = {
+          instType: "",
+          instId: market.instId,
+          last: tBTicker.ticker.last.toString(),
+          lastSz: tBTicker.ticker.vol.toString(),
+          askPx: tBTicker.ticker.sell.toString(),
+          askSz: "0.0",
+          bidPx: tBTicker.ticker.buy.toString(),
+          bidSz: "0.0",
+          open24h: tBTicker.ticker.open.toString(),
+          high24h: tBTicker.ticker.high.toString(),
+          low24h: tBTicker.ticker.low.toString(),
+          volCcy24h: "0.0",
+          vol24h: "0.0",
+          ts: tBTicker.at * 1000,
+          sodUtc0: "0.0",
+          sodUtc8: tBTicker.ticker.open.toString(),
+        };
+      }
+      return formatTBTicker;
+    });
+    return formatTBTickers;
+  }
+  async getTicker({ params, query }) {
+    const index = this.tidebitMarkets.findIndex(
+      (market) => query.instId === market.instId
+    );
+    if (index !== -1) {
+      const tBTickerRes = await axios.get(
+        `${this.config.peatio.domain}/api/v2/tickers/${query.instId.replace(
+          "-",
+          ""
+        )}`
+      );
+      if (!tBTickerRes || !tBTickerRes.data) {
+        return new ResponseFormat({
+          message: "Something went wrong",
+          code: Codes.API_UNKNOWN_ERROR,
+        });
+      }
+      const tBTicker = tBTickerRes.data;
+      const formatTBTicker = {
+        instType: "",
+        instId: query.instId,
+        last: tBTicker.ticker.last.toString(),
+        lastSz: tBTicker.ticker.vol.toString(),
+        askPx: tBTicker.ticker.sell.toString(),
+        askSz: "0.0",
+        bidPx: tBTicker.ticker.buy.toString(),
+        bidSz: "0.0",
+        open24h: tBTicker.ticker.open.toString(),
+        high24h: tBTicker.ticker.high.toString(),
+        low24h: tBTicker.ticker.low.toString(),
+        volCcy24h: "0.0",
+        vol24h: "0.0",
+        ts: tBTicker.at * 1000,
+        sodUtc0: "0.0",
+        sodUtc8: tBTicker.ticker.open.toString(),
+      };
+      return formatTBTicker;
+    }
+  }
   // account api end
   // market api
   async getTickers({ params, query }) {
@@ -173,6 +276,10 @@ class ExchangeHub extends Bot {
       });
       if (okexRes.success) {
         const okexInstruments = okexRes.payload;
+        console.debug(
+          `okexInstruments[${okexInstruments.length}]`,
+          okexInstruments
+        );
         const includeTidebitMarket = Utils.marketFilterInclude(
           this.tidebitMarkets,
           okexInstruments
@@ -181,6 +288,7 @@ class ExchangeHub extends Bot {
           (market) => (market.source = SupportedExchange.OKEX)
         );
         list.push(...includeTidebitMarket);
+        console.debug(`okexInstruments list[${list.length}]`, list);
       } else {
         return okexRes;
       }
@@ -191,69 +299,8 @@ class ExchangeHub extends Bot {
         code: Codes.API_UNKNOWN_ERROR,
       });
     }
-
     try {
-      console.debug(`this.tidebitMarkets`, this.tidebitMarkets);
-      const tideBitOnlyMarkets = Utils.marketFilterExclude(
-        list,
-        this.tidebitMarkets
-      );
-      const isVisibles = tideBitOnlyMarkets.filter(
-        (m) => m.visible === true || m.visible === undefined
-      ); // default visible is true, so if visible is undefined still need to show on list.
-      const tBTickersRes = await axios.get(
-        `${this.config.peatio.domain}/api/v2/tickers`
-      );
-      console.debug(`tBTickersRes`, tBTickersRes);
-      if (!tBTickersRes || !tBTickersRes.data) {
-        return new ResponseFormat({
-          message: "Something went wrong",
-          code: Codes.API_UNKNOWN_ERROR,
-        });
-      }
-      const tBTickers = tBTickersRes.data;
-      const formatTBTickers = isVisibles.map((market) => {
-        const tBTicker = tBTickers[market.id];
-        let formatTBTicker = {
-          instType: "",
-          instId: market.instId,
-          last: "0.0",
-          lastSz: "0.0",
-          askPx: "0.0",
-          askSz: "0.0",
-          bidPx: "0.0",
-          bidSz: "0.0",
-          open24h: "0.0",
-          high24h: "0.0",
-          low24h: "0.0",
-          volCcy24h: "0.0",
-          vol24h: "0.0",
-          ts: "0.0",
-          sodUtc0: "0.0",
-          sodUtc8: "0.0",
-        };
-        if (tBTicker) {
-          formatTBTicker = {
-            instType: "",
-            instId: market.instId,
-            last: tBTicker.ticker.last.toString(),
-            lastSz: tBTicker.ticker.vol.toString(),
-            askPx: tBTicker.ticker.sell.toString(),
-            askSz: "0.0",
-            bidPx: tBTicker.ticker.buy.toString(),
-            bidSz: "0.0",
-            open24h: tBTicker.ticker.open.toString(),
-            high24h: tBTicker.ticker.high.toString(),
-            low24h: tBTicker.ticker.low.toString(),
-            volCcy24h: "0.0",
-            vol24h: "0.0",
-            ts: tBTicker.at * 1000,
-            sodUtc0: "0.0",
-            sodUtc8: tBTicker.ticker.open.toString(),
-          };
-        }
-        return formatTBTicker;
-      });
+      const formatTBTickers = await this._tbGetTickers({ list });
       list.push(...formatTBTickers);
     } catch (error) {
       this.logger.log(error);

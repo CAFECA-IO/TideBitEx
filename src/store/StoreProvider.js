@@ -204,6 +204,26 @@ const StoreProvider = (props) => {
     ]
   );
 
+  const getTicker = useCallback(
+    async (instId) => {
+      try {
+        const result = await middleman.getTicker(instId);
+        setTickers(middleman.tickers);
+        if (selectedTicker.instId === instId) {
+          selectTickerHandler(result);
+        }
+      } catch (error) {
+        enqueueSnackbar(
+          `${error?.message || "Some went wrong"}. Failed to update ticker`,
+          {
+            variant: "error",
+          }
+        );
+      }
+    },
+    [enqueueSnackbar, middleman, selectTickerHandler, selectedTicker]
+  );
+
   const getTickers = useCallback(
     async (force = false, instType = "SPOT", from = 0, limit = 100) => {
       try {
@@ -218,7 +238,9 @@ const StoreProvider = (props) => {
         }
       } catch (error) {
         enqueueSnackbar(
-          `${error?.message || "Some went wrong"}. Failed to get market pairs`,
+          `${
+            error?.message || "Some went wrong"
+          }. Failed to get market tickers`,
           {
             variant: "error",
           }
@@ -253,10 +275,10 @@ const StoreProvider = (props) => {
         await getCloseOrders();
         await getPendingOrders();
         await getBalances();
-        await getTrades(order.instId)
+        await getTrades(order.instId);
         await getBooks(order.instId);
         await getCandles(order.instId);
-        await getTickers()
+        await getTicker(order.instId);
         // return result;
         enqueueSnackbar(
           `${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
@@ -283,7 +305,18 @@ const StoreProvider = (props) => {
         );
       }
     },
-    [enqueueSnackbar, getBalances, getBooks, getCandles, getCloseOrders, getPendingOrders, getTrades, middleman, token]
+    [
+      enqueueSnackbar,
+      getBalances,
+      getBooks,
+      getCandles,
+      getCloseOrders,
+      getPendingOrders,
+      getTicker,
+      getTrades,
+      middleman,
+      token,
+    ]
   );
 
   const cancelOrder = useCallback(
