@@ -313,7 +313,7 @@ const StoreProvider = (props) => {
       getCandles,
       getCloseOrders,
       getPendingOrders,
-      getTickers,
+      getTicker,
       getTrades,
       middleman,
       token,

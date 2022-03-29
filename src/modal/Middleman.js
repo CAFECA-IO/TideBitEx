@@ -94,7 +94,7 @@ class Middleman {
   async getTicker(instId) {
     try {
       const rawTicker = await this.communicator.ticker(instId);
-      console.debug(`getTickers rawTicker`, rawTicker);
+      console.debug(`getTicker rawTicker`, rawTicker);
       const ticker = {
         ...rawTicker,
         baseCcy: instId.split("-")[0],
