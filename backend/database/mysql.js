@@ -156,6 +156,22 @@ class mysql {
     }
   }
 
+  async getVouchers({ memberId, ask, bid }) {
+    const query =
+      "SELECT * FROM `vouchers` WHERE `vouchers`.`member_id` = ? AND `vouchers`.`ask` = ? AND `vouchers`.`bid` = ?;";
+    try {
+      this.logger.log("getVouchers", query, `[${memberId}, ${ask}, ${bid}]`);
+      const [trades] = await this.db.query({
+        query,
+        values: [memberId, ask, bid],
+      });
+      return trades;
+    } catch (error) {
+      this.logger.log(error);
+      return [];
+    }
+  }
+
   async getTrades(quoteCcy, baseCcy) {
     const query =
       "SELECT `trades`.* FROM `trades`, `orders` WHERE `orders`.`id` = `trades`.`ask_id` AND `trades`.`currency` = ? AND `orders`.`ask` = ?;";

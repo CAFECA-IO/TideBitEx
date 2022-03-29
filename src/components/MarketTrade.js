@@ -272,6 +272,7 @@ const TradePannel = (props) => {
             tdMode,
             side,
             ordType: props.orderType,
+            px: side === "buy" ? buyPx : sellPx,
             sz: side === "buy" ? buySz : sellSz,
           };
     const confirm = window.confirm(`You are going to

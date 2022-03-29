@@ -22,7 +22,7 @@ const OrderTile = (props) => {
         >
           {props.order.side === "buy" ? "Bid" : "Ask"}
         </div>
-        {SafeMath.gt(props.order.sz, "0") && (
+        {props.order.state === "waiting" && (
           <div
             className={`order-tile__label ${
               props.order.filled
@@ -30,7 +30,7 @@ const OrderTile = (props) => {
                 : "order-tile__label--grey"
             }`}
           >
-            {props.order.filled ? "Partial" : "Ask"}
+            {props.order.filled ? "Partial" : "Total"}
           </div>
         )}
       </li>

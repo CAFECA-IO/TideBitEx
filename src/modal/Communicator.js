@@ -64,6 +64,22 @@ class Communicator {
   }
 
   // Market
+  async ticker(instId) {
+    try {
+      if (!instId) return { message: "instId cannot be null" };
+      const res = await this._get(
+        `/market/ticker?instId=${instId}`
+      );
+      if (res.success) {
+        return res.data;
+      }
+      return Promise.reject({ message: res.message, code: res.code });
+    } catch (error) {
+      return Promise.reject({ message: error });
+    }
+  }
+
+  // Market
   async tickers(instType, from, limit) {
     try {
       if (!instType) return { message: "instType cannot be null" };
@@ -157,13 +173,13 @@ class Communicator {
     try {
       const url = `/trade/orders-history?${
         options?.instId ? `&instId=${options.instId}` : ""
-      }${options?.instType ? `&instType=${options.instType}` : "&instType=SPOT"}${
-        options?.ordType ? `&ordType=${options.ordType}` : ""
-      }${options?.state ? `&state=${options.state}` : ""}${
-        options?.after ? `&after=${options.after}` : ""
-      }${options?.before ? `&before=${options.before}` : ""}${
-        options?.limit ? `&limit=${options.limit}` : ""
-      }`;
+      }${
+        options?.instType ? `&instType=${options.instType}` : "&instType=SPOT"
+      }${options?.ordType ? `&ordType=${options.ordType}` : ""}${
+        options?.state ? `&state=${options.state}` : ""
+      }${options?.after ? `&after=${options.after}` : ""}${
+        options?.before ? `&before=${options.before}` : ""
+      }${options?.limit ? `&limit=${options.limit}` : ""}`;
       const res = await this._get(url);
       if (res.success) {
         return res.data;
@@ -201,18 +217,18 @@ class Communicator {
     }
   }
 
-    // Trade
-    async cancel(order) {
-      try {
-        const res = await this._post(`/trade/cancel-order`, order);
-        if (res.success) {
-          return res.data;
-        }
-        return Promise.reject({ message: res.message, code: res.code });
-      } catch (error) {
-        return Promise.reject({ message: error });
+  // Trade
+  async cancel(order) {
+    try {
+      const res = await this._post(`/trade/cancel-order`, order);
+      if (res.success) {
+        return res.data;
       }
+      return Promise.reject({ message: res.message, code: res.code });
+    } catch (error) {
+      return Promise.reject({ message: error });
     }
+  }
 
   // use for need jwt request
   async _get(url) {

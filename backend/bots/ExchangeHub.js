@@ -86,7 +86,7 @@ class ExchangeHub extends Bot {
       });
       return formatMarket;
     } catch (error) {
-      this.logger.log(error);
+      this.logger.error(error);
       process.exit(1);
     }
   }
@@ -162,6 +162,111 @@ class ExchangeHub extends Bot {
     }
     // return this.okexConnector.router('getBalance', { memberId: null, params, query });
   }
+
+  async _tbGetTickers({ list }) {
+    const tideBitOnlyMarkets = Utils.marketFilterExclude(
+      list,
+      this.tidebitMarkets
+    );
+    const isVisibles = tideBitOnlyMarkets.filter(
+      (m) => m.visible === true || m.visible === undefined
+    ); // default visible is true, so if visible is undefined still need to show on list.
+    const tBTickersRes = await axios.get(
+      `${this.config.peatio.domain}/api/v2/tickers`
+    );
+    if (!tBTickersRes || !tBTickersRes.data) {
+      return new ResponseFormat({
+        message: "Something went wrong",
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+    const tBTickers = tBTickersRes.data;
+    const formatTBTickers = isVisibles.map((market) => {
+      const tBTicker = tBTickers[market.id];
+      let formatTBTicker = {
+        instType: "",
+        instId: market.instId,
+        last: "0.0",
+        lastSz: "0.0",
+        askPx: "0.0",
+        askSz: "0.0",
+        bidPx: "0.0",
+        bidSz: "0.0",
+        open24h: "0.0",
+        high24h: "0.0",
+        low24h: "0.0",
+        volCcy24h: "0.0",
+        vol24h: "0.0",
+        ts: "0.0",
+        sodUtc0: "0.0",
+        sodUtc8: "0.0",
+      };
+      if (tBTicker) {
+        formatTBTicker = {
+          instType: "",
+          instId: market.instId,
+          last: tBTicker.ticker.last.toString(),
+          lastSz: tBTicker.ticker.vol.toString(),
+          askPx: tBTicker.ticker.sell.toString(),
+          askSz: "0.0",
+          bidPx: tBTicker.ticker.buy.toString(),
+          bidSz: "0.0",
+          open24h: tBTicker.ticker.open.toString(),
+          high24h: tBTicker.ticker.high.toString(),
+          low24h: tBTicker.ticker.low.toString(),
+          volCcy24h: "0.0",
+          vol24h: "0.0",
+          ts: tBTicker.at * 1000,
+          sodUtc0: "0.0",
+          sodUtc8: tBTicker.ticker.open.toString(),
+        };
+      }
+      return formatTBTicker;
+    });
+    return formatTBTickers;
+  }
+  async getTicker({ params, query }) {
+    const index = this.tidebitMarkets.findIndex(
+      (market) => query.instId === market.instId
+    );
+    if (index !== -1) {
+      const url = `${this.config.peatio.domain}/api/v2/tickers/${query.instId
+        .replace("-", "")
+        .toLowerCase()}`;
+      this.logger.debug(`getTicker url:`, url);
+      const tBTickerRes = await axios.get(url);
+      this.logger.debug(`getTicker tBTickerRes.data:`, tBTickerRes.data);
+      if (!tBTickerRes || !tBTickerRes.data) {
+        return new ResponseFormat({
+          message: "Something went wrong",
+          code: Codes.API_UNKNOWN_ERROR,
+        });
+      }
+      const tBTicker = tBTickerRes.data;
+      const formatTBTicker = {
+        instType: "",
+        instId: query.instId,
+        last: tBTicker.ticker.last.toString(),
+        lastSz: tBTicker.ticker.vol.toString(),
+        askPx: tBTicker.ticker.sell.toString(),
+        askSz: "0.0",
+        bidPx: tBTicker.ticker.buy.toString(),
+        bidSz: "0.0",
+        open24h: tBTicker.ticker.open.toString(),
+        high24h: tBTicker.ticker.high.toString(),
+        low24h: tBTicker.ticker.low.toString(),
+        volCcy24h: "0.0",
+        vol24h: "0.0",
+        ts: tBTicker.at * 1000,
+        sodUtc0: "0.0",
+        sodUtc8: tBTicker.ticker.open.toString(),
+      };
+      return new ResponseFormat({
+        message: "getTicker",
+        payload: formatTBTicker,
+      });
+    }
+  }
   // account api end
   // market api
   async getTickers({ params, query }) {
@@ -181,80 +286,22 @@ class ExchangeHub extends Bot {
           (market) => (market.source = SupportedExchange.OKEX)
         );
         list.push(...includeTidebitMarket);
+        this.logger.debug(`getTickers list[${list.length}]`, list);
       } else {
         return okexRes;
       }
     } catch (error) {
-      this.logger.log(error);
+      this.logger.error(error);
       return new ResponseFormat({
         message: error.stack,
         code: Codes.API_UNKNOWN_ERROR,
       });
     }
-
     try {
-      const tideBitOnlyMarkets = Utils.marketFilterExclude(
-        list,
-        this.tidebitMarkets
-      );
-      const isVisibles = tideBitOnlyMarkets.filter(
-        (m) => m.visible === true || m.visible === undefined
-      ); // default visible is true, so if visible is undefined still need to show on list.
-      const tBTickersRes = await axios.get(
-        `${this.config.peatio.domain}/api/v2/tickers`
-      );
-      if (!tBTickersRes || !tBTickersRes.data) {
-        return new ResponseFormat({
-          message: "Something went wrong",
-          code: Codes.API_UNKNOWN_ERROR,
-        });
-      }
-      const tBTickers = tBTickersRes.data;
-      const formatTBTickers = isVisibles.map((market) => {
-        const tBTicker = tBTickers[market.id];
-        let formatTBTicker = {
-          instType: "",
-          instId: market.instId,
-          last: "0.0",
-          lastSz: "0.0",
-          askPx: "0.0",
-          askSz: "0.0",
-          bidPx: "0.0",
-          bidSz: "0.0",
-          open24h: "0.0",
-          high24h: "0.0",
-          low24h: "0.0",
-          volCcy24h: "0.0",
-          vol24h: "0.0",
-          ts: "0.0",
-          sodUtc0: "0.0",
-          sodUtc8: "0.0",
-        };
-        if (tBTicker) {
-          formatTBTicker = {
-            instType: "",
-            instId: market.instId,
-            last: tBTicker.ticker.last.toString(),
-            lastSz: tBTicker.ticker.vol.toString(),
-            askPx: tBTicker.ticker.sell.toString(),
-            askSz: "0.0",
-            bidPx: tBTicker.ticker.buy.toString(),
-            bidSz: "0.0",
-            open24h: tBTicker.ticker.open.toString(),
-            high24h: tBTicker.ticker.high.toString(),
-            low24h: tBTicker.ticker.low.toString(),
-            volCcy24h: "0.0",
-            vol24h: "0.0",
-            ts: tBTicker.at * 1000,
-            sodUtc0: "0.0",
-            sodUtc8: tBTicker.ticker.open.toString(),
-          };
-        }
-        return formatTBTicker;
-      });
+      const formatTBTickers = await this._tbGetTickers({ list });
       list.push(...formatTBTickers);
     } catch (error) {
-      this.logger.log(error);
+      this.logger.error(error);
       return new ResponseFormat({
         message: error.stack,
         code: Codes.API_UNKNOWN_ERROR,
@@ -277,7 +324,6 @@ class ExchangeHub extends Bot {
             instId: query.instId,
             state: this.database.ORDER_STATE.WAIT,
           });
-          this.logger.debug(`getOrderBooks orders:`, orders);
           const asks = [];
           const bids = [];
           orders.forEach((order) => {
@@ -308,7 +354,6 @@ class ExchangeHub extends Bot {
             }
           });
           const books = { asks, bids, ts: new Date().toISOString() };
-          this.logger.debug(`getOrderBooks books:`, books);
           return new ResponseFormat({
             message: "getOrderList",
             payload: [books],
@@ -330,8 +375,6 @@ class ExchangeHub extends Bot {
   }
 
   async getCandlesticks({ params, query }) {
-    this.logger.debug(`params`, params);
-    this.logger.debug(`query`, query);
     switch (this._findSource(query.instId)) {
       case SupportedExchange.OKEX:
         return this.okexConnector.router("getCandlesticks", { params, query });
@@ -394,7 +437,6 @@ class ExchangeHub extends Bot {
             prev[index] = point;
             return prev;
           }, defaultObj);
-          console.log(`candles`, candles);
           return new ResponseFormat({
             message: "getCandlesticks",
             payload: Object.values(candles),
@@ -567,9 +609,7 @@ class ExchangeHub extends Bot {
           });
           const tbOrdersRes = await axios.post(url, formbody, {
             headers,
-          });
-          this.logger.log(tbOrdersRes);
-          // TODO: payload
+          }); // TODO: payload
           return new ResponseFormat({
             message: "postPlaceOrder",
             payload: [
@@ -579,11 +619,12 @@ class ExchangeHub extends Bot {
                 sCode: "",
                 sMsg: "",
                 tag: "",
+                data: tbOrdersRes.data,
               },
             ],
           });
         } catch (error) {
-          this.logger.log(error.stack);
+          this.logger.error(error.stack);
           // debug for postman so return error
           return error;
         }
@@ -613,9 +654,9 @@ class ExchangeHub extends Bot {
     }
     let trades;
     trades = await this.database.getTrades(quoteCcy, baseCcy);
-    this.logger.debug(`_tbGetTradeHistory trades:`, trades);
     const tradeHistory = trades
       .map((trade) => ({
+        ordId: trade.order_id,
         instId: instId,
         side: "",
         sz: trade.volume,
@@ -625,7 +666,6 @@ class ExchangeHub extends Bot {
         ts: new Date(trade.created_at).getTime(),
       }))
       .sort((a, b) => (increase ? a.ts - b.ts : b.ts - a.ts));
-    this.logger.debug(`_tbGetTradeHistory tradeHistory:`, tradeHistory);
     return tradeHistory;
   }
 
@@ -659,7 +699,6 @@ class ExchangeHub extends Bot {
         state,
       });
     }
-    this.logger.debug(`_tbGetOrderList orderList:`, orderList);
     const orders = orderList.map((order) => ({
       cTime: new Date(order.created_at).getTime(),
       clOrdId: order.id,
@@ -668,7 +707,11 @@ class ExchangeHub extends Bot {
       ordType: order.ord_type,
       px: Utils.removeZeroEnd(order.price),
       side: order.type === "OrderAsk" ? "sell" : "buy",
-      sz: Utils.removeZeroEnd(order.volume),
+      sz: Utils.removeZeroEnd(
+        state === this.database.ORDER_STATE.DONE
+          ? order.origin_volume
+          : order.volume
+      ),
       filled: order.volume !== order.origin_volume,
       uTime: new Date(order.updated_at).getTime(),
       state:
@@ -763,7 +806,26 @@ class ExchangeHub extends Bot {
             token,
             state: this.database.ORDER_STATE.DONE,
           });
+          const vouchers = await this.database.getVouchers({
+            memberId,
+            ask: query.instId.split("-")[0],
+            bid: query.instId.split("-")[1],
+          });
           const orders = doneOrders
+            .map((order) => {
+              if (order.ordType === "market") {
+                return {
+                  ...order,
+                  px: Utils.removeZeroEnd(
+                    vouchers?.find(
+                      (voucher) => voucher.order_id === order.ordId
+                    )?.price
+                  ),
+                };
+              } else {
+                return order;
+              }
+            })
             .concat(cancelOrders)
             .sort((a, b) => b.cTime - a.cTime);
           return new ResponseFormat({
@@ -786,7 +848,6 @@ class ExchangeHub extends Bot {
     }
   }
   async postCancelOrder({ header, params, query, body, token }) {
-    this.logger.debug(`postCancelOrder body`, body);
     const source = this._findSource(body.instId);
     const memberId = await this.getMemberIdFromRedis(token);
     /* !!! HIGH RISK (start) !!! */
@@ -925,7 +986,7 @@ class ExchangeHub extends Bot {
         return okexRes;
       }
     } catch (error) {
-      this.logger.log(error);
+      this.logger.error(error);
       return new ResponseFormat({
         message: error.stack,
         code: Codes.API_UNKNOWN_ERROR,
@@ -942,7 +1003,7 @@ class ExchangeHub extends Bot {
       ); // default visible is true, so if visible is undefined still need to show on list.
       list.push(...isVisibles);
     } catch (error) {
-      this.logger.log(error);
+      this.logger.error(error);
       return new ResponseFormat({
         message: error.stack,
         code: Codes.API_UNKNOWN_ERROR,

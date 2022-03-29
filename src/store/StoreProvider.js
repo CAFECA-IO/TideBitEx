@@ -204,6 +204,26 @@ const StoreProvider = (props) => {
     ]
   );
 
+  const getTicker = useCallback(
+    async (instId) => {
+      try {
+        const result = await middleman.getTicker(instId);
+        setTickers(middleman.tickers);
+        if (selectedTicker.instId === instId) {
+          selectTickerHandler(result);
+        }
+      } catch (error) {
+        enqueueSnackbar(
+          `${error?.message || "Some went wrong"}. Failed to update ticker`,
+          {
+            variant: "error",
+          }
+        );
+      }
+    },
+    [enqueueSnackbar, middleman, selectTickerHandler, selectedTicker]
+  );
+
   const getTickers = useCallback(
     async (force = false, instType = "SPOT", from = 0, limit = 100) => {
       try {
@@ -218,7 +238,9 @@ const StoreProvider = (props) => {
         }
       } catch (error) {
         enqueueSnackbar(
-          `${error?.message || "Some went wrong"}. Failed to get market pairs`,
+          `${
+            error?.message || "Some went wrong"
+          }. Failed to get market tickers`,
           {
             variant: "error",
           }
@@ -253,6 +275,11 @@ const StoreProvider = (props) => {
         await getCloseOrders();
         await getPendingOrders();
         await getBalances();
+        await getTrades(order.instId);
+        await getBooks(order.instId);
+        await getCandles(order.instId);
+        await getTicker(order.instId);
+        // await getTickers();
         // return result;
         enqueueSnackbar(
           `${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
@@ -265,7 +292,7 @@ const StoreProvider = (props) => {
         );
       } catch (error) {
         enqueueSnackbar(
-          `${error?.message || "Some went wrong"}. Failed to post order:
+          `${error?.message}. Failed to post order:
            ${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
             order.instId.split("-")[0]
           } with ${order.side === "buy" ? "with" : "for"} ${SafeMath.mult(
@@ -282,8 +309,12 @@ const StoreProvider = (props) => {
     [
       enqueueSnackbar,
       getBalances,
+      getBooks,
+      getCandles,
       getCloseOrders,
       getPendingOrders,
+      getTicker,
+      getTrades,
       middleman,
       token,
     ]
@@ -297,8 +328,10 @@ const StoreProvider = (props) => {
       };
       try {
         const result = await middleman.cancelOrder(_order);
+        await getCloseOrders();
         await getPendingOrders();
         await getBalances();
+        await getBooks(order.instId);
         enqueueSnackbar(
           `You have canceled ordId(${order.ordId}): ${
             order.side === "buy" ? "Bid" : "Ask"
@@ -325,7 +358,15 @@ const StoreProvider = (props) => {
         return false;
       }
     },
-    [enqueueSnackbar, getBalances, getPendingOrders, middleman, token]
+    [
+      enqueueSnackbar,
+      getBalances,
+      getBooks,
+      getCloseOrders,
+      getPendingOrders,
+      middleman,
+      token,
+    ]
   );
 
   const activePageHandler = (page) => {

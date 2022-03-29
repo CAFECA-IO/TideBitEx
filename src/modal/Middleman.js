@@ -91,6 +91,39 @@ class Middleman {
       throw error;
     }
   }
+  async getTicker(instId) {
+    try {
+      const rawTicker = await this.communicator.ticker(instId);
+      console.debug(`getTicker rawTicker`, rawTicker);
+      const ticker = {
+        ...rawTicker,
+        baseCcy: instId.split("-")[0],
+        quoteCcy: instId.split("-")[1],
+        pair: instId.replace("-", "/"),
+        // pair: instId
+        //   .split("-")
+        //   .reduce((acc, curr, i) => (i === 0 ? `${curr}` : `${acc}/${curr}`), ""),
+        change: SafeMath.minus(rawTicker.last, rawTicker.open24h),
+        changePct: SafeMath.gt(rawTicker.open24h, "0")
+          ? SafeMath.mult(
+              SafeMath.div(
+                SafeMath.minus(rawTicker.last, rawTicker.open24h),
+                rawTicker.open24h
+              ),
+              "100"
+            )
+          : SafeMath.eq(SafeMath.minus(rawTicker.last, rawTicker.open24h), "0")
+          ? "0"
+          : "100",
+      };
+
+      const index = this.tickers.findIndex((t) => t.instId === instId);
+      this.tickers[index] = ticker;
+      return ticker;
+    } catch (error) {
+      throw error;
+    }
+  }
 
   async getTickers(instType, from, limit) {
     try {
@@ -379,7 +412,7 @@ class Middleman {
       const result = await this.communicator.balance(
         this.selectedTicker?.instId?.replace("-", ",")
       );
-      this.balances = result[0].details
+      this.balances = result[0].details;
       // .filter(
       //   (balance) =>
       //     this.selectedTicker?.baseCcy === balance.ccy ||
