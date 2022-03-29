@@ -763,7 +763,7 @@ class ExchangeHub extends Bot {
             token,
             state: this.database.ORDER_STATE.DONE,
           });
-          const orders = doneOrders
+          const orders = doneOrders.map(order=>({...order,volume: order.origin_volume}))
             .concat(cancelOrders)
             .sort((a, b) => b.cTime - a.cTime);
           return new ResponseFormat({

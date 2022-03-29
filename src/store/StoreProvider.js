@@ -253,6 +253,9 @@ const StoreProvider = (props) => {
         await getCloseOrders();
         await getPendingOrders();
         await getBalances();
+        await getTrades(order.instId)
+        await getBooks(order.instId);
+        await getCandles(order.instId);
         // return result;
         enqueueSnackbar(
           `${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
@@ -279,14 +282,7 @@ const StoreProvider = (props) => {
         );
       }
     },
-    [
-      enqueueSnackbar,
-      getBalances,
-      getCloseOrders,
-      getPendingOrders,
-      middleman,
-      token,
-    ]
+    [enqueueSnackbar, getBalances, getBooks, getCandles, getCloseOrders, getPendingOrders, getTrades, middleman, token]
   );
 
   const cancelOrder = useCallback(
@@ -297,8 +293,10 @@ const StoreProvider = (props) => {
       };
       try {
         const result = await middleman.cancelOrder(_order);
+        await getCloseOrders();
         await getPendingOrders();
         await getBalances();
+        await getBooks(order.instId);
         enqueueSnackbar(
           `You have canceled ordId(${order.ordId}): ${
             order.side === "buy" ? "Bid" : "Ask"
