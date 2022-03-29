@@ -30,7 +30,7 @@ const OrderTile = (props) => {
                 : "order-tile__label--grey"
             }`}
           >
-            {props.order.filled ? "Partial" : "Ask"}
+            {props.order.filled ? "Partial" : "Total"}
           </div>
         )}
       </li>

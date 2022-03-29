@@ -193,6 +193,7 @@ class ExchangeHub extends Bot {
     }
 
     try {
+      console.debug(`this.tidebitMarkets`, this.tidebitMarkets);
       const tideBitOnlyMarkets = Utils.marketFilterExclude(
         list,
         this.tidebitMarkets
@@ -203,6 +204,7 @@ class ExchangeHub extends Bot {
       const tBTickersRes = await axios.get(
         `${this.config.peatio.domain}/api/v2/tickers`
       );
+      console.debug(`tBTickersRes`, tBTickersRes);
       if (!tBTickersRes || !tBTickersRes.data) {
         return new ResponseFormat({
           message: "Something went wrong",
@@ -668,7 +670,11 @@ class ExchangeHub extends Bot {
       ordType: order.ord_type,
       px: Utils.removeZeroEnd(order.price),
       side: order.type === "OrderAsk" ? "sell" : "buy",
-      sz: Utils.removeZeroEnd(order.volume),
+      sz: Utils.removeZeroEnd(
+        state === this.database.ORDER_STATE.DONE
+          ? order.origin_volume
+          : order.volume
+      ),
       filled: order.volume !== order.origin_volume,
       uTime: new Date(order.updated_at).getTime(),
       state:
@@ -763,7 +769,7 @@ class ExchangeHub extends Bot {
             token,
             state: this.database.ORDER_STATE.DONE,
           });
-          const orders = doneOrders.map(order=>({...order,volume: order.origin_volume}))
+          const orders = doneOrders
             .concat(cancelOrders)
             .sort((a, b) => b.cTime - a.cTime);
           return new ResponseFormat({
