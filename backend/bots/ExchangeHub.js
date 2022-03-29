@@ -696,43 +696,28 @@ class ExchangeHub extends Bot {
         state,
       });
     }
-    let trades = [];
-    if (state === this.database.ORDER_STATE.DONE) {
-      trades = await this._tbGetTradeHistory(instId);
-    }
-    const orders = orderList.map((order) => {
-      let price;
-      if (
-        state === this.database.ORDER_STATE.DONE &&
-        order.ord_type === "market"
-      ) {
-        price = trades.find((trade) => trade.order_id === order.id)?.price;
-      } else {
-        price = Utils.removeZeroEnd(order.price);
-      }
-      return {
-        cTime: new Date(order.created_at).getTime(),
-        clOrdId: order.id,
-        instId: instId,
-        ordId: order.id,
-        ordType: order.ord_type,
-        px: price,
-        side: order.type === "OrderAsk" ? "sell" : "buy",
-        sz: Utils.removeZeroEnd(
-          state === this.database.ORDER_STATE.DONE
-            ? order.origin_volume
-            : order.volume
-        ),
-        filled: order.volume !== order.origin_volume,
-        uTime: new Date(order.updated_at).getTime(),
-        state:
-          state === this.database.ORDER_STATE.CANCEL
-            ? "cancelled"
-            : state === this.database.ORDER_STATE.DONE
-            ? "done"
-            : "waiting",
-      };
-    });
+    const orders = orderList.map((order) => ({
+      cTime: new Date(order.created_at).getTime(),
+      clOrdId: order.id,
+      instId: instId,
+      ordId: order.id,
+      ordType: order.ord_type,
+      px: Utils.removeZeroEnd(order.price),
+      side: order.type === "OrderAsk" ? "sell" : "buy",
+      sz: Utils.removeZeroEnd(
+        state === this.database.ORDER_STATE.DONE
+          ? order.origin_volume
+          : order.volume
+      ),
+      filled: order.volume !== order.origin_volume,
+      uTime: new Date(order.updated_at).getTime(),
+      state:
+        state === this.database.ORDER_STATE.CANCEL
+          ? "cancelled"
+          : state === this.database.ORDER_STATE.DONE
+          ? "done"
+          : "waiting",
+    }));
     return orders;
   }
 
@@ -818,7 +803,21 @@ class ExchangeHub extends Bot {
             token,
             state: this.database.ORDER_STATE.DONE,
           });
+          const trades = await this._tbGetTradeHistory({
+            instId: query.instId,
+          });
           const orders = doneOrders
+            .map((order) => {
+              if (order.ordType === "market") {
+                return {
+                  ...order,
+                  px: trades?.find((trade) => trade.order_id === order.ordId)
+                    ?.price,
+                };
+              } else {
+                return order;
+              }
+            })
             .concat(cancelOrders)
             .sort((a, b) => b.cTime - a.cTime);
           return new ResponseFormat({
