@@ -273,7 +273,6 @@ class ExchangeHub extends Bot {
         params,
         query,
       });
-      this.logger.debug(`getTickers okexRes[${okexRes.length}]`);
       if (okexRes.success) {
         const okexInstruments = okexRes.payload;
         const includeTidebitMarket = Utils.marketFilterInclude(
