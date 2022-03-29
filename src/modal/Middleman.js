@@ -128,7 +128,6 @@ class Middleman {
   async getTickers(instType, from, limit) {
     try {
       const rawTickers = await this.communicator.tickers(instType, from, limit);
-      console.debug(`getTickers rawTickers`, rawTickers);
       const tickers = rawTickers.map((ticker) => ({
         ...ticker,
         baseCcy: ticker.instId.split("-")[0],

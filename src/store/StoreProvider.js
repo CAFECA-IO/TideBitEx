@@ -358,7 +358,7 @@ const StoreProvider = (props) => {
         return false;
       }
     },
-    [enqueueSnackbar, getBalances, getPendingOrders, middleman, token]
+    [enqueueSnackbar, getBalances, getBooks, getCloseOrders, getPendingOrders, middleman, token]
   );
 
   const activePageHandler = (page) => {
