@@ -278,8 +278,8 @@ const StoreProvider = (props) => {
         await getTrades(order.instId);
         await getBooks(order.instId);
         await getCandles(order.instId);
-        // await getTicker(order.instId);
-        await getTickers();
+        await getTicker(order.instId);
+        // await getTickers();
         // return result;
         enqueueSnackbar(
           `${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
