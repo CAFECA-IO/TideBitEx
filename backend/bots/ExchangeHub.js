@@ -653,6 +653,7 @@ class ExchangeHub extends Bot {
     trades = await this.database.getTrades(quoteCcy, baseCcy);
     const tradeHistory = trades
       .map((trade) => ({
+        ordId: trade.order_id,
         instId: instId,
         side: "",
         sz: trade.volume,
@@ -813,7 +814,7 @@ class ExchangeHub extends Bot {
               if (order.ordType === "market") {
                 return {
                   ...order,
-                  px: trades?.find((trade) => trade.order_id === order.ordId)
+                  px: trades?.find((trade) => trade.ordId === order.ordId)
                     ?.price,
                 };
               } else {
