@@ -174,9 +174,6 @@ class ExchangeHub extends Bot {
     const tBTickersRes = await axios.get(
       `${this.config.peatio.domain}/api/v2/tickers`
     );
-    this.logger.debug(`=========================`);
-    this.logger.debug(`getTickers tBTickersRes:`, tBTickersRes);
-    this.logger.debug(`=========================`);
     if (!tBTickersRes || !tBTickersRes.data) {
       return new ResponseFormat({
         message: "Something went wrong",
@@ -233,11 +230,11 @@ class ExchangeHub extends Bot {
       (market) => query.instId === market.instId
     );
     if (index !== -1) {
-      const url = `${this.config.peatio.domain}/tickers/${query.instId
+      const url = `${this.config.peatio.domain}/api/v2/tickers/${query.instId
         .replace("-", "")
         .toLowerCase()}`;
       this.logger.debug(`getTicker url:`, url);
-      const tBTickerRes = await axios.get(`url`);
+      const tBTickerRes = await axios.get(url);
       this.logger.debug(`getTicker tBTickerRes:`, tBTickerRes);
       if (!tBTickerRes || !tBTickerRes.data) {
         return new ResponseFormat({
