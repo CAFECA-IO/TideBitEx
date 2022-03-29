@@ -292,7 +292,7 @@ const StoreProvider = (props) => {
         );
       } catch (error) {
         enqueueSnackbar(
-          `${error?.message || "Some went wrong"}. Failed to post order:
+          `${error?.message}. Failed to post order:
            ${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
             order.instId.split("-")[0]
           } with ${order.side === "buy" ? "with" : "for"} ${SafeMath.mult(
