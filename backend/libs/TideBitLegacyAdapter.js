@@ -14,17 +14,17 @@ class TideBitLegacyAdapter {
     if (body.side === "buy") {
       obj["order_bid[ord_type]"] = body.ordType;
       obj["order_bid[origin_volume]"] = body.sz;
-      if (body.ordType === "limit") {
-        obj["order_bid[price]"] = body.px;
-        obj["order_bid[total]"] = SafeMath.mult(body.px, body.sz);
-      }
+      // if (body.ordType === "limit") {
+      obj["order_bid[price]"] = body.px;
+      obj["order_bid[total]"] = SafeMath.mult(body.px, body.sz);
+      // }
     } else if (body.side === "sell") {
       obj["order_ask[ord_type]"] = body.ordType;
       obj["order_ask[origin_volume]"] = body.sz;
-      if (body.ordType === "limit") {
-        obj["order_ask[price]"] = body.px;
-        obj["order_ask[total]"] = SafeMath.mult(body.px, body.sz);
-      }
+      // if (body.ordType === "limit") {
+      obj["order_ask[price]"] = body.px;
+      obj["order_ask[total]"] = SafeMath.mult(body.px, body.sz);
+      // }
     }
     const data = Object.keys(obj)
       .map((key) => `${key}=${encodeURIComponent(obj[key])}`)
