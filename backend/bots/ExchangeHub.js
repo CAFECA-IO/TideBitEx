@@ -86,7 +86,7 @@ class ExchangeHub extends Bot {
       });
       return formatMarket;
     } catch (error) {
-      this.logger.log(error);
+      this.logger.error(error);
       process.exit(1);
     }
   }
@@ -181,7 +181,6 @@ class ExchangeHub extends Bot {
       });
     }
     const tBTickers = tBTickersRes.data;
-    console.debug(`tBTickers[${tBTickers.length}]`, tBTickers);
     const formatTBTickers = isVisibles.map((market) => {
       const tBTicker = tBTickers[market.id];
       let formatTBTicker = {
@@ -275,12 +274,9 @@ class ExchangeHub extends Bot {
         params,
         query,
       });
+      this.logger.debug(`getTickers okexRes[${okexRes.length}]`);
       if (okexRes.success) {
         const okexInstruments = okexRes.payload;
-        console.debug(
-          `okexInstruments[${okexInstruments.length}]`,
-          okexInstruments
-        );
         const includeTidebitMarket = Utils.marketFilterInclude(
           this.tidebitMarkets,
           okexInstruments
@@ -289,12 +285,12 @@ class ExchangeHub extends Bot {
           (market) => (market.source = SupportedExchange.OKEX)
         );
         list.push(...includeTidebitMarket);
-        console.debug(`okexInstruments list[${list.length}]`, list);
+        this.logger.debug(`getTickers list[${list.length}]`, list);
       } else {
         return okexRes;
       }
     } catch (error) {
-      this.logger.log(error);
+      this.logger.error(error);
       return new ResponseFormat({
         message: error.stack,
         code: Codes.API_UNKNOWN_ERROR,
@@ -304,7 +300,7 @@ class ExchangeHub extends Bot {
       const formatTBTickers = await this._tbGetTickers({ list });
       list.push(...formatTBTickers);
     } catch (error) {
-      this.logger.log(error);
+      this.logger.error(error);
       return new ResponseFormat({
         message: error.stack,
         code: Codes.API_UNKNOWN_ERROR,
@@ -378,8 +374,6 @@ class ExchangeHub extends Bot {
   }
 
   async getCandlesticks({ params, query }) {
-    this.logger.debug(`params`, params);
-    this.logger.debug(`query`, query);
     switch (this._findSource(query.instId)) {
       case SupportedExchange.OKEX:
         return this.okexConnector.router("getCandlesticks", { params, query });
@@ -616,7 +610,7 @@ class ExchangeHub extends Bot {
           const tbOrdersRes = await axios.post(url, formbody, {
             headers,
           });
-          this.logger.log(tbOrdersRes);
+          this.logger.debug(tbOrdersRes);
           // TODO: payload
           return new ResponseFormat({
             message: "postPlaceOrder",
@@ -631,7 +625,7 @@ class ExchangeHub extends Bot {
             ],
           });
         } catch (error) {
-          this.logger.log(error.stack);
+          this.logger.error(error.stack);
           // debug for postman so return error
           return error;
         }
@@ -661,7 +655,6 @@ class ExchangeHub extends Bot {
     }
     let trades;
     trades = await this.database.getTrades(quoteCcy, baseCcy);
-    this.logger.debug(`_tbGetTradeHistory trades:`, trades);
     const tradeHistory = trades
       .map((trade) => ({
         instId: instId,
@@ -673,7 +666,6 @@ class ExchangeHub extends Bot {
         ts: new Date(trade.created_at).getTime(),
       }))
       .sort((a, b) => (increase ? a.ts - b.ts : b.ts - a.ts));
-    this.logger.debug(`_tbGetTradeHistory tradeHistory:`, tradeHistory);
     return tradeHistory;
   }
 
@@ -707,7 +699,6 @@ class ExchangeHub extends Bot {
         state,
       });
     }
-    this.logger.debug(`_tbGetOrderList orderList:`, orderList);
     const orders = orderList.map((order) => ({
       cTime: new Date(order.created_at).getTime(),
       clOrdId: order.id,
@@ -838,7 +829,6 @@ class ExchangeHub extends Bot {
     }
   }
   async postCancelOrder({ header, params, query, body, token }) {
-    this.logger.debug(`postCancelOrder body`, body);
     const source = this._findSource(body.instId);
     const memberId = await this.getMemberIdFromRedis(token);
     /* !!! HIGH RISK (start) !!! */
@@ -977,7 +967,7 @@ class ExchangeHub extends Bot {
         return okexRes;
       }
     } catch (error) {
-      this.logger.log(error);
+      this.logger.error(error);
       return new ResponseFormat({
         message: error.stack,
         code: Codes.API_UNKNOWN_ERROR,
@@ -994,7 +984,7 @@ class ExchangeHub extends Bot {
       ); // default visible is true, so if visible is undefined still need to show on list.
       list.push(...isVisibles);
     } catch (error) {
-      this.logger.log(error);
+      this.logger.error(error);
       return new ResponseFormat({
         message: error.stack,
         code: Codes.API_UNKNOWN_ERROR,
