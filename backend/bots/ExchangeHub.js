@@ -813,9 +813,11 @@ class ExchangeHub extends Bot {
               if (order.ordType === "market") {
                 return {
                   ...order,
-                  px: vouchers?.find(
-                    (voucher) => voucher.order_id === order.ordId
-                  )?.price,
+                  px: Utils.removeZeroEnd(
+                    vouchers?.find(
+                      (voucher) => voucher.order_id === order.ordId
+                    )?.price
+                  ),
                 };
               } else {
                 return order;
