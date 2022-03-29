@@ -229,12 +229,8 @@ class ExchangeHub extends Bot {
     const index = this.tidebitMarkets.findIndex(
       (market) => query.instId === market.instId
     );
-    this.logger.debug(`getTicker index:`, index);
-    this.logger.debug(`getTicker query:`, query,`${query.instId
-      .replace("-", "")
-      .toLowerCase()}`);
     if (index !== -1) {
-      const url = `${this.config.peatio.domain}/api/v2/ticker/${query.instId
+      const url = `${this.config.peatio.domain}/api/v2/tickers/${query.instId
         .replace("-", "")
         .toLowerCase()}`;
       this.logger.debug(`getTicker url:`, url);
