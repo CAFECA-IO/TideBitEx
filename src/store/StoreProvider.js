@@ -313,7 +313,7 @@ const StoreProvider = (props) => {
       getCandles,
       getCloseOrders,
       getPendingOrders,
-      getTicker,
+      getTickers,
       getTrades,
       middleman,
       token,
@@ -358,7 +358,15 @@ const StoreProvider = (props) => {
         return false;
       }
     },
-    [enqueueSnackbar, getBalances, getBooks, getCloseOrders, getPendingOrders, middleman, token]
+    [
+      enqueueSnackbar,
+      getBalances,
+      getBooks,
+      getCloseOrders,
+      getPendingOrders,
+      middleman,
+      token,
+    ]
   );
 
   const activePageHandler = (page) => {

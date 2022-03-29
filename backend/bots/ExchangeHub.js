@@ -235,7 +235,7 @@ class ExchangeHub extends Bot {
         .toLowerCase()}`;
       this.logger.debug(`getTicker url:`, url);
       const tBTickerRes = await axios.get(url);
-      this.logger.debug(`getTicker tBTickerRes:`, tBTickerRes);
+      this.logger.debug(`getTicker tBTickerRes.data:`, tBTickerRes.data);
       if (!tBTickerRes || !tBTickerRes.data) {
         return new ResponseFormat({
           message: "Something went wrong",
