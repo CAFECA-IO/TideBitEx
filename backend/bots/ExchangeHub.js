@@ -230,13 +230,14 @@ class ExchangeHub extends Bot {
     const index = this.tidebitMarkets.findIndex(
       (market) => query.instId === market.instId
     );
+    this.logger.debug(`getTicker index:`, index);
     if (index !== -1) {
-      const tBTickerRes = await axios.get(
-        `${this.config.peatio.domain}/api/v2/tickers/${query.instId.replace(
-          "-",
-          ""
-        )}`
-      );
+      const url = `${this.config.peatio.domain}/api/v2/tickers/${query.instId
+        .replace("-", "")
+        .toLowerCase()}`;
+      const tBTickerRes = await axios.get(`url`);
+      this.logger.debug(`getTicker url:`, url);
+      this.logger.debug(`getTicker tBTickerRes:`, tBTickerRes);
       if (!tBTickerRes || !tBTickerRes.data) {
         return new ResponseFormat({
           message: "Something went wrong",
@@ -326,7 +327,6 @@ class ExchangeHub extends Bot {
             instId: query.instId,
             state: this.database.ORDER_STATE.WAIT,
           });
-          this.logger.debug(`getOrderBooks orders:`, orders);
           const asks = [];
           const bids = [];
           orders.forEach((order) => {
@@ -357,7 +357,6 @@ class ExchangeHub extends Bot {
             }
           });
           const books = { asks, bids, ts: new Date().toISOString() };
-          this.logger.debug(`getOrderBooks books:`, books);
           return new ResponseFormat({
             message: "getOrderList",
             payload: [books],
