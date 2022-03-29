@@ -174,6 +174,9 @@ class ExchangeHub extends Bot {
     const tBTickersRes = await axios.get(
       `${this.config.peatio.domain}/api/v2/tickers`
     );
+    this.logger.debug(`=========================`);
+    this.logger.debug(`getTickers tBTickersRes:`, tBTickersRes);
+    this.logger.debug(`=========================`);
     if (!tBTickersRes || !tBTickersRes.data) {
       return new ResponseFormat({
         message: "Something went wrong",
