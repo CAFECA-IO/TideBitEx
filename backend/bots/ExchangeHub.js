@@ -805,8 +805,8 @@ class ExchangeHub extends Bot {
           });
           const vouchers = await this.database.getVouchers({
             memberId,
-            ask: query.instId.instId.split("-")[0],
-            bid: query.instId.instId.split("-")[1],
+            ask: query.instId.split("-")[0],
+            bid: query.instId.split("-")[1],
           });
           const orders = doneOrders
             .map((order) => {
