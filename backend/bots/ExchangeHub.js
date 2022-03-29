@@ -234,7 +234,7 @@ class ExchangeHub extends Bot {
       .replace("-", "")
       .toLowerCase()}`);
     if (index !== -1) {
-      const url = `${this.config.peatio.domain}/api/v2/tickers/${query.instId
+      const url = `${this.config.peatio.domain}/api/v2/ticker/${query.instId
         .replace("-", "")
         .toLowerCase()}`;
       this.logger.debug(`getTicker url:`, url);
