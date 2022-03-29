@@ -651,9 +651,6 @@ class ExchangeHub extends Bot {
     }
     let trades;
     trades = await this.database.getTrades(quoteCcy, baseCcy);
-    this.logger.debug('========================')
-    this.logger.debug(trades)
-    this.logger.debug('========================')
     const tradeHistory = trades
       .map((trade) => ({
         ordId: trade.order_id,
@@ -806,16 +803,19 @@ class ExchangeHub extends Bot {
             token,
             state: this.database.ORDER_STATE.DONE,
           });
-          const trades = await this._tbGetTradeHistory({
-            instId: query.instId,
+          const vouchers = await this.database.getVouchers({
+            memberId,
+            ask: query.instId.instId.split("-")[0],
+            bid: query.instId.instId.split("-")[1],
           });
           const orders = doneOrders
             .map((order) => {
               if (order.ordType === "market") {
                 return {
                   ...order,
-                  px: trades?.find((trade) => trade.ordId === order.ordId)
-                    ?.price,
+                  px: vouchers?.find(
+                    (voucher) => voucher.order_id === order.ordId
+                  )?.price,
                 };
               } else {
                 return order;
