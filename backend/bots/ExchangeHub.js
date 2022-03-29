@@ -436,7 +436,6 @@ class ExchangeHub extends Bot {
             prev[index] = point;
             return prev;
           }, defaultObj);
-          console.log(`candles`, candles);
           return new ResponseFormat({
             message: "getCandlesticks",
             payload: Object.values(candles),
@@ -609,9 +608,7 @@ class ExchangeHub extends Bot {
           });
           const tbOrdersRes = await axios.post(url, formbody, {
             headers,
-          });
-          this.logger.debug(tbOrdersRes);
-          // TODO: payload
+          });          // TODO: payload
           return new ResponseFormat({
             message: "postPlaceOrder",
             payload: [
@@ -621,6 +618,7 @@ class ExchangeHub extends Bot {
                 sCode: "",
                 sMsg: "",
                 tag: "",
+                data: tbOrdersRes.data
               },
             ],
           });
