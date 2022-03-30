@@ -733,14 +733,7 @@ class Utils {
   static marketFilterExclude(marketListMask, marketList) {
     const newList = marketList.filter((market) => {
       // i don't know why every return false
-      const res = marketListMask.find((mask) => {
-        console.log(`marketFilterExclude mask`, mask);
-        console.log(`marketFilterExclude market`, market);
-        console.log(`marketFilterExclude mask.instId === market.instId`, mask.instId === market.instId);
-        console.log(`+++++++++++++++++++++++++++`);
-        return mask.instId === market.instId;
-      });
-      console.log(`marketFilterExclude res`, res);
+      const res = marketListMask.find((mask) => mask.instId === market.instId);
       return !res;
     });
     return newList;
