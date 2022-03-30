@@ -2,21 +2,21 @@ import React, { useContext } from "react";
 import StoreContext from "../store/store-context";
 import SafeMath from "../utils/SafeMath";
 import { formateDecimal } from "../utils/Utils";
-import MarketPairs from "./MarketPairs";
+import MarketTickers from "./MarketTickers";
 import { useTranslation } from "react-i18next";
 
-const SelectedPair = (props) => {
+const SelectedTicker = (props) => {
   const storeCtx = useContext(StoreContext);
   const { t } = useTranslation();
   return (
-    <div className="pair">
-      <div className="pair__button">
-        <div className="selectedPair">
-          {storeCtx.selectedTicker?.pair || "--"}
+    <div className="ticker">
+      <div className="ticker__button">
+        <div className="selectedTicker">
+          {storeCtx.selectedTicker?.name || "--"}
         </div>
-        <MarketPairs />
+        <MarketTickers />
       </div>
-      <div className="pair__details">
+      <div className="ticker__details">
         <div
           className={`showPrice ${
             !storeCtx.selectedTicker
@@ -42,7 +42,7 @@ const SelectedPair = (props) => {
             : "--"}
         </div>
       </div>
-      <div className="pair__details">
+      <div className="ticker__details">
         <div className="tickerItemLabel">{t("24_change")}</div>
         <div
           className={`tickerPriceText ${
@@ -68,19 +68,19 @@ const SelectedPair = (props) => {
           </span>
         </div>
       </div>
-      <div className="pair__details">
+      <div className="ticker__details">
         <div className="tickerItemLabel">{t("24_high")}</div>
         <div className="tickerPriceText">
           {formateDecimal(storeCtx.selectedTicker?.high24h, 8) || "--"}
         </div>
       </div>
-      <div className="pair__details">
+      <div className="ticker__details">
         <div className="tickerItemLabel">{t("24_low")}</div>
         <div className="tickerPriceText">
           {formateDecimal(storeCtx.selectedTicker?.low24h, 8) || "--"}
         </div>
       </div>
-      <div className="pair__details">
+      <div className="ticker__details">
         <div className="tickerItemLabel">
           {`${t("24_volume")}(${storeCtx.selectedTicker?.baseCcy || "--"})`}
         </div>
@@ -90,7 +90,7 @@ const SelectedPair = (props) => {
             : formateDecimal(storeCtx.selectedTicker?.volCcy24h, 8) || "--"}
         </div>
       </div>
-      <div className="pair__details">
+      <div className="ticker__details">
         <div className="tickerItemLabel">{`${t("24_volume_quote")}(${
           storeCtx.selectedTicker?.quoteCcy || "--"
         })`}</div>
@@ -104,4 +104,4 @@ const SelectedPair = (props) => {
   );
 };
 
-export default SelectedPair;
+export default SelectedTicker;

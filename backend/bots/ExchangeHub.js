@@ -77,6 +77,7 @@ class ExchangeHub extends Bot {
           quoteCcy: market.quote_unit,
           settleCcy: "",
           state: market.visible,
+          tab_category: market.tab_category,
           stk: "",
           tickSz: "",
           uly: "",
@@ -200,6 +201,7 @@ class ExchangeHub extends Bot {
         ts: "0.0",
         sodUtc0: "0.0",
         sodUtc8: "0.0",
+        tab_category: market.tab_category,
       };
       if (tBTicker) {
         formatTBTicker = {
@@ -219,10 +221,12 @@ class ExchangeHub extends Bot {
           ts: tBTicker.at * 1000,
           sodUtc0: "0.0",
           sodUtc8: tBTicker.ticker.open.toString(),
+          tab_category: market.tab_category,
         };
       }
       return formatTBTicker;
     });
+    console.log(`formatTBTickers`, formatTBTickers);
     return formatTBTickers;
   }
   async getTicker({ params, query }) {
@@ -282,9 +286,15 @@ class ExchangeHub extends Bot {
           this.tidebitMarkets,
           okexInstruments
         );
-        includeTidebitMarket.forEach(
-          (market) => (market.source = SupportedExchange.OKEX)
-        );
+        includeTidebitMarket.forEach((market) => {
+          market.source = SupportedExchange.OKEX;
+          market.tab_category =
+            market.instId.split("-")[1].toLowerCase() === "usdt" ||
+            market.instId.split("-")[1].toLowerCase() === "usdc" ||
+            market.instId.split("-")[1].toLowerCase() === "usdk"
+              ? "usdx"
+              : market.instId.split("-")[1].toLowerCase();
+        });
         list.push(...includeTidebitMarket);
         this.logger.debug(`getTickers list[${list.length}]`, list);
       } else {
@@ -1281,8 +1291,6 @@ class ExchangeHub extends Bot {
     }
     const { id: bid } = await this.database.getCurrencyByKey(market.quote_unit);
     const { id: ask } = await this.database.getCurrencyByKey(market.base_unit);
-    this.logger.debug("!!!_getPlaceOrderData bid", bid);
-    this.logger.debug("!!!_getPlaceOrderData ask", ask);
     if (!bid) {
       throw new Error(`bid not found`);
     }

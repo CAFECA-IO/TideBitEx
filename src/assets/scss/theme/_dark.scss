@@ -26,15 +26,15 @@
 .dark header nav .nav-item.active a {
   color: #007bff;
 }
-.dark .market-pairs {
+.dark .market-tickers {
   border: 1px solid #2a2e39;
   background: #131722;
 }
 .dark tr {
   background: #131722;
 }
-.dark .market-pairs .table td,
-.dark .market-pairs .table th {
+.dark .market-tickers .table td,
+.dark .market-tickers .table th {
   border-top: 1px solid #2a2e39;
 }
 .dark .market-history .table td,
@@ -72,10 +72,10 @@
   color: #ffffff;
 }
 .dark thead th,
-.dark .market-pairs .nav-link {
+.dark .market-tickers .nav-link {
   color: #4f5966;
 }
-.dark .market-pairs .nav-link.active,
+.dark .market-tickers .nav-link.active,
 .dark #STAR i {
   color: #ffffff;
 }
@@ -85,15 +85,15 @@
 .dark .red {
   color: #ff231f;
 }
-.dark .market-pairs .nav {
+.dark .market-tickers .nav {
   background: #1c2030;
 }
-.dark .market-pairs input,
-.dark .market-pairs span {
+.dark .market-tickers input,
+.dark .market-tickers span {
   border-color: #2a2e39;
   background: #2a2e39;
 }
-.dark .market-pairs input {
+.dark .market-tickers input {
   color: #ffffff;
 }
 .dark .heading {
@@ -206,22 +206,22 @@
 .dark table th {
   border-top: 1px solid #2a2e39;
 }
-.dark .markets-pair-list .nav {
+.dark .markets-ticker-list .nav {
   background: #1c2030;
 }
-.dark .markets-pair-list .nav-link.active,
+.dark .markets-ticker-list .nav-link.active,
 .dark #STAR i {
   color: #ffffff;
 }
 .dark thead th,
-.dark .markets-pair-list .nav-link {
+.dark .markets-ticker-list .nav-link {
   color: #4f5966;
 }
-.dark .markets-pair-list .load-more {
+.dark .markets-ticker-list .load-more {
   border: 1px solid #2a2e39;
   color: #ffffff;
 }
-.dark .markets-pair-list .load-more:hover {
+.dark .markets-ticker-list .load-more:hover {
   color: #fff;
   border: 1px solid #007bff;
 }

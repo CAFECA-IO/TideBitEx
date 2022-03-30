@@ -34,6 +34,7 @@ const StoreProvider = (props) => {
   const [buyPx, setBuyPx] = useState(null);
   const [sellPx, setSellPx] = useState(null);
   const [token, setToken] = useState(null);
+  const [languageKey, setLanguageKey] = useState("en");
 
   const buyPxHandler = useCallback((value) => {
     let _value = +value < 0 ? "0" : value;
@@ -171,7 +172,7 @@ const StoreProvider = (props) => {
     async (ticker) => {
       const _ticker = middleman.updateSelectedTicker(ticker);
       setSelectedTicker(_ticker);
-      document.title = `${_ticker.last} ${_ticker.pair}`;
+      document.title = `${_ticker.last} ${_ticker.name}`;
       if (ticker.instId !== selectedTicker?.instId || !selectedTicker) {
         history.push({
           pathname: `/markets/${ticker.instId.replace("-", "").toLowerCase()}`,
@@ -489,6 +490,8 @@ const StoreProvider = (props) => {
         activePage,
         buyPx,
         sellPx,
+        languageKey,
+        setLanguageKey,
         buyPxHandler,
         sellPxHandler,
         setInit,

@@ -29,38 +29,38 @@ class Middleman {
     return this.selectedTicker;
   }
 
-  updateTickers(updatePairs) {
+  updateTickers(tickers) {
     if (!this.tickers.length > 0) return;
     let updateTickers = [...this.tickers];
     let updateTicker;
-    const updateIndexes = updatePairs.map((pair) => {
+    const updateIndexes = tickers.map((t) => {
       const index = this.tickers.findIndex(
-        (ticker) => ticker.instId === pair.instId
+        (ticker) => ticker.instId === t.instId
       );
       if (index === -1) {
         const ticker = {
-          ...pair,
-          baseCcy: pair.instId.split("-")[0],
-          quoteCcy: pair.instId.split("-")[1],
-          pair: pair.instId.replace("-", "/"),
-          changePct: SafeMath.mult(pair.changePct, "100"),
+          ...t,
+          baseCcy: t.instId.split("-")[0],
+          quoteCcy: t.instId.split("-")[1],
+          name: t.instId.replace("-", "/"),
+          changePct: SafeMath.mult(t.changePct, "100"),
         };
         updateTickers.push(ticker);
         return updateTickers.length - 1;
       } else {
         const ticker = {
           ...updateTickers[index],
-          last: pair.last,
-          change: pair.change,
-          changePct: SafeMath.mult(pair.changePct, "100"),
-          open24h: pair.open24h,
-          high24h: pair.high24h,
-          low24h: pair.low24h,
-          volCcy24h: pair.volCcy24h,
-          vol24h: pair.vol24h,
-          ts: pair.ts,
+          last: t.last,
+          change: t.change,
+          changePct: SafeMath.mult(t.changePct, "100"),
+          open24h: t.open24h,
+          high24h: t.high24h,
+          low24h: t.low24h,
+          volCcy24h: t.volCcy24h,
+          vol24h: t.vol24h,
+          ts: t.ts,
         };
-        if (pair.instId === this.selectedTicker?.instId)
+        if (t.instId === this.selectedTicker?.instId)
           updateTicker = this.updateSelectedTicker(ticker);
         updateTickers[index] = ticker;
         return index;
@@ -99,8 +99,8 @@ class Middleman {
         ...rawTicker,
         baseCcy: instId.split("-")[0],
         quoteCcy: instId.split("-")[1],
-        pair: instId.replace("-", "/"),
-        // pair: instId
+        name: instId.replace("-", "/"),
+        // name: instId
         //   .split("-")
         //   .reduce((acc, curr, i) => (i === 0 ? `${curr}` : `${acc}/${curr}`), ""),
         change: SafeMath.minus(rawTicker.last, rawTicker.open24h),
@@ -132,8 +132,8 @@ class Middleman {
         ...ticker,
         baseCcy: ticker.instId.split("-")[0],
         quoteCcy: ticker.instId.split("-")[1],
-        pair: ticker.instId.replace("-", "/"),
-        // pair: ticker.instId
+        name: ticker.instId.replace("-", "/"),
+        // name: ticker.instId
         //   .split("-")
         //   .reduce((acc, curr, i) => (i === 0 ? `${curr}` : `${acc}/${curr}`), ""),
         change: SafeMath.minus(ticker.last, ticker.open24h),

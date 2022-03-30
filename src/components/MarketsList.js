@@ -8,7 +8,7 @@ export default function MarketsList() {
         <div className="container-fluid">
           <div className="row">
             <div className="col-md-12">
-              <div className="markets-pair-list">
+              <div className="markets-ticker-list">
                 <Tabs defaultActiveKey="btc">
                   <Tab eventKey="favorites" title="★ Favorites">
                     <div className="table-responsive">

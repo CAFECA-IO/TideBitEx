@@ -1,3 +1,7 @@
+
+
+
+
 import React, { useContext } from "react";
 // import TradingViewWidget, { Themes } from "react-tradingview-widget";
 import StoreContext from "../store/store-context";
@@ -224,3 +228,4 @@ const TradingChart = (props) => {
 };
 
 export default TradingChart;
+

@@ -3,7 +3,7 @@ import HistoryOrder, { BalanceTile } from "../components/HistoryOrder";
 import MarketHistory from "../components/MarketHistory";
 import MarketTrade from "../components/MarketTrade";
 import OrderBook from "../components/OrderBook";
-import SelectedPair from "../components/SelectedPair";
+import SelectedTicker from "../components/SelectedTicker";
 import TradingChart from "../components/TradingChart";
 import { ThemeConsumer } from "../context/ThemeContext";
 import StoreContext from "../store/store-context";
@@ -17,7 +17,7 @@ const MobileExchange = (props) => {
     <main className="main">
       {(storeCtx.activePage === "chart" ||
         storeCtx.activePage === "market" ||
-        storeCtx.activePage === "trade") && <SelectedPair />}
+        storeCtx.activePage === "trade") && <SelectedTicker />}
       <section
         className={`section${
           storeCtx.activePage === "assets" ? " section--assets" : ""

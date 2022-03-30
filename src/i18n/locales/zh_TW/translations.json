@@ -42,7 +42,7 @@
   "time": "時間",
   "price": "價格",
   "cancel": "撤銷",
-  "pairs": "交易對",
+  "tickers": "交易對",
   "unit_price": "每一單位價格",
   "high": "最高價",
   "low": "最低價",
