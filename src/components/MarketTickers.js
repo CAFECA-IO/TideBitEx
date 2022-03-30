@@ -131,8 +131,8 @@ const MarketTickers = (props) => {
           >
             <TickersHeader />
             <TickerList
-              tickers={filteredTickers.filter((ticker) =>
-                quoteCcies[quoteCcy].includes(ticker.quoteCcy)
+              tickers={filteredTickers.filter(
+                (ticker) => ticker.tab_category === quoteCcy.toLowerCase()
               )}
             />
           </Tab>

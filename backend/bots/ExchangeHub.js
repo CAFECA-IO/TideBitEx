@@ -226,7 +226,7 @@ class ExchangeHub extends Bot {
       }
       return formatTBTicker;
     });
-    console.log(`formatTBTickers`, formatTBTickers)
+    console.log(`formatTBTickers`, formatTBTickers);
     return formatTBTickers;
   }
   async getTicker({ params, query }) {
@@ -286,9 +286,10 @@ class ExchangeHub extends Bot {
           this.tidebitMarkets,
           okexInstruments
         );
-        includeTidebitMarket.forEach(
-          (market) => (market.source = SupportedExchange.OKEX)
-        );
+        includeTidebitMarket.forEach((market) => {
+          market.source = SupportedExchange.OKEX;
+          market.tab_category = market.instId.split("-")[1];
+        });
         list.push(...includeTidebitMarket);
         this.logger.debug(`getTickers list[${list.length}]`, list);
       } else {
