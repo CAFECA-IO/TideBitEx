@@ -12,7 +12,7 @@ import { IoSearch } from "react-icons/io5";
 import { useTranslation } from "react-i18next";
 import { formateDecimal } from "../utils/Utils";
 
-const PairTile = (props) => {
+const TickerTile = (props) => {
   const storeCtx = useContext(StoreContext);
   return (
     <li
@@ -21,7 +21,7 @@ const PairTile = (props) => {
         props.ticker.instId === storeCtx?.selectedTicker?.instId ? "active" : ""
       } ${storeCtx.updateTickerIndexs.includes(props.index) ? "update" : ""}`}
     >
-      <div>{props.ticker.pair}</div>
+      <div>{props.ticker.name}</div>
       <div>{formateDecimal(props.ticker.last, 8)}</div>
       <div className={SafeMath.gte(props.ticker.change, "0") ? "green" : "red"}>
         {SafeMath.gte(props.ticker.change, "0")
@@ -35,11 +35,11 @@ const PairTile = (props) => {
   );
 };
 
-const PairList = (props) => {
+const TickerList = (props) => {
   return (
-    <ul className="pair-list">
+    <ul className="ticker-list">
       {props.tickers.map((ticker, index) => (
-        <PairTile
+        <TickerTile
           ticker={ticker}
           index={index}
           key={`${ticker.instId}-${ticker.instType}-${index}-star`}
@@ -49,11 +49,11 @@ const PairList = (props) => {
   );
 };
 
-const PairsHeader = (props) => {
+const TickersHeader = (props) => {
   const { t } = useTranslation();
   return (
     <ul className="header">
-      <li>{t("pairs")}</li>
+      <li>{t("tickers")}</li>
       <li>{t("unit_price")}</li>
       <li>{t("change")}</li>
       <li>{t("volume")}</li>
@@ -71,7 +71,7 @@ const quoteCcies = {
   USD: ["USD"],
   ALTS: ["USX"],
 };
-const MarketPairs = (props) => {
+const MarketTickers = (props) => {
   const storeCtx = useContext(StoreContext);
   const inputRef = useRef();
   const [selectedTicker, setSelectedTicker] = useState(null);
@@ -106,7 +106,7 @@ const MarketPairs = (props) => {
   }, [selectedTicker, storeCtx.selectedTicker]);
 
   return (
-    <div className="market-pairs">
+    <div className="market-tickers">
       <div className="input-group">
         <div className="input-group-prepend">
           <span className="input-group-text" id="inputGroup-sizing-sm">
@@ -129,8 +129,8 @@ const MarketPairs = (props) => {
             title={quoteCcy}
             key={`market-tab-${quoteCcy.toLowerCase()}`}
           >
-            <PairsHeader />
-            <PairList
+            <TickersHeader />
+            <TickerList
               tickers={filteredTickers.filter((ticker) =>
                 quoteCcies[quoteCcy].includes(ticker.quoteCcy)
               )}
@@ -142,4 +142,4 @@ const MarketPairs = (props) => {
   );
 };
 
-export default MarketPairs;
+export default MarketTickers;

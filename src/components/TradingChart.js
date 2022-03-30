@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-// import TradingViewWidget, { Themes } from "react-tradingview-widget";
+import TradingViewWidget, { Themes } from "react-tradingview-widget";
 import StoreContext from "../store/store-context";
 import ApexCharts from "react-apexcharts";
 import { useTranslation } from "react-i18next";
@@ -11,7 +11,7 @@ const TradingChart = (props) => {
       <div className="main-chart__header">{t("chart")}</div>
       {storeCtx.selectedTicker?.instId && (
         <React.Fragment>
-          <div className="tool-bar">
+          {/* <div className="tool-bar">
             <div
               className={`tool ${
                 storeCtx.selectedBar === "1m" ? "active" : ""
@@ -66,9 +66,9 @@ const TradingChart = (props) => {
             >
               M
             </div>
-          </div>
+          </div> */}
           <div className="main-chart__chart">
-            <ApexCharts
+            {/* <ApexCharts
               height="65%"
               width="100%"
               type="candlestick"
@@ -201,21 +201,18 @@ const TradingChart = (props) => {
                   opposite: true,
                 },
               }}
-            />
-            {/* <TradingViewWidget
-              symbol={`OKEX:${storeCtx.selectedTicker.instId?.replace(
-                "-",
-                ""
-              )}`}
+            /> */}
+            <TradingViewWidget
+              symbol={`${storeCtx.selectedTicker.name}`}
               theme={props.theme === "light" ? Themes.LIGHT : Themes.DARK}
-              locale="en"
-              autosize
+              locale={storeCtx.languageKey}
+              autosize={true}
               interval="D"
               timezone="America/New_York"
               library_path="charting_library/"
               allow_symbol_change={false}
               hide_legend={true}
-            /> */}
+            />
           </div>
         </React.Fragment>
       )}

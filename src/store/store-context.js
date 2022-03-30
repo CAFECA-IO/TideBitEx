@@ -1,6 +1,7 @@
 import React from "react";
 
 const StoreContext = React.createContext({
+  languageKey: "en",
   init: true,
   isLogin: null,
   selectedTicker: null,
@@ -22,6 +23,7 @@ const StoreContext = React.createContext({
   buyPxHandler: (price) => {},
   sellPxHandler: (price) => {},
   setInit: (init) => {},
+  setLanguageKey: (key) => {},
   /**
    * @typedef {Object} Ticker
    * @property {String} instType

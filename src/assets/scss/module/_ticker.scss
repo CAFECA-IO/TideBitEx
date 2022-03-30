@@ -1,4 +1,4 @@
-.pair {
+.ticker {
   display: flex;
   flex-direction: row;
   gap: 20px;
@@ -9,8 +9,8 @@
     // flex-direction: column;
     // align-self: center;
   }
-  &__button:hover > .market-pairs,
-  &__button:hover > * ~ .market-pairs {
+  &__button:hover > .market-tickers,
+  &__button:hover > * ~ .market-tickers {
     z-index: 1000;
     opacity: 1;
     pointer-events: stroke;
@@ -28,7 +28,7 @@
     overflow: hidden;
     white-space: nowrap;
   }
-  .selectedPair {
+  .selectedTicker {
     font-size: 20px;
     font-weight: 500;
     cursor: pointer;
@@ -56,7 +56,7 @@
 // iPad Mini
 @media only screen and (max-width: 703px) {
   // If [device width] is less than or equal to 600px, then do
-  .pair {
+  .ticker {
     & > &__details:nth-child(3),
     & > &__details:nth-child(4) {
       display: none;
@@ -67,7 +67,7 @@
 // iphone XR
 @media only screen and (max-width: 414px) {
   // If [device width] is less than or equal to 600px, then do
-  .pair {
+  .ticker {
     & > &__details:nth-child(5),
     & > &__details:nth-child(6),
     & > &__details:nth-child(7) {

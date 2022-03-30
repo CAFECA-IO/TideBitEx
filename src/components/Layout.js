@@ -1,8 +1,9 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useContext } from "react";
 import Header from "./Header";
 import SideBar from "./SideBar";
 import { useTranslation } from "react-i18next";
 import BottomNavigator from "./BottomNavigator";
+import StoreContext from "../store/store-context";
 
 const languages = {
   "en-US": "English",
@@ -26,17 +27,18 @@ const languages = {
 // };
 
 const Layout = ({ children }) => {
+  const storeCtx = useContext(StoreContext);
   const { i18n } = useTranslation();
-  const [languageKey, setLanguageKey] = useState("en");
+  // const [languageKey, setLanguageKey] = useState("en");
   const [active, setActive] = useState(false);
   const changeLanguage = useCallback(
     (key) => {
       // await window.cookieStore.set("lang", key);
       // document.cookie = `lang=${key}`;
-      setLanguageKey(key);
+      storeCtx.setLanguageKey(key);
       i18n.changeLanguage(key);
     },
-    [i18n]
+    [i18n, storeCtx]
   );
 
   useEffect(() => {
@@ -49,43 +51,43 @@ const Layout = ({ children }) => {
       case "en":
       case "en-us":
       case "en_us":
-        setLanguageKey("en-US");
+        storeCtx.setLanguageKey("en-US");
         break;
       case "zh-hk":
       case "zh_hk":
       case "zh_tw":
       case "zh-tw":
-        setLanguageKey("zh-HK");
+        storeCtx.setLanguageKey("zh-HK");
         break;
       case "zh_cn":
       case "zh-cn":
-        setLanguageKey("zh-CN");
+        storeCtx.setLanguageKey("zh-CN");
         break;
       case "jp":
-        setLanguageKey("jp");
+        storeCtx.setLanguageKey("jp");
         break;
       default:
-        setLanguageKey("en-US");
+        storeCtx.setLanguageKey("en-US");
         break;
     }
     // window.cookieStore.get("lang").then((lang) => {
     //   const key = lang.value;
     //   console.log(`lang`, lang, `key`, key);
-    //   setLanguageKey(key);
+    //   storeCtx.setLanguageKey(key);
     // });
-  }, []);
+  }, [storeCtx]);
 
   return (
     <div id="layout" className="layout layout--pushable">
       <SideBar
         languages={languages}
-        languageKey={languageKey}
+        languageKey={storeCtx.languageKey}
         changeLanguage={changeLanguage}
       />
       <div className={`layout--pusher${active ? " active" : ""}`}>
         <Header
           languages={languages}
-          languageKey={languageKey}
+          languageKey={storeCtx.languageKey}
           changeLanguage={changeLanguage}
           sidebarHandler={() => setActive((prev) => !prev)}
         />
