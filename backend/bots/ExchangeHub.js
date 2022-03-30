@@ -57,6 +57,9 @@ class ExchangeHub extends Bot {
       const markets = Utils.marketParser(p);
       const formatMarket = markets.map((market) => {
         const instId = market.name.split("/").join("-").toUpperCase();
+        console.log(`++++++++++++++++++++`);
+        console.log(`market`, market);
+        console.log(`++++++++++++++++++++`);
         return {
           ...market,
           alias: "",
@@ -200,12 +203,9 @@ class ExchangeHub extends Bot {
         ts: "0.0",
         sodUtc0: "0.0",
         sodUtc8: "0.0",
-        tab_category: '',
+        tab_category: "",
       };
       if (tBTicker) {
-        console.log(`++++++++++++++++++`)
-        console.log(`market`, market)
-        console.log(`++++++++++++++++++`)
         formatTBTicker = {
           instType: "",
           instId: market.instId,
