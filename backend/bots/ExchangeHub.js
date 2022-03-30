@@ -289,7 +289,9 @@ class ExchangeHub extends Bot {
         includeTidebitMarket.forEach((market) => {
           market.source = SupportedExchange.OKEX;
           market.tab_category =
-            market.instId.split("-")[1].toLowerCase() === "usdt"
+            market.instId.split("-")[1].toLowerCase() === "usdt" ||
+            market.instId.split("-")[1].toLowerCase() === "usdc" ||
+            market.instId.split("-")[1].toLowerCase() === "usdk"
               ? "usdx"
               : market.instId.split("-")[1].toLowerCase();
         });
