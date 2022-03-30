@@ -37,9 +37,6 @@ class ExchangeHub extends Bot {
       })
       .then(() => {
         this.tidebitMarkets = this.getTidebitMarkets();
-        console.log(`&&&&&&&&&&&&&&&&&&&&&&`);
-        console.log(`this.tidebitMarkets`, this.tidebitMarkets);
-        console.log(`&&&&&&&&&&&&&&&&&&&&&&`);
         return this;
       });
   }
@@ -58,14 +55,8 @@ class ExchangeHub extends Bot {
         "config/markets/markets.yml"
       );
       const markets = Utils.marketParser(p);
-      console.log(`********************`);
-        console.log(`markets`, markets);
-        console.log(`********************`);
       const formatMarket = markets.map((market) => {
         const instId = market.name.split("/").join("-").toUpperCase();
-        console.log(`++++++++++++++++++++`);
-        console.log(`market`, market);
-        console.log(`++++++++++++++++++++`);
         return {
           ...market,
           alias: "",
@@ -86,6 +77,7 @@ class ExchangeHub extends Bot {
           quoteCcy: market.quote_unit,
           settleCcy: "",
           state: market.visible,
+          tab_category: market.tab_category,
           stk: "",
           tickSz: "",
           uly: "",
@@ -209,7 +201,7 @@ class ExchangeHub extends Bot {
         ts: "0.0",
         sodUtc0: "0.0",
         sodUtc8: "0.0",
-        tab_category: "",
+        tab_category: market.tab_category,
       };
       if (tBTicker) {
         formatTBTicker = {
@@ -229,10 +221,12 @@ class ExchangeHub extends Bot {
           ts: tBTicker.at * 1000,
           sodUtc0: "0.0",
           sodUtc8: tBTicker.ticker.open.toString(),
+          tab_category: market.tab_category,
         };
       }
       return formatTBTicker;
     });
+    console.log(`formatTBTickers`, formatTBTickers)
     return formatTBTickers;
   }
   async getTicker({ params, query }) {
