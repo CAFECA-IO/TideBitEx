@@ -204,7 +204,7 @@ class ExchangeHub extends Bot {
       };
       if (tBTicker) {
         console.log(`++++++++++++++++++`)
-        console.log(`tBTicker`, tBTicker)
+        console.log(`market`, market)
         console.log(`++++++++++++++++++`)
         formatTBTicker = {
           instType: "",
@@ -223,7 +223,6 @@ class ExchangeHub extends Bot {
           ts: tBTicker.at * 1000,
           sodUtc0: "0.0",
           sodUtc8: tBTicker.ticker.open.toString(),
-          tab_category: tBTicker.ticker.tab_category.toString(),
         };
       }
       return formatTBTicker;
