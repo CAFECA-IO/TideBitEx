@@ -55,6 +55,9 @@ class ExchangeHub extends Bot {
         "config/markets/markets.yml"
       );
       const markets = Utils.marketParser(p);
+      console.log(`++++++++++++++++++++`);
+        console.log(`markets`, markets);
+        console.log(`++++++++++++++++++++`);
       const formatMarket = markets.map((market) => {
         const instId = market.name.split("/").join("-").toUpperCase();
         console.log(`++++++++++++++++++++`);
