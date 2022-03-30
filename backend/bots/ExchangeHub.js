@@ -37,6 +37,9 @@ class ExchangeHub extends Bot {
       })
       .then(() => {
         this.tidebitMarkets = this.getTidebitMarkets();
+        console.log(`&&&&&&&&&&&&&&&&&&&&&&`);
+        console.log(`this.tidebitMarkets`, this.tidebitMarkets);
+        console.log(`&&&&&&&&&&&&&&&&&&&&&&`);
         return this;
       });
   }
@@ -55,9 +58,9 @@ class ExchangeHub extends Bot {
         "config/markets/markets.yml"
       );
       const markets = Utils.marketParser(p);
-      console.log(`++++++++++++++++++++`);
+      console.log(`********************`);
         console.log(`markets`, markets);
-        console.log(`++++++++++++++++++++`);
+        console.log(`********************`);
       const formatMarket = markets.map((market) => {
         const instId = market.name.split("/").join("-").toUpperCase();
         console.log(`++++++++++++++++++++`);
