@@ -288,7 +288,7 @@ class ExchangeHub extends Bot {
         );
         includeTidebitMarket.forEach((market) => {
           market.source = SupportedExchange.OKEX;
-          market.tab_category = market.instId.split("-")[1];
+          market.tab_category = market.instId.split("-")[1].toLowerCase();
         });
         list.push(...includeTidebitMarket);
         this.logger.debug(`getTickers list[${list.length}]`, list);
