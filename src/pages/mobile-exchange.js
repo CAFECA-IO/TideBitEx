@@ -4,7 +4,7 @@ import MarketHistory from "../components/MarketHistory";
 import MarketTrade from "../components/MarketTrade";
 import OrderBook from "../components/OrderBook";
 import SelectedTicker from "../components/SelectedTicker";
-import TradingViewChart from "../components/TradingViewChart";
+import TradingChart from "../components/TradingChart";
 import { ThemeConsumer } from "../context/ThemeContext";
 import StoreContext from "../store/store-context";
 import { Tabs, Tab } from "react-bootstrap";
@@ -26,7 +26,7 @@ const MobileExchange = (props) => {
         {storeCtx.activePage === "chart" && (
           <>
             <ThemeConsumer>
-              {({ data }) => <TradingViewChart theme={data.theme} />}
+              {({ data }) => <TradingChart theme={data.theme} />}
             </ThemeConsumer>
           </>
         )}
