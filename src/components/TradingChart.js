@@ -14,7 +14,7 @@ const TradingChart = (props) => {
       {storeCtx.selectedTicker?.source === "TideBit" ? (
         <TradingApexChart />
       ) : (
-        <TradingViewChart />
+        <TradingViewChart theme={props.theme}/>
       )}
     </div>
   );
