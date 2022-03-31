@@ -4,7 +4,7 @@ import MarketHistory from "../components/MarketHistory";
 import MarketTrade from "../components/MarketTrade";
 import OrderBook from "../components/OrderBook";
 import SelectedTicker from "../components/SelectedTicker";
-import TradingChart from "../components/TradingChart";
+import TradingViewChart from "../components/TradingViewChart";
 import { ThemeConsumer } from "../context/ThemeContext";
 
 const DesktopExchange = (props) => {
@@ -18,7 +18,7 @@ const DesktopExchange = (props) => {
           </div>
           <div className="section__container--right">
             <ThemeConsumer>
-              {({ data }) => <TradingChart theme={data.theme} />}
+              {({ data }) => <TradingViewChart theme={data.theme} />}
             </ThemeConsumer>
           </div>
         </div>
