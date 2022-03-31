@@ -8,7 +8,12 @@ import { useTranslation } from "react-i18next";
 
 const OrderTile = (props) => {
   return (
-    <ul className="d-flex justify-content-between market-order-item">
+    <ul
+      className="d-flex justify-content-between market-order-item"
+      onClick={(_) =>
+        props.type === "pending" ? props.cancelOrder(props.order) : {}
+      }
+    >
       {/* <li>{dateFormatter(parseInt(props.order.cTime)).text}</li>
       <li>{props.order.instId.replace("-", "/")}</li>
       <li>{props.order.instType}</li>*/}
@@ -40,7 +45,7 @@ const OrderTile = (props) => {
       {/* <li>{props.order.fillSz}</li> */}
       {/* <li>{SafeMath.minus(props.order.sz, props.order.fillSz)}</li> */}
       {props.type === "pending" ? (
-        <li onClick={(_) => props.cancelOrder(props.order)}>
+        <li>
           <FaTrashAlt />
         </li>
       ) : (
