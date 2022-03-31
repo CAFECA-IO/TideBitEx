@@ -10,16 +10,12 @@ const TradingChart = (props) => {
 
   return (
     <div className="main-chart">
-      <div className="main-chart__header">
-        {t("chart")}
-        <React.Fragment>
-          {storeCtx.selectedTicker?.source === "TideBit" ? (
-            <TradingApexChart />
-          ) : (
-            <TradingViewChart />
-          )}
-        </React.Fragment>
-      </div>
+      <div className="main-chart__header">{t("chart")}</div>
+      {storeCtx.selectedTicker?.source === "TideBit" ? (
+        <TradingApexChart />
+      ) : (
+        <TradingViewChart />
+      )}
     </div>
   );
 };
