@@ -202,6 +202,7 @@ class ExchangeHub extends Bot {
         sodUtc0: "0.0",
         sodUtc8: "0.0",
         tab_category: market.tab_category,
+        source: market.source,
       };
       if (tBTicker) {
         formatTBTicker = {
@@ -222,11 +223,12 @@ class ExchangeHub extends Bot {
           sodUtc0: "0.0",
           sodUtc8: tBTicker.ticker.open.toString(),
           tab_category: market.tab_category,
+          source: market.source,
         };
       }
       return formatTBTicker;
     });
-    console.log(`formatTBTickers`, formatTBTickers);
+    this.logger.debug(`formatTBTickers`, formatTBTickers);
     return formatTBTickers;
   }
   async getTicker({ params, query }) {
