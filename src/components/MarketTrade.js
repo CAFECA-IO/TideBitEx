@@ -68,7 +68,7 @@ const TradeForm = (props) => {
             className="market-trade__input form-control"
             // placeholder={t("trade_amount")}
             value={props.sz}
-            onInput={props.onSzInput}
+            onInput={(e) => props.onSzInput(e.target.value)}
             required
             step="any"
           />
@@ -274,6 +274,7 @@ const TradePannel = (props) => {
 
   const buyPctHandler = useCallback(
     (orderType, pct, buyPx, availBal) => {
+      console.log(`buyPctHandler availBal`, availBal);
       let size = SafeMath.div(
         SafeMath.mult(pct, quoteCcyAvailable || availBal),
         buyPx
@@ -291,6 +292,7 @@ const TradePannel = (props) => {
 
   const sellPctHandler = useCallback(
     (orderType, pct, availBal) => {
+      console.log(`sellPctHandler availBal`, availBal);
       let size = SafeMath.mult(pct, baseCcyAvailable || availBal);
       if (orderType === "market") {
         setMarketSellSz(size);
@@ -389,36 +391,41 @@ const TradePannel = (props) => {
         return balance.ccy === storeCtx.selectedTicker?.quoteCcy;
       });
 
-      if (quoteCcy) setQuoteCcyAvailable(quoteCcy?.availBal);
+      if (quoteCcy) {
+        setQuoteCcyAvailable(quoteCcy?.availBal);
+        buyPctHandler(
+          "market",
+          selectedMarketBuyPct ?? "0.25",
+          storeCtx.selectedTicker.last,
+          quoteCcy?.availBal
+        );
+        sellPctHandler(
+          "market",
+          selectedMarketSellPct ?? "0.25",
+          quoteCcy?.availBal
+        );
+      }
       let baseCcy = storeCtx.balances.find(
         (balance) => balance.ccy === storeCtx.selectedTicker?.baseCcy
       );
-      if (baseCcy) setBaseCcyAvailable(baseCcy?.availBal);
+      if (baseCcy) {
+        setBaseCcyAvailable(baseCcy?.availBal);
+        console.log(`baseCcy?.availBal`, baseCcy?.availBal);
+        buyPctHandler(
+          "limit",
+          selectedLimitBuyPct ?? "0.25",
+          storeCtx.selectedTicker.last,
+          baseCcy?.availBal
+        );
+        sellPctHandler(
+          "limit",
+          selectedLimitSellPct ?? "0.25",
+          baseCcy?.availBal
+        );
+      }
       setSelectedTicker(storeCtx.selectedTicker);
       limitBuyPxHandler(storeCtx.selectedTicker.last);
       limitSellPxHandler(storeCtx.selectedTicker.last);
-      buyPctHandler(
-        "market",
-        selectedMarketBuyPct ?? "0.25",
-        storeCtx.selectedTicker.last,
-        quoteCcy?.availBal
-      );
-      buyPctHandler(
-        "limit",
-        selectedLimitBuyPct ?? "0.25",
-        storeCtx.selectedTicker.last,
-        baseCcy?.availBal
-      );
-      sellPctHandler(
-        "market",
-        selectedMarketSellPct ?? "0.25",
-        quoteCcy?.availBal
-      );
-      sellPctHandler(
-        "limit",
-        selectedLimitSellPct ?? "0.25",
-        baseCcy?.availBal
-      );
     }
   }, [
     storeCtx.selectedTicker,
@@ -452,10 +459,8 @@ const TradePannel = (props) => {
                   ? selectedMarketBuyPct
                   : selectedLimitBuyPct
               }
-              onPxInput={(event) => limitBuyPxHandler(event.target.value)}
-              onSzInput={(event) =>
-                buySzHandler(props.orderType, event.target.value)
-              }
+              onPxInput={limitBuyPxHandler}
+              onSzInput={(value) => buySzHandler(props.orderType, value)}
               percentageHandler={(pct, buyPx) =>
                 buyPctHandler(props.orderType, pct, buyPx)
               }
@@ -481,10 +486,8 @@ const TradePannel = (props) => {
                   ? selectedMarketSellPct
                   : selectedLimitSellPct
               }
-              onPxInput={(event) => limitSellPxHandler(event.target.value)}
-              onSzInput={(event) =>
-                sellSzHandler(props.orderType, event.target.value)
-              }
+              onPxInput={limitSellPxHandler}
+              onSzInput={(value) => sellSzHandler(props.orderType, value)}
               percentageHandler={(pct, buyPx) =>
                 sellPctHandler(props.orderType, pct, buyPx)
               }
@@ -512,10 +515,8 @@ const TradePannel = (props) => {
                 ? selectedMarketBuyPct
                 : selectedLimitBuyPct
             }
-            onPxInput={(event) => limitBuyPxHandler(event.target.value)}
-            onSzInput={(event) =>
-              buySzHandler(props.orderType, event.target.value)
-            }
+            onPxInput={limitBuyPxHandler}
+            onSzInput={(value) => buySzHandler(props.orderType, value)}
             percentageHandler={(pct, buyPx) =>
               buyPctHandler(props.orderType, pct, buyPx)
             }
@@ -539,10 +540,8 @@ const TradePannel = (props) => {
                 ? selectedMarketSellPct
                 : selectedLimitSellPct
             }
-            onPxInput={(event) => limitSellPxHandler(event.target.value)}
-            onSzInput={(event) =>
-              sellSzHandler(props.orderType, event.target.value)
-            }
+            onPxInput={limitSellPxHandler}
+            onSzInput={(value) => sellSzHandler(props.orderType, value)}
             percentageHandler={(pct) => sellPctHandler(props.orderType, pct)}
             onSubmit={onSubmit}
             side="sell"
