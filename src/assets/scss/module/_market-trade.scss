@@ -77,8 +77,19 @@
   &__text > span {
     float: right;
   }
-  &__input-group:not(:last-child) {
+  &__input-group {
     display: flex;
+    flex-direction: column;
+    & > label{
+      margin-bottom: 0;
+      font-size: 13px;
+      color: #4a4a4a;
+    }
+  }
+  &__input-group--box {
+    display: flex;
+  }
+  &__input-group:not(:last-child) {
     margin-bottom: 14px;
   }
   &__input {
@@ -164,7 +175,7 @@
   // If [device width] is less than or equal to 600px, then do
   .market-trade {
     border: none;
-    
+
     &__header {
       display: none;
     }

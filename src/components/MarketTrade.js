@@ -37,50 +37,64 @@ const TradeForm = (props) => {
         </span>
       </p>
       <div className="market-trade__input-group input-group">
-        <input
-          type="number"
-          className="market-trade__input form-control"
-          placeholder={t("price")}
-          value={props.px}
-          onInput={(e) => props.onPxInput(e.target.value)}
-          required={!props.readyOnly}
-          disabled={!!props.readyOnly}
-          step="any"
-        />
-        <div className="market-trade__input-group--append input-group-append">
-          <span className="input-group-text">
-            {props.selectedTicker?.quoteCcy || "--"}
-          </span>
+        <label htmlFor="price">{t("price")}:</label>
+        <div className="market-trade__input-group--box">
+          <input
+            name="price"
+            type={props.readyOnly ? "text" : "number"}
+            className="market-trade__input form-control"
+            // placeholder={t("price")}
+            value={props.readyOnly ? t("market") : props.px}
+            onInput={(e) => props.onPxInput(e.target.value)}
+            required={!props.readyOnly}
+            disabled={!!props.readyOnly}
+            step="any"
+          />
+          {!props.readyOnly && (
+            <div className="market-trade__input-group--append input-group-append">
+              <span className="input-group-text">
+                {props.selectedTicker?.quoteCcy || "--"}
+              </span>
+            </div>
+          )}
         </div>
       </div>
       <div className="market-trade__input-group input-group">
-        <input
-          type="number"
-          className="market-trade__input form-control"
-          placeholder={t("trade_amount")}
-          value={props.sz}
-          onInput={props.onSzInput}
-          required
-          step="any"
-        />
-        <div className="market-trade__input-group--append input-group-append">
-          <span className="input-group-text">
-            {props.selectedTicker?.baseCcy || "--"}
-          </span>
+        <label htmlFor="trade_amount">{t("trade_amount")}:</label>
+        <div className="market-trade__input-group--box">
+          <input
+            name="trade_amount"
+            type="number"
+            className="market-trade__input form-control"
+            // placeholder={t("trade_amount")}
+            value={props.sz}
+            onInput={props.onSzInput}
+            required
+            step="any"
+          />
+          <div className="market-trade__input-group--append input-group-append">
+            <span className="input-group-text">
+              {props.selectedTicker?.baseCcy || "--"}
+            </span>
+          </div>
         </div>
       </div>
       <div className="market-trade__input-group input-group">
-        <input
-          type="number"
-          className="market-trade__input  form-control"
-          placeholder={t("trade_total")}
-          value={SafeMath.mult(props.px, props.sz)}
-          readOnly
-        />
-        <div className="market-trade__input-group--append input-group-append">
-          <span className="input-group-text">
-            {props.selectedTicker?.quoteCcy || "--"}
-          </span>
+        <label htmlFor="trade_amount">{t("trade_total")}:</label>
+        <div className="market-trade__input-group--box">
+          <input
+            name="trade_total"
+            type="number"
+            className="market-trade__input  form-control"
+            // placeholder={t("trade_total")}
+            value={SafeMath.mult(props.px, props.sz)}
+            readOnly
+          />
+          <div className="market-trade__input-group--append input-group-append">
+            <span className="input-group-text">
+              {props.selectedTicker?.quoteCcy || "--"}
+            </span>
+          </div>
         </div>
       </div>
       <div className="market-trade__error-message--container">
@@ -96,38 +110,22 @@ const TradeForm = (props) => {
       </div>
       <ul className="market-trade__amount-controller">
         <li className={`${props.selectedPct === "0.25" ? "active" : ""}`}>
-          <span
-            onClick={() =>
-              props.percentageHandler(props.selectedTicker, "0.25, props.px")
-            }
-          >
+          <span onClick={() => props.percentageHandler("0.25, props.px")}>
             25%
           </span>
         </li>
         <li className={`${props.selectedPct === "0.5" ? "active" : ""}`}>
-          <span
-            onClick={() =>
-              props.percentageHandler(props.selectedTicker, "0.5", props.px)
-            }
-          >
+          <span onClick={() => props.percentageHandler("0.5", props.px)}>
             50%
           </span>
         </li>
         <li className={`${props.selectedPct === "0.75" ? "active" : ""}`}>
-          <span
-            onClick={() =>
-              props.percentageHandler(props.selectedTicker, "0.75, props.px")
-            }
-          >
+          <span onClick={() => props.percentageHandler("0.75, props.px")}>
             75%
           </span>
         </li>
         <li className={`${props.selectedPct === "1.0" ? "active" : ""}`}>
-          <span
-            onClick={() =>
-              props.percentageHandler(props.selectedTicker, "1.0", props.px)
-            }
-          >
+          <span onClick={() => props.percentageHandler("1.0", props.px)}>
             100%
           </span>
         </li>
@@ -162,85 +160,136 @@ const TradePannel = (props) => {
   const [selectedTicker, setSelectedTicker] = useState(null);
   const [quoteCcyAvailable, setQuoteCcyAvailable] = useState("0");
   const [baseCcyAvailable, setBaseCcyAvailable] = useState("0");
-  const [buyPx, setBuyPx] = useState(null);
-  const [sellPx, setSellPx] = useState(null);
-  const [buySz, setBuySz] = useState(null);
+  const [limitBuyPx, setLimitBuyPx] = useState(null);
+  const [limitSellPx, setLimitSellPx] = useState(null);
+  const [marketBuySz, setMarketBuySz] = useState(null);
+  const [marketSellSz, setMarketSellSz] = useState(null);
+  const [limitBuySz, setLimitBuySz] = useState(null);
+  const [limitSellSz, setLimitSellSz] = useState(null);
   const [tdMode, setTdMode] = useState("cash");
-  const [sellSz, setSellSz] = useState(null);
-  const [selectedBuyPct, setSelectedBuyPct] = useState(null);
-  const [selectedSellPct, setSelectedSellPct] = useState(null);
+  const [selectedLimitSellPct, setSelectedLimitSellPct] = useState(null);
+  const [selectedMarketBuyPct, setSelectedMarketBuyPct] = useState(null);
+  const [selectedLimitBuyPct, setSelectedLimitBuyPct] = useState(null);
+  const [selectedMarketSellPct, setSelectedMarketSellPct] = useState(null);
   const [buyErrorMessage, setBuyErrorMessage] = useState(null);
   const [sellErrorMessage, setSellErrorMessage] = useState(null);
   const { t } = useTranslation();
 
-  const buySzHandler = (event) => {
-    let value = SafeMath.lt(event.target.value, "0")
-      ? "0"
-      : SafeMath.gt(quoteCcyAvailable, "0") &&
-        SafeMath.gte(
-          SafeMath.mult(
-            event.target.value,
-            props.orderType === "market" ? buyPx : storeCtx.buyPx
-          ),
-          quoteCcyAvailable
-        )
-      ? SafeMath.div(
-          quoteCcyAvailable,
-          props.orderType === "market" ? buyPx : storeCtx.buyPx
-        )
-      : event.target.value;
-    setBuySz(value);
-    if (SafeMath.gt(value, "0")) {
-      if (!!selectedTicker?.minSz && SafeMath.lt(value, selectedTicker?.minSz))
-        setBuyErrorMessage(`Minimum order size is ${selectedTicker?.minSz}`);
-      if (
-        SafeMath.gte(
-          SafeMath.mult(
-            value,
-            props.orderType === "market" ? buyPx : storeCtx.buyPx
-          ),
-          quoteCcyAvailable
-        )
-      )
-        setBuyErrorMessage(
-          `Available ${selectedTicker?.quoteCcy} is not enough`
-        );
-    } else {
-      setBuyErrorMessage(null);
-    }
-  };
-  const sellSzHandler = (event) => {
-    let value = SafeMath.lt(event.target.value, "0")
-      ? "0"
-      : SafeMath.gt(baseCcyAvailable, "0") &&
-        SafeMath.gte(event.target.value, baseCcyAvailable)
-      ? baseCcyAvailable
-      : event.target.value;
-    setSellSz(value);
-    if (SafeMath.gt(value, "0")) {
-      if (!!selectedTicker?.minSz && SafeMath.lt(value, selectedTicker?.minSz))
-        setSellErrorMessage(`Minimum order size is ${selectedTicker?.minSz}`);
-      if (SafeMath.gte(value, baseCcyAvailable))
-        setSellErrorMessage(
-          `Available ${selectedTicker?.baseCcy} is not enough`
-        );
-    } else {
-      setSellErrorMessage(null);
-    }
+  const limitBuyPxHandler = (value) => {
+    let _value = +value < 0 ? "0" : value;
+    setLimitBuyPx(_value);
   };
 
+  const limitSellPxHandler = (value) => {
+    let _value = +value < 0 ? "0" : value;
+    setLimitSellPx(_value);
+  };
+
+  const buySzHandler = useCallback(
+    (orderType, value) => {
+      let _value = SafeMath.lt(value, "0")
+        ? "0"
+        : SafeMath.gt(quoteCcyAvailable, "0") &&
+          SafeMath.gte(
+            SafeMath.mult(
+              value,
+              orderType === "market"
+                ? storeCtx.selectedTicker?.last
+                : limitBuyPx
+            ),
+            quoteCcyAvailable
+          )
+        ? SafeMath.div(
+            quoteCcyAvailable,
+            orderType === "market" ? storeCtx.selectedTicker?.last : limitBuyPx
+          )
+        : value;
+      if (orderType === "market") setMarketBuySz(_value);
+      else setLimitBuySz(_value);
+      if (SafeMath.gt(value, "0")) {
+        if (
+          !!selectedTicker?.minSz &&
+          SafeMath.lt(value, selectedTicker?.minSz)
+        )
+          setBuyErrorMessage(`Minimum order size is ${selectedTicker?.minSz}`);
+        if (
+          SafeMath.gte(
+            SafeMath.mult(
+              value,
+              orderType === "market"
+                ? storeCtx.selectedTicker?.last
+                : limitBuyPx
+            ),
+            quoteCcyAvailable
+          )
+        )
+          setBuyErrorMessage(
+            `Available ${selectedTicker?.quoteCcy} is not enough`
+          );
+      } else {
+        setBuyErrorMessage(null);
+      }
+    },
+    [
+      limitBuyPx,
+      quoteCcyAvailable,
+      selectedTicker?.minSz,
+      selectedTicker?.quoteCcy,
+      storeCtx.selectedTicker?.last,
+    ]
+  );
+  const sellSzHandler = useCallback(
+    (orderType, value) => {
+      let _value = SafeMath.lt(value, "0")
+        ? "0"
+        : SafeMath.gt(baseCcyAvailable, "0") &&
+          SafeMath.gte(value, baseCcyAvailable)
+        ? baseCcyAvailable
+        : value;
+      if (orderType === "market") setMarketSellSz(_value);
+      else setLimitSellSz(_value);
+
+      if (SafeMath.gt(value, "0")) {
+        if (
+          !!selectedTicker?.minSz &&
+          SafeMath.lt(value, selectedTicker?.minSz)
+        )
+          setSellErrorMessage(`Minimum order size is ${selectedTicker?.minSz}`);
+        if (SafeMath.gte(value, baseCcyAvailable))
+          setSellErrorMessage(
+            `Available ${selectedTicker?.baseCcy} is not enough`
+          );
+      } else {
+        setSellErrorMessage(null);
+      }
+    },
+    [baseCcyAvailable, selectedTicker?.baseCcy, selectedTicker?.minSz]
+  );
+
   const buyPctHandler = useCallback(
-    (selectedTicker, pct, buyPx) => {
-      setBuySz(SafeMath.div(SafeMath.mult(pct, quoteCcyAvailable), buyPx));
-      setSelectedBuyPct(pct);
+    (orderType, pct, buyPx) => {
+      let size = SafeMath.div(SafeMath.mult(pct, quoteCcyAvailable), buyPx);
+      if (orderType === "market") {
+        setMarketBuySz(size);
+        setSelectedMarketBuyPct(pct);
+      } else {
+        setLimitBuySz(size);
+        setSelectedLimitBuyPct(pct);
+      }
     },
     [quoteCcyAvailable]
   );
 
   const sellPctHandler = useCallback(
-    (selectedTicker, pct) => {
-      setSellSz(SafeMath.mult(pct, baseCcyAvailable));
-      setSelectedSellPct(pct);
+    (orderType, pct) => {
+      let size = SafeMath.mult(pct, baseCcyAvailable);
+      if (orderType === "market") {
+        setMarketSellSz(size);
+        setSelectedMarketSellPct(pct);
+      } else {
+        setLimitSellSz(size);
+        setSelectedLimitSellPct(pct);
+      }
     },
     [baseCcyAvailable]
   );
@@ -257,7 +306,7 @@ const TradePannel = (props) => {
               side,
               ordType: props.orderType,
               px: storeCtx.buyPx,
-              sz: buySz,
+              sz: limitBuySz,
             }
           : {
               instId: storeCtx.selectedTicker.instId,
@@ -265,15 +314,15 @@ const TradePannel = (props) => {
               side,
               ordType: props.orderType,
               px: storeCtx.sellPx,
-              sz: sellSz,
+              sz: limitSellSz,
             }
         : {
             instId: storeCtx.selectedTicker.instId,
             tdMode,
             side,
             ordType: props.orderType,
-            px: side === "buy" ? buyPx : sellPx,
-            sz: side === "buy" ? buySz : sellSz,
+            px: storeCtx.selectedTicker?.last,
+            sz: side === "buy" ? marketBuySz : marketSellSz,
           };
     const confirm = window.confirm(`You are going to
           ${order.side} ${order.sz} ${order.instId.split("-")[0]}
@@ -288,49 +337,72 @@ const TradePannel = (props) => {
       storeCtx.postOrder(order);
     }
     if (side === "buy") {
-      setBuySz("0");
-      buyPctHandler(selectedTicker, "0.25", selectedTicker.last);
+      if (props.orderType === "market") {
+        setMarketBuySz("0");
+      } else {
+        setLimitBuySz("0");
+      }
+      buyPctHandler(props.orderType, "0.25", selectedTicker.last);
     } else {
-      setSellSz("0");
-      sellPctHandler(selectedTicker, "0.25", selectedTicker.last);
+      if (props.orderType === "market") {
+        setMarketSellSz("0");
+      } else {
+        setLimitSellSz("0");
+      }
+
+      sellPctHandler(props.orderType, "0.25", selectedTicker.last);
     }
   };
 
-  // -- TEST
   useEffect(() => {
     if (
-      (storeCtx.selectedTicker && !selectedBuyPct && !selectedSellPct) ||
+      storeCtx.orderbook !== null &&
+      storeCtx.orderbook?.price &&
+      storeCtx.orderbook?.amount
+    ) {
+      limitBuyPxHandler(storeCtx.orderbook.price);
+      limitSellPxHandler(storeCtx.orderbook.price);
+      buySzHandler("market", storeCtx.orderbook.price);
+      sellSzHandler("market", storeCtx.orderbook.price);
+      buySzHandler("limit", storeCtx.orderbook.price);
+      sellSzHandler("limit", storeCtx.orderbook.price);
+    }
+  }, [buySzHandler, sellSzHandler, storeCtx.orderbook]);
+
+  useEffect(() => {
+    if (
+      storeCtx.selectedTicker ||
       (storeCtx.selectedTicker &&
         storeCtx.selectedTicker.instId !== selectedTicker?.instId)
     ) {
       setSelectedTicker(storeCtx.selectedTicker);
       storeCtx.buyPxHandler(storeCtx.selectedTicker.last);
       storeCtx.sellPxHandler(storeCtx.selectedTicker.last);
-      setBuyPx(storeCtx.selectedTicker.last);
-      setSellPx(storeCtx.selectedTicker.last);
+      setLimitBuyPx(storeCtx.selectedTicker.last);
+      setLimitSellPx(storeCtx.selectedTicker.last);
       buyPctHandler(
-        storeCtx.selectedTicker,
-        selectedBuyPct ?? "0.25",
+        "market",
+        selectedMarketBuyPct ?? "0.25",
         storeCtx.selectedTicker.last
       );
-      sellPctHandler(storeCtx.selectedTicker, selectedSellPct ?? "0.25");
-    }
-    if (storeCtx.selectedTicker && props.orderType === "market") {
-      setBuyPx(storeCtx.selectedTicker.last);
-      setSellPx(storeCtx.selectedTicker.last);
+      buyPctHandler(
+        "limit",
+        selectedLimitBuyPct ?? "0.25",
+        storeCtx.selectedTicker.last
+      );
+      sellPctHandler("market", selectedMarketSellPct ?? "0.25");
+      sellPctHandler("limit", selectedLimitSellPct ?? "0.25");
     }
     return () => {};
   }, [
-    props.orderType,
-    selectedBuyPct,
-    selectedSellPct,
-    selectedTicker?.instId,
-    storeCtx.selectedTicker,
     buyPctHandler,
+    selectedLimitBuyPct,
+    selectedLimitSellPct,
+    selectedMarketBuyPct,
+    selectedMarketSellPct,
+    selectedTicker?.instId,
     sellPctHandler,
     storeCtx,
-    props.selectedTicker?.quoteCcy,
-    props.selectedTicker?.baseCcy,
   ]);
 
   useEffect(() => {
@@ -353,15 +425,27 @@ const TradePannel = (props) => {
         <Tabs defaultActiveKey="buy">
           <Tab eventKey="buy" title={t("buy")}>
             <TradeForm
-              px={props.orderType === "market" ? buyPx : storeCtx.buyPx}
-              sz={buySz}
+              px={
+                props.orderType === "market"
+                  ? storeCtx.selectedTicker?.last
+                  : limitBuyPx
+              }
+              sz={props.orderType === "market" ? marketBuySz : limitBuySz}
               selectedTicker={selectedTicker}
               quoteCcyAvailable={quoteCcyAvailable}
               baseCcyAvailable={baseCcyAvailable}
-              selectedPct={selectedBuyPct}
-              onPxInput={!!props.readyOnly ? () => {} : storeCtx.buyPxHandler}
-              onSzInput={buySzHandler}
-              percentageHandler={buyPctHandler}
+              selectedPct={
+                props.orderType === "market"
+                  ? selectedMarketBuyPct
+                  : selectedLimitBuyPct
+              }
+              onPxInput={(event) => limitBuyPxHandler(event.target.value)}
+              onSzInput={(event) =>
+                buySzHandler(props.orderType, event.target.value)
+              }
+              percentageHandler={(pct, buyPx) =>
+                buyPctHandler(props.orderType, pct, buyPx)
+              }
               onSubmit={onSubmit}
               side="buy"
               readyOnly={!!props.readyOnly}
@@ -370,15 +454,27 @@ const TradePannel = (props) => {
           </Tab>
           <Tab eventKey="sell" title={t("sell")}>
             <TradeForm
-              px={props.orderType === "market" ? sellPx : storeCtx.sellPx}
-              sz={sellSz}
+              px={
+                props.orderType === "market"
+                  ? storeCtx.selectedTicker?.last
+                  : limitSellPx
+              }
+              sz={props.orderType === "market" ? marketSellSz : limitSellSz}
               quoteCcyAvailable={quoteCcyAvailable}
               baseCcyAvailable={baseCcyAvailable}
               selectedTicker={selectedTicker}
-              selectedPct={selectedSellPct}
-              onPxInput={!!props.readyOnly ? () => {} : storeCtx.sellPxHandler}
-              onSzInput={sellSzHandler}
-              percentageHandler={sellPctHandler}
+              selectedPct={
+                props.orderType === "market"
+                  ? selectedMarketSellPct
+                  : selectedLimitSellPct
+              }
+              onPxInput={limitSellPxHandler}
+              onSzInput={(event) =>
+                sellSzHandler(props.orderType, event.target.value)
+              }
+              percentageHandler={(pct, buyPx) =>
+                sellPctHandler(props.orderType, pct, buyPx)
+              }
               onSubmit={onSubmit}
               side="sell"
               readyOnly={!!props.readyOnly}
@@ -389,30 +485,55 @@ const TradePannel = (props) => {
       ) : (
         <>
           <TradeForm
-            px={props.orderType === "market" ? buyPx : storeCtx.buyPx}
-            sz={buySz}
+            px={
+              props.orderType === "market"
+                ? storeCtx.selectedTicker?.last
+                : limitBuyPx
+            }
+            sz={props.orderType === "market" ? marketBuySz : limitBuySz}
             quoteCcyAvailable={quoteCcyAvailable}
             baseCcyAvailable={baseCcyAvailable}
             selectedTicker={selectedTicker}
-            selectedPct={selectedBuyPct}
-            onPxInput={!!props.readyOnly ? () => {} : storeCtx.buyPxHandler}
-            onSzInput={buySzHandler}
-            percentageHandler={buyPctHandler}
+            selectedPct={
+              props.orderType === "market"
+                ? selectedMarketBuyPct
+                : selectedLimitBuyPct
+            }
+            onPxInput={limitBuyPxHandler}
+            onSzInput={(event) =>
+              buySzHandler(props.orderType, event.target.value)
+            }
+            percentageHandler={(pct, buyPx) =>
+              buyPctHandler(props.orderType, pct, buyPx)
+            }
             onSubmit={onSubmit}
             side="buy"
             readyOnly={!!props.readyOnly}
             errorMessage={buyErrorMessage}
           />
           <TradeForm
-            px={props.orderType === "market" ? sellPx : storeCtx.sellPx}
-            sz={sellSz}
+            orderType={props.ordType}
+            px={
+              props.orderType === "market"
+                ? storeCtx.selectedTicker?.last
+                : limitSellPx
+            }
+            sz={props.orderType === "market" ? marketSellSz : limitSellSz}
             quoteCcyAvailable={quoteCcyAvailable}
             baseCcyAvailable={baseCcyAvailable}
             selectedTicker={selectedTicker}
-            selectedPct={selectedSellPct}
-            onPxInput={!!props.readyOnly ? () => {} : storeCtx.sellPxHandler}
-            onSzInput={sellSzHandler}
-            percentageHandler={sellPctHandler}
+            selectedPct={
+              props.orderType === "market"
+                ? selectedMarketSellPct
+                : selectedLimitSellPct
+            }
+            onPxInput={limitSellPxHandler}
+            onSzInput={(event) =>
+              sellSzHandler(props.orderType, event.target.value)
+            }
+            percentageHandler={(pct, buyPx) =>
+              sellPctHandler(props.orderType, pct, buyPx)
+            }
             onSubmit={onSubmit}
             side="sell"
             readyOnly={!!props.readyOnly}
