@@ -26,7 +26,7 @@ const TradeForm = (props) => {
                   props.side === "buy"
                     ? props.quoteCcyAvailable
                     : props.baseCcyAvailable,
-                  4
+                  8
                 )
               : "0" || "--"
           } `}
@@ -206,7 +206,7 @@ const TradePannel = (props) => {
                 ? storeCtx.selectedTicker?.last
                 : limitBuyPx
             ),
-            4
+            8
           )
         : value;
       if (orderType === "market") setMarketBuySz(_value);
@@ -275,13 +275,17 @@ const TradePannel = (props) => {
 
   const buyPctHandler = useCallback(
     (orderType, pct, buyPx, availBal) => {
-      let size = formateDecimal(
-        SafeMath.div(
-          SafeMath.mult(pct, quoteCcyAvailable),
-          buyPx,
-          4
-        )
-      );
+      let size = "0";
+      if (SafeMath.gt(quoteCcyAvailable, 0))
+        size = formateDecimal(
+          SafeMath.div(SafeMath.mult(pct, quoteCcyAvailable), buyPx),
+          8
+        );
+      else if (SafeMath.gt(availBal, 0))
+        size = formateDecimal(
+          SafeMath.div(SafeMath.mult(pct, availBal), buyPx),
+          8
+        );
       if (orderType === "market") {
         setMarketBuySz(size);
         setSelectedMarketBuyPct(pct);
@@ -297,9 +301,9 @@ const TradePannel = (props) => {
     (orderType, pct, availBal) => {
       let size = "0";
       if (SafeMath.gt(baseCcyAvailable, 0))
-        size = formateDecimal(SafeMath.mult(pct, baseCcyAvailable), 4);
+        size = formateDecimal(SafeMath.mult(pct, baseCcyAvailable), 8);
       else if (SafeMath.gt(availBal, 0))
-        size = formateDecimal(SafeMath.mult(pct, availBal), 4);
+        size = formateDecimal(SafeMath.mult(pct, availBal), 8);
       if (orderType === "market") {
         setMarketSellSz(size);
         setSelectedMarketSellPct(pct);
