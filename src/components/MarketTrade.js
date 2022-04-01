@@ -292,12 +292,6 @@ const TradePannel = (props) => {
   const sellPctHandler = useCallback(
     (orderType, pct, availBal) => {
       let size = SafeMath.mult(pct, baseCcyAvailable || availBal);
-      console.log(`sellPctHandler: [orderType, pct, baseCcyAvailable, size]`, [
-        orderType,
-        pct,
-        baseCcyAvailable || availBal,
-        size,
-      ]);
       if (orderType === "market") {
         setMarketSellSz(size);
         setSelectedMarketSellPct(pct);
@@ -415,8 +409,16 @@ const TradePannel = (props) => {
         storeCtx.selectedTicker.last,
         baseCcy?.availBal
       );
-      sellPctHandler("market", selectedMarketSellPct ?? "0.25");
-      sellPctHandler("limit", selectedLimitSellPct ?? "0.25");
+      sellPctHandler(
+        "market",
+        selectedMarketSellPct ?? "0.25",
+        quoteCcy?.availBal
+      );
+      sellPctHandler(
+        "limit",
+        selectedLimitSellPct ?? "0.25",
+        baseCcy?.availBal
+      );
     }
   }, [
     storeCtx.selectedTicker,
@@ -510,7 +512,7 @@ const TradePannel = (props) => {
                 ? selectedMarketBuyPct
                 : selectedLimitBuyPct
             }
-            onPxInput={limitBuyPxHandler}
+            onPxInput={(event) => limitBuyPxHandler(event.target.value)}
             onSzInput={(event) =>
               buySzHandler(props.orderType, event.target.value)
             }
@@ -537,7 +539,7 @@ const TradePannel = (props) => {
                 ? selectedMarketSellPct
                 : selectedLimitSellPct
             }
-            onPxInput={limitSellPxHandler}
+            onPxInput={(event) => limitSellPxHandler(event.target.value)}
             onSzInput={(event) =>
               sellSzHandler(props.orderType, event.target.value)
             }
