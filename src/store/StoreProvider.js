@@ -36,9 +36,8 @@ const StoreProvider = (props) => {
   const [token, setToken] = useState(null);
   const [languageKey, setLanguageKey] = useState("en");
 
-  const orderBookHandler = useCallback((price,amount) => {
-   
-    setOrderbook({price,amount});
+  const orderBookHandler = useCallback((price, amount) => {
+    setOrderbook({ price, amount });
   }, []);
 
   let tickerTimestamp = 0,
