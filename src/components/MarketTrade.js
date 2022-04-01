@@ -376,8 +376,6 @@ const TradePannel = (props) => {
         storeCtx.selectedTicker.instId !== selectedTicker?.instId)
     ) {
       setSelectedTicker(storeCtx.selectedTicker);
-      storeCtx.buyPxHandler(storeCtx.selectedTicker.last);
-      storeCtx.sellPxHandler(storeCtx.selectedTicker.last);
       setLimitBuyPx(storeCtx.selectedTicker.last);
       setLimitSellPx(storeCtx.selectedTicker.last);
       buyPctHandler(
