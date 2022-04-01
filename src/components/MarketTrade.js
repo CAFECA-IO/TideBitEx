@@ -274,10 +274,12 @@ const TradePannel = (props) => {
 
   const buyPctHandler = useCallback(
     (orderType, pct, buyPx, availBal) => {
-      console.log(`buyPctHandler availBal`, availBal);
-      let size = SafeMath.div(
-        SafeMath.mult(pct, quoteCcyAvailable || availBal),
-        buyPx
+      let size = formateDecimal(
+        SafeMath.div(
+          SafeMath.mult(pct, quoteCcyAvailable || availBal),
+          buyPx,
+          4
+        )
       );
       if (orderType === "market") {
         setMarketBuySz(size);
@@ -292,8 +294,11 @@ const TradePannel = (props) => {
 
   const sellPctHandler = useCallback(
     (orderType, pct, availBal) => {
-      console.log(`sellPctHandler availBal`, availBal);
-      let size = SafeMath.mult(pct, baseCcyAvailable || availBal);
+      let size = "0";
+      if (SafeMath.gt(baseCcyAvailable, 0))
+        size = formateDecimal(SafeMath.mult(pct, baseCcyAvailable), 4);
+      else if (SafeMath.gt(availBal, 0))
+        size = formateDecimal(SafeMath.mult(pct, availBal), 4);
       if (orderType === "market") {
         setMarketSellSz(size);
         setSelectedMarketSellPct(pct);
@@ -316,7 +321,7 @@ const TradePannel = (props) => {
               tdMode,
               side,
               ordType: props.orderType,
-              px: storeCtx.buyPx,
+              px: limitBuyPx,
               sz: limitBuySz,
             }
           : {
@@ -324,7 +329,7 @@ const TradePannel = (props) => {
               tdMode,
               side,
               ordType: props.orderType,
-              px: storeCtx.sellPx,
+              px: limitSellPx,
               sz: limitSellSz,
             }
         : {
@@ -399,9 +404,10 @@ const TradePannel = (props) => {
           storeCtx.selectedTicker.last,
           quoteCcy?.availBal
         );
-        sellPctHandler(
-          "market",
-          selectedMarketSellPct ?? "0.25",
+        buyPctHandler(
+          "limit",
+          selectedLimitBuyPct ?? "0.25",
+          storeCtx.selectedTicker.last,
           quoteCcy?.availBal
         );
       }
@@ -411,10 +417,9 @@ const TradePannel = (props) => {
       if (baseCcy) {
         setBaseCcyAvailable(baseCcy?.availBal);
         console.log(`baseCcy?.availBal`, baseCcy?.availBal);
-        buyPctHandler(
-          "limit",
-          selectedLimitBuyPct ?? "0.25",
-          storeCtx.selectedTicker.last,
+        sellPctHandler(
+          "market",
+          selectedMarketSellPct ?? "0.25",
           baseCcy?.availBal
         );
         sellPctHandler(
