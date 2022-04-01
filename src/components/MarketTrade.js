@@ -199,9 +199,14 @@ const TradePannel = (props) => {
             ),
             quoteCcyAvailable
           )
-        ? SafeMath.div(
-            quoteCcyAvailable,
-            orderType === "market" ? storeCtx.selectedTicker?.last : limitBuyPx
+        ? formateDecimal(
+            SafeMath.div(
+              quoteCcyAvailable,
+              orderType === "market"
+                ? storeCtx.selectedTicker?.last
+                : limitBuyPx
+            ),
+            4
           )
         : value;
       if (orderType === "market") setMarketBuySz(_value);
@@ -223,8 +228,6 @@ const TradePannel = (props) => {
             quoteCcyAvailable
           )
         ) {
-          console.error(`size`, value);
-          console.error(`quoteCcyAvailable`, quoteCcyAvailable);
           setBuyErrorMessage(
             `Available ${selectedTicker?.quoteCcy} is not enough`
           );
@@ -259,8 +262,6 @@ const TradePannel = (props) => {
         )
           setSellErrorMessage(`Minimum order size is ${selectedTicker?.minSz}`);
         if (SafeMath.gt(value, baseCcyAvailable)) {
-          console.error(`size`, value);
-          console.error(`baseCcyAvailable`, baseCcyAvailable);
           setSellErrorMessage(
             `Available ${selectedTicker?.baseCcy} is not enough`
           );
@@ -276,7 +277,7 @@ const TradePannel = (props) => {
     (orderType, pct, buyPx, availBal) => {
       let size = formateDecimal(
         SafeMath.div(
-          SafeMath.mult(pct, quoteCcyAvailable || availBal),
+          SafeMath.mult(pct, quoteCcyAvailable),
           buyPx,
           4
         )
@@ -416,7 +417,6 @@ const TradePannel = (props) => {
       );
       if (baseCcy) {
         setBaseCcyAvailable(baseCcy?.availBal);
-        console.log(`baseCcy?.availBal`, baseCcy?.availBal);
         sellPctHandler(
           "market",
           selectedMarketSellPct ?? "0.25",
