@@ -1,6 +1,6 @@
-const ConnectorBase = require("../ConnectorBase");
-const Pusher = require("pusher-js");
-const axios = require("axios");
+import ConnectorBase from "../ConnectorBase";
+import Pusher from "pusher-js";
+import axios from "axios";
 
 class TibeBitConnector extends ConnectorBase {
   constructor({ logger }) {
@@ -50,4 +50,4 @@ class TibeBitConnector extends ConnectorBase {
   }
 }
 
-module.exports = TibeBitConnector;
+export default TibeBitConnector;

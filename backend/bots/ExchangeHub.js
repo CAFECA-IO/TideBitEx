@@ -5,7 +5,7 @@ const URL = require("url");
 
 const Bot = require(path.resolve(__dirname, "Bot.js"));
 const OkexConnector = require("../libs/Connectors/OkexConnector");
-const TideBitConnector = require("../libs/Connectors/TideBitConnector");
+const TideBitConnector = require("../libs/Connectors/TideBitConnector").default;
 const ResponseFormat = require("../libs/ResponseFormat");
 const Codes = require("../constants/Codes");
 const EventBus = require("../libs/EventBus");
