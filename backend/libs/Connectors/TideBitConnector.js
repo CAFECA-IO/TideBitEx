@@ -117,6 +117,7 @@ class TibeBitConnector extends ConnectorBase {
       bids: data.bids,
       ts: Date.now(),
     };
+    this.logger.debug(`_updateBooks data`, data);
     EventBus.emit(Events.tideBitBooksOnUpdate, instId, formatBooks);
   }
 
@@ -130,6 +131,7 @@ class TibeBitConnector extends ConnectorBase {
       trades: data,
       ts: Date.now(),
     };
+    this.logger.debug(`_updateTrades data`, data);
     EventBus.emit(Events.tideBitTradesOnUpdate, instId, formatTrades);
   }
 
