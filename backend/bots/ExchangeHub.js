@@ -5,6 +5,7 @@ const URL = require("url");
 
 const Bot = require(path.resolve(__dirname, "Bot.js"));
 const OkexConnector = require("../libs/Connectors/OkexConnector");
+const TideBitConnector = require("../libs/Connectors/TideBitConnector");
 const ResponseFormat = require("../libs/ResponseFormat");
 const Codes = require("../constants/Codes");
 const EventBus = require("../libs/EventBus");
@@ -34,6 +35,17 @@ class ExchangeHub extends Bot {
           wssPublic: this.config.okex.wssPublic,
           wssPrivate: this.config.okex.wssPrivate,
         });
+        this.tideBitConnector = new TideBitConnector({ logger });
+        this.tideBitConnector.init({
+          app: this.config.pusher.app,
+          key: this.config.pusher.key,
+          secret: this.config.pusher.secret,
+          wsHost: this.config.pusher.wsHost,
+          port: this.config.pusher.port,
+          wsPort: this.config.pusher.wsPort,
+          wssPort: this.config.pusher.wssPort,
+          encrypted: this.config.pusher.encrypted,
+        });
       })
       .then(() => {
         this.tidebitMarkets = this.getTidebitMarkets();
@@ -44,6 +56,7 @@ class ExchangeHub extends Bot {
   async start() {
     await super.start();
     await this.okexConnector.start();
+    this.tideBitConnector.registerGlobal();
     this._eventListener();
     return this;
   }
@@ -126,6 +139,7 @@ class ExchangeHub extends Bot {
   // account api
   async getBalance({ token, params, query }) {
     try {
+      this.logger.debug(`getBalance token`, token);
       const memberId = await this.getMemberIdFromRedis(token);
       if (memberId === -1) throw new Error("get member_id fail");
       const accounts = await this.database.getBalance(memberId);
@@ -231,6 +245,16 @@ class ExchangeHub extends Bot {
     this.logger.debug(`formatTBTickers`, formatTBTickers);
     return formatTBTickers;
   }
+  // async registerGlobal({ params, query }) {
+  //   this.tideBitConnector.registerGlobal()
+  // }
+  // async registerTicker({ params, query }) {
+  //   this.tideBitConnector.registerTicker(query.instId.replace("-", "")
+  //   .toLowerCase())
+  // }
+  // async registerUser({ token, params, query }) {
+  //   this.tideBitConnector.registerUser(sn)
+  // }
   async getTicker({ params, query }) {
     const index = this.tidebitMarkets.findIndex(
       (market) => query.instId === market.instId
@@ -681,7 +705,7 @@ class ExchangeHub extends Bot {
     return tradeHistory;
   }
 
-  async _tbGetOrderList({ token, instId, state }) {
+  async _tbGetOrderList({ memberId, instId, state }) {
     const market = this._findMarket(instId);
     if (!market) {
       throw new Error(`this.tidebitMarkets.instId ${instId} not found.`);
@@ -695,9 +719,7 @@ class ExchangeHub extends Bot {
       throw new Error(`ask not found`);
     }
     let orderList;
-    if (token) {
-      const memberId = await this.getMemberIdFromRedis(token);
-      if (memberId === -1) throw new Error("get member_id fail");
+    if (memberId) {
       orderList = await this.database.getOrderList({
         quoteCcy: bid,
         baseCcy: ask,
@@ -762,7 +784,7 @@ class ExchangeHub extends Bot {
         try {
           const orders = await this._tbGetOrderList({
             instId: query.instId,
-            token,
+            memberId,
             state: this.database.ORDER_STATE.WAIT,
           });
           return new ResponseFormat({
@@ -810,12 +832,12 @@ class ExchangeHub extends Bot {
         try {
           const cancelOrders = await this._tbGetOrderList({
             instId: query.instId,
-            token,
+            memberId,
             state: this.database.ORDER_STATE.CANCEL,
           });
           const doneOrders = await this._tbGetOrderList({
             instId: query.instId,
-            token,
+            memberId,
             state: this.database.ORDER_STATE.DONE,
           });
           const vouchers = await this.database.getVouchers({

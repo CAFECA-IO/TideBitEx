@@ -63,4 +63,11 @@ pathname = [
 
   # exchange - public
   "get | /api/v1/public/instruments | Bot.ExchangeHub.getInstruments",
+
+  # tidebit - market
+  "get | /api/v1/market/global | Bot.ExchangeHub.registerGlobal",
+  "get | /api/v1/market/ticker | Bot.ExchangeHub.registerTicker",
+
+  # tidebit - private
+  "post | /api/v1/private/user | Bot.ExchangeHub.registerUser",
 ]
