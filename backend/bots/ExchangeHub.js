@@ -294,7 +294,7 @@ class ExchangeHub extends Bot {
     this.logger.debug(`registerPrivateChannel member.sn`, member.sn);
     this.logger.debug(`++++++++++++++`);
     try {
-      this.tideBitConnector.registerPrivateChannel(member.sn);
+      this.tideBitConnector.registerPrivateChannel({header, sn:member.sn});
       return new ResponseFormat({
         message: `registerPrivateChannel`,
         code: Codes.SUCCESS,

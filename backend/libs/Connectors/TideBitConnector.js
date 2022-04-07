@@ -40,19 +40,23 @@ class TibeBitConnector extends ConnectorBase {
         return {
           authorize: (socketId, callback) => {
             this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+            this.logger.debug(`authorize options`, options);
             this.logger.debug(`authorize socketId`, socketId);
             this.logger.debug(`authorize channel.name`, channel.name);
             this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
             axios({
               url: `${this.peatio}/pusher/auth`,
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: options.header,
               body: JSON.stringify({
                 socket_id: socketId,
                 channel_name: channel.name,
               }),
             })
               .then((res) => {
+                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+                this.logger.error(`authorize res`, res);
+                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
                 if (res.status !== 200) {
                   throw new Error(
                     `Received ${res.statusCode} from /pusher/auth`
@@ -236,7 +240,7 @@ class TibeBitConnector extends ConnectorBase {
     EventBus.emit(Events.tideBitTradeOnUpdate, data);
   }
 
-  async registerPrivateChannel(sn) {
+  async registerPrivateChannel({ header, sn }) {
     try {
       if (this.current_user) {
         this.pusher.unsubscribe(`private-${sn}`);
@@ -245,7 +249,7 @@ class TibeBitConnector extends ConnectorBase {
         this.private_channel.unbind("trade");
       }
       this.current_user = sn;
-      this.private_channel = this.pusher.subscribe(`private-${sn}`);
+      this.private_channel = this.pusher.subscribe(`private-${sn}`, { header });
       this.private_channel.bind("account", (data) => this._updateAccount(data));
       this.private_channel.bind("order", (data) => this._updateOrder(data));
       this.private_channel.bind("trade", (data) => this._updateTrade(data));
