@@ -49,26 +49,26 @@ class TibeBitConnector extends ConnectorBase {
               }),
             })
               .then((res) => {
+                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+                this.logger.debug(`authorize res`, res);
+                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
                 if (!res.ok) {
                   throw new Error(
                     `Received ${res.statusCode} from /pusher/auth`
                   );
                 }
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`)
-                this.logger.debug(`authorize res`, res)
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`)
                 return res.json();
               })
               .then((data) => {
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`)
-                this.logger.debug(`authorize data`, data)
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`)
+                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+                this.logger.debug(`authorize data`, data);
+                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
                 callback(null, data);
               })
               .catch((err) => {
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`)
-                this.logger.error(`authorize err`, err)
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`)
+                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+                this.logger.error(`authorize err`, err);
+                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
                 callback(new Error(`Error calling auth endpoint: ${err}`), {
                   auth: "",
                 });
