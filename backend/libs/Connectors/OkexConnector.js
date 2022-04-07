@@ -837,7 +837,7 @@ class OkexConnector extends ConnectorBase {
       channel: 'tickers',
       instId
     }));
-    this.logger.debug(`[${this.constructor.name}]_subscribeTickers`, args)
+    // this.logger.debug(`[${this.constructor.name}]_subscribeTickers`, args)
     this.websocket.ws.send(JSON.stringify({
       op: 'subscribe',
       args

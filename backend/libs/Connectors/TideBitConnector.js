@@ -1,7 +1,7 @@
 const ConnectorBase = require("../ConnectorBase");
 const Pusher = require("pusher-js");
 const axios = require("axios");
-const SafeMath = require('../SafeMath');
+const SafeMath = require("../SafeMath");
 const EventBus = require("../EventBus");
 const Events = require("../../constants/Events");
 
@@ -114,7 +114,7 @@ class TibeBitConnector extends ConnectorBase {
       instId,
       asks: data.asks,
       bids: data.bids,
-      ts: new Date.now(),
+      ts: Date.now(),
     };
     EventBus.emit(Events.tideBitBooksOnUpdate, instId, formatBooks);
   }
@@ -127,7 +127,7 @@ class TibeBitConnector extends ConnectorBase {
     const formatTrades = {
       instId,
       trades: data,
-      ts: new Date.now(),
+      ts: Date.now(),
     };
     EventBus.emit(Events.tideBitTradesOnUpdate, instId, formatTrades);
   }

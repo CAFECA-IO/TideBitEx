@@ -21,7 +21,7 @@ const SelectedTicker = (props) => {
           className={`showPrice ${
             !storeCtx.selectedTicker
               ? ""
-              : storeCtx.selectedTicker?.change.includes("-")
+              : storeCtx.selectedTicker?.change?.includes("-")
               ? "decrease"
               : "increase"
           }`}
@@ -48,7 +48,7 @@ const SelectedTicker = (props) => {
           className={`tickerPriceText ${
             !storeCtx.selectedTicker
               ? ""
-              : storeCtx.selectedTicker?.change.includes("-")
+              : storeCtx.selectedTicker?.change?.includes("-")
               ? "decrease"
               : "increase"
           }`}
