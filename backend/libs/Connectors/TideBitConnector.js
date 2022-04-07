@@ -22,7 +22,7 @@ class TibeBitConnector extends ConnectorBase {
     peatioDomain,
   }) {
     await super.init();
-    this.peatio = peatioDomain
+    this.peatio = peatioDomain;
     this.pusher = new Pusher({
       appId: app,
       key,
@@ -229,13 +229,35 @@ class TibeBitConnector extends ConnectorBase {
       this.logger.error(`private_channel error`, error);
     }
   }
-
-  _subscribeInstId(id) {
-    // this._registerTicker(id);
+  
+  _registerTicker(instId) {
+    this.current_ticker = instId;
+    this.market_channel = this.pusher.subscribe(
+      `market-${instId.replace("-", "").toLowerCase()}-global`
+    );
+    this.market_channel.bind("update", (data) =>
+      this._updateBooks(instId, data)
+    );
+    this.market_channel.bind("trades", (data) =>
+      this._updateTrades(instId, data)
+    );
   }
 
-  _unsubscribeInstId(id) {
-    // this._unregisterTicker(id);
+  _unregisterTicker(instId) {
+    this.market_channel.unbind(`update`);
+    this.market_channel.unbind(`trades`);
+    this.pusher.unsubscribe(
+      `market-${instId.replace("-", "").toLowerCase()}-global`
+    );
+    this.market_channel = null;
+  }
+
+  _subscribeInstId(instId) {
+    this._registerTicker(instId);
+  }
+
+  _unsubscribeInstId(instId) {
+    this._unregisterTicker(instId);
   }
 }
 

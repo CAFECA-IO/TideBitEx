@@ -32,9 +32,9 @@ class Middleman {
   async updateSelectedTicker(ticker) {
     const _ticker = this.updateTicker(ticker);
     this.selectedTicker = _ticker;
-    await this.communicator.registerTicker(
-      ticker.instId
-    );
+    // await this.communicator.registerTicker(
+    //   ticker.instId
+    // );
     return this.selectedTicker;
   }
 
