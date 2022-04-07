@@ -71,26 +71,25 @@ class TibeBitConnector extends ConnectorBase {
     buy: '0.0',
     at: 1649315293
     */
-    // const formatPair = Object.values(data).map((data) => {
-    //   const change = SafeMath.minus(data.last, data.open);
-    //   const changePct = SafeMath.div(change, data.open);
-    //   return {
-    //     instId: data.name.replace("/", "-"),
-    //     last: data.last,
-    //     change,
-    //     changePct,
-    //     open24h: data.open,
-    //     high24h: data.high,
-    //     low24h: data.low,
-    //     volCcy24h: data.volume, // ??
-    //     vol24h: data.volume, // ??
-    //     ts: data.at,
-    //     // openUtc0: data.sodUtc0,
-    //     // openUtc8: data.sodUtc8,
-    //   };
-    // });
-    // EventBus.emit(Events.tideBitTickersOnUpdate, formatPair);
-    EventBus.emit(Events.tideBitTickersOnUpdate, data);
+    const formatPair = Object.values(data).map((data) => {
+      const change = SafeMath.minus(data.last, data.open);
+      const changePct = SafeMath.div(change, data.open);
+      return {
+        instId: data.name.replace("/", "-"),
+        last: data.last,
+        change,
+        changePct,
+        open24h: data.open,
+        high24h: data.high,
+        low24h: data.low,
+        volCcy24h: data.volume, // ??
+        vol24h: data.volume, // ??
+        ts: data.at,
+        // openUtc0: data.sodUtc0,
+        // openUtc8: data.sodUtc8,
+      };
+    });
+    EventBus.emit(Events.tideBitTickersOnUpdate, formatPair);
   }
 
   registerGlobal() {
@@ -197,17 +196,21 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async registerUser(sn) {
-    // if (this.current_user) {
-    //   this.pusher.unsubscribe(`private-${sn}`);
-    //   this.private_channel.unbind("account");
-    //   this.private_channel.unbind("order");
-    //   this.private_channel.unbind("trade");
-    // }
-    // this.current_user = sn;
-    // this.private_channel = this.pusher.subscribe(`private-${sn}`);
-    // this.private_channel.bind("account", (data) => this._updateAccount(data));
-    // this.private_channel.bind("order", (data) => this._updateOrder(data));
-    // this.private_channel.bind("trade", (data) => this._updateTrade(data));
+    if (this.current_user) {
+      this.pusher.unsubscribe(`private-${sn}`);
+      this.private_channel.unbind("account");
+      this.private_channel.unbind("order");
+      this.private_channel.unbind("trade");
+    }
+    this.current_user = sn;
+    try {
+      this.private_channel = this.pusher.subscribe(`private-${sn}`);
+      this.private_channel.bind("account", (data) => this._updateAccount(data));
+      this.private_channel.bind("order", (data) => this._updateOrder(data));
+      this.private_channel.bind("trade", (data) => this._updateTrade(data));
+    } catch (error) {
+      this.logger.error(`private_channel error`, error);
+    }
   }
 
   _subscribeInstId(id) {

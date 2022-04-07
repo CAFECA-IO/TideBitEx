@@ -255,7 +255,7 @@ class ExchangeHub extends Bot {
   async registerUser({ header, params, query, body, token }) {
     this.logger.debug(`++++++++++++++`);
     this.logger.debug(`registerUser token`, token);
-    this.logger.debug(`registerUser token`, token);
+    // this.logger.debug(`registerUser token`, token);
     this.logger.debug(`++++++++++++++`);
     const memberId = await this.getMemberIdFromRedis(token);
     if (memberId === -1) {
@@ -1067,6 +1067,50 @@ class ExchangeHub extends Bot {
   // public api end
 
   async _eventListener() {
+    EventBus.on(Events.tideBitTickersOnUpdate, (formatPair) => {
+      this.broadcastAllClient({
+        type: Events.tideBitTickersOnUpdate,
+        data: formatPair,
+      });
+    });
+
+    EventBus.on(Events.tideBitBooksOnUpdate, (instId, formatBooks) => {
+      if (this._isIncludeTideBitMarket(instId)) {
+        this.broadcast(instId, {
+          type: Events.tideBitBooksOnUpdate,
+          data: formatBooks,
+        });
+      }
+    });
+
+    EventBus.on(Events.tideBitTradesOnUpdate, (instId, formatTrades) => {
+      if (this._isIncludeTideBitMarket(instId)) {
+        this.broadcast(instId, {
+          type: Events.tideBitTradesOnUpdate,
+          data: formatTrades,
+        });
+      }
+    });
+
+    EventBus.on(Events.tideBitAccountOnUpdate, (account) => {
+      this.broadcastAllClient({
+        type: Events.tideBitAccountOnUpdate,
+        data: account,
+      });
+    });
+    EventBus.on(Events.tideBitOrderOnUpdate, (order) => {
+      this.broadcastAllClient({
+        type: Events.tideBitOrderOnUpdate,
+        data: order,
+      });
+    });
+    EventBus.on(Events.tideBitTradeOnUpdate, (trade) => {
+      this.broadcastAllClient({
+        type: Events.tideBitTradeOnUpdate,
+        data: trade,
+      });
+    });
+
     EventBus.on(Events.tradeDataOnUpdate, (instId, tradeData) => {
       if (this._isIncludeTideBitMarket(instId)) {
         this.broadcast(instId, {
