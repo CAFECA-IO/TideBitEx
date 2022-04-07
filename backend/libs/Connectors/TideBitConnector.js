@@ -66,6 +66,9 @@ class TibeBitConnector extends ConnectorBase {
                 callback(null, data);
               })
               .catch((err) => {
+                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`)
+                this.logger.error(`authorize err`, err)
+                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`)
                 callback(new Error(`Error calling auth endpoint: ${err}`), {
                   auth: "",
                 });
