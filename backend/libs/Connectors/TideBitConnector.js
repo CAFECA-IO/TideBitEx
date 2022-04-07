@@ -1,7 +1,7 @@
 const ConnectorBase = require("../ConnectorBase");
 const Pusher = require("pusher-js");
 const axios = require("axios");
-const { default: SafeMath } = require("../../../src/utils/SafeMath");
+const SafeMath = require('../SafeMath');
 const EventBus = require("../EventBus");
 const Events = require("../../constants/Events");
 
