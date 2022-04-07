@@ -71,7 +71,7 @@ class TibeBitConnector extends ConnectorBase {
     buy: '0.0',
     at: 1649315293
     */
-    const formatPair = data.map((data) => {
+    const formatPair = Object.values(data).map((data) => {
       const change = SafeMath.minus(data.last, data.open);
       const changePct = SafeMath.div(change, data.open);
       return {
