@@ -10,9 +10,23 @@ class TibeBitConnector extends ConnectorBase {
     super({ logger });
     return this;
   }
-  async init({ app, key, secret, wsHost, port, wsPort, wssPort, encrypted }) {
+  async init({
+    app,
+    key,
+    secret,
+    wsHost,
+    port,
+    wsPort,
+    wssPort,
+    encrypted,
+    peatioDomain,
+  }) {
     await super.init();
-    this.pusher = new Pusher(key, {
+    this.peatio = peatioDomain
+    this.pusher = new Pusher({
+      appId: app,
+      key,
+      secret,
       encrypted: encrypted,
       wsHost: wsHost,
       wsPort: wsPort,
@@ -25,7 +39,8 @@ class TibeBitConnector extends ConnectorBase {
       authorizer: (channel, options) => {
         return {
           authorize: (socketId, callback) => {
-            fetch("/pusher/auth", {
+            axios({
+              url: `${this.peatio}/pusher/auth`,
               method: "POST",
               headers: new Headers({ "Content-Type": "application/json" }),
               body: JSON.stringify({
@@ -73,7 +88,9 @@ class TibeBitConnector extends ConnectorBase {
     */
     const formatPair = Object.values(data).map((data) => {
       const change = SafeMath.minus(data.last, data.open);
-      const changePct = SafeMath.div(change, data.open);
+      const changePct = SafeMath.eq(data.open, "0")
+        ? "0"
+        : SafeMath.div(change, data.open);
       return {
         instId: data.name.replace("/", "-"),
         last: data.last,

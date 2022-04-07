@@ -45,6 +45,7 @@ class ExchangeHub extends Bot {
           wsPort: this.config.pusher.wsPort,
           wssPort: this.config.pusher.wssPort,
           encrypted: this.config.pusher.encrypted,
+          peatioDomain: this.config.peatio.domain,
         });
       })
       .then(() => {
