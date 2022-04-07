@@ -76,10 +76,10 @@ class Communicator {
       return Promise.reject({ message: error });
     }
   }
-  async registerTicker(instId) {
+  async registerMarketChannel(instId) {
     try {
       if (!instId) return { message: "instId cannot be null" };
-      const res = await this._get(`/tidebit/ticker?instId=${instId}`);
+      const res = await this._get(`/pusher/register-market-channel?instId=${instId}`);
       if (res.success) {
         return res.data;
       }
@@ -88,10 +88,10 @@ class Communicator {
       return Promise.reject({ message: error });
     }
   }
-  async registerUser(token) {
+  async registerPrivateChannel(token) {
     try {
       if (!token) return { message: "token cannot be null" };
-      const res = await this._post(`/tidebit/private`, { token });
+      const res = await this._post(`/pusher/register-private-channel`, { token });
       if (res.success) {
         return res.data;
       }

@@ -23,18 +23,19 @@ class Middleman {
     return _ticker;
   }
 
-  async registerUser(token) {
+  async registerPrivateChannel(token) {
     try {
-      await this.communicator.registerUser(token);
+      await this.communicator.registerPrivateChannel(token);
     } catch (error) {
-      console.log(`registerUser error`, error);
+      console.log(`registerPrivateChannel error`, error);
+      throw error;
     }
   }
 
   async updateSelectedTicker(ticker) {
     // console.log(`updateSelectedTicker ticker`, ticker);
     // ++ TODO 需要改用websocket呼叫的方式
-    await this.communicator.registerTicker(ticker.instId);
+    await this.communicator.registerMarketChannel(ticker.instId);
     //
     const _ticker = this.updateTicker(ticker);
     this.selectedTicker = _ticker;

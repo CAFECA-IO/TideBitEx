@@ -247,13 +247,24 @@ class ExchangeHub extends Bot {
     return formatTBTickers;
   }
 
-  async registerTicker({ params, query }) {
-    this.logger.debug(`++++++++++++++`);
-    this.logger.debug(`registerTicker instId`, query.instId);
-    this.logger.debug(`++++++++++++++`);
-    this.tideBitConnector.registerTicker(query.instId);
+  async registerMarketChannel({ params, query }) {
+    try {
+      this.logger.debug(`++++++++++++++`);
+      this.logger.debug(`registerMarketChannel instId`, query.instId);
+      this.logger.debug(`++++++++++++++`);
+      this.tideBitConnector.registerMarketChannel(query.instId);
+      return new ResponseFormat({
+        message: `registerMarketChannel`,
+        code: Codes.SUCCESS,
+      });
+    } catch (error) {
+      return new ResponseFormat({
+        message: error.message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
   }
-  async registerUser({ header, params, query, body, token }) {
+  async registerPrivateChannel({ header, params, query, body, token }) {
     const memberId = await this.getMemberIdFromRedis(token);
     if (memberId === -1) {
       return new ResponseFormat({
@@ -263,9 +274,20 @@ class ExchangeHub extends Bot {
     }
     const member = await this.database.getMemberById(memberId);
     this.logger.debug(`++++++++++++++`);
-    this.logger.debug(`registerUser member.sn`, member.sn);
+    this.logger.debug(`registerPrivateChannel member.sn`, member.sn);
     this.logger.debug(`++++++++++++++`);
-    this.tideBitConnector.registerUser(member.sn);
+    try {
+      this.tideBitConnector.registerPrivateChannel(member.sn);
+      return new ResponseFormat({
+        message: `registerPrivateChannel`,
+        code: Codes.SUCCESS,
+      });
+    } catch (error) {
+      return new ResponseFormat({
+        message: error.message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
   }
   async getTicker({ params, query }) {
     const index = this.tidebitMarkets.findIndex(

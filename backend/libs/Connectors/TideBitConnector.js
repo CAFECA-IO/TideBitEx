@@ -151,29 +151,34 @@ class TibeBitConnector extends ConnectorBase {
     EventBus.emit(Events.tideBitTradesOnUpdate, instId, formatTrades);
   }
 
-  registerTicker(instId) {
-    if (
-      this.current_ticker &&
-      this.current_ticker === instId &&
-      this.market_channel
-    ) {
-      this.pusher.unsubscribe(
+  registerMarketChannel(instId) {
+    try {
+      if (
+        this.current_ticker &&
+        this.current_ticker === instId &&
+        this.market_channel
+      ) {
+        this.pusher.unsubscribe(
+          `market-${instId.replace("-", "").toLowerCase()}-global`
+        );
+        this.market_channel.unbind(`update`);
+        this.market_channel.unbind(`trades`);
+        this.market_channel = null;
+      }
+      this.current_ticker = instId;
+      this.market_channel = this.pusher.subscribe(
         `market-${instId.replace("-", "").toLowerCase()}-global`
       );
-      this.market_channel.unbind(`update`);
-      this.market_channel.unbind(`trades`);
-      this.market_channel = null;
+      this.market_channel.bind("update", (data) =>
+        this._updateBooks(instId, data)
+      );
+      this.market_channel.bind("trades", (data) =>
+        this._updateTrades(instId, data)
+      );
+    } catch (error) {
+      this.logger.error(`registerMarketChannel error`, error);
+      throw error;
     }
-    this.current_ticker = instId;
-    this.market_channel = this.pusher.subscribe(
-      `market-${instId.replace("-", "").toLowerCase()}-global`
-    );
-    this.market_channel.bind("update", (data) =>
-      this._updateBooks(instId, data)
-    );
-    this.market_channel.bind("trades", (data) =>
-      this._updateTrades(instId, data)
-    );
   }
 
   _updateAccount(data) {
@@ -212,25 +217,26 @@ class TibeBitConnector extends ConnectorBase {
     EventBus.emit(Events.tideBitTradeOnUpdate, data);
   }
 
-  async registerUser(sn) {
-    if (this.current_user) {
-      this.pusher.unsubscribe(`private-${sn}`);
-      this.private_channel.unbind("account");
-      this.private_channel.unbind("order");
-      this.private_channel.unbind("trade");
-    }
-    this.current_user = sn;
+  async registerPrivateChannel(sn) {
     try {
+      if (this.current_user) {
+        this.pusher.unsubscribe(`private-${sn}`);
+        this.private_channel.unbind("account");
+        this.private_channel.unbind("order");
+        this.private_channel.unbind("trade");
+      }
+      this.current_user = sn;
       this.private_channel = this.pusher.subscribe(`private-${sn}`);
       this.private_channel.bind("account", (data) => this._updateAccount(data));
       this.private_channel.bind("order", (data) => this._updateOrder(data));
       this.private_channel.bind("trade", (data) => this._updateTrade(data));
     } catch (error) {
       this.logger.error(`private_channel error`, error);
+      throw error;
     }
   }
 
-  _registerTicker(instId) {
+  _registerMarketChannel(instId) {
     this.current_ticker = instId;
     this.market_channel = this.pusher.subscribe(
       `market-${instId.replace("-", "").toLowerCase()}-global`
@@ -243,7 +249,7 @@ class TibeBitConnector extends ConnectorBase {
     );
   }
 
-  _unregisterTicker(instId) {
+  _unregisterMarketChannel(instId) {
     this.market_channel.unbind(`update`);
     this.market_channel.unbind(`trades`);
     this.pusher.unsubscribe(
@@ -254,12 +260,12 @@ class TibeBitConnector extends ConnectorBase {
 
   // ++ TODO
   _subscribeInstId(instId) {
-    // this._registerTicker(instId);
+    // this._registerMarketChannel(instId);
   }
 
   // ++ TODO
   _unsubscribeInstId(instId) {
-    // this._unregisterTicker(instId);
+    // this._unregisterMarketChannel(instId);
   }
 }
 

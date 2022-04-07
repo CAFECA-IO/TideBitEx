@@ -165,7 +165,7 @@ const StoreProvider = (props) => {
   const selectTickerHandler = useCallback(
     async (ticker) => {
       const _ticker = await middleman.updateSelectedTicker(ticker);
-      // console.log(`selectTickerHandler _ticker`, _ticker);
+      console.log(`selectTickerHandler _ticker`, _ticker);
       setSelectedTicker(_ticker);
       document.title = `${_ticker.last} ${_ticker.name}`;
       if (ticker.instId !== selectedTicker?.instId || !selectedTicker) {
@@ -468,7 +468,7 @@ const StoreProvider = (props) => {
         if (token) {
           setToken(token);
           setIsLogin(true);
-          await middleman.registerUser(token);
+          await middleman.registerPrivateChannel(token);
           enqueueSnackbar(`User Login`, {
             variant: "success",
           });

@@ -64,10 +64,9 @@ pathname = [
   # exchange - public
   "get | /api/v1/public/instruments | Bot.ExchangeHub.getInstruments",
 
-  # tidebit
-  "get | /api/v1/tidebit/global | Bot.ExchangeHub.registerGlobal",
-  "get | /api/v1/tidebit/ticker | Bot.ExchangeHub.registerTicker",
 
-  # tidebit - private
-  "post | /api/v1/tidebit/private | Bot.ExchangeHub.registerUser",
+  # tidebit - pusher
+  "get | /api/v1/pusher/register-global-channel | Bot.ExchangeHub.registerGlobal",
+  "get | /api/v1/pusher/register-market-channel | Bot.ExchangeHub.registerMarketChannel",
+  "post | /api/v1/pusher/register-private-channel | Bot.ExchangeHub.registerPrivateChannel",
 ]
