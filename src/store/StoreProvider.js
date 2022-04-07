@@ -164,8 +164,11 @@ const StoreProvider = (props) => {
 
   const selectTickerHandler = useCallback(
     async (ticker) => {
-      const _ticker = await middleman.updateSelectedTicker(ticker);
+      const _ticker = middleman.updateSelectedTicker(ticker);
+      // ++ TODO 需要改用websocket呼叫的方式
       console.log(`selectTickerHandler _ticker`, _ticker);
+      await middleman.registerMarketChannel(ticker.instId);
+      //
       setSelectedTicker(_ticker);
       document.title = `${_ticker.last} ${_ticker.name}`;
       if (ticker.instId !== selectedTicker?.instId || !selectedTicker) {
@@ -457,6 +460,7 @@ const StoreProvider = (props) => {
 
   const start = useCallback(async () => {
     sync(true);
+    await middleman.registerGlobalChannel();
     const XSRF = document.cookie
       .split(";")
       .filter((v) => /XSRF-TOKEN/.test(v))

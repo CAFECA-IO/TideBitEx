@@ -106,12 +106,18 @@ class TibeBitConnector extends ConnectorBase {
         // openUtc8: data.sodUtc8,
       };
     });
+    this.logger.debug(`_updateTickers data`, data);
     EventBus.emit(Events.tideBitTickersOnUpdate, formatPair);
   }
 
-  registerGlobal() {
-    this.global_channel = this.pusher.subscribe("market-global");
-    this.global_channel.bind("tickers", (data) => this._updateTickers(data));
+  registerGlobalChannel() {
+    try {
+      this.global_channel = this.pusher.subscribe("market-global");
+      this.global_channel.bind("tickers", (data) => this._updateTickers(data));
+    } catch (error) {
+      this.logger.error(`registerGlobalChannel error`, error);
+      throw error;
+    }
   }
 
   _updateBooks(instId, data) {

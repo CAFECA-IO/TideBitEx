@@ -76,10 +76,10 @@ class Communicator {
       return Promise.reject({ message: error });
     }
   }
-  async registerMarketChannel(instId) {
+
+  async registerGlobalChannel() {
     try {
-      if (!instId) return { message: "instId cannot be null" };
-      const res = await this._get(`/pusher/register-market-channel?instId=${instId}`);
+      const res = await this._get(`/pusher/register-global-channel`);
       if (res.success) {
         return res.data;
       }
@@ -88,10 +88,29 @@ class Communicator {
       return Promise.reject({ message: error });
     }
   }
+
+
+  async registerMarketChannel(instId) {
+    try {
+      if (!instId) return { message: "instId cannot be null" };
+      const res = await this._get(
+        `/pusher/register-market-channel?instId=${instId}`
+      );
+      if (res.success) {
+        return res.data;
+      }
+      return Promise.reject({ message: res.message, code: res.code });
+    } catch (error) {
+      return Promise.reject({ message: error });
+    }
+  }
+
   async registerPrivateChannel(token) {
     try {
       if (!token) return { message: "token cannot be null" };
-      const res = await this._post(`/pusher/register-private-channel`, { token });
+      const res = await this._post(`/pusher/register-private-channel`, {
+        token,
+      });
       if (res.success) {
         return res.data;
       }

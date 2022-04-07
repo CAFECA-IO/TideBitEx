@@ -57,7 +57,6 @@ class ExchangeHub extends Bot {
   async start() {
     await super.start();
     await this.okexConnector.start();
-    this.tideBitConnector.registerGlobal();
     this._eventListener();
     return this;
   }
@@ -247,12 +246,30 @@ class ExchangeHub extends Bot {
     return formatTBTickers;
   }
 
+  async registerGlobalChannel() {
+    try {
+      this.tideBitConnector.registerGlobalChannel();
+      this.logger.debug(`++++++++++++++`);
+      this.logger.debug(`registerGlobalChannel`);
+      this.logger.debug(`++++++++++++++`);
+      return new ResponseFormat({
+        message: `registerGlobalChannel`,
+        code: Codes.SUCCESS,
+      });
+    } catch (error) {
+      return new ResponseFormat({
+        message: error.message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
   async registerMarketChannel({ params, query }) {
     try {
+      this.tideBitConnector.registerMarketChannel(query.instId);
       this.logger.debug(`++++++++++++++`);
       this.logger.debug(`registerMarketChannel instId`, query.instId);
       this.logger.debug(`++++++++++++++`);
-      this.tideBitConnector.registerMarketChannel(query.instId);
       return new ResponseFormat({
         message: `registerMarketChannel`,
         code: Codes.SUCCESS,

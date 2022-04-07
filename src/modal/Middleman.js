@@ -23,6 +23,24 @@ class Middleman {
     return _ticker;
   }
 
+  async registerGlobalChannel() {
+    try {
+      await this.communicator.registerGlobalChannel();
+    } catch (error) {
+      console.log(`registerGlobalChannel error`, error);
+      throw error;
+    }
+  }
+
+  async registerMarketChannel(instId) {
+    try {
+      await this.communicator.registerMarketChannel(instId);
+    } catch (error) {
+      console.log(`registerMarketChannel error`, error);
+      throw error;
+    }
+  }
+
   async registerPrivateChannel(token) {
     try {
       await this.communicator.registerPrivateChannel(token);
@@ -32,11 +50,8 @@ class Middleman {
     }
   }
 
-  async updateSelectedTicker(ticker) {
+  updateSelectedTicker(ticker) {
     // console.log(`updateSelectedTicker ticker`, ticker);
-    // ++ TODO 需要改用websocket呼叫的方式
-    await this.communicator.registerMarketChannel(ticker.instId);
-    //
     const _ticker = this.updateTicker(ticker);
     this.selectedTicker = _ticker;
     return this.selectedTicker;
