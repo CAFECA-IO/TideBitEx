@@ -253,6 +253,9 @@ class ExchangeHub extends Bot {
     this.tideBitConnector.registerTicker(query.instId);
   }
   async registerUser({ header, params, query, body, token }) {
+    this.logger.debug(`++++++++++++++`);
+    this.logger.debug(`registerUser`);
+    this.logger.debug(`++++++++++++++`);
     const memberId = await this.getMemberIdFromRedis(token);
     if (memberId === -1) {
       return new ResponseFormat({
