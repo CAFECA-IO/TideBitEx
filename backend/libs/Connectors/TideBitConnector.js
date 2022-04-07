@@ -53,9 +53,6 @@ class TibeBitConnector extends ConnectorBase {
               }),
             })
               .then((res) => {
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-                this.logger.debug(`authorize res`, res);
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
                 if (res.status !== 200) {
                   throw new Error(
                     `Received ${res.statusCode} from /pusher/auth`
@@ -66,9 +63,6 @@ class TibeBitConnector extends ConnectorBase {
                 });
               })
               .then((data) => {
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-                this.logger.debug(`authorize data`, data);
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
                 callback(null, data);
               })
               .catch((err) => {
