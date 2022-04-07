@@ -54,9 +54,15 @@ class TibeBitConnector extends ConnectorBase {
                     `Received ${res.statusCode} from /pusher/auth`
                   );
                 }
+                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`)
+                this.logger.debug(`authorize res`, res)
+                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`)
                 return res.json();
               })
               .then((data) => {
+                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`)
+                this.logger.debug(`authorize data`, data)
+                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`)
                 callback(null, data);
               })
               .catch((err) => {
@@ -139,7 +145,8 @@ class TibeBitConnector extends ConnectorBase {
       bids: data.bids,
       ts: Date.now(),
     };
-    this.logger.debug(`_updateBooks data`, data);
+    // this.logger.debug(`_updateBooks data`, data);
+    this.logger.debug(`_updateBooks data`);
     EventBus.emit(Events.tideBitBooksOnUpdate, instId, formatBooks);
   }
 
