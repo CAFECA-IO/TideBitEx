@@ -229,7 +229,7 @@ class TibeBitConnector extends ConnectorBase {
       this.logger.error(`private_channel error`, error);
     }
   }
-  
+
   _registerTicker(instId) {
     this.current_ticker = instId;
     this.market_channel = this.pusher.subscribe(
@@ -252,12 +252,14 @@ class TibeBitConnector extends ConnectorBase {
     this.market_channel = null;
   }
 
+  // ++ TODO
   _subscribeInstId(instId) {
-    this._registerTicker(instId);
+    // this._registerTicker(instId);
   }
 
+  // ++ TODO
   _unsubscribeInstId(instId) {
-    this._unregisterTicker(instId);
+    // this._unregisterTicker(instId);
   }
 }
 

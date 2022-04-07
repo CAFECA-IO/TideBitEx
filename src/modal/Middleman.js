@@ -23,18 +23,21 @@ class Middleman {
     return _ticker;
   }
 
-  async registerUser(token){
-    await this.communicator.registerUser(
-      token
-    );
+  async registerUser(token) {
+    try {
+      await this.communicator.registerUser(token);
+    } catch (error) {
+      console.log(`registerUser error`, error);
+    }
   }
 
   async updateSelectedTicker(ticker) {
+    console.log(`updateSelectedTicker ticker`, ticker);
+    // ++ TODO 需要改用websocket呼叫的方式
+    await this.communicator.registerTicker(ticker.instId);
+    //
     const _ticker = this.updateTicker(ticker);
     this.selectedTicker = _ticker;
-    // await this.communicator.registerTicker(
-    //   ticker.instId
-    // );
     return this.selectedTicker;
   }
 

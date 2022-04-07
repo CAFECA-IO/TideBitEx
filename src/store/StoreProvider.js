@@ -165,6 +165,7 @@ const StoreProvider = (props) => {
   const selectTickerHandler = useCallback(
     async (ticker) => {
       const _ticker = middleman.updateSelectedTicker(ticker);
+      console.log(`selectTickerHandler _ticker`, _ticker)
       setSelectedTicker(_ticker);
       document.title = `${_ticker.last} ${_ticker.name}`;
       if (ticker.instId !== selectedTicker?.instId || !selectedTicker) {
