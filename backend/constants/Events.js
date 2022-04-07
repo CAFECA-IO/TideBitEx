@@ -9,4 +9,10 @@ module.exports = {
   orderOnUpdate: 'orderOnUpdate',
   candleOnUpdate: 'candleOnUpdate',
   orderDetailUpdate: 'orderDetailUpdate',
+  tideBitTickersOnUpdate: 'tideBitTickersOnUpdate',
+  tideBitBooksOnUpdate: 'tideBitBooksOnUpdate',
+  tideBitTradesOnUpdate: 'tideBitTradesOnUpdate',
+  tideBitAccountOnUpdate: 'tideBitAccountOnUpdate',
+  tideBitOrderOnUpdate: 'tideBitOrderOnUpdate',
+  tideBitTradeOnUpdate: 'tideBitTradeOnUpdate',
 }

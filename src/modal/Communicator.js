@@ -76,10 +76,10 @@ class Communicator {
       return Promise.reject({ message: error });
     }
   }
-  async registerTicker(id) {
+  async registerTicker(instId) {
     try {
-      if (!id) return { message: "id cannot be null" };
-      const res = await this._get(`/tidebit/ticker?id=${id}`);
+      if (!instId) return { message: "instId cannot be null" };
+      const res = await this._get(`/tidebit/ticker?instId=${instId}`);
       if (res.success) {
         return res.data;
       }

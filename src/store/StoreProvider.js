@@ -428,6 +428,24 @@ const StoreProvider = (props) => {
                 setCandles(updateCandles);
               }
               break;
+            case "tideBitTickersOnUpdate":
+              console.log(`tideBitTickersOnUpdate tickers`, metaData.data);
+              break;
+            case "tideBitBooksOnUpdate":
+              console.log(`tideBitBooksOnUpdate books`, metaData.data);
+              break;
+            case "tideBitTradesOnUpdate":
+              console.log(`tideBitTradesOnUpdate trades`, metaData.data);
+              break;
+            case "tideBitAccountOnUpdate":
+              console.log(`tideBitAccountOnUpdate account`, metaData.data);
+              break;
+            case "tideBitOrderOnUpdate":
+              console.log(`tideBitOrderOnUpdate order`, metaData.data);
+              break;
+            case "tideBitTradeOnUpdate":
+              console.log(`tideBitTradeOnUpdate trade`, metaData.data);
+              break;
             default:
           }
         });
@@ -460,7 +478,7 @@ const StoreProvider = (props) => {
         variant: "error",
       });
     }
-  }, [enqueueSnackbar, sync]);
+  }, [enqueueSnackbar, middleman, sync]);
 
   useEffect(() => {
     start();

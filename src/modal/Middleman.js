@@ -33,7 +33,7 @@ class Middleman {
     const _ticker = this.updateTicker(ticker);
     this.selectedTicker = _ticker;
     await this.communicator.registerTicker(
-      ticker.instId.replace("-", "").toLowerCase()
+      ticker.instId
     );
     return this.selectedTicker;
   }
