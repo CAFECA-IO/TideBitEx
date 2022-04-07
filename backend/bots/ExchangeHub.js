@@ -242,19 +242,30 @@ class ExchangeHub extends Bot {
       }
       return formatTBTicker;
     });
-    this.logger.debug(`formatTBTickers`, formatTBTickers);
+    // this.logger.debug(`formatTBTickers`, formatTBTickers);
     return formatTBTickers;
   }
-  // async registerGlobal({ params, query }) {
-  //   this.tideBitConnector.registerGlobal()
-  // }
-  // async registerTicker({ params, query }) {
-  //   this.tideBitConnector.registerTicker(query.instId.replace("-", "")
-  //   .toLowerCase())
-  // }
-  // async registerUser({ token, params, query }) {
-  //   this.tideBitConnector.registerUser(sn)
-  // }
+
+  async registerTicker({ params, query }) {
+    this.logger.debug(`++++++++++++++`);
+    this.logger.debug(`registerTicker id`, query.id);
+    this.logger.debug(`++++++++++++++`);
+    this.tideBitConnector.registerTicker(query.id);
+  }
+  async registerUser({ header, params, query, body, token }) {
+    const memberId = await this.getMemberIdFromRedis(token);
+    if (memberId === -1) {
+      return new ResponseFormat({
+        message: "member_id not found",
+        code: Codes.MEMBER_ID_NOT_FOUND,
+      });
+    }
+    const member = await this.database.getMemberById(memberId);
+    this.logger.debug(`++++++++++++++`);
+    this.logger.debug(`registerUser member.sn`, member.sn);
+    this.logger.debug(`++++++++++++++`);
+    this.tideBitConnector.registerUser(member.sn);
+  }
   async getTicker({ params, query }) {
     const index = this.tidebitMarkets.findIndex(
       (market) => query.instId === market.instId
@@ -263,9 +274,9 @@ class ExchangeHub extends Bot {
       const url = `${this.config.peatio.domain}/api/v2/tickers/${query.instId
         .replace("-", "")
         .toLowerCase()}`;
-      this.logger.debug(`getTicker url:`, url);
+      // this.logger.debug(`getTicker url:`, url);
       const tBTickerRes = await axios.get(url);
-      this.logger.debug(`getTicker tBTickerRes.data:`, tBTickerRes.data);
+      // this.logger.debug(`getTicker tBTickerRes.data:`, tBTickerRes.data);
       if (!tBTickerRes || !tBTickerRes.data) {
         return new ResponseFormat({
           message: "Something went wrong",
@@ -322,7 +333,7 @@ class ExchangeHub extends Bot {
               : market.instId.split("-")[1].toLowerCase();
         });
         list.push(...includeTidebitMarket);
-        this.logger.debug(`getTickers list[${list.length}]`, list);
+        // this.logger.debug(`getTickers list[${list.length}]`, list);
       } else {
         return okexRes;
       }
@@ -1309,7 +1320,6 @@ class ExchangeHub extends Bot {
 
   async _getPlaceOrderData(body) {
     const market = this._findMarket(body.instId);
-    this.logger.debug("!!!_getPlaceOrderData market", market);
     if (!market) {
       throw new Error(`this.tidebitMarkets.instId ${body.instId} not found.`);
     }

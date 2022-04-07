@@ -449,6 +449,7 @@ const StoreProvider = (props) => {
         if (token) {
           setToken(token);
           setIsLogin(true);
+          middleman.registerUser(token);
           enqueueSnackbar(`User Login`, {
             variant: "success",
           });

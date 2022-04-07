@@ -23,9 +23,18 @@ class Middleman {
     return _ticker;
   }
 
-  updateSelectedTicker(ticker) {
+  async registerUser(token){
+    await this.communicator.registerUser(
+      token
+    );
+  }
+
+  async updateSelectedTicker(ticker) {
     const _ticker = this.updateTicker(ticker);
     this.selectedTicker = _ticker;
+    await this.communicator.registerTicker(
+      ticker.instId.replace("-", "").toLowerCase()
+    );
     return this.selectedTicker;
   }
 

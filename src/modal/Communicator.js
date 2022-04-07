@@ -67,9 +67,7 @@ class Communicator {
   async ticker(instId) {
     try {
       if (!instId) return { message: "instId cannot be null" };
-      const res = await this._get(
-        `/market/ticker?instId=${instId}`
-      );
+      const res = await this._get(`/market/ticker?instId=${instId}`);
       if (res.success) {
         return res.data;
       }
@@ -78,7 +76,30 @@ class Communicator {
       return Promise.reject({ message: error });
     }
   }
-
+  async registerTicker(id) {
+    try {
+      if (!id) return { message: "id cannot be null" };
+      const res = await this._get(`/tidebit/ticker?id=${id}`);
+      if (res.success) {
+        return res.data;
+      }
+      return Promise.reject({ message: res.message, code: res.code });
+    } catch (error) {
+      return Promise.reject({ message: error });
+    }
+  }
+  async registerUser(token) {
+    try {
+      if (!token) return { message: "token cannot be null" };
+      const res = await this._post(`/tidebit/private`, { token });
+      if (res.success) {
+        return res.data;
+      }
+      return Promise.reject({ message: res.message, code: res.code });
+    } catch (error) {
+      return Promise.reject({ message: error });
+    }
+  }
   // Market
   async tickers(instType, from, limit) {
     try {

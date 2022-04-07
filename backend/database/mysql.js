@@ -89,6 +89,27 @@ class mysql {
       return [];
     }
   }
+  async getMemberById(memberId){
+    const query =
+    "SELECT * FROM `members` WHERE `members`.`id` = ?;";
+    try {
+      this.logger.log(
+        "getMemberById",
+        query,
+        `[${memberId}]`
+      );
+      const [[member]] = await this.db.query(
+        {
+          query,
+          values: [memberId],
+        }
+      );
+      return member;
+    } catch (error) {
+      this.logger.log(error);
+      return [];
+    }
+  }
 
   async getAccountByMemberIdCurrency(memberId, currencyId, { dbTransaction }) {
     const query =
