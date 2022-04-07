@@ -5,7 +5,7 @@ const URL = require("url");
 
 const Bot = require(path.resolve(__dirname, "Bot.js"));
 const OkexConnector = require("../libs/Connectors/OkexConnector");
-const TideBitConnector = require("../libs/Connectors/TideBitConnector").default;
+const TideBitConnector = require("../libs/Connectors/TideBitConnector");
 const ResponseFormat = require("../libs/ResponseFormat");
 const Codes = require("../constants/Codes");
 const EventBus = require("../libs/EventBus");
@@ -40,7 +40,7 @@ class ExchangeHub extends Bot {
           app: this.config.pusher.app,
           key: this.config.pusher.key,
           secret: this.config.pusher.secret,
-          wsHost: this.config.pusher.wsHost,
+          wsHost: this.config.pusher.host,
           port: this.config.pusher.port,
           wsPort: this.config.pusher.wsPort,
           wssPort: this.config.pusher.wssPort,
