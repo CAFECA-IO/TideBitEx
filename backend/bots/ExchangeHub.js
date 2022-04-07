@@ -35,7 +35,7 @@ class ExchangeHub extends Bot {
           wssPublic: this.config.okex.wssPublic,
           wssPrivate: this.config.okex.wssPrivate,
         });
-        this.tideBitConnector = new TideBitConnector({ logger });
+        // this.tideBitConnector = new TideBitConnector({ logger });
         // this.tideBitConnector.init({
         //   app: this.config.pusher.app,
         //   key: this.config.pusher.key,
