@@ -39,6 +39,10 @@ class TibeBitConnector extends ConnectorBase {
       authorizer: (channel, options) => {
         return {
           authorize: (socketId, callback) => {
+            this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+            this.logger.debug(`authorize socketId`, socketId);
+            this.logger.debug(`authorize channel.name`, channel.name);
+            this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
             axios({
               url: `${this.peatio}/pusher/auth`,
               method: "POST",
@@ -52,12 +56,14 @@ class TibeBitConnector extends ConnectorBase {
                 this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
                 this.logger.debug(`authorize res`, res);
                 this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-                if (!res.ok) {
+                if (res.status !== 200) {
                   throw new Error(
                     `Received ${res.statusCode} from /pusher/auth`
                   );
                 }
-                return res.json();
+                return Promise.resolve({
+                  success: true,
+                });
               })
               .then((data) => {
                 this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
