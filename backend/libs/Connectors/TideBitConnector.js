@@ -42,7 +42,7 @@ class TibeBitConnector extends ConnectorBase {
             axios({
               url: `${this.peatio}/pusher/auth`,
               method: "POST",
-              headers: new Headers({ "Content-Type": "application/json" }),
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 socket_id: socketId,
                 channel_name: channel.name,
