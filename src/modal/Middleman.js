@@ -32,7 +32,7 @@ class Middleman {
   }
 
   async updateSelectedTicker(ticker) {
-    console.log(`updateSelectedTicker ticker`, ticker);
+    // console.log(`updateSelectedTicker ticker`, ticker);
     // ++ TODO 需要改用websocket呼叫的方式
     await this.communicator.registerTicker(ticker.instId);
     //
