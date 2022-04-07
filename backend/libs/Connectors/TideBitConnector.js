@@ -23,10 +23,10 @@ class TibeBitConnector extends ConnectorBase {
   }) {
     await super.init();
     this.peatio = peatioDomain;
-    this.pusher = new Pusher({
-      appId: app,
-      key,
-      secret,
+    this.pusher = new Pusher(key,{
+    //   appId: app,
+    //   key,
+    //   secret,
       encrypted: encrypted,
       wsHost: wsHost,
       wsPort: wsPort,
@@ -86,6 +86,7 @@ class TibeBitConnector extends ConnectorBase {
     buy: '0.0',
     at: 1649315293
     */
+    this.logger.debug(`_updateTickers data`, data);
     const formatPair = Object.values(data).map((data) => {
       const change = SafeMath.minus(data.last, data.open);
       const changePct = SafeMath.eq(data.open, "0")
@@ -106,7 +107,6 @@ class TibeBitConnector extends ConnectorBase {
         // openUtc8: data.sodUtc8,
       };
     });
-    this.logger.debug(`_updateTickers data`, data);
     EventBus.emit(Events.tideBitTickersOnUpdate, formatPair);
   }
 
