@@ -279,7 +279,7 @@ class TibeBitConnector extends ConnectorBase {
             axios({
               url: `${this.peatio}/pusher/auth`,
               method: "POST",
-              headers: {...header, 'content-length': 74},
+              headers: {...header, 'Content-Length': 74},
               body: data,
             })
               .then((res) => {
