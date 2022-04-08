@@ -44,10 +44,9 @@ class TibeBitConnector extends ConnectorBase {
             this.logger.debug(`authorize socketId`, socketId);
             this.logger.debug(`authorize channel.name`, channel.name);
             this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-            axios({
-              url: `${this.peatio}/pusher/auth`,
+            fetch(`${this.peatio}/pusher/auth`,{
               method: "POST",
-              headers: options.header,
+              headers: new Headers({ "Content-Type": "application/json" }),
               body: JSON.stringify({
                 socket_id: socketId,
                 channel_name: channel.name,
@@ -248,6 +247,7 @@ class TibeBitConnector extends ConnectorBase {
         this.private_channel.unbind("order");
         this.private_channel.unbind("trade");
       }
+
       this.current_user = sn;
       this.private_channel = this.pusher.subscribe(`private-${sn}`, { header });
       this.private_channel.bind("account", (data) => this._updateAccount(data));

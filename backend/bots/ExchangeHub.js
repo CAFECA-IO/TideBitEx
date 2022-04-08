@@ -301,7 +301,6 @@ class ExchangeHub extends Bot {
           "x-csrf-token": body["X-CSRF-Token"],
           cookie: header.cookie,
         },
-        body,
         sn: member.sn,
       });
       return new ResponseFormat({
