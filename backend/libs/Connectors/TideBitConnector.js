@@ -273,13 +273,16 @@ class TibeBitConnector extends ConnectorBase {
             this.logger.debug(`authorize channel.name`, channel.name);
             this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
             const data = JSON.stringify({
-                socket_id: socketId,
-                channel_name: channel.name,
-              })
+              socket_id: socketId,
+              channel_name: channel.name,
+            });
             axios({
               url: `${this.peatio}/pusher/auth`,
               method: "POST",
-              headers: {...header, 'Content-Length': 74},
+              headers: {
+                ...header,
+                "Content-Length": Buffer.from(data, "utf-8").length,
+              },
               body: data,
             })
               .then((res) => {
