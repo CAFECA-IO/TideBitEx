@@ -119,7 +119,7 @@ class TibeBitConnector extends ConnectorBase {
         instId: data.name.replace("/", "-"),
         change,
         changePct,
-        source: SupportedExchange.TIDEBIT
+        source: SupportedExchange.TIDEBIT,
       };
     });
     EventBus.emit(Events.pairOnUpdate, formatTickers);
@@ -148,12 +148,13 @@ class TibeBitConnector extends ConnectorBase {
         ]
     }
     */
+    if (data.asks.length === 0 || data.bids.length === 0) return;
     const formatBooks = {
       ...data,
       instId,
       ts: Date.now(),
     };
-    this.logger.debug(`_updateBooks data`, data);
+    this.logger.debug(`_updateBooks data`, formatBooks);
     EventBus.emit(Events.orderOnUpdate, instId, formatBooks);
   }
 

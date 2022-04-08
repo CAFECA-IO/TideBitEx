@@ -153,6 +153,7 @@ class Middleman {
       bids = [],
       askPx,
       bidPx;
+
     this.rawBooks.asks
       ?.sort((a, b) => +a[0] - +b[0])
       ?.forEach((d, i) => {
@@ -199,8 +200,8 @@ class Middleman {
   }
 
   updateBooks(rawOrders) {
-    // console.log(`updateBooks rawOrders`, rawOrders);
-    // console.log(`updateBooks this.rawBooks`, this.rawBooks);
+    console.log(`updateBooks this.rawBooks`, this.rawBooks);
+    console.log(`updateBooks rawOrders`, rawOrders);
     const updateRawBooks = {
       asks: this.rawBooks?.asks ? this.rawBooks.asks : [],
       bids: this.rawBooks?.bids ? this.rawBooks.bids : [],
