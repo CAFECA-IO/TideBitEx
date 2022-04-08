@@ -23,6 +23,7 @@ class TibeBitConnector extends ConnectorBase {
   }) {
     await super.init();
     this.peatio = peatioDomain;
+    this.wsHost = wsHost;
     this.pusher = new Pusher(key, {
       //   appId: app,
       //   key,
@@ -44,9 +45,10 @@ class TibeBitConnector extends ConnectorBase {
             this.logger.debug(`authorize socketId`, socketId);
             this.logger.debug(`authorize channel.name`, channel.name);
             this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-            fetch(`${this.peatio}/pusher/auth`,{
+            axios({
+              url: `${this.wsHost}/pusher/auth`,
               method: "POST",
-              headers: new Headers({ "Content-Type": "application/json" }),
+              headers: options.header,
               body: JSON.stringify({
                 socket_id: socketId,
                 channel_name: channel.name,
@@ -247,7 +249,7 @@ class TibeBitConnector extends ConnectorBase {
         this.private_channel.unbind("order");
         this.private_channel.unbind("trade");
       }
-
+      
       this.current_user = sn;
       this.private_channel = this.pusher.subscribe(`private-${sn}`, { header });
       this.private_channel.bind("account", (data) => this._updateAccount(data));
