@@ -4,6 +4,7 @@ const axios = require("axios");
 const SafeMath = require("../SafeMath");
 const EventBus = require("../EventBus");
 const Events = require("../../constants/Events");
+const SupportedExchange = require("../../constants/SupportedExchange");
 
 class TibeBitConnector extends ConnectorBase {
   constructor({ logger }) {
@@ -106,7 +107,7 @@ class TibeBitConnector extends ConnectorBase {
     buy: '0.0',
     at: 1649315293
     */
-    this.logger.debug(`_updateTickers data`, data);
+    
     const formatTickers = Object.values(data).map((data) => {
       const change = SafeMath.minus(data.last, data.open);
       const changePct = SafeMath.gt(data.open24h, "0")
@@ -119,6 +120,7 @@ class TibeBitConnector extends ConnectorBase {
         instId: data.name.replace("/", "-"),
         change,
         changePct,
+        source: SupportedExchange.TIDEBIT
       };
     });
     EventBus.emit(Events.pairOnUpdate, formatTickers);
