@@ -217,6 +217,7 @@ class ExchangeHub extends Bot {
         at: "0.0",
         change: "0.0",
         changePct: "0.0",
+        group: market?.tab_category || market?.group
       };
       if (tBTicker) {
         formatTBTicker = {
