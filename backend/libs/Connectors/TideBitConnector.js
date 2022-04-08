@@ -267,11 +267,6 @@ class TibeBitConnector extends ConnectorBase {
       authorizer: (channel, options) => {
         return {
           authorize: (socketId, callback) => {
-            this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-            this.logger.debug(`authorize header`, header);
-            this.logger.debug(`authorize socketId`, socketId);
-            this.logger.debug(`authorize channel.name`, channel.name);
-            this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
             const data = JSON.stringify({
               socket_id: socketId,
               channel_name: channel.name,
@@ -287,16 +282,14 @@ class TibeBitConnector extends ConnectorBase {
             })
               .then((res) => {
                 this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-                this.logger.debug(`authorize res`, res);
+                this.logger.debug(`authorize res`, res.data);
                 this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
                 if (res.status !== 200) {
                   throw new Error(
                     `Received ${res.statusCode} from /pusher/auth`
                   );
                 }
-                return Promise.resolve({
-                  success: true,
-                });
+                return res.data;
               })
               .then((data) => {
                 callback(null, data);
