@@ -236,8 +236,18 @@ class OkexConnector extends ConnectorBase {
         });
       }
       const payload = res.data.data.map((data) => {
+        const asks = data.asks.map((ask) => [
+          ask[0],
+          SafeMath.plus(ask[2], ask[3]),
+        ]);
+        const bids = data.bids.map((bid) => [
+          bid[0],
+          SafeMath.plus(bid[2], bid[3]),
+        ]);
         return {
-          ...data,
+          asks,
+          bids,
+          instId,
           ts: parseInt(data.ts),
         };
       });
@@ -809,10 +819,23 @@ class OkexConnector extends ConnectorBase {
   _updateBooks(instId, bookData) {
     const channel = "books";
     // this.okexWsChannels[channel][instId] = bookData;
-    // this.logger.debug(`[${this.constructor.name}]_updateBooks`, instId, bookData);
+    this.logger.debug(
+      `[${this.constructor.name}]_updateBooks`,
+      instId,
+      bookData
+    );
     const formatBooks = bookData.map((data) => {
+      const asks = data.asks.map((ask) => [
+        ask[0],
+        SafeMath.plus(ask[2], ask[3]),
+      ]);
+      const bids = data.bids.map((bid) => [
+        bid[0],
+        SafeMath.plus(bid[2], bid[3]),
+      ]);
       return {
-        ...data,
+        asks,
+        bids,
         instId,
         ts: parseInt(data.ts),
       };

@@ -156,12 +156,12 @@ class Middleman {
     this.rawBooks.asks
       ?.sort((a, b) => +a[0] - +b[0])
       ?.forEach((d, i) => {
-        totalAsks = SafeMath.plus(SafeMath.plus(d[2], d[3]), totalAsks);
+        totalAsks = SafeMath.plus(d[1], totalAsks);
         let ask = {
           price: d[0],
-          amount: SafeMath.plus(d[2], d[3]),
+          amount: d[1],
           total: totalAsks,
-          update: !!d[4],
+          update: !!d[2],
         };
         if (d[0] === askPx) {
           asks[asks.length - 1] = ask;
@@ -169,17 +169,17 @@ class Middleman {
           askPx = d[0];
           asks.push(ask);
         }
-        if (this.rawBooks.asks[i][4]) this.rawBooks.asks[i].splice(4, 1);
+        if (this.rawBooks.asks[i][2]) this.rawBooks.asks[i].splice(4, 1);
       });
     this.rawBooks.bids
       ?.sort((a, b) => +b[0] - +a[0])
       ?.forEach((d, i) => {
-        totalBids = SafeMath.plus(SafeMath.plus(d[2], d[3]), totalBids);
+        totalBids = SafeMath.plus(d[1], totalBids);
         let bid = {
           price: d[0],
-          amount: SafeMath.plus(d[2], d[3]),
+          amount: d[1],
           total: totalBids,
-          update: !!d[4],
+          update: !!d[2],
         };
         if (d[0] === bidPx) {
           bids[bids.length - 1] = bid;
@@ -187,7 +187,7 @@ class Middleman {
           bidPx = d[0];
           bids.push(bid);
         }
-        if (this.rawBooks.bids[i][4]) this.rawBooks.bids[i].splice(4, 1);
+        if (this.rawBooks.bids[i][2]) this.rawBooks.bids[i].splice(4, 1);
       });
     const updateBooks = {
       asks,
@@ -218,13 +218,12 @@ class Middleman {
         // console.log(`updateBooks updateRawBooks.asks.findIndex`, index);
         // console.log(`updateBooks updateAsk`, updateAsk);
         if (index === -1) {
-          if (SafeMath.gt(SafeMath.plus(ask[2], ask[3]), "0")) {
+          if (SafeMath.gt(ask[1], "0")) {
             updateRawBooks.asks.push(updateAsk);
             // console.log(`updateBooks updateRawBooks`, updateRawBooks);
           }
         } else {
-          if (SafeMath.gt(SafeMath.plus(ask[2], ask[3]), "0"))
-            updateRawBooks.asks[index] = updateAsk;
+          if (SafeMath.gt(ask[1], "0")) updateRawBooks.asks[index] = updateAsk;
           else updateRawBooks.asks.splice(index, 1);
           // console.log(`updateBooks updateRawBooks`, updateRawBooks);
         }
@@ -235,13 +234,12 @@ class Middleman {
         updateBid.push(true);
         index = updateRawBooks.bids.findIndex((d) => d[0] === bid[0]);
         if (index === -1) {
-          if (SafeMath.gt(SafeMath.plus(bid[2], bid[3]), "0")) {
+          if (SafeMath.gt(bid[1], "0")) {
             updateRawBooks.bids.push(updateBid);
             // console.log(`updateBooks updateRawBooks`, updateRawBooks);
           }
         } else {
-          if (SafeMath.gt(SafeMath.plus(bid[2], bid[3]), "0"))
-            updateRawBooks.bids[index] = updateBid;
+          if (SafeMath.gt(bid[1], "0")) updateRawBooks.bids[index] = updateBid;
           else updateRawBooks.bids.splice(index, 1);
           // console.log(`updateBooks updateRawBooks`, updateRawBooks);
         }
@@ -320,7 +318,7 @@ class Middleman {
       volumes.push({
         x: date,
         y: d[6],
-        upward: SafeMath.gt(d[4], d[1]),
+        upward: SafeMath.gt(d[2], d[1]),
       });
     });
     return {
