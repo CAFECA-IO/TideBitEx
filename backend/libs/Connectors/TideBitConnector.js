@@ -55,7 +55,7 @@ class TibeBitConnector extends ConnectorBase {
             })
               .then((res) => {
                 this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-                this.logger.error(`authorize res`, res);
+                this.logger.debug(`authorize res`, res);
                 this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
                 if (res.status !== 200) {
                   throw new Error(
