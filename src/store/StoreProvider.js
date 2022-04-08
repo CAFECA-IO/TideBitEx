@@ -258,9 +258,15 @@ const StoreProvider = (props) => {
   const getBalances = useCallback(
     async (ccy) => {
       await middleman.getBalances(ccy);
+      if (balances) {
+        setIsLogin(true);
+        enqueueSnackbar(`User Login`, {
+          variant: "success",
+        });
+      }
       setBalances(middleman.balances);
     },
-    [middleman]
+    [balances, enqueueSnackbar, middleman]
   );
 
   const postOrder = useCallback(
@@ -482,10 +488,6 @@ const StoreProvider = (props) => {
         const token = await getToken(XSRF);
         if (token) {
           setToken(token);
-          setIsLogin(true);
-          enqueueSnackbar(`User Login`, {
-            variant: "success",
-          });
         }
       }
     } catch (error) {
