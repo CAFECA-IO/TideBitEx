@@ -268,7 +268,7 @@ class TibeBitConnector extends ConnectorBase {
         return {
           authorize: (socketId, callback) => {
             this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-            this.logger.debug(`authorize options`, options);
+            this.logger.debug(`authorize header`, header);
             this.logger.debug(`authorize socketId`, socketId);
             this.logger.debug(`authorize channel.name`, channel.name);
             this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
