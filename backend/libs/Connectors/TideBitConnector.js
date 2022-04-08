@@ -23,7 +23,6 @@ class TibeBitConnector extends ConnectorBase {
   }) {
     await super.init();
     this.peatio = peatioDomain;
-    this.wsHost = wsHost;
     this.pusher = new Pusher(key, {
       //   appId: app,
       //   key,
@@ -46,7 +45,7 @@ class TibeBitConnector extends ConnectorBase {
             this.logger.debug(`authorize channel.name`, channel.name);
             this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
             axios({
-              url: `${this.wsHost}/pusher/auth`,
+              url: `${this.peatio}/pusher/auth`,
               method: "POST",
               headers: options.header,
               body: JSON.stringify({
