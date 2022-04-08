@@ -483,7 +483,6 @@ const StoreProvider = (props) => {
         if (token) {
           setToken(token);
           setIsLogin(true);
-          await middleman.registerPrivateChannel(token);
           enqueueSnackbar(`User Login`, {
             variant: "success",
           });
@@ -493,10 +492,26 @@ const StoreProvider = (props) => {
       enqueueSnackbar(`${error?.message || "Some went wrong with getToken"}`, {
         variant: "error",
       });
-      await middleman.registerGlobalChannel();
-      sync(true);
     }
+    await middleman.registerGlobalChannel();
+    sync(true);
   }, [enqueueSnackbar, middleman, sync]);
+
+  useEffect(() => {
+    if (token) {
+      console.log(`registerPrivateChannel`);
+      try {
+        middleman.registerPrivateChannel(token);
+      } catch (error) {
+        enqueueSnackbar(
+          `${error?.message || "Some went wrong with registerPrivateChannel"}`,
+          {
+            variant: "error",
+          }
+        );
+      }
+    }
+  }, [middleman, enqueueSnackbar, token]);
 
   useEffect(() => {
     start();
