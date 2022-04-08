@@ -107,7 +107,6 @@ class TibeBitConnector extends ConnectorBase {
     buy: '0.0',
     at: 1649315293
     */
-    
     const formatTickers = Object.values(data).map((data) => {
       const change = SafeMath.minus(data.last, data.open);
       const changePct = SafeMath.gt(data.open24h, "0")
