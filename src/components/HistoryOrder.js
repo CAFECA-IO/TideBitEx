@@ -197,8 +197,8 @@ const HistoryOrder = (props) => {
                 storeCtx.balances
                   .filter(
                     (balance) =>
-                      storeCtx.selectedTicker?.base_unit === balance.ccy ||
-                      storeCtx.selectedTicker?.quote_unit === balance.ccy
+                      storeCtx.selectedTicker?.base_unit.toUpperCase() === balance.ccy ||
+                      storeCtx.selectedTicker?.quote_unit.toUpperCase() === balance.ccy
                   )
                   .map((balance) => <BalanceTile balance={balance} />)}
             </ul>

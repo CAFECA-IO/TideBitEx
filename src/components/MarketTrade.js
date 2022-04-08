@@ -31,8 +31,8 @@ const TradeForm = (props) => {
               : "0" || "--"
           } `}
           {props.side === "buy"
-            ? props.selectedTicker?.quote_unit || "--"
-            : props.selectedTicker?.base_unit || "--"}
+            ? props.selectedTicker?.quote_unit.toUpperCase() || "--"
+            : props.selectedTicker?.base_unit.toUpperCase() || "--"}
           {/* = 0 USD */}
         </span>
       </p>
@@ -53,7 +53,7 @@ const TradeForm = (props) => {
           {!props.readyOnly && (
             <div className="market-trade__input-group--append input-group-append">
               <span className="input-group-text">
-                {props.selectedTicker?.quote_unit || "--"}
+                {props.selectedTicker?.quote_unit.toUpperCase() || "--"}
               </span>
             </div>
           )}
@@ -74,7 +74,7 @@ const TradeForm = (props) => {
           />
           <div className="market-trade__input-group--append input-group-append">
             <span className="input-group-text">
-              {props.selectedTicker?.base_unit || "--"}
+              {props.selectedTicker?.base_unit.toUpperCase() || "--"}
             </span>
           </div>
         </div>
@@ -92,7 +92,7 @@ const TradeForm = (props) => {
           />
           <div className="market-trade__input-group--append input-group-append">
             <span className="input-group-text">
-              {props.selectedTicker?.quote_unit || "--"}
+              {props.selectedTicker?.quote_unit.toUpperCase() || "--"}
             </span>
           </div>
         </div>
@@ -147,7 +147,7 @@ const TradeForm = (props) => {
         }
       >
         {props.side === "buy" ? t("buy") : t("sell")}
-        {` ${props.selectedTicker?.base_unit ?? ""}`}
+        {` ${props.selectedTicker?.base_unit.toUpperCase() ?? ""}`}
       </button>
     </form>
   );
@@ -229,7 +229,7 @@ const TradePannel = (props) => {
           )
         ) {
           setBuyErrorMessage(
-            `Available ${selectedTicker?.quote_unit} is not enough`
+            `Available ${selectedTicker?.quote_unit.toUpperCase()} is not enough`
           );
         } else setBuyErrorMessage(null);
       } else {
@@ -263,7 +263,7 @@ const TradePannel = (props) => {
           setSellErrorMessage(`Minimum order size is ${selectedTicker?.minSz}`);
         if (SafeMath.gt(value, baseCcyAvailable)) {
           setSellErrorMessage(
-            `Available ${selectedTicker?.base_unit} is not enough`
+            `Available ${selectedTicker?.base_unit.toUpperCase()} is not enough`
           );
         } else setSellErrorMessage(null);
       } else {
@@ -398,7 +398,7 @@ const TradePannel = (props) => {
           storeCtx.selectedTicker.instId !== selectedTicker?.instId))
     ) {
       let quoteCcyBalance = storeCtx.balances.find((balance) => {
-        return balance.ccy === storeCtx.selectedTicker?.quote_unit;
+        return balance.ccy === storeCtx.selectedTicker?.quote_unit.toUpperCase();
       });
 
       if (quoteCcyBalance) {
@@ -417,7 +417,7 @@ const TradePannel = (props) => {
         );
       }
       let baseCcyBalance = storeCtx.balances.find(
-        (balance) => balance.ccy === storeCtx.selectedTicker?.base_unit
+        (balance) => balance.ccy === storeCtx.selectedTicker?.base_unit.toUpperCase()
       );
       if (baseCcyBalance) {
         setBaseCcyAvailable(baseCcyBalance?.availBal);

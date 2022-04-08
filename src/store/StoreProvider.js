@@ -258,15 +258,16 @@ const StoreProvider = (props) => {
   const getBalances = useCallback(
     async (ccy) => {
       await middleman.getBalances(ccy);
-      if (balances) {
+      if (middleman.balances) {
         setIsLogin(true);
         enqueueSnackbar(`User Login`, {
           variant: "success",
         });
       }
+      console.log(`getBalances middleman.balances`, middleman.balances);
       setBalances(middleman.balances);
     },
-    [balances, enqueueSnackbar, middleman]
+    [enqueueSnackbar, middleman]
   );
 
   const postOrder = useCallback(
@@ -392,7 +393,6 @@ const StoreProvider = (props) => {
         });
         wsClient.addEventListener("message", (msg) => {
           let _tickerTimestamp = 0,
-            _TBTickerTimestamp = 0,
             _tradeTimestamp = 0,
             _bookTimestamp = 0,
             _candleTimestamp = 0,
@@ -455,7 +455,7 @@ const StoreProvider = (props) => {
             //   }
             //   break;
             case "tideBitBooksOnUpdate":
-              console.log(`tideBitBooksOnUpdate books`, metaData.data);
+              // console.log(`tideBitBooksOnUpdate books`, metaData.data);
               break;
             case "tideBitTradesOnUpdate":
               console.log(`tideBitTradesOnUpdate trades`, metaData.data);
