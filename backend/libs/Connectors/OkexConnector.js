@@ -235,7 +235,7 @@ class OkexConnector extends ConnectorBase {
           code: Codes.THIRD_PARTY_API_ERROR,
         });
       }
-      const payload = res.data.data.map((data) => {
+      const [payload] = res.data.data.map((data) => {
         const asks = data.asks.map((ask) => [
           ask[0],
           SafeMath.plus(ask[2], ask[3]),
@@ -253,7 +253,7 @@ class OkexConnector extends ConnectorBase {
       });
       return new ResponseFormat({
         message: "getOrderBooks",
-        payload,
+        payload: payload,
       });
     } catch (error) {
       this.logger.error(error);

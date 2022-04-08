@@ -154,7 +154,7 @@ class TibeBitConnector extends ConnectorBase {
       instId,
       ts: Date.now(),
     };
-    this.logger.debug(`_updateBooks data`, formatBooks);
+    this.logger.debug(`_updateBooks formatBooks`, formatBooks);
     EventBus.emit(Events.orderOnUpdate, instId, formatBooks);
   }
 
