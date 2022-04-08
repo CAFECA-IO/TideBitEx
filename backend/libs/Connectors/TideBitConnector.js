@@ -283,7 +283,7 @@ class TibeBitConnector extends ConnectorBase {
                 ...header,
                 "Content-Length": Buffer.from(data, "utf-8").length,
               },
-              body: data,
+              data,
             })
               .then((res) => {
                 this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
