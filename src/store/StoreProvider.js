@@ -480,8 +480,8 @@ const StoreProvider = (props) => {
       enqueueSnackbar(`${error?.message || "Some went wrong with getToken"}`, {
         variant: "error",
       });
-      sync(true);
       await middleman.registerGlobalChannel();
+      sync(true);
     }
   }, [enqueueSnackbar, middleman, sync]);
 

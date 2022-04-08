@@ -301,7 +301,7 @@ class ExchangeHub extends Bot {
     try {
       this.tideBitConnector.registerPrivateChannel({
         header:{
-          'content-type': 'text/html; charset=utf-8',//'content-type': 'application/json',
+          'content-type': 'application/json',
           "x-csrf-token": body.token,
           cookie: header.cookie,
         },
