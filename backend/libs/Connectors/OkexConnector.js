@@ -827,7 +827,7 @@ class OkexConnector extends ConnectorBase {
       instId,
       bookData
     );
-    const formatBooks = bookData.map((data) => {
+    const [formatBooks] = bookData.map((data) => {
       const asks = data.asks.map((ask) => [
         ask[0],
         SafeMath.plus(ask[2], ask[3]),
