@@ -22,65 +22,72 @@ class TibeBitConnector extends ConnectorBase {
     peatioDomain,
   }) {
     await super.init();
+    this.app = app;
+    this.key = key;
+    this.secret = secret;
+    this.wsHost = wsHost;
+    this.wsPort = wsPort;
+    this.wssPort = wssPort;
+    this.encrypted = encrypted;
     this.peatio = peatioDomain;
-    this.pusher = new Pusher(key, {
-      //   appId: app,
-      //   key,
-      //   secret,
-      encrypted: encrypted,
-      wsHost: wsHost,
-      wsPort: wsPort,
-      wssPort: wssPort,
-      disableFlash: true,
-      disableStats: true,
-      // enabledTransports: ["ws"],
-      disabledTransports: ["flash", "sockjs"],
-      forceTLS: false,
-      authorizer: (channel, options) => {
-        return {
-          authorize: (socketId, callback) => {
-            this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-            this.logger.debug(`authorize options`, options);
-            this.logger.debug(`authorize socketId`, socketId);
-            this.logger.debug(`authorize channel.name`, channel.name);
-            this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-            axios({
-              url: `${this.peatio}/pusher/auth`,
-              method: "POST",
-              headers: options.header,
-              body: JSON.stringify({
-                socket_id: socketId,
-                channel_name: channel.name,
-              }),
-            })
-              .then((res) => {
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-                this.logger.debug(`authorize res`, res);
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-                if (res.status !== 200) {
-                  throw new Error(
-                    `Received ${res.statusCode} from /pusher/auth`
-                  );
-                }
-                return Promise.resolve({
-                  success: true,
-                });
-              })
-              .then((data) => {
-                callback(null, data);
-              })
-              .catch((err) => {
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-                this.logger.error(`authorize err`, err);
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-                callback(new Error(`Error calling auth endpoint: ${err}`), {
-                  auth: "",
-                });
-              });
-          },
-        };
-      },
-    });
+    // this.pusher = new Pusher(key, {
+    //   //   appId: app,
+    //   //   key,
+    //   //   secret,
+    //   encrypted: encrypted,
+    //   wsHost: wsHost,
+    //   wsPort: wsPort,
+    //   wssPort: wssPort,
+    //   disableFlash: true,
+    //   disableStats: true,
+    //   // enabledTransports: ["ws"],
+    //   disabledTransports: ["flash", "sockjs"],
+    //   forceTLS: false,
+    //   authorizer: (channel, options) => {
+    //     return {
+    //       authorize: (socketId, callback) => {
+    //         this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+    //         this.logger.debug(`authorize options`, options);
+    //         this.logger.debug(`authorize socketId`, socketId);
+    //         this.logger.debug(`authorize channel.name`, channel.name);
+    //         this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+    //         axios({
+    //           url: `${this.peatio}/pusher/auth`,
+    //           method: "POST",
+    //           headers: options.header,
+    //           body: JSON.stringify({
+    //             socket_id: socketId,
+    //             channel_name: channel.name,
+    //           }),
+    //         })
+    //           .then((res) => {
+    //             this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+    //             this.logger.debug(`authorize res`, res);
+    //             this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+    //             if (res.status !== 200) {
+    //               throw new Error(
+    //                 `Received ${res.statusCode} from /pusher/auth`
+    //               );
+    //             }
+    //             return Promise.resolve({
+    //               success: true,
+    //             });
+    //           })
+    //           .then((data) => {
+    //             callback(null, data);
+    //           })
+    //           .catch((err) => {
+    //             this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+    //             this.logger.error(`authorize err`, err);
+    //             this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+    //             callback(new Error(`Error calling auth endpoint: ${err}`), {
+    //               auth: "",
+    //             });
+    //           });
+    //       },
+    //     };
+    //   },
+    // });
     return this;
   }
 
@@ -241,6 +248,67 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async registerPrivateChannel({ header, sn }) {
+    this.pusher = new Pusher(this.key, {
+      //   appId: app,
+      //   key,
+      //   secret,
+      encrypted: this.encrypted,
+      wsHost: this.wsHost,
+      wsPort: this.wsPort,
+      wssPort: this.wssPort,
+      disableFlash: true,
+      disableStats: true,
+      // enabledTransports: ["ws"],
+      disabledTransports: ["flash", "sockjs"],
+      forceTLS: false,
+      auth: {
+        headers: header,
+      },
+      authorizer: (channel, options) => {
+        return {
+          authorize: (socketId, callback) => {
+            this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+            this.logger.debug(`authorize options`, options);
+            this.logger.debug(`authorize socketId`, socketId);
+            this.logger.debug(`authorize channel.name`, channel.name);
+            this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+            axios({
+              url: `${this.peatio}/pusher/auth`,
+              method: "POST",
+              headers: header,
+              body: JSON.stringify({
+                socket_id: socketId,
+                channel_name: channel.name,
+              }),
+            })
+              .then((res) => {
+                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+                this.logger.debug(`authorize res`, res);
+                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+                if (res.status !== 200) {
+                  throw new Error(
+                    `Received ${res.statusCode} from /pusher/auth`
+                  );
+                }
+                return Promise.resolve({
+                  success: true,
+                });
+              })
+              .then((data) => {
+                callback(null, data);
+              })
+              .catch((err) => {
+                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+                this.logger.error(`authorize err`, err);
+                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+                callback(new Error(`Error calling auth endpoint: ${err}`), {
+                  auth: "",
+                });
+              });
+          },
+        };
+      },
+    });
     try {
       if (this.current_user) {
         this.pusher.unsubscribe(`private-${sn}`);
@@ -248,7 +316,7 @@ class TibeBitConnector extends ConnectorBase {
         this.private_channel.unbind("order");
         this.private_channel.unbind("trade");
       }
-      
+
       this.current_user = sn;
       this.private_channel = this.pusher.subscribe(`private-${sn}`, { header });
       this.private_channel.bind("account", (data) => this._updateAccount(data));

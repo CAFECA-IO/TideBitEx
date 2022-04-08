@@ -459,13 +459,11 @@ const StoreProvider = (props) => {
   );
 
   const start = useCallback(async () => {
-    sync(true);
-    await middleman.registerGlobalChannel();
     const XSRF = document.cookie
-      .split(";")
-      .filter((v) => /XSRF-TOKEN/.test(v))
-      .pop()
-      ?.split("=")[1];
+    .split(";")
+    .filter((v) => /XSRF-TOKEN/.test(v))
+    .pop()
+    ?.split("=")[1];
     try {
       if (XSRF) {
         const token = await getToken(XSRF);
@@ -482,6 +480,8 @@ const StoreProvider = (props) => {
       enqueueSnackbar(`${error?.message || "Some went wrong with getToken"}`, {
         variant: "error",
       });
+      sync(true);
+      await middleman.registerGlobalChannel();
     }
   }, [enqueueSnackbar, middleman, sync]);
 
