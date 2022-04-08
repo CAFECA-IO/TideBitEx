@@ -251,6 +251,9 @@ class OkexConnector extends ConnectorBase {
           ts: parseInt(data.ts),
         };
       });
+      this.logger.log(`++++++++++++++`)
+      this.logger.log(payload)
+      this.logger.log(`++++++++++++++`)
       return new ResponseFormat({
         message: "getOrderBooks",
         payload: payload,
