@@ -261,9 +261,6 @@ class TibeBitConnector extends ConnectorBase {
       // enabledTransports: ["ws"],
       disabledTransports: ["flash", "sockjs"],
       forceTLS: false,
-      auth: {
-        headers: header,
-      },
       authorizer: (channel, options) => {
         return {
           authorize: (socketId, callback) => {
@@ -281,9 +278,6 @@ class TibeBitConnector extends ConnectorBase {
               data,
             })
               .then((res) => {
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-                this.logger.debug(`authorize res`, res.data);
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
                 if (res.status !== 200) {
                   throw new Error(
                     `Received ${res.statusCode} from /pusher/auth`
@@ -292,6 +286,9 @@ class TibeBitConnector extends ConnectorBase {
                 return res.data;
               })
               .then((data) => {
+                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+                this.logger.debug(`authorize data`, data);
+                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
                 callback(null, data);
               })
               .catch((err) => {
