@@ -292,11 +292,6 @@ class ExchangeHub extends Bot {
     const member = await this.database.getMemberById(memberId);
     this.logger.debug(`++++++++++++++`);
     this.logger.debug(`registerPrivateChannel member.sn`, member.sn);
-    this.logger.debug(`registerPrivateChannel header`, {
-      'content-type': 'text/html; charset=utf-8',//'content-type': 'application/json',
-      "x-csrf-token": body.token,
-      cookie: header.cookie,
-    });
     this.logger.debug(`++++++++++++++`);
     try {
       this.tideBitConnector.registerPrivateChannel({
@@ -307,6 +302,9 @@ class ExchangeHub extends Bot {
         },
         sn: member.sn,
       });
+      this.logger.debug(`++++++++++++++`);
+      this.logger.debug(`registerPrivateChannel SUCCESS`);
+      this.logger.debug(`++++++++++++++`);
       return new ResponseFormat({
         message: `registerPrivateChannel`,
         code: Codes.SUCCESS,
