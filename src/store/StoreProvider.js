@@ -386,6 +386,7 @@ const StoreProvider = (props) => {
         });
         wsClient.addEventListener("message", (msg) => {
           let _tickerTimestamp = 0,
+            _TBTickerTimestamp = 0,
             _tradeTimestamp = 0,
             _bookTimestamp = 0,
             _candleTimestamp = 0,
@@ -432,9 +433,21 @@ const StoreProvider = (props) => {
                 setCandles(updateCandles);
               }
               break;
-            case "tideBitTickersOnUpdate":
-              console.log(`tideBitTickersOnUpdate tickers`, metaData.data);
-              break;
+            // // ++ TODO TideBit WS 要與 OKEX整合
+            // case "tideBitTickersOnUpdate":
+            //   const { updateTBTicker, updateTBTickers, updateTBIndexes } =
+            //     middleman.updateTickers(metaData.data);
+            //   _TBTickerTimestamp = new Date().getTime();
+            //   if (!!updateTBTicker) {
+            //     setSelectedTicker(updateTBTicker);
+            //     document.title = `${updateTBTicker.last} ${updateTBTicker.pair}`;
+            //   }
+            //   if (_TBTickerTimestamp - +tickerTimestamp > 1000) {
+            //     tickerTimestamp = _TBTickerTimestamp;
+            //     setTickers(updateTBTickers);
+            //     setUpdateTickerIndexs(updateTBIndexes);
+            //   }
+            //   break;
             case "tideBitBooksOnUpdate":
               console.log(`tideBitBooksOnUpdate books`, metaData.data);
               break;
@@ -460,10 +473,10 @@ const StoreProvider = (props) => {
 
   const start = useCallback(async () => {
     const XSRF = document.cookie
-    .split(";")
-    .filter((v) => /XSRF-TOKEN/.test(v))
-    .pop()
-    ?.split("=")[1];
+      .split(";")
+      .filter((v) => /XSRF-TOKEN/.test(v))
+      .pop()
+      ?.split("=")[1];
     try {
       if (XSRF) {
         const token = await getToken(XSRF);

@@ -72,29 +72,29 @@ class ExchangeHub extends Bot {
         const instId = market.name.split("/").join("-").toUpperCase();
         return {
           ...market,
-          alias: "",
-          baseCcy: market.base_unit.toUpperCase(),
-          category: "",
-          ctMult: "",
-          ctType: "",
-          ctVal: "",
-          ctValCcy: "",
-          expTime: "",
+          // alias: "",
+          // baseCcy: market.base_unit.toUpperCase(),
+          // quoteCcy: market.quote_unit,
+          // category: "",
+          // ctMult: "",
+          // ctType: "",
+          // ctVal: "",
+          // ctValCcy: "",
+          // expTime: "",
           instId,
           instType: "",
-          lever: "",
-          listTime: Math.floor(Date.now() / 1000) * 1000,
-          lotSz: "",
-          minSz: "",
-          optType: "",
-          quoteCcy: market.quote_unit,
-          settleCcy: "",
+          // lever: "",
+          // listTime: Math.floor(Date.now() / 1000) * 1000,
+          // lotSz: "",
+          // minSz: "",
+          // optType: "",
+          // settleCcy: "",
           state: market.visible,
-          tab_category: market.tab_category,
-          stk: "",
-          tickSz: "",
-          uly: "",
-          ts: null,
+          group: market.tab_category,
+          // stk: "",
+          // tickSz: "",
+          // uly: "",
+          // at: null,
           source: SupportedExchange.TIDEBIT,
         };
       });
@@ -198,46 +198,34 @@ class ExchangeHub extends Bot {
     const tBTickers = tBTickersRes.data;
     const formatTBTickers = isVisibles.map((market) => {
       const tBTicker = tBTickers[market.id];
+      const change = SafeMath.minus(tBTicker.ticker.last, tBTicker.ticker.open);
+      const changePct = SafeMath.gt(tBTicker.ticker.open, "0")
+        ? SafeMath.mult(SafeMath.div(change, tBTicker.ticker.open), "100")
+        : SafeMath.eq(change, "0")
+        ? "0"
+        : "100";
       let formatTBTicker = {
+        ...market,
         instType: "",
-        instId: market.instId,
         last: "0.0",
-        lastSz: "0.0",
-        askPx: "0.0",
-        askSz: "0.0",
-        bidPx: "0.0",
-        bidSz: "0.0",
-        open24h: "0.0",
-        high24h: "0.0",
-        low24h: "0.0",
-        volCcy24h: "0.0",
-        vol24h: "0.0",
-        ts: "0.0",
-        sodUtc0: "0.0",
-        sodUtc8: "0.0",
-        tab_category: market.tab_category,
-        source: market.source,
+        sell: "0.0",
+        buy: "0.0",
+        open: "0.0",
+        high: "0.0",
+        low: "0.0",
+        volume: "0.0",
+        at: "0.0",
+        change: "0.0",
+        changePct: "0.0",
       };
       if (tBTicker) {
         formatTBTicker = {
-          instType: "",
-          instId: market.instId,
-          last: tBTicker.ticker.last.toString(),
-          lastSz: tBTicker.ticker.vol.toString(),
-          askPx: tBTicker.ticker.sell.toString(),
-          askSz: "0.0",
-          bidPx: tBTicker.ticker.buy.toString(),
-          bidSz: "0.0",
-          open24h: tBTicker.ticker.open.toString(),
-          high24h: tBTicker.ticker.high.toString(),
-          low24h: tBTicker.ticker.low.toString(),
-          volCcy24h: "0.0",
-          vol24h: "0.0",
-          ts: tBTicker.at * 1000,
-          sodUtc0: "0.0",
-          sodUtc8: tBTicker.ticker.open.toString(),
-          tab_category: market.tab_category,
-          source: market.source,
+          ...tBTicker.ticker,
+          ...market,
+          at: tBTicker.at,
+          volume: tBTicker.ticker.vol,
+          change,
+          changePct,
         };
       }
       return formatTBTicker;
@@ -295,8 +283,8 @@ class ExchangeHub extends Bot {
     this.logger.debug(`++++++++++++++`);
     try {
       this.tideBitConnector.registerPrivateChannel({
-        header:{
-          'content-type': 'application/json',
+        header: {
+          "content-type": "application/json",
           "x-csrf-token": body.token,
           cookie: header.cookie,
         },
@@ -334,23 +322,18 @@ class ExchangeHub extends Bot {
         });
       }
       const tBTicker = tBTickerRes.data;
+      const change = SafeMath.minus(tBTicker.ticker.last, tBTicker.ticker.open);
+      const changePct = SafeMath.gt(tBTicker.ticker.open, "0")
+        ? SafeMath.div(change, tBTicker.ticker.open)
+        : SafeMath.eq(change, "0")
+        ? "0"
+        : "100";
       const formatTBTicker = {
-        instType: "",
-        instId: query.instId,
-        last: tBTicker.ticker.last.toString(),
-        lastSz: tBTicker.ticker.vol.toString(),
-        askPx: tBTicker.ticker.sell.toString(),
-        askSz: "0.0",
-        bidPx: tBTicker.ticker.buy.toString(),
-        bidSz: "0.0",
-        open24h: tBTicker.ticker.open.toString(),
-        high24h: tBTicker.ticker.high.toString(),
-        low24h: tBTicker.ticker.low.toString(),
-        volCcy24h: "0.0",
-        vol24h: "0.0",
-        ts: tBTicker.at * 1000,
-        sodUtc0: "0.0",
-        sodUtc8: tBTicker.ticker.open.toString(),
+        ...tBTicker.ticker,
+        at: tBTicker.at,
+        change,
+        changePct,
+        volume: tBTicker.ticker.vol.toString(),
       };
       return new ResponseFormat({
         message: "getTicker",
@@ -375,7 +358,7 @@ class ExchangeHub extends Bot {
         );
         includeTidebitMarket.forEach((market) => {
           market.source = SupportedExchange.OKEX;
-          market.tab_category =
+          market.group =
             market.instId.split("-")[1].toLowerCase() === "usdt" ||
             market.instId.split("-")[1].toLowerCase() === "usdc" ||
             market.instId.split("-")[1].toLowerCase() === "usdk"

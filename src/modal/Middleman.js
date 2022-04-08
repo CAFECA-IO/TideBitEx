@@ -11,12 +11,12 @@ class Middleman {
     const instrument = this.instruments.find((i) => i.instId === ticker.instId);
     _ticker = { ...ticker, minSz: instrument?.minSz || "0.001" }; // -- TEST for ETH-USDT
     const quoteBalance = this.balances.find(
-      (detail) => detail.ccy === ticker.quoteCcy
+      (detail) => detail.ccy === ticker.quote_unit
     );
     if (quoteBalance) _ticker.quoteCcyAvailable = quoteBalance.availBal;
     else _ticker.quoteCcyAvailable = 0;
     const baseBalance = this.balances.find(
-      (detail) => detail.ccy === ticker.baseCcy
+      (detail) => detail.ccy === ticker.base_unit
     );
     if (baseBalance) _ticker.baseCcyAvailable = baseBalance.availBal;
     else _ticker.baseCcyAvailable = 0;
@@ -66,27 +66,18 @@ class Middleman {
         (ticker) => ticker.instId === t.instId
       );
       if (index === -1) {
-        const ticker = {
-          ...t,
-          baseCcy: t.instId.split("-")[0],
-          quoteCcy: t.instId.split("-")[1],
-          name: t.instId.replace("-", "/"),
-          changePct: SafeMath.mult(t.changePct, "100"),
-        };
-        updateTickers.push(ticker);
+        updateTickers.push(t);
         return updateTickers.length - 1;
       } else {
         const ticker = {
           ...updateTickers[index],
           last: t.last,
           change: t.change,
-          changePct: SafeMath.mult(t.changePct, "100"),
-          open24h: t.open24h,
-          high24h: t.high24h,
-          low24h: t.low24h,
-          volCcy24h: t.volCcy24h,
-          vol24h: t.vol24h,
-          ts: t.ts,
+          changePct: t.changePct,
+          open: t.open,
+          high: t.high,
+          low: t.low,
+          volume: t.volume,
         };
         if (t.instId === this.selectedTicker?.instId)
           updateTicker = this.updateSelectedTicker(ticker);
@@ -121,31 +112,23 @@ class Middleman {
   }
   async getTicker(instId) {
     try {
-      const rawTicker = await this.communicator.ticker(instId);
-      const ticker = {
-        ...rawTicker,
-        baseCcy: instId.split("-")[0],
-        quoteCcy: instId.split("-")[1],
-        name: instId.replace("-", "/"),
-        // name: instId
-        //   .split("-")
-        //   .reduce((acc, curr, i) => (i === 0 ? `${curr}` : `${acc}/${curr}`), ""),
-        change: SafeMath.minus(rawTicker.last, rawTicker.open24h),
-        changePct: SafeMath.gt(rawTicker.open24h, "0")
-          ? SafeMath.mult(
-              SafeMath.div(
-                SafeMath.minus(rawTicker.last, rawTicker.open24h),
-                rawTicker.open24h
-              ),
-              "100"
-            )
-          : SafeMath.eq(SafeMath.minus(rawTicker.last, rawTicker.open24h), "0")
-          ? "0"
-          : "100",
-      };
-
       const index = this.tickers.findIndex((t) => t.instId === instId);
-      this.tickers[index] = ticker;
+      const ticker = this.tickers[index];
+      const rawTicker = await this.communicator.ticker(instId);
+      const updateTicker = {
+        ...ticker,
+        at: rawTicker.at,
+        change: rawTicker.change,
+        changePct: rawTicker.changePct,
+        buy: rawTicker.buy,
+        sell: rawTicker.sell,
+        low: rawTicker.low,
+        high: rawTicker.high,
+        last: rawTicker.last,
+        open: rawTicker.open,
+        volume: rawTicker.volume,
+      };
+      this.tickers[index] = updateTicker;
       return ticker;
     } catch (error) {
       throw error;
@@ -155,29 +138,8 @@ class Middleman {
   async getTickers(instType, from, limit) {
     try {
       const rawTickers = await this.communicator.tickers(instType, from, limit);
-      const tickers = rawTickers.map((ticker) => ({
-        ...ticker,
-        baseCcy: ticker.instId.split("-")[0],
-        quoteCcy: ticker.instId.split("-")[1],
-        name: ticker.instId.replace("-", "/"),
-        // name: ticker.instId
-        //   .split("-")
-        //   .reduce((acc, curr, i) => (i === 0 ? `${curr}` : `${acc}/${curr}`), ""),
-        change: SafeMath.minus(ticker.last, ticker.open24h),
-        changePct: SafeMath.gt(ticker.open24h, "0")
-          ? SafeMath.mult(
-              SafeMath.div(
-                SafeMath.minus(ticker.last, ticker.open24h),
-                ticker.open24h
-              ),
-              "100"
-            )
-          : SafeMath.eq(SafeMath.minus(ticker.last, ticker.open24h), "0")
-          ? "0"
-          : "100",
-      }));
-      this.tickers = tickers;
-      return tickers;
+      this.tickers = rawTickers;
+      return this.tickers;
     } catch (error) {
       throw error;
     }
@@ -442,7 +404,7 @@ class Middleman {
       this.balances = result[0].details;
       // .filter(
       //   (balance) =>
-      //     this.selectedTicker?.baseCcy === balance.ccy ||
+      //     this.selectedTicker?.base_unit === balance.ccy ||
       //     this.selectedTicker?.quoteCcy === balance.ccy
       // );
       this.isLogin = true;

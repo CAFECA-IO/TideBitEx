@@ -31,8 +31,8 @@ const TradeForm = (props) => {
               : "0" || "--"
           } `}
           {props.side === "buy"
-            ? props.selectedTicker?.quoteCcy || "--"
-            : props.selectedTicker?.baseCcy || "--"}
+            ? props.selectedTicker?.quote_unit || "--"
+            : props.selectedTicker?.base_unit || "--"}
           {/* = 0 USD */}
         </span>
       </p>
@@ -53,7 +53,7 @@ const TradeForm = (props) => {
           {!props.readyOnly && (
             <div className="market-trade__input-group--append input-group-append">
               <span className="input-group-text">
-                {props.selectedTicker?.quoteCcy || "--"}
+                {props.selectedTicker?.quote_unit || "--"}
               </span>
             </div>
           )}
@@ -74,7 +74,7 @@ const TradeForm = (props) => {
           />
           <div className="market-trade__input-group--append input-group-append">
             <span className="input-group-text">
-              {props.selectedTicker?.baseCcy || "--"}
+              {props.selectedTicker?.base_unit || "--"}
             </span>
           </div>
         </div>
@@ -92,7 +92,7 @@ const TradeForm = (props) => {
           />
           <div className="market-trade__input-group--append input-group-append">
             <span className="input-group-text">
-              {props.selectedTicker?.quoteCcy || "--"}
+              {props.selectedTicker?.quote_unit || "--"}
             </span>
           </div>
         </div>
@@ -147,7 +147,7 @@ const TradeForm = (props) => {
         }
       >
         {props.side === "buy" ? t("buy") : t("sell")}
-        {` ${props.selectedTicker?.baseCcy ?? ""}`}
+        {` ${props.selectedTicker?.base_unit ?? ""}`}
       </button>
     </form>
   );
@@ -229,7 +229,7 @@ const TradePannel = (props) => {
           )
         ) {
           setBuyErrorMessage(
-            `Available ${selectedTicker?.quoteCcy} is not enough`
+            `Available ${selectedTicker?.quote_unit} is not enough`
           );
         } else setBuyErrorMessage(null);
       } else {
@@ -240,7 +240,7 @@ const TradePannel = (props) => {
       limitBuyPx,
       quoteCcyAvailable,
       selectedTicker?.minSz,
-      selectedTicker?.quoteCcy,
+      selectedTicker?.quote_unit,
       storeCtx.selectedTicker?.last,
     ]
   );
@@ -263,14 +263,14 @@ const TradePannel = (props) => {
           setSellErrorMessage(`Minimum order size is ${selectedTicker?.minSz}`);
         if (SafeMath.gt(value, baseCcyAvailable)) {
           setSellErrorMessage(
-            `Available ${selectedTicker?.baseCcy} is not enough`
+            `Available ${selectedTicker?.base_unit} is not enough`
           );
         } else setSellErrorMessage(null);
       } else {
         setSellErrorMessage(null);
       }
     },
-    [baseCcyAvailable, selectedTicker?.baseCcy, selectedTicker?.minSz]
+    [baseCcyAvailable, selectedTicker?.base_unit, selectedTicker?.minSz]
   );
 
   const buyPctHandler = useCallback(
@@ -397,39 +397,39 @@ const TradePannel = (props) => {
         (storeCtx.selectedTicker &&
           storeCtx.selectedTicker.instId !== selectedTicker?.instId))
     ) {
-      let quoteCcy = storeCtx.balances.find((balance) => {
-        return balance.ccy === storeCtx.selectedTicker?.quoteCcy;
+      let quoteCcyBalance = storeCtx.balances.find((balance) => {
+        return balance.ccy === storeCtx.selectedTicker?.quote_unit;
       });
 
-      if (quoteCcy) {
-        setQuoteCcyAvailable(quoteCcy?.availBal);
+      if (quoteCcyBalance) {
+        setQuoteCcyAvailable(quoteCcyBalance?.availBal);
         buyPctHandler(
           "market",
           selectedMarketBuyPct ?? "0.25",
           storeCtx.selectedTicker.last,
-          quoteCcy?.availBal
+          quoteCcyBalance?.availBal
         );
         buyPctHandler(
           "limit",
           selectedLimitBuyPct ?? "0.25",
           storeCtx.selectedTicker.last,
-          quoteCcy?.availBal
+          quoteCcyBalance?.availBal
         );
       }
-      let baseCcy = storeCtx.balances.find(
-        (balance) => balance.ccy === storeCtx.selectedTicker?.baseCcy
+      let baseCcyBalance = storeCtx.balances.find(
+        (balance) => balance.ccy === storeCtx.selectedTicker?.base_unit
       );
-      if (baseCcy) {
-        setBaseCcyAvailable(baseCcy?.availBal);
+      if (baseCcyBalance) {
+        setBaseCcyAvailable(baseCcyBalance?.availBal);
         sellPctHandler(
           "market",
           selectedMarketSellPct ?? "0.25",
-          baseCcy?.availBal
+          baseCcyBalance?.availBal
         );
         sellPctHandler(
           "limit",
           selectedLimitSellPct ?? "0.25",
-          baseCcy?.availBal
+          baseCcyBalance?.availBal
         );
       }
       setSelectedTicker(storeCtx.selectedTicker);

@@ -106,28 +106,22 @@ class TibeBitConnector extends ConnectorBase {
     buy: '0.0',
     at: 1649315293
     */
-    // this.logger.debug(`_updateTickers data`, data);
-    const formatPair = Object.values(data).map((data) => {
+    this.logger.debug(`_updateTickers data`, data);
+    const formatTickers = Object.values(data).map((data) => {
       const change = SafeMath.minus(data.last, data.open);
-      const changePct = SafeMath.eq(data.open, "0")
+      const changePct = SafeMath.gt(data.open24h, "0")
+        ? SafeMath.div(change, data.open24h)
+        : SafeMath.eq(change, "0")
         ? "0"
-        : SafeMath.div(change, data.open);
+        : "100";
       return {
+        ...data,
         instId: data.name.replace("/", "-"),
-        last: data.last,
         change,
         changePct,
-        open24h: data.open,
-        high24h: data.high,
-        low24h: data.low,
-        volCcy24h: data.volume, // ??
-        vol24h: data.volume, // ??
-        ts: data.at,
-        // openUtc0: data.sodUtc0,
-        // openUtc8: data.sodUtc8,
       };
     });
-    EventBus.emit(Events.tideBitTickersOnUpdate, formatPair);
+    EventBus.emit(Events.pairOnUpdate, formatTickers);
   }
 
   registerGlobalChannel() {
@@ -154,9 +148,8 @@ class TibeBitConnector extends ConnectorBase {
     }
     */
     const formatBooks = {
+      ...data,
       instId,
-      asks: data.asks,
-      bids: data.bids,
       ts: Date.now(),
     };
     // this.logger.debug(`_updateBooks data`, data);
@@ -312,7 +305,7 @@ class TibeBitConnector extends ConnectorBase {
       }
 
       this.current_user = sn;
-      this.private_channel = this.pusher.subscribe(`private-${sn}`, { header });
+      this.private_channel = this.pusher.subscribe(`private-${sn}`);
       this.private_channel.bind("account", (data) => this._updateAccount(data));
       this.private_channel.bind("order", (data) => this._updateOrder(data));
       this.private_channel.bind("trade", (data) => this._updateTrade(data));

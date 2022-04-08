@@ -29,19 +29,21 @@ const StoreContext = React.createContext({
    * @property {String} instType
    * @property {String} instId
    * @property {String} last
-   * @property {String} lastSz
-   * @property {String} askPx
-   * @property {String} askSz
-   * @property {String} bidPx
-   * @property {String} bidSz
-   * @property {String} open24h
-   * @property {String} high24h
-   * @property {String} low24h
-   * @property {String} volCcy24h
-   * @property {String} vol24h
-   * @property {String} sodUtc0
-   * @property {String} sodUtc8
-   * @property {String} ts
+  //  * @property {String} lastSz
+  //  * @property {String} askPx
+  //  * @property {String} askSz
+  //  * @property {String} bidPx
+  //  * @property {String} bidSz
+   * @property {String} sell
+   * @property {String} buy
+   * @property {String} open
+   * @property {String} high
+   * @property {String} low
+   * @property {String} volume
+  //  * @property {String} volCcy24h
+  //  * @property {String} sodUtc0
+  //  * @property {String} sodUtc8
+   * @property {String} at
    */
   /**
    * @param {Ticker} ticker
