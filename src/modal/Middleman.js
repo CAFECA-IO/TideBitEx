@@ -254,7 +254,7 @@ class Middleman {
   async getBooks(instId, sz) {
     try {
       const rawBooks = await this.communicator.books(instId, sz);
-      this.rawBooks = rawBooks[0];
+      this.rawBooks = rawBooks;
       this.books = this.handleBooks();
       // console.log(`getBooks this.books`, this.books);
       // console.log(`getBooks this.rawBooks`, this.rawBooks);
