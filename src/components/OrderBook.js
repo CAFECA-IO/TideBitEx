@@ -5,11 +5,6 @@ import { formateDecimal } from "../utils/Utils";
 import { useTranslation } from "react-i18next";
 
 const BookTile = (props) => {
-  console.log(
-    `BookTile`,
-    props,
-    SafeMath.mult(props.book.price, props.book.amount)
-  );
   return (
     <li
       className={`order-book__tile flex-row ${
