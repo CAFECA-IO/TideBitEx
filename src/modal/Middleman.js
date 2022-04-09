@@ -231,12 +231,8 @@ class Middleman {
         } else updateRawBooks.bids.splice(index, 1);
       }
     });
-    console.log(`books data`, data);
-    console.log(`books this.rawBooks`, this.rawBooks);
-    console.log(`books updateRawBooks`, updateRawBooks);
     this.rawBooks = updateRawBooks;
     this.books = this.handleBooks();
-    console.log(`books this.books `, this.books);
     return this.books;
   }
 
@@ -367,17 +363,8 @@ class Middleman {
   }
 
   updateOrders(data) {
-    console.log(`updateOrders data`, data);
     const updatePendingOrders = [...this.pendingOrders];
     const updateCloseOrders = [...this.closeOrders];
-    console.log(
-      `updateOrders this.pendingOrders[${this.pendingOrders.length}]`,
-      this.pendingOrders
-    );
-    console.log(
-      `updateOrders this.closeOrders[${this.closeOrders.length}]`,
-      this.closeOrders
-    );
     if (data.market === this.selectedTicker.id) {
       const index = updatePendingOrders.findIndex(
         (order) => order.ordId === data.ordId
@@ -401,15 +388,7 @@ class Middleman {
         else updateCloseOrders.push({ ...data, uTime: Date.now() });
       }
       this.pendingOrders = updatePendingOrders;
-      this.updateCloseOrders = updateCloseOrders;
-      console.log(
-        `updateOrders updatePendingOrders[${updatePendingOrders.length}]`,
-        updatePendingOrders
-      );
-      console.log(
-        `updateOrders updateCloseOrders[${updateCloseOrders.length}]`,
-        updateCloseOrders
-      );
+      this.closeOrders = updateCloseOrders;
     }
     return {
       updatePendingOrders: updatePendingOrders.sort(
@@ -421,20 +400,24 @@ class Middleman {
 
   async getPendingOrders(options) {
     if (this.isLogin) {
-      this.pendingOrders = await this.communicator.ordersPending({
+      const orders = await this.communicator.ordersPending({
         ...options,
         instId: this.selectedTicker?.instId,
       });
+      // ++ WORKAROUND
+      this.pendingOrders = orders.filter((order) => order.px !== "NaN");
       return this.pendingOrders;
     }
   }
 
   async getCloseOrders(options) {
     if (this.isLogin) {
-      this.closeOrders = await this.communicator.closeOrders({
+      const orders = await this.communicator.closeOrders({
         ...options,
         instId: this.selectedTicker?.instId,
       });
+      // ++ WORKAROUND
+      this.closeOrders = orders.filter((order) => order.px !== "NaN");
       return this.closeOrders;
     }
   }

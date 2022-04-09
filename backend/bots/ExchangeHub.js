@@ -786,7 +786,7 @@ class ExchangeHub extends Bot {
         quoteCcy: bid,
         baseCcy: ask,
         state,
-        orderType
+        orderType,
       });
     }
     const orders = orderList.map((order) => ({
