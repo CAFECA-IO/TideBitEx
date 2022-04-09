@@ -64,8 +64,8 @@ const MobileExchange = (props) => {
               <li>{t("frozenBal")}</li>
             </ul>
             <ul className="order-list">
-              {!!storeCtx.balances?.length &&
-                storeCtx.balances
+              {!!storeCtx.accounts?.length &&
+                storeCtx.accounts
                   .filter(
                     (balance) =>
                       storeCtx.selectedTicker?.base_unit.toUpperCase() === balance.ccy ||

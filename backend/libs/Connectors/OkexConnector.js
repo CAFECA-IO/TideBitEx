@@ -113,7 +113,10 @@ class OkexConnector extends ConnectorBase {
       const payload = res.data.data.map((data) => {
         const details = data.details.map((dtl) => {
           return {
-            ...dtl,
+            ccy: dtl.ccy,
+            totalBal: dtl.cashBal,
+            availBal:  dtl.availBal,
+            frozenBal: dtl.frozenBal,
             uTime: parseInt(dtl.uTime),
           };
         });
@@ -251,9 +254,9 @@ class OkexConnector extends ConnectorBase {
           ts: parseInt(data.ts),
         };
       });
-      this.logger.log(`++++++++++++++`)
-      this.logger.log(payload)
-      this.logger.log(`++++++++++++++`)
+      this.logger.log(`++++++++++++++`);
+      this.logger.log(payload);
+      this.logger.log(`++++++++++++++`);
       return new ResponseFormat({
         message: "getOrderBooks",
         payload: payload,
@@ -816,7 +819,7 @@ class OkexConnector extends ConnectorBase {
         tradeId: data.tradeId,
       };
     });
-    EventBus.emit(Events.tradeDataOnUpdate, instId, formatTrades);
+    EventBus.emit(Events.tradesOnUpdate, instId, formatTrades);
   }
 
   _updateBooks(instId, bookData) {
@@ -843,7 +846,7 @@ class OkexConnector extends ConnectorBase {
         ts: parseInt(data.ts),
       };
     });
-    EventBus.emit(Events.orderOnUpdate, instId, formatBooks);
+    EventBus.emit(Events.orderBooksOnUpdate, instId, formatBooks);
   }
 
   _updateCandle1m(instId, candleData) {
@@ -896,7 +899,7 @@ class OkexConnector extends ConnectorBase {
         source: SupportedExchange.OKEX,
       };
     });
-    EventBus.emit(Events.pairOnUpdate, formatTickers);
+    EventBus.emit(Events.tickersOnUpdate, formatTickers);
   }
 
   _subscribeInstruments() {

@@ -10,12 +10,12 @@ class Middleman {
     let _ticker;
     const instrument = this.instruments.find((i) => i.instId === ticker.instId);
     _ticker = { ...ticker, minSz: instrument?.minSz || "0.001" }; // -- TEST for ETH-USDT
-    const quoteBalance = this.balances.find(
+    const quoteBalance = this.accounts.find(
       (detail) => detail.ccy === ticker.quote_unit.toUpperCase()
     );
     if (quoteBalance) _ticker.quoteCcyAvailable = quoteBalance.availBal;
     else _ticker.quoteCcyAvailable = 0;
-    const baseBalance = this.balances.find(
+    const baseBalance = this.accounts.find(
       (detail) => detail.ccy === ticker.base_unit.toUpperCase()
     );
     if (baseBalance) _ticker.baseCcyAvailable = baseBalance.availBal;
@@ -380,39 +380,48 @@ class Middleman {
     }
   }
 
+  updateOrders() {}
+
   async getPendingOrders(options) {
-    if (this.isLogin)
-      return await this.communicator.ordersPending({
+    if (this.isLogin) {
+      this.pendingOrders = await this.communicator.ordersPending({
         ...options,
         instId: this.selectedTicker?.instId,
       });
+      return this.pendingOrders;
+    }
   }
 
   async getCloseOrders(options) {
-    if (this.isLogin)
-      return await this.communicator.closeOrders({
+    if (this.isLogin) {
+      this.closeOrders = await this.communicator.closeOrders({
         ...options,
         instId: this.selectedTicker?.instId,
       });
+      return this.closeOrders;
+    }
   }
 
-  async getBalances() {
+  updateAccounts(data) {
+    const index = this.accounts?.findIndex(
+      (account) => account.ccy === data.ccy
+    );
+    if (index && index !== -1) this.accounts[index] = data;
+    else this.accounts.push(data);
+  }
+
+  async getAccounts() {
     try {
-      const result = await this.communicator.balance(
+      const result = await this.communicator.getAccountBalance(
         this.selectedTicker?.instId?.replace("-", ",")
       );
-      this.balances = result[0]?.details;
-      // .filter(
-      //   (balance) =>
-      //     this.selectedTicker?.base_unit === balance.ccy ||
-      //     this.selectedTicker?.quoteCcy === balance.ccy
-      // );
-      if (this.balance) this.isLogin = true;
-      return this.balances;
+      this.accounts = result;
+      if (this.accounts) this.isLogin = true;
+      return this.accounts;
     } catch (error) {
       this.isLogin = false;
-      this.balances = [];
-      return this.balances;
+      this.accounts = [];
+      return this.accounts;
     }
   }
 

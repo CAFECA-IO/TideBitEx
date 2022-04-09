@@ -231,7 +231,7 @@ class Communicator {
   }
 
   // Account
-  async balance(ccy) {
+  async getAccountBalance(ccy) {
     try {
       const url = `/account/balance?${ccy ? `&ccy=${ccy}` : ""}`;
       const res = await this._get(url);

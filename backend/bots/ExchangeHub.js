@@ -141,7 +141,9 @@ class ExchangeHub extends Bot {
     try {
       this.logger.debug(`getBalance token`, token);
       const memberId = await this.getMemberIdFromRedis(token);
-      if (memberId === -1) throw new Error("get member_id fail");
+      // if (memberId === -1) throw new Error("get member_id fail");
+      this.logger.error(`[${this.name} getBalance] error: "get member_id fail`);
+      if (memberId === -1) return null;
       const accounts = await this.database.getBalance(memberId);
       const jobs = accounts.map((acc) =>
         this.database.getCurrency(acc.currency)
@@ -151,17 +153,12 @@ class ExchangeHub extends Bot {
       const details = accounts.map((account, i) => ({
         ccy: currencies[i].key.toUpperCase(),
         availBal: Utils.removeZeroEnd(account.balance),
-        cashBal: SafeMath.plus(account.balance, account.locked),
+        totalBal: SafeMath.plus(account.balance, account.locked),
         frozenBal: Utils.removeZeroEnd(account.locked),
         uTime: new Date(account.updated_at).getTime(),
-        availEq: Utils.removeZeroEnd(account.balance),
       }));
 
-      const payload = [
-        {
-          details,
-        },
-      ];
+      const payload = details;
 
       return new ResponseFormat({
         message: "getBalance",
@@ -1109,63 +1106,63 @@ class ExchangeHub extends Bot {
   // public api end
 
   async _eventListener() {
-    EventBus.on(Events.tideBitTickersOnUpdate, (formatPair) => {
+    // EventBus.on(Events.tideBitTickersOnUpdate, (formatPair) => {
+    //   this.broadcastAllClient({
+    //     type: Events.tideBitTickersOnUpdate,
+    //     data: formatPair,
+    //   });
+    // });
+
+    // EventBus.on(Events.tideBitBooksOnUpdate, (instId, formatBooks) => {
+    //   if (this._isIncludeTideBitMarket(instId)) {
+    //     this.broadcast(instId, {
+    //       type: Events.tideBitBooksOnUpdate,
+    //       data: formatBooks,
+    //     });
+    //   }
+    // });
+
+    // EventBus.on(Events.tideBitTradesOnUpdate, (instId, formatTrades) => {
+    //   if (this._isIncludeTideBitMarket(instId)) {
+    //     this.broadcast(instId, {
+    //       type: Events.tideBitTradesOnUpdate,
+    //       data: formatTrades,
+    //     });
+    //   }
+    // });
+
+    EventBus.on(Events.accountOnUpdate, (account) => {
       this.broadcastAllClient({
-        type: Events.tideBitTickersOnUpdate,
-        data: formatPair,
-      });
-    });
-
-    EventBus.on(Events.tideBitBooksOnUpdate, (instId, formatBooks) => {
-      if (this._isIncludeTideBitMarket(instId)) {
-        this.broadcast(instId, {
-          type: Events.tideBitBooksOnUpdate,
-          data: formatBooks,
-        });
-      }
-    });
-
-    EventBus.on(Events.tideBitTradesOnUpdate, (instId, formatTrades) => {
-      if (this._isIncludeTideBitMarket(instId)) {
-        this.broadcast(instId, {
-          type: Events.tideBitTradesOnUpdate,
-          data: formatTrades,
-        });
-      }
-    });
-
-    EventBus.on(Events.tideBitAccountOnUpdate, (account) => {
-      this.broadcastAllClient({
-        type: Events.tideBitAccountOnUpdate,
+        type: Events.accountOnUpdate,
         data: account,
       });
     });
-    EventBus.on(Events.tideBitOrderOnUpdate, (order) => {
+    EventBus.on(Events.orderOnUpdate, (order) => {
       this.broadcastAllClient({
-        type: Events.tideBitOrderOnUpdate,
+        type: Events.orderOnUpdate,
         data: order,
       });
     });
-    EventBus.on(Events.tideBitTradeOnUpdate, (trade) => {
+    EventBus.on(Events.tradeOnUpdate, (trade) => {
       this.broadcastAllClient({
-        type: Events.tideBitTradeOnUpdate,
+        type: Events.tradeOnUpdate,
         data: trade,
       });
     });
 
-    EventBus.on(Events.tradeDataOnUpdate, (instId, tradeData) => {
+    EventBus.on(Events.tradesOnUpdate, (instId, tradeData) => {
       if (this._isIncludeTideBitMarket(instId)) {
         this.broadcast(instId, {
-          type: Events.tradeDataOnUpdate,
+          type: Events.tradesOnUpdate,
           data: tradeData,
         });
       }
     });
 
-    EventBus.on(Events.orderOnUpdate, (instId, booksData) => {
+    EventBus.on(Events.orderBooksOnUpdate, (instId, booksData) => {
       if (this._isIncludeTideBitMarket(instId)) {
         this.broadcast(instId, {
-          type: Events.orderOnUpdate,
+          type: Events.orderBooksOnUpdate,
           data: booksData,
         });
       }
@@ -1180,10 +1177,10 @@ class ExchangeHub extends Bot {
       }
     });
 
-    EventBus.on(Events.pairOnUpdate, (formatPair) => {
+    EventBus.on(Events.tickersOnUpdate, (formatPair) => {
       if (this._isIncludeTideBitMarket(formatPair.instId)) {
         this.broadcastAllClient({
-          type: Events.pairOnUpdate,
+          type: Events.tickersOnUpdate,
           data: formatPair,
         });
       }

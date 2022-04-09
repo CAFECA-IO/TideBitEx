@@ -124,7 +124,7 @@ class TibeBitConnector extends ConnectorBase {
         source: SupportedExchange.TIDEBIT,
       };
     });
-    EventBus.emit(Events.pairOnUpdate, formatTickers);
+    EventBus.emit(Events.tickersOnUpdate, formatTickers);
   }
 
   registerGlobalChannel({ header }) {
@@ -158,7 +158,7 @@ class TibeBitConnector extends ConnectorBase {
       ts: Date.now(),
     };
     this.logger.debug(`_updateBooks formatBooks`, formatBooks);
-    EventBus.emit(Events.orderOnUpdate, instId, formatBooks);
+    EventBus.emit(Events.orderBooksOnUpdate, instId, formatBooks);
   }
 
   _updateTrades(instId, data) {
@@ -214,8 +214,15 @@ class TibeBitConnector extends ConnectorBase {
         currency: 'hkd'
     }
     */
-    this.logger.debug(`_updateAccount data`, data);
-    EventBus.emit(Events.tideBitAccountOnUpdate, data);
+    const formatAccount = {
+      ccy: data.currency.toUpperCase(),
+      totalBal: SafeMath.plus(data.balance, data.locked),
+      availBal: data.balance,
+      frozenBal: data.locked,
+      uTime: Date.now(),
+    };
+    this.logger.debug(`_updateAccount formatAccount`, formatAccount);
+    EventBus.emit(Events.accountOnUpdate, formatAccount);
   }
 
   _updateOrder(data) {
@@ -244,7 +251,7 @@ class TibeBitConnector extends ConnectorBase {
     // ++ TODO
     // formatTrade
     this.logger.debug(`_updateTrade data`, data);
-    EventBus.emit(Events.tideBitTradeOnUpdate, data);
+    EventBus.emit(Events.tradeOnUpdate, data);
   }
 
   async registerPrivateChannel({ header, sn }) {

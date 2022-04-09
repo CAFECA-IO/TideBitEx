@@ -27,7 +27,7 @@ const StoreProvider = (props) => {
   const [pendingOrders, setPendingOrders] = useState([]);
   const [closeOrders, setCloseOrders] = useState([]);
   const [orderHistories, setOrderHistories] = useState([]);
-  const [balances, setBalances] = useState([]);
+  const [accounts, setAccounts] = useState([]);
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [selectedTicker, setSelectedTicker] = useState(null);
   const [activePage, setActivePage] = useState("market");
@@ -43,7 +43,9 @@ const StoreProvider = (props) => {
   let tickerTimestamp = 0,
     tradeTimestamp = 0,
     bookTimestamp = 0,
-    candleTimestamp = 0;
+    candleTimestamp = 0,
+    accountTimestamp = 0,
+    orderTimestamp = 0;
 
   const getBooks = useCallback(
     async (instId, sz = 100) => {
@@ -204,7 +206,7 @@ const StoreProvider = (props) => {
         );
       }
     },
-    [enqueueSnackbar, middleman, token]
+    [enqueueSnackbar, middleman]
   );
 
   const selectTickerHandler = useCallback(
@@ -322,18 +324,18 @@ const StoreProvider = (props) => {
     }
   }, [enqueueSnackbar, registerPrivateChannel]);
 
-  const getBalances = useCallback(
+  const getAccounts = useCallback(
     async (ccy) => {
-      await middleman.getBalances(ccy);
-      if (middleman.balances) {
+      await middleman.getAccounts(ccy);
+      if (middleman.accounts) {
         await getToken();
         setIsLogin(true);
         enqueueSnackbar(`User Login`, {
           variant: "success",
         });
       }
-      console.log(`getBalances middleman.balances`, middleman.balances);
-      setBalances(middleman.balances);
+      console.log(`getAccounts middleman.accounts`, middleman.accounts);
+      setAccounts(middleman.accounts);
     },
     [enqueueSnackbar, getToken, middleman]
   );
@@ -348,11 +350,11 @@ const StoreProvider = (props) => {
         const result = await middleman.postOrder(_order);
         await getCloseOrders();
         await getPendingOrders();
-        await getBalances();
-        await getTrades(order.instId);
-        await getBooks(order.instId);
-        await getCandles(order.instId);
-        await getTicker(order.instId);
+        // await getAccounts();
+        // await getTrades(order.instId);
+        // await getBooks(order.instId);
+        // await getCandles(order.instId);
+        // await getTicker(order.instId);
         // await getTickers();
         // return result;
         enqueueSnackbar(
@@ -382,13 +384,13 @@ const StoreProvider = (props) => {
     },
     [
       enqueueSnackbar,
-      getBalances,
-      getBooks,
-      getCandles,
+      // getAccounts,
+      // getBooks,
+      // getCandles,
       getCloseOrders,
       getPendingOrders,
-      getTicker,
-      getTrades,
+      // getTicker,
+      // getTrades,
       middleman,
       token,
     ]
@@ -404,8 +406,8 @@ const StoreProvider = (props) => {
         const result = await middleman.cancelOrder(_order);
         await getCloseOrders();
         await getPendingOrders();
-        await getBalances();
-        await getBooks(order.instId);
+        // await getAccounts();
+        // await getBooks(order.instId);
         enqueueSnackbar(
           `You have canceled ordId(${order.ordId}): ${
             order.side === "buy" ? "Bid" : "Ask"
@@ -434,8 +436,8 @@ const StoreProvider = (props) => {
     },
     [
       enqueueSnackbar,
-      getBalances,
-      getBooks,
+      // getAccounts,
+      // getBooks,
       getCloseOrders,
       getPendingOrders,
       middleman,
@@ -450,7 +452,7 @@ const StoreProvider = (props) => {
   const sync = useCallback(
     async (isInit = false) => {
       await middleman.getInstruments();
-      await getBalances();
+      await getAccounts();
       await getTickers(true);
       await registerGlobalChannel();
       if (isInit) {
@@ -465,9 +467,11 @@ const StoreProvider = (props) => {
             _tradeTimestamp = 0,
             _bookTimestamp = 0,
             _candleTimestamp = 0,
+            _accountTimestamp = 0,
+            _orderTimestamp = 0,
             metaData = JSON.parse(msg.data);
           switch (metaData.type) {
-            case "pairOnUpdate":
+            case "tickersOnUpdate":
               const { updateTicker, updateTickers, updateIndexes } =
                 middleman.updateTickers(metaData.data);
               _tickerTimestamp = new Date().getTime();
@@ -481,7 +485,7 @@ const StoreProvider = (props) => {
                 setUpdateTickerIndexs(updateIndexes);
               }
               break;
-            case "tradeDataOnUpdate":
+            case "tradesOnUpdate":
               const updateTrades = middleman.updateTrades(metaData.data);
               _tradeTimestamp = new Date().getTime();
               if (_tradeTimestamp - +tradeTimestamp > 1000) {
@@ -491,7 +495,7 @@ const StoreProvider = (props) => {
                 middleman.resetTrades();
               }
               break;
-            case "orderOnUpdate":
+            case "orderBooksOnUpdate":
               const updateBooks = middleman.updateBooks(metaData.data);
               _bookTimestamp = new Date().getTime();
               if (_bookTimestamp - +bookTimestamp > 1000) {
@@ -509,41 +513,33 @@ const StoreProvider = (props) => {
               }
               break;
             // // ++ TODO TideBit WS 要與 OKEX整合
-            // case "tideBitTickersOnUpdate":
-            //   const { updateTBTicker, updateTBTickers, updateTBIndexes } =
-            //     middleman.updateTickers(metaData.data);
-            //   _TBTickerTimestamp = new Date().getTime();
-            //   if (!!updateTBTicker) {
-            //     setSelectedTicker(updateTBTicker);
-            //     document.title = `${updateTBTicker.last} ${updateTBTicker.pair}`;
-            //   }
-            //   if (_TBTickerTimestamp - +tickerTimestamp > 1000) {
-            //     tickerTimestamp = _TBTickerTimestamp;
-            //     setTickers(updateTBTickers);
-            //     setUpdateTickerIndexs(updateTBIndexes);
-            //   }
-            //   break;
-            case "tideBitBooksOnUpdate":
-              // console.log(`tideBitBooksOnUpdate books`, metaData.data);
+            case "accountOnUpdate":
+              const updateAccounts = middleman.updateAccounts(metaData.data);
+              _accountTimestamp = new Date().getTime();
+              if (_accountTimestamp - +accountTimestamp > 1000) {
+                accountTimestamp = _accountTimestamp;
+                setAccounts(updateAccounts);
+              }
               break;
-            case "tideBitTradesOnUpdate":
-              console.log(`tideBitTradesOnUpdate trades`, metaData.data);
+            case "orderOnUpdate":
+              const { updatePendingOrders, updateCloseOrders } =
+                middleman.updateOrders(metaData.data);
+              _orderTimestamp = new Date().getTime();
+              if (_orderTimestamp - +orderTimestamp > 1000) {
+                orderTimestamp = _orderTimestamp;
+                setPendingOrders(updatePendingOrders);
+                setCloseOrders(updateCloseOrders);
+              }
               break;
-            case "tideBitAccountOnUpdate":
-              console.log(`tideBitAccountOnUpdate account`, metaData.data);
-              break;
-            case "tideBitOrderOnUpdate":
-              console.log(`tideBitOrderOnUpdate order`, metaData.data);
-              break;
-            case "tideBitTradeOnUpdate":
-              console.log(`tideBitTradeOnUpdate trade`, metaData.data);
+            case "tradeOnUpdate":
+              console.log(`tradeOnUpdate trade`, metaData.data);
               break;
             default:
           }
         });
       }
     },
-    [getBalances, getCloseOrders, getPendingOrders, getTickers, middleman]
+    [getAccounts, getCloseOrders, getPendingOrders, getTickers, middleman]
   );
 
   const start = useCallback(async () => {
@@ -567,7 +563,7 @@ const StoreProvider = (props) => {
         pendingOrders,
         closeOrders,
         orderHistories,
-        balances,
+        accounts,
         selectedTicker,
         updateTickerIndexs,
         activePage,
@@ -585,7 +581,7 @@ const StoreProvider = (props) => {
         candleBarHandler,
         getPendingOrders,
         getCloseOrders,
-        getBalances,
+        getAccounts,
         postOrder,
         cancelOrder,
         activePageHandler,
