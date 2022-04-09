@@ -425,7 +425,7 @@ class ExchangeHub extends Bot {
               index = asks.findIndex((ask) => ask[0] === order.px);
               if (index !== -1) {
                 let updateAsk = asks[index];
-                updateAsk[1] += order.sz;
+                updateAsk[1] = SafeMath.plus(updateAsk[1], order.sz);
                 asks[index] = updateAsk;
               } else {
                 let newAsk = [order.px, order.sz]; // [價格, 價格訂單張數, ?, volume]
@@ -436,7 +436,7 @@ class ExchangeHub extends Bot {
               index = bids.findIndex((bid) => bid[0] === order.px);
               if (index !== -1) {
                 let updateBid = bids[index];
-                updateBid[1] += order.sz;
+                updateBid[1] = SafeMath.plus(updateBid[1], order.sz);
                 bids[index] = updateBid;
               } else {
                 let newBid = [order.px, order.sz];
