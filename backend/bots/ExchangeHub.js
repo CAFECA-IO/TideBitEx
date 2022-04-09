@@ -422,11 +422,10 @@ class ExchangeHub extends Bot {
               index = asks.findIndex((ask) => ask[0] === order.px);
               if (index !== -1) {
                 let updateAsk = asks[index];
-                updateAsk[1] += 1;
-                updateAsk[3] += order.sz;
+                updateAsk[1] += order.sz;
                 asks[index] = updateAsk;
               } else {
-                let newAsk = [order.px, 1, 0, order.sz]; // [價格, 價格訂單張數, ?, volume]
+                let newAsk = [order.px, order.sz]; // [價格, 價格訂單張數, ?, volume]
                 asks.push(newAsk);
               }
             }
@@ -434,11 +433,10 @@ class ExchangeHub extends Bot {
               index = bids.findIndex((bid) => bid[0] === order.px);
               if (index !== -1) {
                 let updateBid = bids[index];
-                updateBid[1] += 1;
-                updateBid[3] += order.sz;
+                updateBid[1] += order.sz;
                 bids[index] = updateBid;
               } else {
-                let newBid = [order.px, 1, 0, order.sz];
+                let newBid = [order.px, order.sz];
                 bids.push(newBid);
               }
             }

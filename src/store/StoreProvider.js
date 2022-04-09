@@ -56,7 +56,7 @@ const StoreProvider = (props) => {
         // return result;
       } catch (error) {
         enqueueSnackbar(
-          `${error?.message || "Some went wrong"}. Failed to get market book`,
+          `"getBooks error: ${error?.message}"}`,
           {
             variant: "error",
           }
@@ -74,7 +74,7 @@ const StoreProvider = (props) => {
         // return result;
       } catch (error) {
         enqueueSnackbar(
-          `${error?.message || "Some went wrong"}. Failed to get market trade`,
+          `"getTrades error: ${error?.message}"}`,
           {
             variant: "error",
           }
@@ -98,7 +98,7 @@ const StoreProvider = (props) => {
         // return result;
       } catch (error) {
         enqueueSnackbar(
-          `${error?.message || "Some went wrong"}. Failed to get market price`,
+          `"getMarketPrices error: ${error?.message}"}`,
           {
             variant: "error",
           }
@@ -135,7 +135,7 @@ const StoreProvider = (props) => {
         return result;
       } catch (error) {
         enqueueSnackbar(
-          `${error?.message || "Some went wrong"}. Failed to get pending order`,
+          `"getPendingOrders error: ${error?.message}"}`,
           {
             variant: "error",
           }
@@ -153,12 +153,9 @@ const StoreProvider = (props) => {
         setCloseOrders(result);
         return result;
       } catch (error) {
-        enqueueSnackbar(
-          `${error?.message || "Some went wrong"}. Failed to get close order`,
-          {
-            variant: "error",
-          }
-        );
+        enqueueSnackbar(`"getCloseOrders error: ${error?.message}"}`, {
+          variant: "error",
+        });
       }
     },
     [enqueueSnackbar, middleman]
@@ -169,12 +166,9 @@ const StoreProvider = (props) => {
       try {
         await middleman.registerMarketChannel(instId);
       } catch (error) {
-        enqueueSnackbar(
-          `${error?.message || "Some went wrong with registerMarketChannel"}`,
-          {
-            variant: "error",
-          }
-        );
+        enqueueSnackbar(`"registerMarketChannel error: ${error?.message}"}`, {
+          variant: "error",
+        });
       }
     },
     [enqueueSnackbar, middleman]
@@ -184,12 +178,9 @@ const StoreProvider = (props) => {
     try {
       await middleman.registerGlobalChannel();
     } catch (error) {
-      enqueueSnackbar(
-        `${error?.message || "Some went wrong with registerGlobalChannel"}`,
-        {
-          variant: "error",
-        }
-      );
+      enqueueSnackbar(`"registerGlobalChannel error: ${error?.message}"}`, {
+        variant: "error",
+      });
     }
   }, [enqueueSnackbar, middleman]);
 
@@ -198,12 +189,9 @@ const StoreProvider = (props) => {
       try {
         await middleman.registerPrivateChannel(token);
       } catch (error) {
-        enqueueSnackbar(
-          `${error?.message || "Some went wrong with registerPrivateChannel"}`,
-          {
-            variant: "error",
-          }
-        );
+        enqueueSnackbar(`"registerPrivateChannel error: ${error?.message}"}`, {
+          variant: "error",
+        });
       }
     },
     [enqueueSnackbar, middleman]
@@ -264,14 +252,9 @@ const StoreProvider = (props) => {
           selectTickerHandler(ticker ?? result[0]);
         }
       } catch (error) {
-        enqueueSnackbar(
-          `${
-            error?.message || "Some went wrong"
-          }. Failed to get market tickers`,
-          {
-            variant: "error",
-          }
-        );
+        enqueueSnackbar(`"getTickers error: ${error?.message}"}`, {
+          variant: "error",
+        });
       }
     },
     [
@@ -298,7 +281,7 @@ const StoreProvider = (props) => {
         }
       }
     } catch (error) {
-      enqueueSnackbar(`${error?.message || "Some went wrong with getToken"}`, {
+      enqueueSnackbar(`"getToken error: ${error?.message}"}`, {
         variant: "error",
       });
     }
