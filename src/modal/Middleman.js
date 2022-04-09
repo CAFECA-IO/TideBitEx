@@ -211,7 +211,7 @@ class Middleman {
       let index,
         updateAsk = ask;
       updateAsk.push(true);
-      index = updateRawBooks.asks.findIndex((d) => d[0] === ask[0]);
+      index = updateRawBooks.asks.findIndex((d) => SafeMath.eq(d[0], ask[0]));
       if (index === -1) {
         updateRawBooks.asks.push(updateAsk);
       } else {
@@ -224,7 +224,7 @@ class Middleman {
       let index,
         updateBid = bid;
       updateBid.push(true);
-      index = updateRawBooks.bids.findIndex((d) => d[0] === bid[0]);
+      index = updateRawBooks.bids.findIndex((d) => SafeMath.eq(d[0], bid[0]));
       if (index === -1) {
         updateRawBooks.bids.push(updateBid);
       } else {
@@ -398,7 +398,7 @@ class Middleman {
       } else {
         if (data.state === "waiting")
           updatePendingOrders.push({ ...data, cTime: Date.now() });
-        else updateCloseOrders.push({ ...data, cTime: Date.now() });
+        else updateCloseOrders.push({ ...data, uTime: Date.now() });
       }
       console.log(
         `updateOrders updatePendingOrders[${updatePendingOrders.length}]`,
@@ -413,7 +413,7 @@ class Middleman {
       updatePendingOrders: updatePendingOrders.sort(
         (a, b) => b.cTime - a.cTime
       ),
-      updateCloseOrders: updateCloseOrders.sort((a, b) => b.cTime - a.cTime),
+      updateCloseOrders: updateCloseOrders.sort((a, b) => +b.uTime - +a.uTime),
     };
   }
 
