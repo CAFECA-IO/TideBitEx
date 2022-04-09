@@ -443,7 +443,7 @@ class Middleman {
       return this.accounts;
     } catch (error) {
       this.isLogin = false;
-      this.accounts = null;
+      this.accounts = [];
       return this.accounts;
     }
   }
