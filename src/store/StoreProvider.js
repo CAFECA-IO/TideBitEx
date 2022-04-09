@@ -214,7 +214,6 @@ const StoreProvider = (props) => {
       const _ticker = middleman.updateSelectedTicker(ticker);
       // ++ TODO 需要改用websocket呼叫的方式
       console.log(`selectTickerHandler _ticker`, _ticker);
-      await registerMarketChannel(ticker.instId);
       //
       setSelectedTicker(_ticker);
       document.title = `${_ticker.last} ${_ticker.name}`;
@@ -227,6 +226,7 @@ const StoreProvider = (props) => {
         await getCandles(ticker.instId, selectedBar);
         await getPendingOrders();
         await getCloseOrders();
+        await registerMarketChannel(ticker.instId);
         wsClient.send(
           JSON.stringify({
             op: "switchTradingPair",
@@ -249,26 +249,6 @@ const StoreProvider = (props) => {
       getPendingOrders,
       getCloseOrders,
     ]
-  );
-
-  const getTicker = useCallback(
-    async (instId) => {
-      try {
-        const result = await middleman.getTicker(instId);
-        setTickers(middleman.tickers);
-        if (selectedTicker.instId === instId) {
-          selectTickerHandler(result);
-        }
-      } catch (error) {
-        enqueueSnackbar(
-          `${error?.message || "Some went wrong"}. Failed to update ticker`,
-          {
-            variant: "error",
-          }
-        );
-      }
-    },
-    [enqueueSnackbar, middleman, selectTickerHandler, selectedTicker]
   );
 
   const getTickers = useCallback(

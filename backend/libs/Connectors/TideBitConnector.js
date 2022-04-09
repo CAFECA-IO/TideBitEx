@@ -179,18 +179,17 @@ class TibeBitConnector extends ConnectorBase {
     if (!this.start) this._start({ header });
     try {
       if (
-        this.current_ticker &&
-        this.current_ticker === instId &&
+        this.current_instId &&
+        this.current_instId !== instId &&
         this.market_channel
       ) {
+        this.market_channel.unbind();
         this.pusher.unsubscribe(
-          `market-${instId.replace("-", "").toLowerCase()}-global`
+          `market-${this.current_instId.replace("-", "").toLowerCase()}-global`
         );
-        this.market_channel.unbind(`update`);
-        this.market_channel.unbind(`trades`);
         this.market_channel = null;
       }
-      this.current_ticker = instId;
+      this.current_instId = instId;
       this.market_channel = this.pusher.subscribe(
         `market-${instId.replace("-", "").toLowerCase()}-global`
       );
@@ -277,7 +276,7 @@ class TibeBitConnector extends ConnectorBase {
 
   _registerMarketChannel(instId) {
     if (!this.start) return;
-    this.current_ticker = instId;
+    this.current_instId = instId;
     this.market_channel = this.pusher.subscribe(
       `market-${instId.replace("-", "").toLowerCase()}-global`
     );

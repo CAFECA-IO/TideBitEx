@@ -202,6 +202,7 @@ class Middleman {
   updateBooks(rawOrder) {
     console.log(`updateBooks this.rawBooks`, this.rawBooks);
     console.log(`updateBooks rawOrders`, rawOrder);
+    if (rawOrder.instId !== this.selectedTicker.instId) return;
     const updateRawBooks = {
       asks: this.rawBooks?.asks ? this.rawBooks.asks : [],
       bids: this.rawBooks?.bids ? this.rawBooks.bids : [],
