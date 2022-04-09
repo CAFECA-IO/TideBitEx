@@ -55,12 +55,9 @@ const StoreProvider = (props) => {
         setInit(true);
         // return result;
       } catch (error) {
-        enqueueSnackbar(
-          `"getBooks error: ${error?.message}"`,
-          {
-            variant: "error",
-          }
-        );
+        enqueueSnackbar(`"getBooks error: ${error?.message}"`, {
+          variant: "error",
+        });
       }
     },
     [enqueueSnackbar, middleman]
@@ -73,12 +70,9 @@ const StoreProvider = (props) => {
         setTrades(result);
         // return result;
       } catch (error) {
-        enqueueSnackbar(
-          `"getTrades error: ${error?.message}"`,
-          {
-            variant: "error",
-          }
-        );
+        enqueueSnackbar(`"getTrades error: ${error?.message}"`, {
+          variant: "error",
+        });
       }
     },
     [enqueueSnackbar, middleman]
@@ -97,12 +91,9 @@ const StoreProvider = (props) => {
         setCandles(result);
         // return result;
       } catch (error) {
-        enqueueSnackbar(
-          `"getMarketPrices error: ${error?.message}"`,
-          {
-            variant: "error",
-          }
-        );
+        enqueueSnackbar(`"getMarketPrices error: ${error?.message}"`, {
+          variant: "error",
+        });
       }
     },
     [enqueueSnackbar, middleman]
@@ -134,12 +125,9 @@ const StoreProvider = (props) => {
         setPendingOrders(result);
         return result;
       } catch (error) {
-        enqueueSnackbar(
-          `"getPendingOrders error: ${error?.message}"`,
-          {
-            variant: "error",
-          }
-        );
+        enqueueSnackbar(`"getPendingOrders error: ${error?.message}"`, {
+          variant: "error",
+        });
       }
     },
     [enqueueSnackbar, middleman]
@@ -328,7 +316,7 @@ const StoreProvider = (props) => {
           )} ${order.instId.split("-")[1]}`,
           { variant: "success" }
         );
-        return result
+        return result;
       } catch (error) {
         enqueueSnackbar(
           `${error?.message}. Failed to post order:
@@ -481,6 +469,7 @@ const StoreProvider = (props) => {
               _accountTimestamp = new Date().getTime();
               if (_accountTimestamp - +accountTimestamp > 1000) {
                 accountTimestamp = _accountTimestamp;
+                console.log(`[STOREPROVIDER]updateAccounts`, updateAccounts);
                 setAccounts(updateAccounts);
               }
               break;

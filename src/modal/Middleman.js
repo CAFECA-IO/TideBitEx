@@ -437,15 +437,20 @@ class Middleman {
   }
 
   updateAccounts(data) {
-    console.log(`updateAccounts data`, data);
-    const index = this.accounts?.findIndex(
+    const updateAccounts = [...this.accounts];
+    const index = updateAccounts.findIndex(
       (account) => account.ccy === data.ccy
     );
     console.log(`updateAccounts index`, index);
-    if (index !== -1) this.accounts[index] = data;
-    else this.accounts.push(data);
-    console.log(`updateAccounts this.selectedTicker`, this.selectedTicker);
-    console.log(`updateAccounts this.accounts`, this.accounts);
+    if (index !== -1) {
+      console.log(
+        `updateAccounts this.accounts[${index}]`,
+        this.accounts[index]
+      );
+      updateAccounts[index] = data;
+    } else updateAccounts.push(data);
+    console.log(`updateAccounts`, updateAccounts);
+    this.accounts = updateAccounts;
     return this.account;
   }
 
