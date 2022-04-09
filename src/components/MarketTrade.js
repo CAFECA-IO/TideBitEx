@@ -392,7 +392,7 @@ const TradePannel = (props) => {
 
   useEffect(() => {
     if (
-      storeCtx.accounts.length > 0 &&
+      storeCtx.accounts?.length > 0 &&
       ((storeCtx.selectedTicker && !selectedTicker) ||
         (storeCtx.selectedTicker &&
           storeCtx.selectedTicker.instId !== selectedTicker?.instId))

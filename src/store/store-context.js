@@ -14,7 +14,7 @@ const StoreContext = React.createContext({
   pendingOrders: [],
   closeOrders: [],
   orderHistories: [],
-  accounts: null,
+  accounts: [],
   activePage: null,
   orderbook: null,
   // sellPx: null,
