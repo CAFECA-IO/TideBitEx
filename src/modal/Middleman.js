@@ -218,7 +218,7 @@ class Middleman {
         }
       } else {
         if (SafeMath.gt(ask[1], "0")) {
-          if (!SafeMath.eq(ask[1], updateAsk[1])) {
+          if (!SafeMath.eq(ask[1], this.rawBooks.asks[1])) {
             updateAsk.push(true);
             updateRawBooks.asks[index] = updateAsk;
           }
@@ -237,7 +237,7 @@ class Middleman {
         }
       } else {
         if (SafeMath.gt(bid[1], "0")) {
-          if (!SafeMath.eq(bid[1], updateBid[1])) {
+          if (!SafeMath.eq(bid[1], this.rawBooks.bids[index][1])) {
             updateBid.push(true);
             updateRawBooks.bids[index] = updateBid;
           }
@@ -380,6 +380,7 @@ class Middleman {
 
   updateOrders(data) {
     console.log(`updateOrders data`, data);
+    console.log(`updateOrders this.selectedTicker`, this.selectedTicker);
     if (data.state === "done") {
       const index = this.closeOrders.findIndex(
         (order) => order.ordId === data.ordId
@@ -421,6 +422,10 @@ class Middleman {
         }
       }
     }
+    return {
+      updatePendingOrders: this.pendingOrders,
+      updateCloseOrders: this.closeOrders,
+    };
   }
 
   async getPendingOrders(options) {
@@ -444,12 +449,12 @@ class Middleman {
   }
 
   updateAccounts(data) {
+    console.log(`updateAccounts this.accounts`, data);
     console.log(`updateAccounts data`, data);
-    if (!this.accounts) return;
     const index = this.accounts?.findIndex(
       (account) => account.ccy === data.ccy
     );
-    if (index && index !== -1) this.accounts[index] = data;
+    if (index !== -1) this.accounts[index] = data;
     else this.accounts.push(data);
   }
 
@@ -459,6 +464,7 @@ class Middleman {
         this.selectedTicker?.instId?.replace("-", ",")
       );
       this.accounts = result;
+      console.log(`getAccounts this.accounts `, this.accounts);
       if (this.accounts) this.isLogin = true;
       return this.accounts;
     } catch (error) {

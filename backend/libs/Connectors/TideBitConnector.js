@@ -263,7 +263,7 @@ class TibeBitConnector extends ConnectorBase {
           : "canceled",
     };
     this.logger.debug(`_updateOrder formatOrder`, formatOrder);
-    EventBus.emit(Events.orderOnUpdate, data);
+    EventBus.emit(Events.orderOnUpdate, formatOrder);
   }
 
   _updateTrade(data) {

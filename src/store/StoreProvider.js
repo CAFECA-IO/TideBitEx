@@ -289,7 +289,7 @@ const StoreProvider = (props) => {
 
   const getAccounts = useCallback(
     async (ccy) => {
-      await middleman.getAccounts(ccy);
+      await middleman.getAccounts();
       if (middleman.isLogin) {
         await getCSRFToken();
         setIsLogin(true);
@@ -299,7 +299,7 @@ const StoreProvider = (props) => {
       }
       setAccounts(middleman.accounts);
     },
-    [enqueueSnackbar, getToken, middleman]
+    [enqueueSnackbar, getCSRFToken, middleman]
   );
 
   const postOrder = useCallback(
