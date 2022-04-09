@@ -156,8 +156,8 @@ class TibeBitConnector extends ConnectorBase {
     let index,
       asks = [],
       bids = [];
-      this.logger.debug(`_updateBooks data`, data);
-      this.logger.debug(`_updateBooks this.books`, this.books);
+    this.logger.debug(`_updateBooks data`, data);
+    this.logger.debug(`_updateBooks this.books`, this.books);
     if (this.books) {
       this.books.asks.forEach((ask) => {
         index = data.asks.findIndex((_ask) => _ask[0] === ask[0]);
@@ -183,13 +183,8 @@ class TibeBitConnector extends ConnectorBase {
           bids.push(bid);
         }
       });
-      this.books = {
-        asks,
-        bids,
-      };
-    } else {
-      this.books = data;
     }
+    this.books = data;
     const formatBooks = {
       ...this.books,
       instId,
