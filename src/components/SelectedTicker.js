@@ -21,7 +21,7 @@ const SelectedTicker = (props) => {
           className={`showPrice ${
             !storeCtx.selectedTicker
               ? ""
-              : storeCtx.selectedTicker?.change.includes("-")
+              : storeCtx.selectedTicker?.change?.includes("-")
               ? "decrease"
               : "increase"
           }`}
@@ -37,8 +37,14 @@ const SelectedTicker = (props) => {
         >
           {storeCtx.selectedTicker
             ? SafeMath.gte(storeCtx.selectedTicker?.change, "0")
-              ? `+${formateDecimal(storeCtx.selectedTicker.changePct, 3)}%`
-              : `${formateDecimal(storeCtx.selectedTicker.changePct, 3)}%`
+              ? `+${formateDecimal(
+                  SafeMath.mult(storeCtx.selectedTicker?.changePct, "100"),
+                  3
+                )}%`
+              : `${formateDecimal(
+                  SafeMath.mult(storeCtx.selectedTicker?.changePct, "100"),
+                  3
+                )}%`
             : "--"}
         </div>
       </div>
@@ -48,7 +54,7 @@ const SelectedTicker = (props) => {
           className={`tickerPriceText ${
             !storeCtx.selectedTicker
               ? ""
-              : storeCtx.selectedTicker?.change.includes("-")
+              : storeCtx.selectedTicker?.change?.includes("-")
               ? "decrease"
               : "increase"
           }`}
@@ -63,41 +69,47 @@ const SelectedTicker = (props) => {
             {!storeCtx.selectedTicker
               ? "--%"
               : SafeMath.gt(storeCtx.selectedTicker?.change, "0")
-              ? `+${formateDecimal(storeCtx.selectedTicker?.changePct, 3)}%`
-              : `${formateDecimal(storeCtx.selectedTicker?.changePct, 3)}%`}
+              ? `+${formateDecimal(
+                  SafeMath.mult(storeCtx.selectedTicker?.changePct, "100"),
+                  3
+                )}%`
+              : `${formateDecimal(
+                  SafeMath.mult(storeCtx.selectedTicker?.changePct, "100"),
+                  3
+                )}%`}
           </span>
         </div>
       </div>
       <div className="ticker__details">
         <div className="tickerItemLabel">{t("24_high")}</div>
         <div className="tickerPriceText">
-          {formateDecimal(storeCtx.selectedTicker?.high24h, 8) || "--"}
+          {formateDecimal(storeCtx.selectedTicker?.high, 8) || "--"}
         </div>
       </div>
       <div className="ticker__details">
         <div className="tickerItemLabel">{t("24_low")}</div>
         <div className="tickerPriceText">
-          {formateDecimal(storeCtx.selectedTicker?.low24h, 8) || "--"}
+          {formateDecimal(storeCtx.selectedTicker?.low, 8) || "--"}
         </div>
       </div>
       <div className="ticker__details">
         <div className="tickerItemLabel">
-          {`${t("24_volume")}(${storeCtx.selectedTicker?.baseCcy || "--"})`}
+          {`${t("24_volume")}(${storeCtx.selectedTicker?.base_unit.toUpperCase() || "--"})`}
         </div>
         <div className="tickerPriceText">
           {!storeCtx.selectedTicker
             ? "--"
-            : formateDecimal(storeCtx.selectedTicker?.volCcy24h, 8) || "--"}
+            : formateDecimal(storeCtx.selectedTicker?.volume, 8) || "--"}
         </div>
       </div>
       <div className="ticker__details">
         <div className="tickerItemLabel">{`${t("24_volume_quote")}(${
-          storeCtx.selectedTicker?.quoteCcy || "--"
+          storeCtx.selectedTicker?.quote_unit.toUpperCase() || "--"
         })`}</div>
         <div className="tickerPriceText">
           {!storeCtx.selectedTicker
             ? "--"
-            : formateDecimal(storeCtx.selectedTicker?.vol24h, 8) || "--"}
+            : formateDecimal(storeCtx.selectedTicker?.volume, 8) || "--"}
         </div>
       </div>
     </div>

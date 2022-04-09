@@ -67,8 +67,34 @@ class Communicator {
   async ticker(instId) {
     try {
       if (!instId) return { message: "instId cannot be null" };
+      const res = await this._get(`/market/ticker?instId=${instId}`);
+      if (res.success) {
+        return res.data;
+      }
+      return Promise.reject({ message: res.message, code: res.code });
+    } catch (error) {
+      return Promise.reject({ message: error });
+    }
+  }
+
+  async registerGlobalChannel() {
+    try {
+      const res = await this._get(`/pusher/register-global-channel`);
+      if (res.success) {
+        return res.data;
+      }
+      return Promise.reject({ message: res.message, code: res.code });
+    } catch (error) {
+      return Promise.reject({ message: error });
+    }
+  }
+
+
+  async registerMarketChannel(instId) {
+    try {
+      if (!instId) return { message: "instId cannot be null" };
       const res = await this._get(
-        `/market/ticker?instId=${instId}`
+        `/pusher/register-market-channel?instId=${instId}`
       );
       if (res.success) {
         return res.data;
@@ -79,6 +105,20 @@ class Communicator {
     }
   }
 
+  async registerPrivateChannel(token) {
+    try {
+      if (!token) return { message: "token cannot be null" };
+      const res = await this._post(`/pusher/register-private-channel`, {
+        token,
+      });
+      if (res.success) {
+        return res.data;
+      }
+      return Promise.reject({ message: res.message, code: res.code });
+    } catch (error) {
+      return Promise.reject({ message: error });
+    }
+  }
   // Market
   async tickers(instType, from, limit) {
     try {
@@ -191,7 +231,7 @@ class Communicator {
   }
 
   // Account
-  async balance(ccy) {
+  async getAccountBalance(ccy) {
     try {
       const url = `/account/balance?${ccy ? `&ccy=${ccy}` : ""}`;
       const res = await this._get(url);

@@ -74,14 +74,24 @@ class DBOperator {
     return this.database.getCurrencyByKey(currencyKey);
   }
 
+  async getMemberById(memberId) {
+    return this.database.getMemberById(memberId);
+  }
+
   async getAccountByMemberIdCurrency(memberId, currencyId, { dbTransaction }) {
     return this.database.getAccountByMemberIdCurrency(memberId, currencyId, {
       dbTransaction,
     });
   }
 
-  async getOrderList({ quoteCcy, baseCcy, state, memberId }) {
-    return this.database.getOrderList({ quoteCcy, baseCcy, state, memberId });
+  async getOrderList({ quoteCcy, baseCcy, state, memberId, orderType }) {
+    return this.database.getOrderList({
+      quoteCcy,
+      baseCcy,
+      state,
+      memberId,
+      orderType,
+    });
   }
 
   async getOrder(orderId, { dbTransaction }) {

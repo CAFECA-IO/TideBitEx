@@ -64,12 +64,12 @@ const MobileExchange = (props) => {
               <li>{t("frozenBal")}</li>
             </ul>
             <ul className="order-list">
-              {!!storeCtx.balances?.length &&
-                storeCtx.balances
+              {!!storeCtx.accounts?.length &&
+                storeCtx.accounts
                   .filter(
                     (balance) =>
-                      storeCtx.selectedTicker?.baseCcy === balance.ccy ||
-                      storeCtx.selectedTicker?.quoteCcy === balance.ccy
+                      storeCtx.selectedTicker?.base_unit.toUpperCase() === balance.ccy ||
+                      storeCtx.selectedTicker?.quote_unit.toUpperCase() === balance.ccy
                   )
                   .map((balance) => <BalanceTile balance={balance} />)}
             </ul>

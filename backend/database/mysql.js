@@ -89,6 +89,20 @@ class mysql {
       return [];
     }
   }
+  async getMemberById(memberId) {
+    const query = "SELECT * FROM `members` WHERE `members`.`id` = ?;";
+    try {
+      this.logger.log("getMemberById", query, `[${memberId}]`);
+      const [[member]] = await this.db.query({
+        query,
+        values: [memberId],
+      });
+      return member;
+    } catch (error) {
+      this.logger.log(error);
+      return [];
+    }
+  }
 
   async getAccountByMemberIdCurrency(memberId, currencyId, { dbTransaction }) {
     const query =
@@ -116,7 +130,7 @@ class mysql {
       return [];
     }
   }
-  async getOrderList({ quoteCcy, baseCcy, state, memberId }) {
+  async getOrderList({ quoteCcy, baseCcy, state, memberId, orderType }) {
     if (memberId) {
       const query =
         "SELECT * FROM `orders` WHERE `orders`.`member_id` = ? AND `orders`.`currency` = ? AND `orders`.`ask` = ? AND `orders`.`state` = ?;";
@@ -129,6 +143,24 @@ class mysql {
         const [orders] = await this.db.query({
           query,
           values: [memberId, quoteCcy, baseCcy, state],
+        });
+        return orders;
+      } catch (error) {
+        this.logger.log(error);
+        return [];
+      }
+    } else if (orderType) {
+      const query =
+        "SELECT * FROM `orders` WHERE `orders`.`currency` = ? AND `orders`.`ask` = ? AND `orders`.`state` = ? AND `orders`.`ord_type` = ?;";
+      try {
+        this.logger.log(
+          "getOrderList",
+          query,
+          `[${quoteCcy}, ${baseCcy}, ${state}, ${orderType}]`
+        );
+        const [orders] = await this.db.query({
+          query,
+          values: [quoteCcy, baseCcy, state, orderType],
         });
         return orders;
       } catch (error) {

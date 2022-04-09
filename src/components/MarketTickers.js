@@ -25,12 +25,18 @@ const TickerTile = (props) => {
       <div>{formateDecimal(props.ticker.last, 8)}</div>
       <div className={SafeMath.gte(props.ticker.change, "0") ? "green" : "red"}>
         {SafeMath.gte(props.ticker.change, "0")
-          ? `+${formateDecimal(props.ticker.changePct, 3)}%`
-          : `${formateDecimal(props.ticker.changePct, 3)}%`}
+          ? `+${formateDecimal(
+              SafeMath.mult(props.ticker?.changePct, "100"),
+              3
+            )}%`
+          : `${formateDecimal(
+              SafeMath.mult(props.ticker?.changePct, "100"),
+              3
+            )}%`}
       </div>
-      <div>{formateDecimal(props.ticker.vol24h, 8)}</div>
-      <div>{formateDecimal(props.ticker.high24h, 8)}</div>
-      <div>{formateDecimal(props.ticker.low24h, 8)}</div>
+      <div>{formateDecimal(props.ticker.volume, 8)}</div>
+      <div>{formateDecimal(props.ticker.high, 8)}</div>
+      <div>{formateDecimal(props.ticker.low, 8)}</div>
     </li>
   );
 };
@@ -101,7 +107,7 @@ const MarketTickers = (props) => {
         storeCtx.selectedTicker?.instId !== selectedTicker?.instId)
     ) {
       setSelectedTicker(storeCtx.selectedTicker);
-      setDefaultActiveKey(storeCtx.selectedTicker?.quoteCcy?.toLowerCase());
+      setDefaultActiveKey(storeCtx.selectedTicker?.group);
     }
   }, [selectedTicker, storeCtx.selectedTicker]);
 
@@ -132,7 +138,7 @@ const MarketTickers = (props) => {
             <TickersHeader />
             <TickerList
               tickers={filteredTickers.filter(
-                (ticker) => ticker.tab_category === quoteCcy.toLowerCase()
+                (ticker) => ticker.group === quoteCcy.toLowerCase()
               )}
             />
           </Tab>

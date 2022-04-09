@@ -10,20 +10,48 @@ class Middleman {
     let _ticker;
     const instrument = this.instruments.find((i) => i.instId === ticker.instId);
     _ticker = { ...ticker, minSz: instrument?.minSz || "0.001" }; // -- TEST for ETH-USDT
-    const quoteBalance = this.balances.find(
-      (detail) => detail.ccy === ticker.quoteCcy
+    const quoteBalance = this.accounts?.find(
+      (detail) => detail.ccy === ticker.quote_unit.toUpperCase()
     );
     if (quoteBalance) _ticker.quoteCcyAvailable = quoteBalance.availBal;
     else _ticker.quoteCcyAvailable = 0;
-    const baseBalance = this.balances.find(
-      (detail) => detail.ccy === ticker.baseCcy
+    const baseBalance = this.accounts?.find(
+      (detail) => detail.ccy === ticker.base_unit.toUpperCase()
     );
     if (baseBalance) _ticker.baseCcyAvailable = baseBalance.availBal;
     else _ticker.baseCcyAvailable = 0;
     return _ticker;
   }
 
+  async registerGlobalChannel() {
+    try {
+      await this.communicator.registerGlobalChannel();
+    } catch (error) {
+      console.error(`registerGlobalChannel error`, error);
+      throw error;
+    }
+  }
+
+  async registerMarketChannel(instId) {
+    try {
+      await this.communicator.registerMarketChannel(instId);
+    } catch (error) {
+      console.error(`registerMarketChannel error`, error);
+      throw error;
+    }
+  }
+
+  async registerPrivateChannel(token) {
+    try {
+      await this.communicator.registerPrivateChannel(token);
+    } catch (error) {
+      console.error(`registerPrivateChannel error`, error);
+      throw error;
+    }
+  }
+
   updateSelectedTicker(ticker) {
+    // console.log(`updateSelectedTicker ticker`, ticker);
     const _ticker = this.updateTicker(ticker);
     this.selectedTicker = _ticker;
     return this.selectedTicker;
@@ -38,27 +66,18 @@ class Middleman {
         (ticker) => ticker.instId === t.instId
       );
       if (index === -1) {
-        const ticker = {
-          ...t,
-          baseCcy: t.instId.split("-")[0],
-          quoteCcy: t.instId.split("-")[1],
-          name: t.instId.replace("-", "/"),
-          changePct: SafeMath.mult(t.changePct, "100"),
-        };
-        updateTickers.push(ticker);
+        updateTickers.push(t);
         return updateTickers.length - 1;
       } else {
         const ticker = {
           ...updateTickers[index],
           last: t.last,
           change: t.change,
-          changePct: SafeMath.mult(t.changePct, "100"),
-          open24h: t.open24h,
-          high24h: t.high24h,
-          low24h: t.low24h,
-          volCcy24h: t.volCcy24h,
-          vol24h: t.vol24h,
-          ts: t.ts,
+          changePct: t.changePct,
+          open: t.open,
+          high: t.high,
+          low: t.low,
+          volume: t.volume,
         };
         if (t.instId === this.selectedTicker?.instId)
           updateTicker = this.updateSelectedTicker(ticker);
@@ -93,31 +112,23 @@ class Middleman {
   }
   async getTicker(instId) {
     try {
-      const rawTicker = await this.communicator.ticker(instId);
-      const ticker = {
-        ...rawTicker,
-        baseCcy: instId.split("-")[0],
-        quoteCcy: instId.split("-")[1],
-        name: instId.replace("-", "/"),
-        // name: instId
-        //   .split("-")
-        //   .reduce((acc, curr, i) => (i === 0 ? `${curr}` : `${acc}/${curr}`), ""),
-        change: SafeMath.minus(rawTicker.last, rawTicker.open24h),
-        changePct: SafeMath.gt(rawTicker.open24h, "0")
-          ? SafeMath.mult(
-              SafeMath.div(
-                SafeMath.minus(rawTicker.last, rawTicker.open24h),
-                rawTicker.open24h
-              ),
-              "100"
-            )
-          : SafeMath.eq(SafeMath.minus(rawTicker.last, rawTicker.open24h), "0")
-          ? "0"
-          : "100",
-      };
-
       const index = this.tickers.findIndex((t) => t.instId === instId);
-      this.tickers[index] = ticker;
+      const ticker = this.tickers[index];
+      const rawTicker = await this.communicator.ticker(instId);
+      const updateTicker = {
+        ...ticker,
+        at: rawTicker.at,
+        change: rawTicker.change,
+        changePct: rawTicker.changePct,
+        buy: rawTicker.buy,
+        sell: rawTicker.sell,
+        low: rawTicker.low,
+        high: rawTicker.high,
+        last: rawTicker.last,
+        open: rawTicker.open,
+        volume: rawTicker.volume,
+      };
+      this.tickers[index] = updateTicker;
       return ticker;
     } catch (error) {
       throw error;
@@ -127,29 +138,8 @@ class Middleman {
   async getTickers(instType, from, limit) {
     try {
       const rawTickers = await this.communicator.tickers(instType, from, limit);
-      const tickers = rawTickers.map((ticker) => ({
-        ...ticker,
-        baseCcy: ticker.instId.split("-")[0],
-        quoteCcy: ticker.instId.split("-")[1],
-        name: ticker.instId.replace("-", "/"),
-        // name: ticker.instId
-        //   .split("-")
-        //   .reduce((acc, curr, i) => (i === 0 ? `${curr}` : `${acc}/${curr}`), ""),
-        change: SafeMath.minus(ticker.last, ticker.open24h),
-        changePct: SafeMath.gt(ticker.open24h, "0")
-          ? SafeMath.mult(
-              SafeMath.div(
-                SafeMath.minus(ticker.last, ticker.open24h),
-                ticker.open24h
-              ),
-              "100"
-            )
-          : SafeMath.eq(SafeMath.minus(ticker.last, ticker.open24h), "0")
-          ? "0"
-          : "100",
-      }));
-      this.tickers = tickers;
-      return tickers;
+      this.tickers = rawTickers;
+      return this.tickers;
     } catch (error) {
       throw error;
     }
@@ -162,15 +152,16 @@ class Middleman {
       bids = [],
       askPx,
       bidPx;
+
     this.rawBooks.asks
       ?.sort((a, b) => +a[0] - +b[0])
       ?.forEach((d, i) => {
-        totalAsks = SafeMath.plus(SafeMath.plus(d[2], d[3]), totalAsks);
+        totalAsks = SafeMath.plus(d[1], totalAsks);
         let ask = {
           price: d[0],
-          amount: SafeMath.plus(d[2], d[3]),
+          amount: d[1],
           total: totalAsks,
-          update: !!d[4],
+          update: !!d[2],
         };
         if (d[0] === askPx) {
           asks[asks.length - 1] = ask;
@@ -178,17 +169,17 @@ class Middleman {
           askPx = d[0];
           asks.push(ask);
         }
-        if (this.rawBooks.asks[i][4]) this.rawBooks.asks[i].splice(4, 1);
+        if (this.rawBooks.asks[i][2]) this.rawBooks.asks[i].splice(2, 1);
       });
     this.rawBooks.bids
       ?.sort((a, b) => +b[0] - +a[0])
       ?.forEach((d, i) => {
-        totalBids = SafeMath.plus(SafeMath.plus(d[2], d[3]), totalBids);
+        totalBids = SafeMath.plus(d[1], totalBids);
         let bid = {
           price: d[0],
-          amount: SafeMath.plus(d[2], d[3]),
+          amount: d[1],
           total: totalBids,
-          update: !!d[4],
+          update: !!d[2],
         };
         if (d[0] === bidPx) {
           bids[bids.length - 1] = bid;
@@ -196,7 +187,7 @@ class Middleman {
           bidPx = d[0];
           bids.push(bid);
         }
-        if (this.rawBooks.bids[i][4]) this.rawBooks.bids[i].splice(4, 1);
+        if (this.rawBooks.bids[i][2]) this.rawBooks.bids[i].splice(2, 1);
       });
     const updateBooks = {
       asks,
@@ -207,56 +198,39 @@ class Middleman {
     return updateBooks;
   }
 
-  updateBooks(rawOrders) {
-    // console.log(`updateBooks rawOrders`, rawOrders);
-    // console.log(`updateBooks this.rawBooks`, this.rawBooks);
+  updateBooks(data) {
+    if (data.instId !== this.selectedTicker.instId) return;
     const updateRawBooks = {
       asks: this.rawBooks?.asks ? this.rawBooks.asks : [],
       bids: this.rawBooks?.bids ? this.rawBooks.bids : [],
     };
-    // console.log(`updateBooks updateRawBooks`, updateRawBooks);
-    rawOrders.forEach((order) => {
-      // console.log(`updateBooks rawOrders order`, order);
-      order.asks.forEach((ask) => {
-        // console.log(`updateBooks order.asks.forEach((ask) ask`, ask);
-        let index,
-          updateAsk = ask;
-        updateAsk.push(true);
-        index = updateRawBooks.asks.findIndex((d) => d[0] === ask[0]);
-
-        // console.log(`updateBooks updateRawBooks.asks.findIndex`, index);
-        // console.log(`updateBooks updateAsk`, updateAsk);
-        if (index === -1) {
-          if (SafeMath.gt(SafeMath.plus(ask[2], ask[3]), "0")) {
-            updateRawBooks.asks.push(updateAsk);
-            // console.log(`updateBooks updateRawBooks`, updateRawBooks);
-          }
-        } else {
-          if (SafeMath.gt(SafeMath.plus(ask[2], ask[3]), "0"))
-            updateRawBooks.asks[index] = updateAsk;
-          else updateRawBooks.asks.splice(index, 1);
-          // console.log(`updateBooks updateRawBooks`, updateRawBooks);
-        }
-      });
-      order.bids.forEach((bid) => {
-        let index,
-          updateBid = bid;
-        updateBid.push(true);
-        index = updateRawBooks.bids.findIndex((d) => d[0] === bid[0]);
-        if (index === -1) {
-          if (SafeMath.gt(SafeMath.plus(bid[2], bid[3]), "0")) {
-            updateRawBooks.bids.push(updateBid);
-            // console.log(`updateBooks updateRawBooks`, updateRawBooks);
-          }
-        } else {
-          if (SafeMath.gt(SafeMath.plus(bid[2], bid[3]), "0"))
-            updateRawBooks.bids[index] = updateBid;
-          else updateRawBooks.bids.splice(index, 1);
-          // console.log(`updateBooks updateRawBooks`, updateRawBooks);
-        }
-      });
-      this.rawBooks = updateRawBooks;
+    data.asks.forEach((ask) => {
+      let index,
+        updateAsk = ask;
+      updateAsk.push(true);
+      index = updateRawBooks.asks.findIndex((d) => SafeMath.eq(d[0], ask[0]));
+      if (index === -1) {
+        updateRawBooks.asks.push(updateAsk);
+      } else {
+        if (SafeMath.gt(ask[1], "0")) {
+          updateRawBooks.asks[index] = updateAsk;
+        } else updateRawBooks.asks.splice(index, 1);
+      }
     });
+    data.bids.forEach((bid) => {
+      let index,
+        updateBid = bid;
+      updateBid.push(true);
+      index = updateRawBooks.bids.findIndex((d) => SafeMath.eq(d[0], bid[0]));
+      if (index === -1) {
+        updateRawBooks.bids.push(updateBid);
+      } else {
+        if (SafeMath.gt(bid[1], "0")) {
+          updateRawBooks.bids[index] = updateBid;
+        } else updateRawBooks.bids.splice(index, 1);
+      }
+    });
+    this.rawBooks = updateRawBooks;
     this.books = this.handleBooks();
     return this.books;
   }
@@ -264,11 +238,8 @@ class Middleman {
   async getBooks(instId, sz) {
     try {
       const rawBooks = await this.communicator.books(instId, sz);
-      this.rawBooks = rawBooks[0];
+      this.rawBooks = rawBooks;
       this.books = this.handleBooks();
-      // console.log(`getBooks this.books`, this.books);
-      // console.log(`getBooks this.rawBooks`, this.rawBooks);
-      // console.log(`getBooks this.books`, this.books);
       return this.books;
     } catch (error) {
       throw error;
@@ -329,7 +300,7 @@ class Middleman {
       volumes.push({
         x: date,
         y: d[6],
-        upward: SafeMath.gt(d[4], d[1]),
+        upward: SafeMath.gt(d[2], d[1]),
       });
     });
     return {
@@ -390,39 +361,90 @@ class Middleman {
     }
   }
 
+  updateOrders(data) {
+    const updatePendingOrders = [...this.pendingOrders];
+    const updateCloseOrders = [...this.closeOrders];
+    if (data.market === this.selectedTicker.id) {
+      const index = updatePendingOrders.findIndex(
+        (order) => order.ordId === data.ordId
+      );
+      if (index !== -1) {
+        if (data.state !== "waiting") {
+          updatePendingOrders.splice(index, 1);
+          updateCloseOrders.push({ ...data, uTime: Date.now() });
+        } else {
+          const updateOrder = updatePendingOrders[index];
+          updatePendingOrders[index] = {
+            ...updateOrder,
+            sz: data.sz,
+            filled: data.filled,
+          };
+        }
+      } else {
+        if (data.state === "waiting")
+          updatePendingOrders.push({ ...data, cTime: Date.now() });
+        else updateCloseOrders.push({ ...data, uTime: Date.now() });
+      }
+      this.pendingOrders = updatePendingOrders;
+      this.closeOrders = updateCloseOrders;
+    }
+    return {
+      updatePendingOrders: updatePendingOrders.sort(
+        (a, b) => b.cTime - a.cTime
+      ),
+      updateCloseOrders: updateCloseOrders.sort((a, b) => +b.uTime - +a.uTime),
+    };
+  }
+
   async getPendingOrders(options) {
-    if (this.isLogin)
-      return await this.communicator.ordersPending({
+    if (this.isLogin) {
+      const orders = await this.communicator.ordersPending({
         ...options,
         instId: this.selectedTicker?.instId,
       });
+      // ++ WORKAROUND
+      this.pendingOrders = orders.filter((order) => order.px !== "NaN");
+      return this.pendingOrders;
+    }
   }
 
   async getCloseOrders(options) {
-    if (this.isLogin)
-      return await this.communicator.closeOrders({
+    if (this.isLogin) {
+      const orders = await this.communicator.closeOrders({
         ...options,
         instId: this.selectedTicker?.instId,
       });
+      // ++ WORKAROUND
+      this.closeOrders = orders.filter((order) => order.px !== "NaN");
+      return this.closeOrders;
+    }
   }
 
-  async getBalances() {
+  updateAccounts(data) {
+    const updateAccounts = [...this.accounts];
+    const index = updateAccounts.findIndex(
+      (account) => account.ccy === data.ccy
+    );
+    if (index !== -1) {
+      updateAccounts[index] = data;
+    } else updateAccounts.push(data);
+
+    this.accounts = updateAccounts;
+    return this.accounts;
+  }
+
+  async getAccounts() {
     try {
-      const result = await this.communicator.balance(
+      const result = await this.communicator.getAccountBalance(
         this.selectedTicker?.instId?.replace("-", ",")
       );
-      this.balances = result[0].details;
-      // .filter(
-      //   (balance) =>
-      //     this.selectedTicker?.baseCcy === balance.ccy ||
-      //     this.selectedTicker?.quoteCcy === balance.ccy
-      // );
-      this.isLogin = true;
-      return this.balances;
+      this.accounts = result;
+      if (this.accounts) this.isLogin = true;
+      return this.accounts;
     } catch (error) {
       this.isLogin = false;
-      this.balances = [];
-      return this.balances;
+      this.accounts = [];
+      return this.accounts;
     }
   }
 

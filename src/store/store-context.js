@@ -14,7 +14,7 @@ const StoreContext = React.createContext({
   pendingOrders: [],
   closeOrders: [],
   orderHistories: [],
-  balances: [],
+  accounts: [],
   activePage: null,
   orderbook: null,
   // sellPx: null,
@@ -29,19 +29,21 @@ const StoreContext = React.createContext({
    * @property {String} instType
    * @property {String} instId
    * @property {String} last
-   * @property {String} lastSz
-   * @property {String} askPx
-   * @property {String} askSz
-   * @property {String} bidPx
-   * @property {String} bidSz
-   * @property {String} open24h
-   * @property {String} high24h
-   * @property {String} low24h
-   * @property {String} volCcy24h
-   * @property {String} vol24h
-   * @property {String} sodUtc0
-   * @property {String} sodUtc8
-   * @property {String} ts
+  //  * @property {String} lastSz
+  //  * @property {String} askPx
+  //  * @property {String} askSz
+  //  * @property {String} bidPx
+  //  * @property {String} bidSz
+   * @property {String} sell
+   * @property {String} buy
+   * @property {String} open
+   * @property {String} high
+   * @property {String} low
+   * @property {String} volume
+  //  * @property {String} volCcy24h
+  //  * @property {String} sodUtc0
+  //  * @property {String} sodUtc8
+   * @property {String} at
    */
   /**
    * @param {Ticker} ticker
@@ -156,28 +158,29 @@ const StoreContext = React.createContext({
   /**
    * @typedef {Object} BalanceDetail
    * @property {string} availBal 可用余额
-   * @property {string} availEq 可用保证金
-   * @property {string} cashBal 币种余额
+  //  * @property {string} availEq 可用保证金
+  //  * @property {string} cashBal 币种余额
+   * @property {string} totalBal 币种余额
    * @property {string} ccy 币种
-   * @property {string} crossLiab 币种全仓负债额
-   * @property {string} disEq 美金层面币种折算权益
-   * @property {string} eq 币种总权益
-   * @property {string} eqUsd 币种权益美金价值
+  //  * @property {string} crossLiab 币种全仓负债额
+  //  * @property {string} disEq 美金层面币种折算权益
+  //  * @property {string} eq 币种总权益
+  //  * @property {string} eqUsd 币种权益美金价值
    * @property {string} frozenBal 币种占用金额
-   * @property {string} interest 计息
-   * @property {string} isoEq 币种逐仓仓位权益
-   * @property {string} isoLiab 币种逐仓负债额
-   * @property {string} isoUpl 逐仓未实现盈亏
-   * @property {string} liab 币种负债额
-   * @property {string} maxLoan 币种最大可借
-   * @property {string} mgnRatio 保证金率
-   * @property {string} notionalLever 币种杠杆倍数
-   * @property {string} ordFrozen 挂单冻结数量
-   * @property {string} twap 当前负债币种触发系统自动换币的风险
+  //  * @property {string} interest 计息
+  //  * @property {string} isoEq 币种逐仓仓位权益
+  //  * @property {string} isoLiab 币种逐仓负债额
+  //  * @property {string} isoUpl 逐仓未实现盈亏
+  //  * @property {string} liab 币种负债额
+  //  * @property {string} maxLoan 币种最大可借
+  //  * @property {string} mgnRatio 保证金率
+  //  * @property {string} notionalLever 币种杠杆倍数
+  //  * @property {string} ordFrozen 挂单冻结数量
+  //  * @property {string} twap 当前负债币种触发系统自动换币的风险
    * @property {string} uTime 币种余额信息的更新时间，Unix时间戳的毫秒数格式，如 1597026383085
-   * @property {string} upl 未实现盈亏
-   * @property {string} uplLiab 由于仓位未实现亏损导致的负债
-   * @property {string} stgyEq 策略权益
+  //  * @property {string} upl 未实现盈亏
+  //  * @property {string} uplLiab 由于仓位未实现亏损导致的负债
+  //  * @property {string} stgyEq 策略权益
    */
   /**
    * @typedef {Object} Balance

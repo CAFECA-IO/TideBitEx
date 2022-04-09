@@ -5,6 +5,7 @@ const URL = require("url");
 
 const Bot = require(path.resolve(__dirname, "Bot.js"));
 const OkexConnector = require("../libs/Connectors/OkexConnector");
+const TideBitConnector = require("../libs/Connectors/TideBitConnector");
 const ResponseFormat = require("../libs/ResponseFormat");
 const Codes = require("../constants/Codes");
 const EventBus = require("../libs/EventBus");
@@ -34,6 +35,18 @@ class ExchangeHub extends Bot {
           wssPublic: this.config.okex.wssPublic,
           wssPrivate: this.config.okex.wssPrivate,
         });
+        this.tideBitConnector = new TideBitConnector({ logger });
+        this.tideBitConnector.init({
+          app: this.config.pusher.app,
+          key: this.config.pusher.key,
+          secret: this.config.pusher.secret,
+          wsHost: this.config.pusher.host,
+          port: this.config.pusher.port,
+          wsPort: this.config.pusher.wsPort,
+          wssPort: this.config.pusher.wssPort,
+          encrypted: this.config.pusher.encrypted,
+          peatioDomain: this.config.peatio.domain,
+        });
       })
       .then(() => {
         this.tidebitMarkets = this.getTidebitMarkets();
@@ -59,29 +72,29 @@ class ExchangeHub extends Bot {
         const instId = market.name.split("/").join("-").toUpperCase();
         return {
           ...market,
-          alias: "",
-          baseCcy: market.base_unit.toUpperCase(),
-          category: "",
-          ctMult: "",
-          ctType: "",
-          ctVal: "",
-          ctValCcy: "",
-          expTime: "",
+          // alias: "",
+          // baseCcy: market.base_unit.toUpperCase(),
+          // quoteCcy: market.quote_unit,
+          // category: "",
+          // ctMult: "",
+          // ctType: "",
+          // ctVal: "",
+          // ctValCcy: "",
+          // expTime: "",
           instId,
           instType: "",
-          lever: "",
-          listTime: Math.floor(Date.now() / 1000) * 1000,
-          lotSz: "",
-          minSz: "",
-          optType: "",
-          quoteCcy: market.quote_unit,
-          settleCcy: "",
+          // lever: "",
+          // listTime: Math.floor(Date.now() / 1000) * 1000,
+          // lotSz: "",
+          // minSz: "",
+          // optType: "",
+          // settleCcy: "",
           state: market.visible,
-          tab_category: market.tab_category,
-          stk: "",
-          tickSz: "",
-          uly: "",
-          ts: null,
+          group: market.tab_category,
+          // stk: "",
+          // tickSz: "",
+          // uly: "",
+          // at: null,
           source: SupportedExchange.TIDEBIT,
         };
       });
@@ -126,8 +139,11 @@ class ExchangeHub extends Bot {
   // account api
   async getBalance({ token, params, query }) {
     try {
+      this.logger.debug(`getBalance token`, token);
       const memberId = await this.getMemberIdFromRedis(token);
-      if (memberId === -1) throw new Error("get member_id fail");
+      // if (memberId === -1) throw new Error("get member_id fail");
+      this.logger.error(`[${this.name} getBalance] error: "get member_id fail`);
+      if (memberId === -1) return null;
       const accounts = await this.database.getBalance(memberId);
       const jobs = accounts.map((acc) =>
         this.database.getCurrency(acc.currency)
@@ -137,17 +153,12 @@ class ExchangeHub extends Bot {
       const details = accounts.map((account, i) => ({
         ccy: currencies[i].key.toUpperCase(),
         availBal: Utils.removeZeroEnd(account.balance),
-        cashBal: SafeMath.plus(account.balance, account.locked),
+        totalBal: SafeMath.plus(account.balance, account.locked),
         frozenBal: Utils.removeZeroEnd(account.locked),
         uTime: new Date(account.updated_at).getTime(),
-        availEq: Utils.removeZeroEnd(account.balance),
       }));
 
-      const payload = [
-        {
-          details,
-        },
-      ];
+      const payload = details;
 
       return new ResponseFormat({
         message: "getBalance",
@@ -184,53 +195,127 @@ class ExchangeHub extends Bot {
     const tBTickers = tBTickersRes.data;
     const formatTBTickers = isVisibles.map((market) => {
       const tBTicker = tBTickers[market.id];
+      const change = SafeMath.minus(tBTicker.ticker.last, tBTicker.ticker.open);
+      const changePct = SafeMath.gt(tBTicker.ticker.open, "0")
+        ? SafeMath.mult(SafeMath.div(change, tBTicker.ticker.open), "100")
+        : SafeMath.eq(change, "0")
+        ? "0"
+        : "100";
       let formatTBTicker = {
+        ...market,
         instType: "",
-        instId: market.instId,
         last: "0.0",
-        lastSz: "0.0",
-        askPx: "0.0",
-        askSz: "0.0",
-        bidPx: "0.0",
-        bidSz: "0.0",
-        open24h: "0.0",
-        high24h: "0.0",
-        low24h: "0.0",
-        volCcy24h: "0.0",
-        vol24h: "0.0",
-        ts: "0.0",
-        sodUtc0: "0.0",
-        sodUtc8: "0.0",
-        tab_category: market.tab_category,
-        source: market.source,
+        sell: "0.0",
+        buy: "0.0",
+        open: "0.0",
+        high: "0.0",
+        low: "0.0",
+        volume: "0.0",
+        at: "0.0",
+        change: "0.0",
+        changePct: "0.0",
+        group: market?.tab_category || market?.group,
       };
       if (tBTicker) {
         formatTBTicker = {
-          instType: "",
-          instId: market.instId,
-          last: tBTicker.ticker.last.toString(),
-          lastSz: tBTicker.ticker.vol.toString(),
-          askPx: tBTicker.ticker.sell.toString(),
-          askSz: "0.0",
-          bidPx: tBTicker.ticker.buy.toString(),
-          bidSz: "0.0",
-          open24h: tBTicker.ticker.open.toString(),
-          high24h: tBTicker.ticker.high.toString(),
-          low24h: tBTicker.ticker.low.toString(),
-          volCcy24h: "0.0",
-          vol24h: "0.0",
-          ts: tBTicker.at * 1000,
-          sodUtc0: "0.0",
-          sodUtc8: tBTicker.ticker.open.toString(),
-          tab_category: market.tab_category,
-          source: market.source,
+          ...tBTicker.ticker,
+          ...market,
+          at: tBTicker.at,
+          volume: tBTicker.ticker.vol,
+          change,
+          changePct,
         };
       }
       return formatTBTicker;
     });
-    this.logger.debug(`formatTBTickers`, formatTBTickers);
+    // this.logger.debug(`formatTBTickers`, formatTBTickers);
     return formatTBTickers;
   }
+
+  async registerGlobalChannel({ header }) {
+    try {
+      this.tideBitConnector.registerGlobalChannel({
+        header: {
+          "content-type": "application/json",
+          cookie: header.cookie,
+        },
+      });
+      this.logger.debug(`++++++++++++++`);
+      this.logger.debug(`registerGlobalChannel`);
+      this.logger.debug(`++++++++++++++`);
+      return new ResponseFormat({
+        message: `registerGlobalChannel`,
+        code: Codes.SUCCESS,
+      });
+    } catch (error) {
+      return new ResponseFormat({
+        message: error.message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
+  async registerMarketChannel({ header, query }) {
+    try {
+      this.tideBitConnector.registerMarketChannel({
+        header: {
+          "content-type": "application/json",
+          cookie: header.cookie,
+        },
+        instId: query.instId,
+      });
+      this.logger.debug(`++++++++++++++`);
+      this.logger.debug(`registerMarketChannel instId`, query.instId);
+      this.logger.debug(`++++++++++++++`);
+      return new ResponseFormat({
+        message: `registerMarketChannel`,
+        code: Codes.SUCCESS,
+      });
+    } catch (error) {
+      return new ResponseFormat({
+        message: error.message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
+  async registerPrivateChannel({ header, body, token }) {
+    if (!body.token) return;
+    const memberId = await this.getMemberIdFromRedis(token);
+    if (memberId === -1) {
+      return new ResponseFormat({
+        message: "member_id not found",
+        code: Codes.MEMBER_ID_NOT_FOUND,
+      });
+    }
+    const member = await this.database.getMemberById(memberId);
+    this.logger.debug(`++++++++++++++`);
+    this.logger.debug(`registerPrivateChannel member.sn`, member.sn);
+    this.logger.debug(`++++++++++++++`);
+    try {
+      this.tideBitConnector.registerPrivateChannel({
+        header: {
+          "content-type": "application/json",
+          "x-csrf-token": body.token,
+          cookie: header.cookie,
+        },
+        sn: member.sn,
+      });
+      this.logger.debug(`++++++++++++++`);
+      this.logger.debug(`registerPrivateChannel SUCCESS`);
+      this.logger.debug(`++++++++++++++`);
+      return new ResponseFormat({
+        message: `registerPrivateChannel`,
+        code: Codes.SUCCESS,
+      });
+    } catch (error) {
+      return new ResponseFormat({
+        message: error.message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
   async getTicker({ params, query }) {
     const index = this.tidebitMarkets.findIndex(
       (market) => query.instId === market.instId
@@ -239,9 +324,9 @@ class ExchangeHub extends Bot {
       const url = `${this.config.peatio.domain}/api/v2/tickers/${query.instId
         .replace("-", "")
         .toLowerCase()}`;
-      this.logger.debug(`getTicker url:`, url);
+      // this.logger.debug(`getTicker url:`, url);
       const tBTickerRes = await axios.get(url);
-      this.logger.debug(`getTicker tBTickerRes.data:`, tBTickerRes.data);
+      // this.logger.debug(`getTicker tBTickerRes.data:`, tBTickerRes.data);
       if (!tBTickerRes || !tBTickerRes.data) {
         return new ResponseFormat({
           message: "Something went wrong",
@@ -249,23 +334,18 @@ class ExchangeHub extends Bot {
         });
       }
       const tBTicker = tBTickerRes.data;
+      const change = SafeMath.minus(tBTicker.ticker.last, tBTicker.ticker.open);
+      const changePct = SafeMath.gt(tBTicker.ticker.open, "0")
+        ? SafeMath.div(change, tBTicker.ticker.open)
+        : SafeMath.eq(change, "0")
+        ? "0"
+        : "100";
       const formatTBTicker = {
-        instType: "",
-        instId: query.instId,
-        last: tBTicker.ticker.last.toString(),
-        lastSz: tBTicker.ticker.vol.toString(),
-        askPx: tBTicker.ticker.sell.toString(),
-        askSz: "0.0",
-        bidPx: tBTicker.ticker.buy.toString(),
-        bidSz: "0.0",
-        open24h: tBTicker.ticker.open.toString(),
-        high24h: tBTicker.ticker.high.toString(),
-        low24h: tBTicker.ticker.low.toString(),
-        volCcy24h: "0.0",
-        vol24h: "0.0",
-        ts: tBTicker.at * 1000,
-        sodUtc0: "0.0",
-        sodUtc8: tBTicker.ticker.open.toString(),
+        ...tBTicker.ticker,
+        at: tBTicker.at,
+        change,
+        changePct,
+        volume: tBTicker.ticker.vol.toString(),
       };
       return new ResponseFormat({
         message: "getTicker",
@@ -290,7 +370,7 @@ class ExchangeHub extends Bot {
         );
         includeTidebitMarket.forEach((market) => {
           market.source = SupportedExchange.OKEX;
-          market.tab_category =
+          market.group =
             market.instId.split("-")[1].toLowerCase() === "usdt" ||
             market.instId.split("-")[1].toLowerCase() === "usdc" ||
             market.instId.split("-")[1].toLowerCase() === "usdk"
@@ -298,7 +378,7 @@ class ExchangeHub extends Bot {
               : market.instId.split("-")[1].toLowerCase();
         });
         list.push(...includeTidebitMarket);
-        this.logger.debug(`getTickers list[${list.length}]`, list);
+        // this.logger.debug(`getTickers list[${list.length}]`, list);
       } else {
         return okexRes;
       }
@@ -335,6 +415,7 @@ class ExchangeHub extends Bot {
           const orders = await this._tbGetOrderList({
             instId: query.instId,
             state: this.database.ORDER_STATE.WAIT,
+            orderType: "limit",
           });
           const asks = [];
           const bids = [];
@@ -344,11 +425,10 @@ class ExchangeHub extends Bot {
               index = asks.findIndex((ask) => ask[0] === order.px);
               if (index !== -1) {
                 let updateAsk = asks[index];
-                updateAsk[1] += 1;
-                updateAsk[3] += order.sz;
+                updateAsk[1] = SafeMath.plus(updateAsk[1], order.sz);
                 asks[index] = updateAsk;
               } else {
-                let newAsk = [order.px, 1, 0, order.sz]; // [價格, 價格訂單張數, ?, volume]
+                let newAsk = [order.px, order.sz]; // [價格, 價格訂單張數, ?, volume]
                 asks.push(newAsk);
               }
             }
@@ -356,11 +436,10 @@ class ExchangeHub extends Bot {
               index = bids.findIndex((bid) => bid[0] === order.px);
               if (index !== -1) {
                 let updateBid = bids[index];
-                updateBid[1] += 1;
-                updateBid[3] += order.sz;
+                updateBid[1] = SafeMath.plus(updateBid[1], order.sz);
                 bids[index] = updateBid;
               } else {
-                let newBid = [order.px, 1, 0, order.sz];
+                let newBid = [order.px, order.sz];
                 bids.push(newBid);
               }
             }
@@ -368,7 +447,7 @@ class ExchangeHub extends Bot {
           const books = { asks, bids, ts: new Date().toISOString() };
           return new ResponseFormat({
             message: "getOrderList",
-            payload: [books],
+            payload: books,
           });
         } catch (error) {
           this.logger.error(error);
@@ -681,7 +760,7 @@ class ExchangeHub extends Bot {
     return tradeHistory;
   }
 
-  async _tbGetOrderList({ token, instId, state }) {
+  async _tbGetOrderList({ memberId, instId, state, orderType }) {
     const market = this._findMarket(instId);
     if (!market) {
       throw new Error(`this.tidebitMarkets.instId ${instId} not found.`);
@@ -695,9 +774,7 @@ class ExchangeHub extends Bot {
       throw new Error(`ask not found`);
     }
     let orderList;
-    if (token) {
-      const memberId = await this.getMemberIdFromRedis(token);
-      if (memberId === -1) throw new Error("get member_id fail");
+    if (memberId) {
       orderList = await this.database.getOrderList({
         quoteCcy: bid,
         baseCcy: ask,
@@ -709,6 +786,7 @@ class ExchangeHub extends Bot {
         quoteCcy: bid,
         baseCcy: ask,
         state,
+        orderType,
       });
     }
     const orders = orderList.map((order) => ({
@@ -728,7 +806,7 @@ class ExchangeHub extends Bot {
       uTime: new Date(order.updated_at).getTime(),
       state:
         state === this.database.ORDER_STATE.CANCEL
-          ? "cancelled"
+          ? "canceled"
           : state === this.database.ORDER_STATE.DONE
           ? "done"
           : "waiting",
@@ -762,7 +840,7 @@ class ExchangeHub extends Bot {
         try {
           const orders = await this._tbGetOrderList({
             instId: query.instId,
-            token,
+            memberId,
             state: this.database.ORDER_STATE.WAIT,
           });
           return new ResponseFormat({
@@ -810,12 +888,12 @@ class ExchangeHub extends Bot {
         try {
           const cancelOrders = await this._tbGetOrderList({
             instId: query.instId,
-            token,
+            memberId,
             state: this.database.ORDER_STATE.CANCEL,
           });
           const doneOrders = await this._tbGetOrderList({
             instId: query.instId,
-            token,
+            memberId,
             state: this.database.ORDER_STATE.DONE,
           });
           const vouchers = await this.database.getVouchers({
@@ -1030,19 +1108,63 @@ class ExchangeHub extends Bot {
   // public api end
 
   async _eventListener() {
-    EventBus.on(Events.tradeDataOnUpdate, (instId, tradeData) => {
+    // EventBus.on(Events.tideBitTickersOnUpdate, (formatPair) => {
+    //   this.broadcastAllClient({
+    //     type: Events.tideBitTickersOnUpdate,
+    //     data: formatPair,
+    //   });
+    // });
+
+    // EventBus.on(Events.tideBitBooksOnUpdate, (instId, formatBooks) => {
+    //   if (this._isIncludeTideBitMarket(instId)) {
+    //     this.broadcast(instId, {
+    //       type: Events.tideBitBooksOnUpdate,
+    //       data: formatBooks,
+    //     });
+    //   }
+    // });
+
+    // EventBus.on(Events.tideBitTradesOnUpdate, (instId, formatTrades) => {
+    //   if (this._isIncludeTideBitMarket(instId)) {
+    //     this.broadcast(instId, {
+    //       type: Events.tideBitTradesOnUpdate,
+    //       data: formatTrades,
+    //     });
+    //   }
+    // });
+
+    EventBus.on(Events.accountOnUpdate, (account) => {
+      this.broadcastAllClient({
+        type: Events.accountOnUpdate,
+        data: account,
+      });
+    });
+    EventBus.on(Events.orderOnUpdate, (order) => {
+      this.broadcastAllClient({
+        type: Events.orderOnUpdate,
+        data: order,
+      });
+    });
+    EventBus.on(Events.tradeOnUpdate, (trade) => {
+      this.broadcastAllClient({
+        type: Events.tradeOnUpdate,
+        data: trade,
+      });
+    });
+
+    EventBus.on(Events.tradesOnUpdate, (instId, tradeData) => {
       if (this._isIncludeTideBitMarket(instId)) {
         this.broadcast(instId, {
-          type: Events.tradeDataOnUpdate,
+          type: Events.tradesOnUpdate,
           data: tradeData,
         });
       }
     });
 
-    EventBus.on(Events.orderOnUpdate, (instId, booksData) => {
+    EventBus.on(Events.orderBooksOnUpdate, (instId, booksData) => {
       if (this._isIncludeTideBitMarket(instId)) {
         this.broadcast(instId, {
-          type: Events.orderOnUpdate,
+          type: Events.orderBooksOnUpdate,
           data: booksData,
         });
       }
@@ -1057,10 +1179,10 @@ class ExchangeHub extends Bot {
       }
     });
 
-    EventBus.on(Events.pairOnUpdate, (formatPair) => {
+    EventBus.on(Events.tickersOnUpdate, (formatPair) => {
       if (this._isIncludeTideBitMarket(formatPair.instId)) {
         this.broadcastAllClient({
-          type: Events.pairOnUpdate,
+          type: Events.tickersOnUpdate,
           data: formatPair,
         });
       }
@@ -1287,7 +1409,6 @@ class ExchangeHub extends Bot {
 
   async _getPlaceOrderData(body) {
     const market = this._findMarket(body.instId);
-    this.logger.debug("!!!_getPlaceOrderData market", market);
     if (!market) {
       throw new Error(`this.tidebitMarkets.instId ${body.instId} not found.`);
     }

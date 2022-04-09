@@ -62,7 +62,7 @@ export const BalanceTile = (props) => {
       <li>{props.balance.ccy || "--"}</li>
       {/* <li>{props.balance.eq || "--"}</li>
       <li>{props.balance.cashBal || "--"}</li>*/}
-      <li>{props.balance.cashBal || "--"}</li>
+      <li>{props.balance.totalBal || "--"}</li>
       <li>{props.balance.availBal || "--"}</li>{" "}
       {/* -- TODO: check api return object */}
       <li>{props.balance.frozenBal || "--"}</li>
@@ -186,19 +186,21 @@ const HistoryOrder = (props) => {
               <li>{t("frozenBal")}</li>
               {/* <li>Interest</li> */}
             </ul>
-            {/* {!storeCtx.balances?.length && (
+            {/* {!storeCtx.accounts?.length && (
               <span className="no-data">
                 <i className="icon ion-md-document"></i>
                 No data
               </span>
             )} */}
             <ul className="order-list">
-              {!!storeCtx.balances?.length &&
-                storeCtx.balances
+              {!!storeCtx.accounts?.length &&
+                storeCtx.accounts
                   .filter(
                     (balance) =>
-                      storeCtx.selectedTicker?.baseCcy === balance.ccy ||
-                      storeCtx.selectedTicker?.quoteCcy === balance.ccy
+                      storeCtx.selectedTicker?.base_unit.toUpperCase() ===
+                        balance.ccy ||
+                      storeCtx.selectedTicker?.quote_unit.toUpperCase() ===
+                        balance.ccy
                   )
                   .map((balance) => <BalanceTile balance={balance} />)}
             </ul>
