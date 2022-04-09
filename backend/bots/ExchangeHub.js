@@ -447,7 +447,8 @@ class ExchangeHub extends Bot {
           const books = { asks, bids, ts: new Date().toISOString() };
           return new ResponseFormat({
             message: "getOrderList",
-            payload: books,
+            // payload: books,
+            payload: [], // ++ TODO WORKAROUND
           });
         } catch (error) {
           this.logger.error(error);
