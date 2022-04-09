@@ -27,7 +27,7 @@ class Middleman {
     try {
       await this.communicator.registerGlobalChannel();
     } catch (error) {
-      console.log(`registerGlobalChannel error`, error);
+      console.error(`registerGlobalChannel error`, error);
       throw error;
     }
   }
@@ -36,7 +36,7 @@ class Middleman {
     try {
       await this.communicator.registerMarketChannel(instId);
     } catch (error) {
-      console.log(`registerMarketChannel error`, error);
+      console.error(`registerMarketChannel error`, error);
       throw error;
     }
   }
@@ -45,7 +45,7 @@ class Middleman {
     try {
       await this.communicator.registerPrivateChannel(token);
     } catch (error) {
-      console.log(`registerPrivateChannel error`, error);
+      console.error(`registerPrivateChannel error`, error);
       throw error;
     }
   }
@@ -61,7 +61,6 @@ class Middleman {
     if (!this.tickers.length > 0) return;
     let updateTickers = [...this.tickers];
     let updateTicker;
-    console.log(`updateTickers tickers[0].source`, tickers[0].source);
     const updateIndexes = tickers.map((t) => {
       const index = this.tickers.findIndex(
         (ticker) => ticker.instId === t.instId
@@ -369,7 +368,6 @@ class Middleman {
       const index = updatePendingOrders.findIndex(
         (order) => order.ordId === data.ordId
       );
-      console.log(`updateOrders index`, index);
       if (index !== -1) {
         if (data.state !== "waiting") {
           updatePendingOrders.splice(index, 1);
@@ -427,15 +425,10 @@ class Middleman {
     const index = updateAccounts.findIndex(
       (account) => account.ccy === data.ccy
     );
-    console.log(`updateAccounts index`, index);
     if (index !== -1) {
-      console.log(
-        `updateAccounts this.accounts[${index}]`,
-        this.accounts[index]
-      );
       updateAccounts[index] = data;
     } else updateAccounts.push(data);
-    console.log(`updateAccounts`, updateAccounts);
+
     this.accounts = updateAccounts;
     return this.accounts;
   }
@@ -446,7 +439,6 @@ class Middleman {
         this.selectedTicker?.instId?.replace("-", ",")
       );
       this.accounts = result;
-      console.log(`getAccounts this.accounts `, this.accounts);
       if (this.accounts) this.isLogin = true;
       return this.accounts;
     } catch (error) {

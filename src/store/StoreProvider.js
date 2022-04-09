@@ -189,7 +189,7 @@ const StoreProvider = (props) => {
     async (ticker) => {
       const _ticker = middleman.updateSelectedTicker(ticker);
       // ++ TODO 需要改用websocket呼叫的方式
-      console.log(`selectTickerHandler _ticker`, _ticker);
+      // console.log(`selectTickerHandler _ticker`, _ticker);
       //
       setSelectedTicker(_ticker);
       document.title = `${_ticker.last} ${_ticker.name}`;
@@ -469,7 +469,6 @@ const StoreProvider = (props) => {
               _accountTimestamp = new Date().getTime();
               if (_accountTimestamp - +accountTimestamp > 1000) {
                 accountTimestamp = _accountTimestamp;
-                console.log(`[STOREPROVIDER]updateAccounts`, updateAccounts);
                 setAccounts(updateAccounts);
               }
               break;
