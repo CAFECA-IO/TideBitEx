@@ -184,8 +184,8 @@ class TibeBitConnector extends ConnectorBase {
         }
       });
     } else {
-      asks = data.asks;
-      bids = data.bids;
+      asks = data.asks; //++ TODO WORKAROUND
+      bids = data.bids; //++ TODO WORKAROUND
     }
     this.books = data;
     const formatBooks = {
