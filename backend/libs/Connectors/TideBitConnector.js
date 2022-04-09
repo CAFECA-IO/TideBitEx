@@ -5,7 +5,8 @@ const SafeMath = require("../SafeMath");
 const EventBus = require("../EventBus");
 const Events = require("../../constants/Events");
 const SupportedExchange = require("../../constants/SupportedExchange");
-const { Utils } = require("sequelize/types");
+const Utils = require("../Utils");
+
 
 class TibeBitConnector extends ConnectorBase {
   constructor({ logger }) {
