@@ -380,47 +380,56 @@ class Middleman {
 
   updateOrders(data) {
     console.log(`updateOrders data`, data);
-    console.log(`updateOrders this.selectedTicker`, this.selectedTicker);
+    console.log(
+      `updateOrders this.selectedTicker`,
+      this.selectedTicker,
+      data.market === this.selectedTicker.id
+    );
+
     if (data.state === "done") {
-      const index = this.closeOrders.findIndex(
-        (order) => order.ordId === data.ordId
-      );
-      if (index !== -1) {
-        const updateOrder = this.closeOrders[index];
-        this.closeOrders[index] = {
-          ...updateOrder,
-          sz: data.sz,
-          filled: data.filled,
-          state: data.state,
-        };
-      } else {
-        if (
-          data.market.includes(this.selectedTicker.quote_unit) &&
-          data.market.includes(this.selectedTicker.base_unit)
-        ) {
+      if (data.market === this.selectedTicker.id) {
+        console.log(`updateOrders this.closeOrders`, this.closeOrders);
+        const index = this.closeOrders.findIndex(
+          (order) => order.ordId === data.ordId
+        );
+        if (index !== -1) {
+          const updateOrder = this.closeOrders[index];
+          this.closeOrders[index] = {
+            ...updateOrder,
+            sz: data.sz,
+            filled: data.filled,
+            state: data.state,
+          };
+        } else {
           this.closeOrders.push({ ...data, cTime: Date.now() });
         }
+        console.log(
+          `updateOrders this.closeOrders[${this.closeOrders.length}]`,
+          this.closeOrders
+        );
       }
     } else {
-      const index = this.pendingOrders.findIndex(
-        (order) => order.ordId === data.ordId
-      );
-      if (index !== -1) {
-        const updateOrder = this.pendingOrders[index];
-        this.pendingOrders[index] = {
-          ...updateOrder,
-          sz: data.sz,
-          filled: data.filled,
-          state: data.state,
-        };
-      } else {
-        if (
-          data.market.includes(this.selectedTicker.quote_unit) &&
-          data.market.includes(this.selectedTicker.base_unit)
-        ) {
+      console.log(`updateOrders this.pendingOrders`, this.pendingOrders);
+      if (data.market === this.selectedTicker.id) {
+        const index = this.pendingOrders.findIndex(
+          (order) => order.ordId === data.ordId
+        );
+        if (index !== -1) {
+          const updateOrder = this.pendingOrders[index];
+          this.pendingOrders[index] = {
+            ...updateOrder,
+            sz: data.sz,
+            filled: data.filled,
+            state: data.state,
+          };
+        } else {
           this.pendingOrders.push({ ...data, cTime: Date.now() });
         }
       }
+      console.log(
+        `updateOrders this.pendingOrders[${this.pendingOrders.length}]`,
+        this.pendingOrders
+      );
     }
     return {
       updatePendingOrders: this.pendingOrders,
@@ -449,13 +458,14 @@ class Middleman {
   }
 
   updateAccounts(data) {
-    console.log(`updateAccounts this.accounts`, data);
     console.log(`updateAccounts data`, data);
     const index = this.accounts?.findIndex(
       (account) => account.ccy === data.ccy
     );
     if (index !== -1) this.accounts[index] = data;
     else this.accounts.push(data);
+    console.log(`updateAccounts this.accounts`, data);
+    return this.account;
   }
 
   async getAccounts() {

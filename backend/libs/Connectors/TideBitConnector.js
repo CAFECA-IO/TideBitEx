@@ -7,7 +7,6 @@ const Events = require("../../constants/Events");
 const SupportedExchange = require("../../constants/SupportedExchange");
 const Utils = require("../Utils");
 
-
 class TibeBitConnector extends ConnectorBase {
   constructor({ logger }) {
     super({ logger });
@@ -154,8 +153,43 @@ class TibeBitConnector extends ConnectorBase {
     }
     */
     if (data.asks.length === 0 || data.bids.length === 0) return;
+    let index,
+      asks = [],
+      bids = [];
+    if (this.books) {
+      this.books.asks.forEach((ask) => {
+        index = data.asks.findIndex((_ask) => _ask[0] === ask[0]);
+        if (index === -1) {
+          asks.push([ask[0], "0"]);
+        }
+      });
+      data.asks.forEach((ask) => {
+        index = this.books.asks.findIndex((_ask) => _ask[0] === ask[0]);
+        if (index === -1 || data.asks[index][1] !== ask[1]) {
+          asks.push(ask);
+        }
+      });
+      this.books.bids.forEach((bid) => {
+        index = data.bids.findIndex((_bid) => _bid[0] === bid[0]);
+        if (index === -1) {
+          bids.push([bid[0], "0"]);
+        }
+      });
+      data.bids.forEach((bid) => {
+        index = this.books.bids.findIndex((_bid) => _bid[0] === bid[0]);
+        if (index === -1 || data.bids[index][1] !== bid[1]) {
+          bids.push(bid);
+        }
+      });
+      this.books = {
+        asks,
+        bids,
+      };
+    } else {
+      this.books = data;
+    }
     const formatBooks = {
-      ...data,
+      ...this.books,
       instId,
       ts: Date.now(),
     };
