@@ -210,39 +210,27 @@ class Middleman {
     data.asks.forEach((ask) => {
       let index,
         updateAsk = ask;
+      updateAsk.push(true);
       index = updateRawBooks.asks.findIndex((d) => d[0] === ask[0]);
       if (index === -1) {
-        if (SafeMath.gt(ask[1], "0")) {
-          updateAsk.push(true);
-          updateRawBooks.asks.push(updateAsk);
-        }
+        updateRawBooks.asks.push(updateAsk);
       } else {
         if (SafeMath.gt(ask[1], "0")) {
-          if (!SafeMath.eq(ask[1], this.rawBooks.asks[1])) {
-            updateAsk.push(true);
-            updateRawBooks.asks[index] = updateAsk;
-          }
+          updateRawBooks.asks[index] = updateAsk;
         } else updateRawBooks.asks.splice(index, 1);
       }
     });
     data.bids.forEach((bid) => {
       let index,
         updateBid = bid;
+      updateBid.push(true);
       index = updateRawBooks.bids.findIndex((d) => d[0] === bid[0]);
       if (index === -1) {
-        if (SafeMath.gt(bid[1], "0")) {
-          updateBid.push(true);
-          updateRawBooks.bids.push(updateBid);
-          // console.log(`updateBooks updateRawBooks`, updateRawBooks);
-        }
+        updateRawBooks.bids.push(updateBid);
       } else {
         if (SafeMath.gt(bid[1], "0")) {
-          if (!SafeMath.eq(bid[1], this.rawBooks.bids[index][1])) {
-            updateBid.push(true);
-            updateRawBooks.bids[index] = updateBid;
-          }
+          updateRawBooks.bids[index] = updateBid;
         } else updateRawBooks.bids.splice(index, 1);
-        // console.log(`updateBooks updateRawBooks`, updateRawBooks);
       }
     });
     this.rawBooks = updateRawBooks;
@@ -385,50 +373,33 @@ class Middleman {
       this.selectedTicker,
       data.market === this.selectedTicker.id
     );
-
-    if (data.state === "done") {
-      if (data.market === this.selectedTicker.id) {
-        console.log(`updateOrders this.closeOrders`, this.closeOrders);
-        const index = this.closeOrders.findIndex(
-          (order) => order.ordId === data.ordId
-        );
-        if (index !== -1) {
-          const updateOrder = this.closeOrders[index];
-          this.closeOrders[index] = {
-            ...updateOrder,
-            sz: data.sz,
-            filled: data.filled,
-            state: data.state,
-          };
+    if (data.market === this.selectedTicker.id) {
+      const index = this.pendingOrders.findIndex(
+        (order) => order.ordId === data.ordId
+      );
+      if (index !== -1) {
+        if (data.state !== "waiting") {
+          this.pendingOrders.splice(index, 1);
         } else {
-          this.closeOrders.push({ ...data, cTime: Date.now() });
-        }
-        console.log(
-          `updateOrders this.closeOrders[${this.closeOrders.length}]`,
-          this.closeOrders
-        );
-      }
-    } else {
-      console.log(`updateOrders this.pendingOrders`, this.pendingOrders);
-      if (data.market === this.selectedTicker.id) {
-        const index = this.pendingOrders.findIndex(
-          (order) => order.ordId === data.ordId
-        );
-        if (index !== -1) {
           const updateOrder = this.pendingOrders[index];
           this.pendingOrders[index] = {
             ...updateOrder,
             sz: data.sz,
             filled: data.filled,
-            state: data.state,
           };
-        } else {
-          this.pendingOrders.push({ ...data, cTime: Date.now() });
         }
+      } else {
+        if (data.state === "waiting")
+          this.pendingOrders.push({ ...data, cTime: Date.now() });
+        else this.closeOrders.push({ ...data, cTime: Date.now() });
       }
       console.log(
         `updateOrders this.pendingOrders[${this.pendingOrders.length}]`,
-        this.pendingOrders
+        this.closeOrders
+      );
+      console.log(
+        `updateOrders this.closeOrders[${this.closeOrders.length}]`,
+        this.closeOrders
       );
     }
     return {
@@ -464,7 +435,7 @@ class Middleman {
     );
     if (index !== -1) this.accounts[index] = data;
     else this.accounts.push(data);
-    console.log(`updateAccounts this.accounts`, data);
+    console.log(`updateAccounts this.accounts`, this.accounts);
     return this.account;
   }
 

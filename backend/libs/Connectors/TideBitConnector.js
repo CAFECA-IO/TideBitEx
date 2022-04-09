@@ -165,7 +165,7 @@ class TibeBitConnector extends ConnectorBase {
       });
       data.asks.forEach((ask) => {
         index = this.books.asks.findIndex((_ask) => _ask[0] === ask[0]);
-        if (index === -1 || data.asks[index][1] !== ask[1]) {
+        if (index === -1 || this.books.asks[index][1] !== ask[1]) {
           asks.push(ask);
         }
       });
@@ -177,7 +177,7 @@ class TibeBitConnector extends ConnectorBase {
       });
       data.bids.forEach((bid) => {
         index = this.books.bids.findIndex((_bid) => _bid[0] === bid[0]);
-        if (index === -1 || data.bids[index][1] !== bid[1]) {
+        if (index === -1 || this.books.bids[index][1] !== bid[1]) {
           bids.push(bid);
         }
       });
