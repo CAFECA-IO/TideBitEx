@@ -401,13 +401,13 @@ class Middleman {
       const result = await this.communicator.balance(
         this.selectedTicker?.instId?.replace("-", ",")
       );
-      this.balances = result[0].details;
+      this.balances = result[0]?.details;
       // .filter(
       //   (balance) =>
       //     this.selectedTicker?.base_unit === balance.ccy ||
       //     this.selectedTicker?.quoteCcy === balance.ccy
       // );
-      this.isLogin = true;
+      if (this.balance) this.isLogin = true;
       return this.balances;
     } catch (error) {
       this.isLogin = false;

@@ -217,7 +217,7 @@ class ExchangeHub extends Bot {
         at: "0.0",
         change: "0.0",
         changePct: "0.0",
-        group: market?.tab_category || market?.group
+        group: market?.tab_category || market?.group,
       };
       if (tBTicker) {
         formatTBTicker = {
@@ -235,9 +235,14 @@ class ExchangeHub extends Bot {
     return formatTBTickers;
   }
 
-  async registerGlobalChannel() {
+  async registerGlobalChannel({ header }) {
     try {
-      this.tideBitConnector.registerGlobalChannel();
+      this.tideBitConnector.registerGlobalChannel({
+        header: {
+          "content-type": "application/json",
+          cookie: header.cookie,
+        },
+      });
       this.logger.debug(`++++++++++++++`);
       this.logger.debug(`registerGlobalChannel`);
       this.logger.debug(`++++++++++++++`);
@@ -253,9 +258,15 @@ class ExchangeHub extends Bot {
     }
   }
 
-  async registerMarketChannel({ params, query }) {
+  async registerMarketChannel({ header, query }) {
     try {
-      this.tideBitConnector.registerMarketChannel(query.instId);
+      this.tideBitConnector.registerMarketChannel({
+        header: {
+          "content-type": "application/json",
+          cookie: header.cookie,
+        },
+        instId: query.instId,
+      });
       this.logger.debug(`++++++++++++++`);
       this.logger.debug(`registerMarketChannel instId`, query.instId);
       this.logger.debug(`++++++++++++++`);
@@ -270,7 +281,8 @@ class ExchangeHub extends Bot {
       });
     }
   }
-  async registerPrivateChannel({ header, params, query, body, token }) {
+  async registerPrivateChannel({ header, body, token }) {
+    if (!body.token) return;
     const memberId = await this.getMemberIdFromRedis(token);
     if (memberId === -1) {
       return new ResponseFormat({

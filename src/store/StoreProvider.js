@@ -162,12 +162,57 @@ const StoreProvider = (props) => {
     [enqueueSnackbar, middleman]
   );
 
+  const registerMarketChannel = useCallback(
+    async (instId) => {
+      try {
+        await middleman.registerMarketChannel(instId);
+      } catch (error) {
+        enqueueSnackbar(
+          `${error?.message || "Some went wrong with registerMarketChannel"}`,
+          {
+            variant: "error",
+          }
+        );
+      }
+    },
+    [enqueueSnackbar, middleman]
+  );
+
+  const registerGlobalChannel = useCallback(async () => {
+    try {
+      await middleman.registerGlobalChannel();
+    } catch (error) {
+      enqueueSnackbar(
+        `${error?.message || "Some went wrong with registerGlobalChannel"}`,
+        {
+          variant: "error",
+        }
+      );
+    }
+  }, [enqueueSnackbar, middleman]);
+
+  const registerPrivateChannel = useCallback(
+    async (token) => {
+      try {
+        await middleman.registerPrivateChannel(token);
+      } catch (error) {
+        enqueueSnackbar(
+          `${error?.message || "Some went wrong with registerPrivateChannel"}`,
+          {
+            variant: "error",
+          }
+        );
+      }
+    },
+    [enqueueSnackbar, middleman, token]
+  );
+
   const selectTickerHandler = useCallback(
     async (ticker) => {
       const _ticker = middleman.updateSelectedTicker(ticker);
       // ++ TODO 需要改用websocket呼叫的方式
       console.log(`selectTickerHandler _ticker`, _ticker);
-      await middleman.registerMarketChannel(ticker.instId);
+      await registerMarketChannel(ticker.instId);
       //
       setSelectedTicker(_ticker);
       document.title = `${_ticker.last} ${_ticker.name}`;
@@ -192,14 +237,15 @@ const StoreProvider = (props) => {
     },
     [
       middleman,
+      registerMarketChannel,
       selectedTicker,
       history,
       getBooks,
       getTrades,
       getCandles,
+      selectedBar,
       getPendingOrders,
       getCloseOrders,
-      selectedBar,
     ]
   );
 
@@ -255,10 +301,32 @@ const StoreProvider = (props) => {
     ]
   );
 
+  const getToken = useCallback(async () => {
+    const XSRF = document.cookie
+      .split(";")
+      .filter((v) => /XSRF-TOKEN/.test(v))
+      .pop()
+      ?.split("=")[1];
+    try {
+      if (XSRF) {
+        const token = await getToken(XSRF);
+        if (token) {
+          setToken(token);
+          await registerPrivateChannel(token);
+        }
+      }
+    } catch (error) {
+      enqueueSnackbar(`${error?.message || "Some went wrong with getToken"}`, {
+        variant: "error",
+      });
+    }
+  }, [enqueueSnackbar, registerPrivateChannel]);
+
   const getBalances = useCallback(
     async (ccy) => {
       await middleman.getBalances(ccy);
       if (middleman.balances) {
+        await getToken();
         setIsLogin(true);
         enqueueSnackbar(`User Login`, {
           variant: "success",
@@ -267,7 +335,7 @@ const StoreProvider = (props) => {
       console.log(`getBalances middleman.balances`, middleman.balances);
       setBalances(middleman.balances);
     },
-    [enqueueSnackbar, middleman]
+    [enqueueSnackbar, getToken, middleman]
   );
 
   const postOrder = useCallback(
@@ -384,6 +452,7 @@ const StoreProvider = (props) => {
       await middleman.getInstruments();
       await getBalances();
       await getTickers(true);
+      await registerGlobalChannel();
       if (isInit) {
         wsClient.addEventListener("open", function () {
           setWsConnected(true);
@@ -478,42 +547,8 @@ const StoreProvider = (props) => {
   );
 
   const start = useCallback(async () => {
-    const XSRF = document.cookie
-      .split(";")
-      .filter((v) => /XSRF-TOKEN/.test(v))
-      .pop()
-      ?.split("=")[1];
-    try {
-      if (XSRF) {
-        const token = await getToken(XSRF);
-        if (token) {
-          setToken(token);
-        }
-      }
-    } catch (error) {
-      enqueueSnackbar(`${error?.message || "Some went wrong with getToken"}`, {
-        variant: "error",
-      });
-    }
-    await middleman.registerGlobalChannel();
     sync(true);
-  }, [enqueueSnackbar, middleman, sync]);
-
-  useEffect(() => {
-    if (token) {
-      console.log(`registerPrivateChannel`);
-      try {
-        middleman.registerPrivateChannel(token);
-      } catch (error) {
-        enqueueSnackbar(
-          `${error?.message || "Some went wrong with registerPrivateChannel"}`,
-          {
-            variant: "error",
-          }
-        );
-      }
-    }
-  }, [middleman, enqueueSnackbar, token]);
+  }, [sync]);
 
   useEffect(() => {
     start();
