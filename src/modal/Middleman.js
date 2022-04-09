@@ -155,7 +155,7 @@ class Middleman {
       bidPx;
 
     this.rawBooks.asks
-      ?.sort((a, b) => SafeMath.gt(a[0], b[0]))
+      ?.sort((a, b) => +a[0] - +b[0])
       ?.forEach((d, i) => {
         totalAsks = SafeMath.plus(d[1], totalAsks);
         let ask = {
@@ -173,7 +173,7 @@ class Middleman {
         if (this.rawBooks.asks[i][2]) this.rawBooks.asks[i].splice(2, 1);
       });
     this.rawBooks.bids
-      ?.sort((a, b) => SafeMath.lt(a[0], b[0]))
+      ?.sort((a, b) => +b[0] - +a[0])
       ?.forEach((d, i) => {
         totalBids = SafeMath.plus(d[1], totalBids);
         let bid = {
@@ -231,8 +231,12 @@ class Middleman {
         } else updateRawBooks.bids.splice(index, 1);
       }
     });
+    console.log(`books data`, data);
+    console.log(`books this.rawBooks`, this.rawBooks);
+    console.log(`books updateRawBooks`, updateRawBooks);
     this.rawBooks = updateRawBooks;
     this.books = this.handleBooks();
+    console.log(`books this.books `, this.books);
     return this.books;
   }
 
@@ -396,6 +400,8 @@ class Middleman {
           updatePendingOrders.push({ ...data, cTime: Date.now() });
         else updateCloseOrders.push({ ...data, uTime: Date.now() });
       }
+      this.pendingOrders = updatePendingOrders;
+      this.updateCloseOrders = updateCloseOrders;
       console.log(
         `updateOrders updatePendingOrders[${updatePendingOrders.length}]`,
         updatePendingOrders

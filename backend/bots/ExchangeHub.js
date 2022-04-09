@@ -415,6 +415,7 @@ class ExchangeHub extends Bot {
           const orders = await this._tbGetOrderList({
             instId: query.instId,
             state: this.database.ORDER_STATE.WAIT,
+            orderType: "limit",
           });
           const asks = [];
           const bids = [];
@@ -759,7 +760,7 @@ class ExchangeHub extends Bot {
     return tradeHistory;
   }
 
-  async _tbGetOrderList({ memberId, instId, state }) {
+  async _tbGetOrderList({ memberId, instId, state, orderType }) {
     const market = this._findMarket(instId);
     if (!market) {
       throw new Error(`this.tidebitMarkets.instId ${instId} not found.`);
@@ -785,6 +786,7 @@ class ExchangeHub extends Bot {
         quoteCcy: bid,
         baseCcy: ask,
         state,
+        orderType
       });
     }
     const orders = orderList.map((order) => ({
