@@ -310,12 +310,12 @@ const StoreProvider = (props) => {
       };
       try {
         const result = await middleman.postOrder(_order);
-        await getCloseOrders();
-        await getPendingOrders();
+        // await getCloseOrders();
+        // await getPendingOrders();
         // await getAccounts();
-        // await getTrades(order.instId);
         // await getBooks(order.instId);
-        // await getCandles(order.instId);
+        await getTrades(order.instId);
+        await getCandles(order.instId);
         // await getTicker(order.instId);
         // await getTickers();
         // return result;
@@ -328,6 +328,7 @@ const StoreProvider = (props) => {
           )} ${order.instId.split("-")[1]}`,
           { variant: "success" }
         );
+        return result
       } catch (error) {
         enqueueSnackbar(
           `${error?.message}. Failed to post order:
@@ -348,11 +349,11 @@ const StoreProvider = (props) => {
       enqueueSnackbar,
       // getAccounts,
       // getBooks,
-      // getCandles,
-      getCloseOrders,
-      getPendingOrders,
+      // getCloseOrders,
+      // getPendingOrders,
       // getTicker,
-      // getTrades,
+      getCandles,
+      getTrades,
       middleman,
       token,
     ]
@@ -366,8 +367,8 @@ const StoreProvider = (props) => {
       };
       try {
         const result = await middleman.cancelOrder(_order);
-        await getCloseOrders();
-        await getPendingOrders();
+        // await getCloseOrders();
+        // await getPendingOrders();
         // await getAccounts();
         // await getBooks(order.instId);
         enqueueSnackbar(
@@ -400,8 +401,8 @@ const StoreProvider = (props) => {
       enqueueSnackbar,
       // getAccounts,
       // getBooks,
-      getCloseOrders,
-      getPendingOrders,
+      // getCloseOrders,
+      // getPendingOrders,
       middleman,
       token,
     ]
@@ -494,7 +495,7 @@ const StoreProvider = (props) => {
               }
               break;
             case "tradeOnUpdate":
-              console.log(`tradeOnUpdate trade`, metaData.data);
+              console.info(`tradeOnUpdate trade`, metaData.data);
               break;
             default:
           }

@@ -278,6 +278,7 @@ class ExchangeHub extends Bot {
       });
     }
   }
+
   async registerPrivateChannel({ header, body, token }) {
     if (!body.token) return;
     const memberId = await this.getMemberIdFromRedis(token);
@@ -314,6 +315,7 @@ class ExchangeHub extends Bot {
       });
     }
   }
+
   async getTicker({ params, query }) {
     const index = this.tidebitMarkets.findIndex(
       (market) => query.instId === market.instId
@@ -802,7 +804,7 @@ class ExchangeHub extends Bot {
       uTime: new Date(order.updated_at).getTime(),
       state:
         state === this.database.ORDER_STATE.CANCEL
-          ? "cancelled"
+          ? "canceled"
           : state === this.database.ORDER_STATE.DONE
           ? "done"
           : "waiting",

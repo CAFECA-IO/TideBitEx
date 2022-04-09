@@ -5,6 +5,7 @@ const SafeMath = require("../SafeMath");
 const EventBus = require("../EventBus");
 const Events = require("../../constants/Events");
 const SupportedExchange = require("../../constants/SupportedExchange");
+const { Utils } = require("sequelize/types");
 
 class TibeBitConnector extends ConnectorBase {
   constructor({ logger }) {
@@ -242,8 +243,26 @@ class TibeBitConnector extends ConnectorBase {
     */
     // ++ TODO
     // formatOrder
-    this.logger.debug(`_updateOrder data`, data);
-    EventBus.emit(Events.tideBitOrderOnUpdate, data);
+    const formatOrder = {
+      ordId: data.id,
+      clOrdId: data.id,
+      market: data.market,
+      ordType: data.price === undefined ? "market" : "limit",
+      px: data.price,
+      side: data.kind === "bid" ? "buy" : "sell",
+      sz: Utils.removeZeroEnd(
+        SafeMath.eq(data.volume, "0") ? data.origin_volume : data.volume
+      ),
+      filled: data.volume !== data.origin_volume,
+      state:
+        data.state === "wait"
+          ? "waiting"
+          : SafeMath.eq(data.volume, "0")
+          ? "done"
+          : "canceled",
+    };
+    this.logger.debug(`_updateOrder formatOrder`, formatOrder);
+    EventBus.emit(Events.orderOnUpdate, data);
   }
 
   _updateTrade(data) {

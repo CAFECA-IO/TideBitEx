@@ -199,29 +199,22 @@ class Middleman {
     return updateBooks;
   }
 
-  updateBooks(rawOrder) {
-    // console.log(`updateBooks this.rawBooks`, this.rawBooks);
-    // console.log(`updateBooks rawOrders`, rawOrder);
-    if (rawOrder.instId !== this.selectedTicker.instId) return;
+  updateBooks(data) {
+    console.log(`updateBooks this.rawBooks`, this.rawBooks);
+    console.log(`updateBooks data`, data);
+    if (data.instId !== this.selectedTicker.instId) return;
     const updateRawBooks = {
       asks: this.rawBooks?.asks ? this.rawBooks.asks : [],
       bids: this.rawBooks?.bids ? this.rawBooks.bids : [],
     };
-    // console.log(`updateBooks updateRawBooks`, updateRawBooks);
-
-    // console.log(`updateBooks rawOrders order`, order);
-    rawOrder.asks.forEach((ask) => {
-      // console.log(`updateBooks order.asks.forEach((ask) ask`, ask);
+    data.asks.forEach((ask) => {
       let index,
         updateAsk = ask;
       index = updateRawBooks.asks.findIndex((d) => d[0] === ask[0]);
-      // console.log(`updateBooks updateRawBooks.asks.findIndex`, index);
-      // console.log(`updateBooks updateAsk`, updateAsk);
       if (index === -1) {
         if (SafeMath.gt(ask[1], "0")) {
           updateAsk.push(true);
           updateRawBooks.asks.push(updateAsk);
-          // console.log(`updateBooks updateRawBooks`, updateRawBooks);
         }
       } else {
         if (SafeMath.gt(ask[1], "0")) {
@@ -230,10 +223,9 @@ class Middleman {
             updateRawBooks.asks[index] = updateAsk;
           }
         } else updateRawBooks.asks.splice(index, 1);
-        // console.log(`updateBooks updateRawBooks`, updateRawBooks);
       }
     });
-    rawOrder.bids.forEach((bid) => {
+    data.bids.forEach((bid) => {
       let index,
         updateBid = bid;
       index = updateRawBooks.bids.findIndex((d) => d[0] === bid[0]);
@@ -254,8 +246,9 @@ class Middleman {
       }
     });
     this.rawBooks = updateRawBooks;
-
+    console.log(`updateBooks this.rawBooks`, this.rawBooks);
     this.books = this.handleBooks();
+    console.log(`updateBooks this.books `, this.books);
     return this.books;
   }
 
@@ -385,7 +378,50 @@ class Middleman {
     }
   }
 
-  updateOrders() {}
+  updateOrders(data) {
+    console.log(`updateOrders data`, data);
+    if (data.state === "done") {
+      const index = this.closeOrders.findIndex(
+        (order) => order.ordId === data.ordId
+      );
+      if (index !== -1) {
+        const updateOrder = this.closeOrders[index];
+        this.closeOrders[index] = {
+          ...updateOrder,
+          sz: data.sz,
+          filled: data.filled,
+          state: data.state,
+        };
+      } else {
+        if (
+          data.market.includes(this.selectedTicker.quote_unit) &&
+          data.market.includes(this.selectedTicker.base_unit)
+        ) {
+          this.closeOrders.push({ ...data, cTime: Date.now() });
+        }
+      }
+    } else {
+      const index = this.pendingOrders.findIndex(
+        (order) => order.ordId === data.ordId
+      );
+      if (index !== -1) {
+        const updateOrder = this.pendingOrders[index];
+        this.pendingOrders[index] = {
+          ...updateOrder,
+          sz: data.sz,
+          filled: data.filled,
+          state: data.state,
+        };
+      } else {
+        if (
+          data.market.includes(this.selectedTicker.quote_unit) &&
+          data.market.includes(this.selectedTicker.base_unit)
+        ) {
+          this.pendingOrders.push({ ...data, cTime: Date.now() });
+        }
+      }
+    }
+  }
 
   async getPendingOrders(options) {
     if (this.isLogin) {
@@ -408,6 +444,7 @@ class Middleman {
   }
 
   updateAccounts(data) {
+    console.log(`updateAccounts data`, data);
     if (!this.accounts) return;
     const index = this.accounts?.findIndex(
       (account) => account.ccy === data.ccy

@@ -115,7 +115,7 @@ class OkexConnector extends ConnectorBase {
           return {
             ccy: dtl.ccy,
             totalBal: dtl.cashBal,
-            availBal:  dtl.availBal,
+            availBal: dtl.availBal,
             frozenBal: dtl.frozenBal,
             uTime: parseInt(dtl.uTime),
           };
@@ -481,9 +481,22 @@ class OkexConnector extends ConnectorBase {
 
       const payload = res.data.data.map((data) => {
         return {
-          ...data,
+          instId,
+          clOrdId: data.id,
+          ordId: data.id,
+          ordType: data.ordType,
+          px: data.px,
+          side: data.side,
+          sz: data.sz,
+          filled: data.state === "filled",
+          state:
+            data.state === "canceled"
+              ? "canceled"
+              : state === "filled"
+              ? "done"
+              : "waiting",
+
           cTime: parseInt(data.cTime),
-          fillTime: parseInt(data.fillTime),
           uTime: parseInt(data.uTime),
         };
       });
