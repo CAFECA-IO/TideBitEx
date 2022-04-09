@@ -278,6 +278,7 @@ class TibeBitConnector extends ConnectorBase {
     const formatOrder = {
       ordId: data.id,
       clOrdId: data.id,
+      instId: this.current_instId,
       market: data.market,
       ordType: data.price === undefined ? "market" : "limit",
       px: data.price,

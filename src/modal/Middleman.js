@@ -368,21 +368,27 @@ class Middleman {
 
   updateOrders(data) {
     console.log(`updateOrders data`, data);
+    const updatePendingOrders = [...this.pendingOrders];
+    const updateCloseOrders = [...this.closeOrders];
     console.log(
-      `updateOrders this.selectedTicker`,
-      this.selectedTicker,
-      data.market === this.selectedTicker.id
+      `updateOrders this.pendingOrders[${this.pendingOrders.length}]`,
+      this.pendingOrders
+    );
+    console.log(
+      `updateOrders this.closeOrders[${this.closeOrders.length}]`,
+      this.closeOrders
     );
     if (data.market === this.selectedTicker.id) {
-      const index = this.pendingOrders.findIndex(
+      const index = updatePendingOrders.findIndex(
         (order) => order.ordId === data.ordId
       );
+      console.log(`updateOrders index`, index);
       if (index !== -1) {
         if (data.state !== "waiting") {
-          this.pendingOrders.splice(index, 1);
+          updatePendingOrders.splice(index, 1);
         } else {
-          const updateOrder = this.pendingOrders[index];
-          this.pendingOrders[index] = {
+          const updateOrder = updatePendingOrders[index];
+          updatePendingOrders[index] = {
             ...updateOrder,
             sz: data.sz,
             filled: data.filled,
@@ -390,21 +396,23 @@ class Middleman {
         }
       } else {
         if (data.state === "waiting")
-          this.pendingOrders.push({ ...data, cTime: Date.now() });
-        else this.closeOrders.push({ ...data, cTime: Date.now() });
+          updatePendingOrders.push({ ...data, cTime: Date.now() });
+        else updateCloseOrders.push({ ...data, cTime: Date.now() });
       }
       console.log(
-        `updateOrders this.pendingOrders[${this.pendingOrders.length}]`,
-        this.closeOrders
+        `updateOrders updatePendingOrders[${updatePendingOrders.length}]`,
+        updatePendingOrders
       );
       console.log(
-        `updateOrders this.closeOrders[${this.closeOrders.length}]`,
-        this.closeOrders
+        `updateOrders updateCloseOrders[${updateCloseOrders.length}]`,
+        updateCloseOrders
       );
     }
     return {
-      updatePendingOrders: this.pendingOrders,
-      updateCloseOrders: this.closeOrders,
+      updatePendingOrders: updatePendingOrders.sort(
+        (a, b) => b.cTime - a.cTime
+      ),
+      updateCloseOrders: updateCloseOrders.sort((a, b) => b.cTime - a.cTime),
     };
   }
 
@@ -433,8 +441,10 @@ class Middleman {
     const index = this.accounts?.findIndex(
       (account) => account.ccy === data.ccy
     );
+    console.log(`updateAccounts index`, index);
     if (index !== -1) this.accounts[index] = data;
     else this.accounts.push(data);
+    console.log(`updateAccounts this.selectedTicker`, this.selectedTicker);
     console.log(`updateAccounts this.accounts`, this.accounts);
     return this.account;
   }

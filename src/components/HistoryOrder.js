@@ -195,13 +195,23 @@ const HistoryOrder = (props) => {
             <ul className="order-list">
               {!!storeCtx.accounts?.length &&
                 storeCtx.accounts
-                  .filter(
-                    (balance) =>
+                  .filter((balance) => {
+                    console.log(`[VIEW] balance.ccy`, balance.ccy);
+                    console.log(
+                      `[VIEW] storeCtx.selectedTicker?.base_unit.toUpperCase()`,
+                      storeCtx.selectedTicker?.base_unit.toUpperCase()
+                    );
+                    console.log(
+                      `[VIEW] storeCtx.selectedTicker?.quote_unit.toUpperCase()`,
+                      storeCtx.selectedTicker?.quote_unit.toUpperCase()
+                    );
+                    return (
                       storeCtx.selectedTicker?.base_unit.toUpperCase() ===
                         balance.ccy ||
                       storeCtx.selectedTicker?.quote_unit.toUpperCase() ===
                         balance.ccy
-                  )
+                    );
+                  })
                   .map((balance) => <BalanceTile balance={balance} />)}
             </ul>
           </Tab>
