@@ -327,14 +327,13 @@ const StoreProvider = (props) => {
   const getAccounts = useCallback(
     async (ccy) => {
       await middleman.getAccounts(ccy);
-      if (middleman.accounts) {
+      if (middleman.isLogin) {
         await getToken();
         setIsLogin(true);
         enqueueSnackbar(`User Login`, {
           variant: "success",
         });
       }
-      console.log(`getAccounts middleman.accounts`, middleman.accounts);
       setAccounts(middleman.accounts);
     },
     [enqueueSnackbar, getToken, middleman]

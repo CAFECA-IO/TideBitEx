@@ -403,6 +403,7 @@ class Middleman {
   }
 
   updateAccounts(data) {
+    if (!this.accounts) return;
     const index = this.accounts?.findIndex(
       (account) => account.ccy === data.ccy
     );
@@ -420,7 +421,7 @@ class Middleman {
       return this.accounts;
     } catch (error) {
       this.isLogin = false;
-      this.accounts = [];
+      this.accounts = null;
       return this.accounts;
     }
   }
