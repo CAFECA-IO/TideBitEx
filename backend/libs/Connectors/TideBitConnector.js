@@ -186,7 +186,8 @@ class TibeBitConnector extends ConnectorBase {
     }
     this.books = data;
     const formatBooks = {
-      ...this.books,
+      asks,
+      bids,
       instId,
       ts: Date.now(),
     };

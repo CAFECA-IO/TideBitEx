@@ -386,6 +386,7 @@ class Middleman {
       if (index !== -1) {
         if (data.state !== "waiting") {
           updatePendingOrders.splice(index, 1);
+          updateCloseOrders.push({ ...data, uTime: Date.now() });
         } else {
           const updateOrder = updatePendingOrders[index];
           updatePendingOrders[index] = {
