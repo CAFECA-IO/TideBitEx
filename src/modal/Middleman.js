@@ -10,12 +10,12 @@ class Middleman {
     let _ticker;
     const instrument = this.instruments.find((i) => i.instId === ticker.instId);
     _ticker = { ...ticker, minSz: instrument?.minSz || "0.001" }; // -- TEST for ETH-USDT
-    const quoteBalance = this.accounts.find(
+    const quoteBalance = this.accounts?.find(
       (detail) => detail.ccy === ticker.quote_unit.toUpperCase()
     );
     if (quoteBalance) _ticker.quoteCcyAvailable = quoteBalance.availBal;
     else _ticker.quoteCcyAvailable = 0;
-    const baseBalance = this.accounts.find(
+    const baseBalance = this.accounts?.find(
       (detail) => detail.ccy === ticker.base_unit.toUpperCase()
     );
     if (baseBalance) _ticker.baseCcyAvailable = baseBalance.availBal;

@@ -397,7 +397,7 @@ const TradePannel = (props) => {
         (storeCtx.selectedTicker &&
           storeCtx.selectedTicker.instId !== selectedTicker?.instId))
     ) {
-      let quoteCcyBalance = storeCtx.accounts.find((balance) => {
+      let quoteCcyBalance = storeCtx.accounts?.find((balance) => {
         return balance.ccy === storeCtx.selectedTicker?.quote_unit.toUpperCase();
       });
 
@@ -416,7 +416,7 @@ const TradePannel = (props) => {
           quoteCcyBalance?.availBal
         );
       }
-      let baseCcyBalance = storeCtx.accounts.find(
+      let baseCcyBalance = storeCtx.accounts?.find(
         (balance) => balance.ccy === storeCtx.selectedTicker?.base_unit.toUpperCase()
       );
       if (baseCcyBalance) {
