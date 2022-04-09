@@ -452,7 +452,7 @@ class Middleman {
     } else updateAccounts.push(data);
     console.log(`updateAccounts`, updateAccounts);
     this.accounts = updateAccounts;
-    return this.account;
+    return this.accounts;
   }
 
   async getAccounts() {
