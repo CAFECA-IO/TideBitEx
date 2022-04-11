@@ -190,7 +190,12 @@ class ExchangeHub extends Bot {
     const tbBooks = tbBooksRes.data;
     const asks = [];
     const bids = [];
+    this.logger.log(`tbBooks instId`,tbBooks.nstId.replace("-", "").toLowerCase())
+    this.logger.log(`tbBooks.asks`,tbBooks.asks)
+    this.logger.log(`tbBooks.bids`,tbBooks.bids)
     tbBooks.asks.forEach((ask) => {
+    this.logger.log(`tbBooks ask`,tbBooks.ask)
+
       if (
         ask.market === instId.replace("-", "").toLowerCase() &&
         ask.ord_type === "limit" &&
@@ -205,7 +210,7 @@ class ExchangeHub extends Bot {
           updateAsk[1] = SafeMath.plus(updateAsk[1], ask.remaining_volume);
           asks[index] = updateAsk;
         } else {
-          let newAsk = [ask.price, ask.remaining_volume]; // [價格, volume]
+          let newAsk = [ask.price.toString(), ask.remaining_volume]; // [價格, volume]
           asks.push(newAsk);
         }
       }
@@ -226,7 +231,7 @@ class ExchangeHub extends Bot {
           updateBid[1] = SafeMath.plus(updateBid[1], bid.remaining_volume);
           bids[index] = updateBid;
         } else {
-          let newBid = [bid.price, bid.remaining_volume]; // [價格, volume]
+          let newBid = [bid.price.toString(), bid.remaining_volume]; // [價格, volume]
           bids.push(newBid);
         }
       }

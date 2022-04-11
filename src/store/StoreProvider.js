@@ -499,6 +499,7 @@ const StoreProvider = (props) => {
 
   useEffect(() => {
     start();
+    return () => {middleman.unregiterAll()};
   }, []);
 
   return (

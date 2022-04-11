@@ -50,6 +50,15 @@ class Middleman {
     }
   }
 
+  async unregiterAll(){
+    try {
+      await this.communicator.unregiterAll();
+    } catch (error) {
+      console.error(`unregiterAll error`, error);
+      throw error;
+    }
+  }
+
   updateSelectedTicker(ticker) {
     // console.log(`updateSelectedTicker ticker`, ticker);
     const _ticker = this.updateTicker(ticker);
