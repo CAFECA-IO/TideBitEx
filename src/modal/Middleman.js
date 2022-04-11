@@ -208,6 +208,7 @@ class Middleman {
   }
 
   updateBooks(data) {
+    console.log(`updateBooks data`, data);
     if (data.instId !== this.selectedTicker.instId) return;
     const updateRawBooks = {
       asks: this.rawBooks?.asks ? this.rawBooks.asks : [],
@@ -241,7 +242,7 @@ class Middleman {
     });
     this.rawBooks = updateRawBooks;
     this.books = this.handleBooks();
-    console.log(`update Books`, this.rawBooks);
+    console.log(`updateBooks updateRawBooks`, updateRawBooks);
     return this.books;
   }
 
