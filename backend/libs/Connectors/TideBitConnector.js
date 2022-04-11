@@ -375,9 +375,7 @@ class TibeBitConnector extends ConnectorBase {
       this.private_channel = this.pusher.subscribe(`private-${sn}`);
       this.private_channel.bind("account", (data) => this._updateAccount(data));
       this.private_channel.bind("order", (data) => this._updateOrder(data));
-      this.private_channel.bind("trade", (data) =>
-        this._updateTrade(this.current_instId, data)
-      );
+      this.private_channel.bind("trade", (data) => this._updateTrade(data));
     } catch (error) {
       this.logger.error(`private_channel error`, error);
       throw error;
