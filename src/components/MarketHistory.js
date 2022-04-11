@@ -2,6 +2,7 @@ import React, { useContext } from "react";
 import StoreContext from "../store/store-context";
 import { dateFormatter, formateDecimal } from "../utils/Utils";
 import { useTranslation } from "react-i18next";
+import SafeMath from "../utils/SafeMath";
 
 const TradeTile = (props) => {
   return (
@@ -9,13 +10,18 @@ const TradeTile = (props) => {
       className={`market-history__tile flex-row ${
         props.trade.update ? "update" : ""
       }`}
-      trade-id={props.trade.tradeId}
+      trade-id={props.trade.id}
     >
-      <div>{dateFormatter(parseInt(props.trade.ts), true).time}</div>
-      <div className={props.trade.trend === 0 ? "red" : "green"}>
-        {formateDecimal(props.trade.px, 8)}
+      <div>
+        {
+          dateFormatter(parseInt(SafeMath.mult(props.trade.at, "1000")), true)
+            .time
+        }
       </div>
-      <div>{formateDecimal(props.trade.sz, 8)}</div>
+      <div className={props.trade.side === "down" ? "red" : "green"}>
+        {formateDecimal(props.trade.price, 8)}
+      </div>
+      <div>{formateDecimal(props.trade.volume, 8)}</div>
     </li>
   );
 };
@@ -39,7 +45,7 @@ const MarketHistory = (props) => {
       <ul className="market-history__list">
         {storeCtx.trades &&
           storeCtx.trades.map((trade) => (
-            <TradeTile trade={trade} key={`${trade.instId}-${trade.tradeId}`} />
+            <TradeTile trade={trade} key={`${trade.market}-${trade.id}`} />
           ))}
       </ul>
     </div>

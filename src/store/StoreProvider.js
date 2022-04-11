@@ -302,7 +302,7 @@ const StoreProvider = (props) => {
         // await getPendingOrders();
         // await getAccounts();
         // await getBooks(order.instId);
-        await getTrades(order.instId);
+        // await getTrades(order.instId);
         await getCandles(order.instId);
         // await getTicker(order.instId);
         // await getTickers();
@@ -341,7 +341,7 @@ const StoreProvider = (props) => {
       // getPendingOrders,
       // getTicker,
       getCandles,
-      getTrades,
+      // getTrades,
       middleman,
       token,
     ]
@@ -499,7 +499,9 @@ const StoreProvider = (props) => {
 
   useEffect(() => {
     start();
-    return () => {middleman.unregiterAll()};
+    return () => {
+      middleman.unregiterAll();
+    };
   }, []);
 
   return (

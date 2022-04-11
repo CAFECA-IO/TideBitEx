@@ -198,17 +198,16 @@ class ExchangeHub extends Bot {
         ask.ord_type === "limit" &&
         ask.state === "wait"
       ) {
-        this.logger.log(`tbBooks ask`, ask, ask.price, ask['price']);
         let index;
-        index = asks.findIndex((ask) =>
-          SafeMath.eq(ask[0], ask['price'].toString())
+        index = asks.findIndex((_ask) =>
+          SafeMath.eq(_ask[0], ask.price.toString())
         );
         if (index !== -1) {
           let updateAsk = asks[index];
           updateAsk[1] = SafeMath.plus(updateAsk[1], ask.remaining_volume);
           asks[index] = updateAsk;
         } else {
-          let newAsk = [ask['price'].toString(), ask.remaining_volume]; // [價格, volume]
+          let newAsk = [ask.price.toString(), ask.remaining_volume]; // [價格, volume]
           asks.push(newAsk);
         }
       }
@@ -219,17 +218,16 @@ class ExchangeHub extends Bot {
         bid.ord_type === "limit" &&
         bid.state === "wait"
       ) {
-        this.logger.log(`tbBooks bid`, bid);
         let index;
-        index = bids.findIndex((bid) =>
-          SafeMath.eq(bid[0], bid['price'].toString())
+        index = bids.findIndex((_bid) =>
+          SafeMath.eq(_bid[0], bid.price.toString())
         );
         if (index !== -1) {
           let updateBid = bids[index];
           updateBid[1] = SafeMath.plus(updateBid[1], bid.remaining_volume);
           bids[index] = updateBid;
         } else {
-          let newBid = [bid['price'].toString(), bid.remaining_volume]; // [價格, volume]
+          let newBid = [bid.price.toString(), bid.remaining_volume]; // [價格, volume]
           bids.push(newBid);
         }
       }
@@ -568,7 +566,7 @@ class ExchangeHub extends Bot {
         return this.okexConnector.router("getCandlesticks", { params, query });
       case SupportedExchange.TIDEBIT:
         try {
-          const trades = await this._tbGetTradeHistory({
+          const trades = await this._tbGetTrades({
             instId: query.instId,
             increase: true,
           });
@@ -577,23 +575,23 @@ class ExchangeHub extends Bot {
           let interval;
           switch (query.bar) {
             case "1m":
-              interval = 1 * 60 * 1000;
+              interval = 1 * 60;
               break;
             case "30m":
-              interval = 30 * 60 * 1000;
+              interval = 30 * 60;
               break;
             case "1H":
-              interval = 60 * 60 * 1000;
+              interval = 60 * 60;
               break;
             case "1W":
-              interval = 7 * 24 * 60 * 60 * 1000;
+              interval = 7 * 24 * 60 * 60;
               break;
             case "M":
-              interval = 30 * 24 * 60 * 60 * 1000;
+              interval = 30 * 24 * 60 * 60;
               break;
             case "1D":
             default:
-              interval = 24 * 60 * 60 * 1000;
+              interval = 24 * 60 * 60;
           }
           let candles;
           const now = Math.floor(new Date().getTime() / interval);
@@ -603,23 +601,23 @@ class ExchangeHub extends Bot {
             defaultObj[now - i] = [(now - i) * interval, 0, 0, 0, 0, 0, 0];
           }
           candles = trades.reduce((prev, curr) => {
-            const index = Math.floor(curr.ts / interval);
+            const index = Math.floor(curr.at / interval);
             let point = prev[index];
             if (point) {
-              point[2] = Math.max(point[2], +curr.px);
-              point[3] = Math.min(point[3], +curr.px);
-              point[4] = +curr.px;
-              point[5] += +curr.sz;
-              point[6] += +curr.sz * +curr.px;
+              point[2] = Math.max(point[2], +curr.price);
+              point[3] = Math.min(point[3], +curr.price);
+              point[4] = +curr.price;
+              point[5] += +curr.volume;
+              point[6] += +curr.volume * +curr.price;
             } else {
               point = [
                 index * interval,
-                +curr.px,
-                +curr.px,
-                +curr.px,
-                +curr.px,
-                +curr.sz,
-                +curr.sz * +curr.px,
+                +curr.price,
+                +curr.price,
+                +curr.price,
+                +curr.price,
+                +curr.volume,
+                +curr.volume * +curr.price,
               ];
             }
             prev[index] = point;
@@ -651,7 +649,7 @@ class ExchangeHub extends Bot {
         return this.okexConnector.router("getTrades", { params, query });
       case SupportedExchange.TIDEBIT:
         try {
-          const trades = await this._tbGetTradeHistory({
+          const trades = await this._tbGetTrades({
             instId: query.instId,
           });
           return new ResponseFormat({
@@ -823,38 +821,67 @@ class ExchangeHub extends Bot {
         });
     }
   }
-  async _tbGetTradeHistory({ instId, increase }) {
-    const market = this._findMarket(instId);
-    if (!market) {
-      throw new Error(`this.tidebitMarkets.instId ${instId} not found.`);
-    }
-    const { id: quoteCcy } = await this.database.getCurrencyByKey(
-      market.quote_unit
+  async _tbGetTrades({ instId, increase }) {
+    /**
+    [
+      {
+        "id": 48,
+        "price": "110.0",
+        "volume": "54.593",
+        "funds": "6005.263",
+        "market": "ethhkd",
+        "created_at": "2022-04-01T09:40:21Z",
+        "at": 1648806021,
+        "side": "down"
+      },
+    ]
+    */
+    const tbTradesRes = await axios.get(
+      `${this.config.peatio.domain}/api/v2/trades?market=${instId
+        .replace("-", "")
+        .toLowerCase()}`
     );
-    const { id: baseCcy } = await this.database.getCurrencyByKey(
-      market.base_unit
+    if (!tbTradesRes || !tbTradesRes.data) {
+      return new ResponseFormat({
+        message: "Something went wrong",
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+    const tbTrades = tbTradesRes.data.sort((a, b) =>
+      increase ? a.at - b.at : b.at - a.at
     );
-    if (!quoteCcy) {
-      throw new Error(`quoteCcy not found`);
-    }
-    if (!baseCcy) {
-      throw new Error(`baseCcy not found`);
-    }
-    let trades;
-    trades = await this.database.getTrades(quoteCcy, baseCcy);
-    const tradeHistory = trades
-      .map((trade) => ({
-        ordId: trade.order_id,
-        instId: instId,
-        side: "",
-        amount: trade.volume,
-        price: trade.price,
-        tid: trade.id,
-        trend: trade.trend,
-        date: new Date(trade.created_at).getTime(),
-      }))
-      .sort((a, b) => (increase ? a.ts - b.ts : b.ts - a.ts));
-    return tradeHistory;
+    // .map((trade) => ({ ...trade, instId }));
+    return tbTrades;
+    // const market = this._findMarket(instId);
+    // if (!market) {
+    //   throw new Error(`this.tidebitMarkets.instId ${instId} not found.`);
+    // }
+    // const { id: quoteCcy } = await this.database.getCurrencyByKey(
+    //   market.quote_unit
+    // );
+    // const { id: baseCcy } = await this.database.getCurrencyByKey(
+    //   market.base_unit
+    // );
+    // if (!quoteCcy) {
+    //   throw new Error(`quoteCcy not found`);
+    // }
+    // if (!baseCcy) {
+    //   throw new Error(`baseCcy not found`);
+    // }
+    // let trades;
+    // trades = await this.database.getTrades(quoteCcy, baseCcy);
+    // const tradeHistory = trades
+    //   .map((trade) => ({
+    //     ordId: trade.order_id,
+    //     instId: instId,
+    //     side: "",
+    //     amount: trade.volume,
+    //     price: trade.price,
+    //     tid: trade.id,
+    //     trend: trade.trend,
+    //     date: new Date(trade.created_at).getTime(),
+    //   }))
+    //   .sort((a, b) => (increase ? a.ts - b.ts : b.ts - a.ts));
   }
 
   async _tbGetOrderList({ memberId, instId, state, orderType }) {

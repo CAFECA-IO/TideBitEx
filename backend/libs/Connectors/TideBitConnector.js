@@ -339,11 +339,16 @@ class TibeBitConnector extends ConnectorBase {
     // ++ TODO
     // formatTrade
     const formatTrade = {
-      ...data,
-      date: parseInt(SafeMath(data.date.toString(), "1000")),
+      id: data.tid,
+      price: data.price,
+      volume: data.amount,
+      market: data.market,
+      created_at: "2022-04-01T09:40:21Z",
+      type: data.type,
+      at: data.date,
     };
-    this.logger.debug(`_updateTrade data`, data);
-    EventBus.emit(Events.tradeOnUpdate, data);
+    this.logger.debug(`_updateTrade formatTrade`, formatTrade);
+    EventBus.emit(Events.tradeOnUpdate, formatTrade);
   }
 
   async registerPrivateChannel({ header, sn }) {
