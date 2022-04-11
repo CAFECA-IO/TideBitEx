@@ -228,8 +228,6 @@ class ExchangeHub extends Bot {
       }
     });
     const books = { asks, bids, ts: new Date().toISOString() };
-    this.logger.log(`_tbOrderBooks tbBooks`, tbBooks);
-    this.logger.log(`_tbOrderBooks books`, books);
     return books;
   }
 
@@ -518,6 +516,7 @@ class ExchangeHub extends Bot {
         // }
         try {
           const books = await this._tbOrderBooks(query.instId);
+          this.logger.log(`getOrderBooks books`, books);
           return new ResponseFormat({
             message: "getOrderBooks",
             payload: books,
