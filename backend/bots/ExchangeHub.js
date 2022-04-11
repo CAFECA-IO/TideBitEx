@@ -61,6 +61,7 @@ class ExchangeHub extends Bot {
     return this;
   }
 
+
   getTidebitMarkets() {
     try {
       const p = path.join(
@@ -295,6 +296,24 @@ class ExchangeHub extends Bot {
     });
     // this.logger.debug(`formatTBTickers`, formatTBTickers);
     return formatTBTickers;
+  }
+
+  async unregiterAll(){
+    try {
+      this.tideBitConnector.unregiterAll();
+      this.logger.debug(`++++++++++++++`);
+      this.logger.debug(`unregiterAll`);
+      this.logger.debug(`++++++++++++++`);
+      return new ResponseFormat({
+        message: `unregiterAll`,
+        code: Codes.SUCCESS,
+      });
+    } catch (error) {
+      return new ResponseFormat({
+        message: error.message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
   }
 
   async registerGlobalChannel({ header }) {

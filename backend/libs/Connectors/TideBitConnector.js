@@ -332,10 +332,8 @@ class TibeBitConnector extends ConnectorBase {
     if (!this.start) this._start({ header });
     try {
       if (this.current_user) {
-        this.pusher.unsubscribe(`private-${sn}`);
-        this.private_channel.unbind("account");
-        this.private_channel.unbind("order");
-        this.private_channel.unbind("trade");
+        this.private_channel?.unbind();
+        this.pusher.unsubscribe(`private-${this.current_user}`);
       }
 
       this.current_user = sn;
@@ -345,6 +343,22 @@ class TibeBitConnector extends ConnectorBase {
       this.private_channel.bind("trade", (data) => this._updateTrade(data));
     } catch (error) {
       this.logger.error(`private_channel error`, error);
+      throw error;
+    }
+  }
+
+  unregiterAll() {
+    try {
+      this.global_channel?.unbind();
+      this.market_channel?.unbind();
+      this.private_channel?.unbind();
+      this.pusher.unsubscribe("market-global");
+      this.pusher.unsubscribe(
+        `market-${this.current_instId.replace("-", "").toLowerCase()}-global`
+      );
+      this.pusher.unsubscribe(`private-${this.current_user}`);
+    } catch (error) {
+      this.logger.error(`registerGlobalChannel error`, error);
       throw error;
     }
   }
@@ -363,12 +377,12 @@ class TibeBitConnector extends ConnectorBase {
     );
   }
 
-  _unregisterMarketChannel(instId) {
+  _unregisterMarketChannel() {
     if (!this.start) return;
     this.market_channel.unbind(`update`);
     this.market_channel.unbind(`trades`);
     this.pusher.unsubscribe(
-      `market-${instId.replace("-", "").toLowerCase()}-global`
+      `market-${this.current_instId.replace("-", "").toLowerCase()}-global`
     );
     this.market_channel = null;
   }

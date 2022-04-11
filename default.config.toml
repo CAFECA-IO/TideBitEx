@@ -66,7 +66,7 @@ pathname = [
 
 
   # tidebit - pusher
-  "get | /api/v1/pusher/unregister | Bot.ExchangeHub.unregiterAll",
+  "get | /api/v1/pusher/unregister-all | Bot.ExchangeHub.unregiterAll",
   "get | /api/v1/pusher/register-global-channel | Bot.ExchangeHub.registerGlobalChannel",
   "get | /api/v1/pusher/register-market-channel | Bot.ExchangeHub.registerMarketChannel",
   "post | /api/v1/pusher/register-private-channel | Bot.ExchangeHub.registerPrivateChannel",

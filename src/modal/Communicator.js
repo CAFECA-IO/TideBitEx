@@ -89,6 +89,18 @@ class Communicator {
     }
   }
 
+  async unregiterAll() {
+    try {
+      const res = await this._get(`/pusher/unregister-all`);
+      if (res.success) {
+        return res.data;
+      }
+      return Promise.reject({ message: res.message, code: res.code });
+    } catch (error) {
+      return Promise.reject({ message: error });
+    }
+  }
+
 
   async registerMarketChannel(instId) {
     try {
