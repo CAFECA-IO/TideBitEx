@@ -303,7 +303,7 @@ const StoreProvider = (props) => {
         // await getAccounts();
         // await getBooks(order.instId);
         // await getTrades(order.instId);
-        await getCandles(order.instId);
+        // await getCandles(order.instId);
         // await getTicker(order.instId);
         // await getTickers();
         // return result;
@@ -340,7 +340,7 @@ const StoreProvider = (props) => {
       // getCloseOrders,
       // getPendingOrders,
       // getTicker,
-      getCandles,
+      // getCandles,
       // getTrades,
       middleman,
       token,
@@ -444,6 +444,7 @@ const StoreProvider = (props) => {
                 tradeTimestamp = _tradeTimestamp;
                 setTrades(updateTrades);
                 middleman.resetTrades();
+                if (selectedTicker.source === "TideBit") getCandles();
               }
               break;
             case "orderBooksOnUpdate":

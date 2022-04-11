@@ -611,7 +611,7 @@ class ExchangeHub extends Bot {
               point[6] += +curr.volume * +curr.price;
             } else {
               point = [
-                index * interval,
+                index * interval * 1000,
                 +curr.price,
                 +curr.price,
                 +curr.price,
