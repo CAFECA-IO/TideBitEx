@@ -197,7 +197,9 @@ class ExchangeHub extends Bot {
         ask.state === "wait"
       ) {
         let index;
-        index = asks.findIndex((ask) => SafeMath.eq(ask[0], ask.price));
+        index = asks.findIndex((ask) =>
+          SafeMath.eq(ask[0], ask.price.toString())
+        );
         if (index !== -1) {
           let updateAsk = asks[index];
           updateAsk[1] = SafeMath.plus(updateAsk[1], ask.remaining_volume);
@@ -216,7 +218,9 @@ class ExchangeHub extends Bot {
         bid.state === "wait"
       ) {
         let index;
-        index = bids.findIndex((bid) => SafeMath.eq(bid[0], bid.price));
+        index = bids.findIndex((bid) =>
+          SafeMath.eq(bid[0], bid.price.toString())
+        );
         if (index !== -1) {
           let updateBid = bids[index];
           updateBid[1] = SafeMath.plus(updateBid[1], bid.remaining_volume);
