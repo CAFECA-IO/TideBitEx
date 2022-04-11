@@ -210,19 +210,19 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async getOrderBooks({ header, instId }) {
-    this.logger.log(`getOrderBooks this.pusher`, this.pusher);
     if (!this.start) this._start({ header });
-    const response = await this.pusher.get({
-      path: `${this.peatio}/channels/market-${instId
+    const response = await axios({
+      method: "GET",
+      url: `${this.peatio}/apps/${this.app}/channels/market-${instId
         .replace("-", "")
         .toLowerCase()}-global`,
+      headers: header,
     });
-    if (response.status === 200) {
-      const body = await response.json();
-      const channelsInfo = body.channels;
-      this.logger.log(`getOrderBooks response`, response);
-      this.logger.log(`getOrderBooks channelsInfo`, channelsInfo);
-    }
+    // if (response.status === 200) {
+    // const body = await response.json();
+    // const channelsInfo = body.channels;
+    this.logger.log(`getOrderBooks response`, response);
+    // }
   }
 
   registerMarketChannel({ header, instId }) {
