@@ -152,7 +152,8 @@ class TibeBitConnector extends ConnectorBase {
         ]
     }
     */
-    if (data.asks.length === 0 || data.bids.length === 0) return;
+   if (data.asks.length === 0 || data.bids.length === 0) return;
+   this.logger.debug(`_updateBooks data`, data);
     let index,
       asks = [],
       bids = [];
