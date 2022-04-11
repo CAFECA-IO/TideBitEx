@@ -209,7 +209,9 @@ class TibeBitConnector extends ConnectorBase {
     EventBus.emit(Events.tideBitTradesOnUpdate, instId, formatTrades);
   }
 
-  async getOrderBooks(instId) {
+  async getOrderBooks({ header, instId }) {
+    this.logger.log(`getOrderBooks this.pusher`, this.pusher);
+    if (!this.start) this._start({ header });
     const response = await this.pusher.get({
       path: `${this.peatio}/channels/market-${instId
         .replace("-", "")

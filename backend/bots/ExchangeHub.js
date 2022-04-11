@@ -406,7 +406,7 @@ class ExchangeHub extends Bot {
     });
   }
 
-  async getOrderBooks({ params, query }) {
+  async getOrderBooks({ header, params, query }) {
     switch (this._findSource(query.instId)) {
       case SupportedExchange.OKEX:
         return this.okexConnector.router("getOrderBooks", { params, query });
@@ -459,9 +459,10 @@ class ExchangeHub extends Bot {
         //   });
         // }
         try {
-          const orders = await this.tideBitConnector.getOrderBooks(
-            query.instId
-          );
+          const orders = await this.tideBitConnector.getOrderBooks({
+            header,
+            instId: query.instId,
+          });
           return new ResponseFormat({
             message: "getOrderList",
             payload: [],
