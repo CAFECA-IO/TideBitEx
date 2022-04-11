@@ -175,6 +175,22 @@ class ExchangeHub extends Bot {
     // return this.okexConnector.router('getBalance', { memberId: null, params, query });
   }
 
+  async _tbOrderBooks(instId) {
+    const tbBooksRes = await axios.get(
+      `${this.config.peatio.domain}/api/v2/order_book?market=${instId
+        .replace("-", "")
+        .toLowerCase()}`
+    );
+    if (!tbBooksRes || !tbBooksRes.data) {
+      return new ResponseFormat({
+        message: "Something went wrong",
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+    const tbBooks = tbBooksRes.data;
+    this.logger.log(`tbBooks`, tbBooks);
+  }
+
   async _tbGetTickers({ list }) {
     const tideBitOnlyMarkets = Utils.marketFilterExclude(
       list,
@@ -459,10 +475,7 @@ class ExchangeHub extends Bot {
         //   });
         // }
         try {
-          const orders = await this.tideBitConnector.getOrderBooks({
-            header,
-            instId: query.instId,
-          });
+          const orders = await this._tbOrderBooks(query.instId);
           return new ResponseFormat({
             message: "getOrderList",
             payload: [],

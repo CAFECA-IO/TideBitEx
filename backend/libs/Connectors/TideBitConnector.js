@@ -211,6 +211,11 @@ class TibeBitConnector extends ConnectorBase {
 
   async getOrderBooks({ header, instId }) {
     if (!this.start) this._start({ header });
+    // const response = await this.pusher.get({
+    //   path: `${this.peatio}/channels/market-${instId
+    //     .replace("-", "")
+    //     .toLowerCase()}-global`,
+    // });
     const response = await axios({
       method: "GET",
       url: `${this.peatio}/apps/${this.app}/channels/market-${instId
@@ -218,11 +223,12 @@ class TibeBitConnector extends ConnectorBase {
         .toLowerCase()}-global`,
       headers: header,
     });
-    // if (response.status === 200) {
-    // const body = await response.json();
-    // const channelsInfo = body.channels;
-    this.logger.log(`getOrderBooks response`, response);
-    // }
+    if (response.status === 200) {
+      const body = await response.json();
+      const channelsInfo = body.channels;
+      this.logger.log(`getOrderBooks response`, response);
+      this.logger.log(`getOrderBooks channelsInfo`, channelsInfo);
+    }
   }
 
   registerMarketChannel({ header, instId }) {
