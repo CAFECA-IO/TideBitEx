@@ -575,23 +575,23 @@ class ExchangeHub extends Bot {
           let interval;
           switch (query.bar) {
             case "1m":
-              interval = 1 * 60;
+              interval = 1 * 60 * 1000;
               break;
             case "30m":
-              interval = 30 * 60;
+              interval = 30 * 60 * 1000;
               break;
             case "1H":
-              interval = 60 * 60;
+              interval = 60 * 60 * 1000;
               break;
             case "1W":
-              interval = 7 * 24 * 60 * 60;
+              interval = 7 * 24 * 60 * 60 * 1000;
               break;
             case "M":
-              interval = 30 * 24 * 60 * 60;
+              interval = 30 * 24 * 60 * 60 * 1000;
               break;
             case "1D":
             default:
-              interval = 24 * 60 * 60;
+              interval = 24 * 60 * 60 * 1000;
           }
           let candles;
           const now = Math.floor(new Date().getTime() / interval);
@@ -601,7 +601,7 @@ class ExchangeHub extends Bot {
             defaultObj[now - i] = [(now - i) * interval, 0, 0, 0, 0, 0, 0];
           }
           candles = trades.reduce((prev, curr) => {
-            const index = Math.floor(curr.at / interval);
+            const index = Math.floor((curr.at * 1000) / interval);
             let point = prev[index];
             if (point) {
               point[2] = Math.max(point[2], +curr.price);
@@ -611,7 +611,7 @@ class ExchangeHub extends Bot {
               point[6] += +curr.volume * +curr.price;
             } else {
               point = [
-                index * interval * 1000,
+                index * interval,
                 +curr.price,
                 +curr.price,
                 +curr.price,
