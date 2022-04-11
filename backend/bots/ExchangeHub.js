@@ -191,7 +191,7 @@ class ExchangeHub extends Bot {
     const tbBooks = tbBooksRes.data;
     const asks = [];
     const bids = [];
-    this.logger.log(`tbBooks instId`,tbBooks.nstId.replace("-", "").toLowerCase())
+    this.logger.log(`tbBooks instId`,instId.replace("-", "").toLowerCase())
     this.logger.log(`tbBooks.asks`,tbBooks.asks)
     this.logger.log(`tbBooks.bids`,tbBooks.bids)
     tbBooks.asks.forEach((ask) => {

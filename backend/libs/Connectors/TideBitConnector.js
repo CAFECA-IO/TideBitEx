@@ -322,6 +322,20 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _updateTrade(data) {
+    /**
+    {
+      trades: [
+        amount: "0.07"
+        classes: "new"
+        date: 1649665223 (s)
+        escape: ƒ (e)
+        price: "0.2769"
+        safe: undefined
+        tid: 31841859
+        type: "buy"
+      ]
+    }
+    */
     // ++ TODO
     // formatTrade
     this.logger.debug(`_updateTrade data`, data);
