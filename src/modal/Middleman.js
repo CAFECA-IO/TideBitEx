@@ -271,9 +271,11 @@ class Middleman {
         ...trade,
         side:
           i === updateData.length - 1
-            ? SafeMath.gte(trade.price, this.trades[0].price)
-              ? "up"
-              : "down"
+            ? !this.trades[0]
+              ? SafeMath.gte(trade.price, this.trades[0].price)
+                ? "up"
+                : "down"
+              : "up"
             : SafeMath.gte(trade.px, updateData[i + 1].px)
             ? "up"
             : "down",
