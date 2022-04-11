@@ -196,17 +196,35 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _updateTrades(instId, data) {
-    // ++ TODO
-    // formatTrade
-    /**
-     */
-    const formatTrades = {
-      instId,
-      trades: data,
-      ts: Date.now(),
-    };
+     /**
+    {
+      trades: [
+        amount: "0.07"
+        classes: "new"
+        date: 1649665223 (s)
+        escape: ƒ (e)
+        price: "0.2769"
+        safe: undefined
+        tid: 31841859
+        type: "buy"
+      ]
+    }
+    */
+    const formatTrades = data
+      .map((t) => ({
+        instId,
+        id: t.tid,
+        price: t.price,
+        volume: t.amount,
+        market: t.market,
+        type: t.type,
+        at: t.date,
+        side: t.type === "sell" ? "down" : "up",
+      }))
+      .sort((a, b) => b.at - a.at);
+    this.logger.debug(`_updateTrade formatTrade`, formatTrades);
     this.logger.debug(`_updateTrades data`, data);
-    EventBus.emit(Events.tideBitTradesOnUpdate, instId, formatTrades);
+    EventBus.emit(Events.tradesOnUpdate, instId, formatTrades);
   }
 
   async getOrderBooks({ header, instId }) {
@@ -322,35 +340,8 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _updateTrade(data) {
-    /**
-    {
-      trades: [
-        amount: "0.07"
-        classes: "new"
-        date: 1649665223 (s)
-        escape: ƒ (e)
-        price: "0.2769"
-        safe: undefined
-        tid: 31841859
-        type: "buy"
-      ]
-    }
-    */
-    // ++ TODO
-    // formatTrade
-    const formatTrades = data
-      .map((t) => ({
-        id: t.tid,
-        price: t.price,
-        volume: t.amount,
-        market: t.market,
-        type: t.type,
-        at: t.date,
-        side: t.type === "sell" ? "down" : "up",
-      }))
-      .sort((a, b) => b.at - a.at);
-    this.logger.debug(`_updateTrade formatTrade`, formatTrades);
-    EventBus.emit(Events.tradeOnUpdate, formatTrades);
+    this.logger.debug(`_updateTrade formatTrade`, data);
+    EventBus.emit(Events.tradeOnUpdate, data);
   }
 
   async registerPrivateChannel({ header, sn }) {

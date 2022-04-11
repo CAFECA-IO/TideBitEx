@@ -50,7 +50,7 @@ class Middleman {
     }
   }
 
-  async unregiterAll(){
+  async unregiterAll() {
     try {
       await this.communicator.unregiterAll();
     } catch (error) {
@@ -261,7 +261,7 @@ class Middleman {
       .filter(
         (trade) =>
           trade.instId === this.selectedTicker.instId &&
-          this.trades.findIndex((t) => t.tradeId === trade.tradeId) === -1
+          this.trades.findIndex((t) => t.id === trade.id) === -1
       )
       .map((trade) => ({
         ...trade,
