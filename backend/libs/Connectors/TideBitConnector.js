@@ -191,7 +191,7 @@ class TibeBitConnector extends ConnectorBase {
       instId,
       ts: Date.now(),
     };
-    // this.logger.debug(`_updateBooks formatBooks`, formatBooks);
+    this.logger.debug(`_updateBooks formatBooks`, formatBooks);
     EventBus.emit(Events.orderBooksOnUpdate, instId, formatBooks);
   }
 
@@ -222,8 +222,7 @@ class TibeBitConnector extends ConnectorBase {
         side: t.type === "sell" ? "down" : "up",
       }))
       .sort((a, b) => b.at - a.at);
-    this.logger.debug(`_updateTrade formatTrade`, formatTrades);
-    this.logger.debug(`_updateTrades data`, data);
+    this.logger.debug(`_updateTrade formatTrades`, formatTrades);
     EventBus.emit(Events.tradesOnUpdate, instId, formatTrades);
   }
 

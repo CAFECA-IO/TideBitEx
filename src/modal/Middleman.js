@@ -241,6 +241,7 @@ class Middleman {
     });
     this.rawBooks = updateRawBooks;
     this.books = this.handleBooks();
+    console.log(`update Books`, this.rawBooks);
     return this.books;
   }
 
@@ -257,6 +258,8 @@ class Middleman {
   }
 
   updateTrades = (updateData) => {
+    console.log(`updateTrades updateData`, updateData);
+    console.log(`updateTrades this.trades`, this.trades);
     const _updateTrades = updateData
       .filter(
         (trade) =>
