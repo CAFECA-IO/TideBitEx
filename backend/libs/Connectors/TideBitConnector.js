@@ -192,7 +192,8 @@ class TibeBitConnector extends ConnectorBase {
       ts: Date.now(),
     };
     this.logger.debug(`_updateBooks formatBooks`, formatBooks);
-    EventBus.emit(Events.orderBooksOnUpdate, instId, formatBooks);
+    if (asks.length > 0 || bids.length > 0)
+      EventBus.emit(Events.orderBooksOnUpdate, instId, formatBooks);
   }
 
   _updateTrades(instId, data) {
