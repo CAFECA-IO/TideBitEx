@@ -267,8 +267,16 @@ class Middleman {
           trade.instId === this.selectedTicker.instId &&
           this.trades.findIndex((t) => t.id === trade.id) === -1
       )
-      .map((trade) => ({
+      .map((trade, i) => ({
         ...trade,
+        side:
+          i === updateData.length - 1
+            ? SafeMath.gte(trade.price, this.trades[0].price)
+              ? "up"
+              : "down"
+            : SafeMath.gte(trade.px, updateData[i + 1].px)
+            ? "up"
+            : "down",
         update: true,
       }))
       .concat(this.trades || []);

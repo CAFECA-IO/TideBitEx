@@ -211,7 +211,7 @@ class TibeBitConnector extends ConnectorBase {
       ]
     }
     */
-    const formatTrades = data
+    const formatTrades = data.trades
       .map((t) => ({
         instId,
         id: t.tid,
@@ -350,13 +350,11 @@ class TibeBitConnector extends ConnectorBase {
     }*/
     const formatTrade = {
       instId: this.current_instId,
-      id: data.tid,
+      id: data.id,
       price: data.price,
-      volume: data.amount,
+      volume: data.volume,
       market: data.market,
-      type: data.type,
-      at: data.date,
-      side: data.type === "sell" ? "down" : "up",
+      at: data.at,
     };
     this.logger.debug(`_updateTrade data`, data);
     this.logger.debug(`_updateTrade formatTrade`, formatTrade);
