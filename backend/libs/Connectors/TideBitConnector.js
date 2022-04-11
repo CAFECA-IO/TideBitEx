@@ -196,7 +196,7 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _updateTrades(instId, data) {
-     /**
+    /**
     {
       trades: [
         amount: "0.07"
@@ -339,8 +339,17 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _updateTrade(data) {
+    /**  {
+    at: 1649675739
+    id: 6
+    kind: "ask"
+    market: "ethhkd"
+    price: "105.0"
+    volume: "0.1"
+    }*/
+
     this.logger.debug(`_updateTrade formatTrade`, data);
-    EventBus.emit(Events.tradeOnUpdate, data);
+    // EventBus.emit(Events.tradeOnUpdate, data);
   }
 
   async registerPrivateChannel({ header, sn }) {
@@ -355,7 +364,9 @@ class TibeBitConnector extends ConnectorBase {
       this.private_channel = this.pusher.subscribe(`private-${sn}`);
       this.private_channel.bind("account", (data) => this._updateAccount(data));
       this.private_channel.bind("order", (data) => this._updateOrder(data));
-      this.private_channel.bind("trade", (data) => this._updateTrade(data));
+      this.private_channel.bind("trade", (data) =>
+        this._updateTrades(this.current_instId, [data])
+      );
     } catch (error) {
       this.logger.error(`private_channel error`, error);
       throw error;
