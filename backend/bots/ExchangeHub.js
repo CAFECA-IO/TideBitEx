@@ -61,7 +61,6 @@ class ExchangeHub extends Bot {
     return this;
   }
 
-
   getTidebitMarkets() {
     try {
       const p = path.join(
@@ -191,17 +190,15 @@ class ExchangeHub extends Bot {
     const tbBooks = tbBooksRes.data;
     const asks = [];
     const bids = [];
-    this.logger.log(`tbBooks instId`,instId.replace("-", "").toLowerCase())
-    this.logger.log(`tbBooks.asks`,tbBooks.asks)
-    this.logger.log(`tbBooks.bids`,tbBooks.bids)
-    tbBooks.asks.forEach((ask) => {
-    this.logger.log(`tbBooks ask`,tbBooks.ask)
+    this.logger.log(`tbBooks instId`, instId.replace("-", "").toLowerCase());
 
+    tbBooks.asks.forEach((ask) => {
       if (
         ask.market === instId.replace("-", "").toLowerCase() &&
         ask.ord_type === "limit" &&
         ask.state === "wait"
       ) {
+        this.logger.log(`tbBooks ask`, ask);
         let index;
         index = asks.findIndex((ask) =>
           SafeMath.eq(ask[0], ask.price.toString())
@@ -216,13 +213,13 @@ class ExchangeHub extends Bot {
         }
       }
     });
-
     tbBooks.bids.forEach((bid) => {
       if (
         bid.market === instId.replace("-", "").toLowerCase() &&
         bid.ord_type === "limit" &&
         bid.state === "wait"
       ) {
+        this.logger.log(`tbBooks bid`, bid);
         let index;
         index = bids.findIndex((bid) =>
           SafeMath.eq(bid[0], bid.price.toString())
@@ -298,7 +295,7 @@ class ExchangeHub extends Bot {
     return formatTBTickers;
   }
 
-  async unregiterAll(){
+  async unregiterAll() {
     try {
       this.tideBitConnector.unregiterAll();
       this.logger.debug(`++++++++++++++`);
