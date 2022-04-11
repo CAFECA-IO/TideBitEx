@@ -188,7 +188,49 @@ class ExchangeHub extends Bot {
       });
     }
     const tbBooks = tbBooksRes.data;
-    this.logger.log(`tbBooks`, tbBooks);
+    const asks = [];
+    const bids = [];
+    tbBooks.asks.forEach((ask) => {
+      if (
+        ask.market === instId.replace("-", "").toLowerCase() &&
+        ask.ord_type === "limit" &&
+        ask.state === "wait"
+      ) {
+        let index;
+        index = asks.findIndex((ask) => ask[0] === ask.price);
+        if (index !== -1) {
+          let updateAsk = asks[index];
+          updateAsk[1] = SafeMath.plus(updateAsk[1], ask.remaining_volume);
+          asks[index] = updateAsk;
+        } else {
+          let newAsk = [ask.price, ask.remaining_volume]; // [價格, volume]
+          asks.push(newAsk);
+        }
+      }
+    });
+
+    tbBooks.bids.forEach((bid) => {
+      if (
+        bid.market === instId.replace("-", "").toLowerCase() &&
+        bid.ord_type === "limit" &&
+        bid.state === "wait"
+      ) {
+        let index;
+        index = bids.findIndex((bid) => bid[0] === bid.price);
+        if (index !== -1) {
+          let updateBid = bids[index];
+          updateBid[1] = SafeMath.plus(updateBid[1], bid.remaining_volume);
+          bids[index] = updateBid;
+        } else {
+          let newBid = [bid.price, bid.remaining_volume]; // [價格, volume]
+          bids.push(newBid);
+        }
+      }
+    });
+    const books = { asks, bids, ts: new Date().toISOString() };
+    this.logger.log(`_tbOrderBooks tbBooks`, tbBooks);
+    this.logger.log(`_tbOrderBooks books`, books);
+    return books;
   }
 
   async _tbGetTickers({ list }) {
@@ -475,10 +517,10 @@ class ExchangeHub extends Bot {
         //   });
         // }
         try {
-          const orders = await this._tbOrderBooks(query.instId);
+          const books = await this._tbOrderBooks(query.instId);
           return new ResponseFormat({
-            message: "getOrderList",
-            payload: [],
+            message: "getOrderBooks",
+            payload: books,
           });
         } catch (error) {
           this.logger.error(error);
@@ -491,7 +533,7 @@ class ExchangeHub extends Bot {
       default:
         return new ResponseFormat({
           message: "getOrderBooks",
-          payload: [{}],
+          payload: {},
         });
     }
   }
