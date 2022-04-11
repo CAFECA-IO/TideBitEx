@@ -197,12 +197,12 @@ const StoreProvider = (props) => {
         history.push({
           pathname: `/markets/${ticker.instId.replace("-", "").toLowerCase()}`,
         });
-        await registerMarketChannel(ticker.instId);
         await getBooks(ticker.instId);
         await getTrades(ticker.instId);
         await getCandles(ticker.instId, selectedBar);
         await getPendingOrders();
         await getCloseOrders();
+        await registerMarketChannel(ticker.instId);
         wsClient.send(
           JSON.stringify({
             op: "switchTradingPair",
