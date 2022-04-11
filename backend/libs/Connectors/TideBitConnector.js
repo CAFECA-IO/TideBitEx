@@ -152,12 +152,13 @@ class TibeBitConnector extends ConnectorBase {
         ]
     }
     */
-    if (data.asks.length === 0 || data.bids.length === 0) return;
+   if (data.asks.length === 0 || data.bids.length === 0) return;
+   this.logger.debug(`_updateBooks data`, data);
     let index,
       asks = [],
       bids = [];
-    this.logger.debug(`_updateBooks data`, data);
-    this.logger.debug(`_updateBooks this.books`, this.books);
+    // this.logger.debug(`_updateBooks data`, data);
+    // this.logger.debug(`_updateBooks this.books`, this.books);
     if (this.books) {
       this.books.asks.forEach((ask) => {
         index = data.asks.findIndex((_ask) => _ask[0] === ask[0]);
@@ -192,21 +193,61 @@ class TibeBitConnector extends ConnectorBase {
       ts: Date.now(),
     };
     this.logger.debug(`_updateBooks formatBooks`, formatBooks);
-    EventBus.emit(Events.orderBooksOnUpdate, instId, formatBooks);
+    // if (asks.length > 0 || bids.length > 0)
+      EventBus.emit(Events.orderBooksOnUpdate, instId, formatBooks);
   }
 
   _updateTrades(instId, data) {
-    // ++ TODO
-    // formatTrade
     /**
-     */
-    const formatTrades = {
-      instId,
-      trades: data,
-      ts: Date.now(),
-    };
-    this.logger.debug(`_updateTrades data`, data);
-    EventBus.emit(Events.tideBitTradesOnUpdate, instId, formatTrades);
+    {
+      trades: [
+        amount: "0.07"
+        classes: "new"
+        date: 1649665223 (s)
+        escape: ƒ (e)
+        price: "0.2769"
+        safe: undefined
+        tid: 31841859
+        type: "buy"
+      ]
+    }
+    */
+    const formatTrades = data.trades
+      .map((t) => ({
+        instId,
+        id: t.tid,
+        price: t.price,
+        volume: t.amount,
+        market: t.market,
+        type: t.type,
+        at: t.date,
+        side: t.type === "sell" ? "down" : "up",
+      }))
+      .sort((a, b) => b.at - a.at);
+    this.logger.debug(`_updateTrade formatTrades`, formatTrades);
+    EventBus.emit(Events.tradesOnUpdate, instId, formatTrades);
+  }
+
+  async getOrderBooks({ header, instId }) {
+    if (!this.start) this._start({ header });
+    // const response = await this.pusher.get({
+    //   path: `${this.peatio}/channels/market-${instId
+    //     .replace("-", "")
+    //     .toLowerCase()}-global`,
+    // });
+    const response = await axios({
+      method: "GET",
+      url: `${this.peatio}/apps/${this.app}/channels/market-${instId
+        .replace("-", "")
+        .toLowerCase()}-global`,
+      headers: header,
+    });
+    if (response.status === 200) {
+      const body = await response.json();
+      const channelsInfo = body.channels;
+      this.logger.log(`getOrderBooks response`, response);
+      this.logger.log(`getOrderBooks channelsInfo`, channelsInfo);
+    }
   }
 
   registerMarketChannel({ header, instId }) {
@@ -300,20 +341,33 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _updateTrade(data) {
-    // ++ TODO
-    // formatTrade
+    /**  {
+    at: 1649675739
+    id: 6
+    kind: "ask"
+    market: "ethhkd"
+    price: "105.0"
+    volume: "0.1"
+    }*/
+    const formatTrade = {
+      instId: this.current_instId,
+      id: data.id,
+      price: data.price,
+      volume: data.volume,
+      market: data.market,
+      at: data.at,
+    };
     this.logger.debug(`_updateTrade data`, data);
-    EventBus.emit(Events.tradeOnUpdate, data);
+    this.logger.debug(`_updateTrade formatTrade`, formatTrade);
+    EventBus.emit(Events.tradesOnUpdate, this.current_instId, [formatTrade]);
   }
 
   async registerPrivateChannel({ header, sn }) {
     if (!this.start) this._start({ header });
     try {
       if (this.current_user) {
-        this.pusher.unsubscribe(`private-${sn}`);
-        this.private_channel.unbind("account");
-        this.private_channel.unbind("order");
-        this.private_channel.unbind("trade");
+        this.private_channel?.unbind();
+        this.pusher.unsubscribe(`private-${this.current_user}`);
       }
 
       this.current_user = sn;
@@ -323,6 +377,22 @@ class TibeBitConnector extends ConnectorBase {
       this.private_channel.bind("trade", (data) => this._updateTrade(data));
     } catch (error) {
       this.logger.error(`private_channel error`, error);
+      throw error;
+    }
+  }
+
+  unregiterAll() {
+    try {
+      this.global_channel?.unbind();
+      this.market_channel?.unbind();
+      this.private_channel?.unbind();
+      this.pusher.unsubscribe("market-global");
+      this.pusher.unsubscribe(
+        `market-${this.current_instId.replace("-", "").toLowerCase()}-global`
+      );
+      this.pusher.unsubscribe(`private-${this.current_user}`);
+    } catch (error) {
+      this.logger.error(`registerGlobalChannel error`, error);
       throw error;
     }
   }
@@ -341,12 +411,12 @@ class TibeBitConnector extends ConnectorBase {
     );
   }
 
-  _unregisterMarketChannel(instId) {
+  _unregisterMarketChannel() {
     if (!this.start) return;
     this.market_channel.unbind(`update`);
     this.market_channel.unbind(`trades`);
     this.pusher.unsubscribe(
-      `market-${instId.replace("-", "").toLowerCase()}-global`
+      `market-${this.current_instId.replace("-", "").toLowerCase()}-global`
     );
     this.market_channel = null;
   }

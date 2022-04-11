@@ -345,13 +345,24 @@ class OkexConnector extends ConnectorBase {
           code: Codes.THIRD_PARTY_API_ERROR,
         });
       }
-
-      const payload = res.data.data.map((data) => {
-        return {
-          ...data,
-          ts: parseInt(data.ts),
-        };
-      });
+      const payload = res.data.data
+        // .sort((a, b) => +b.ts - +a.ts)
+        .map((data, i) => {
+          return {
+            instId: data.instId,
+            id: data.tradeId,
+            price: data.px,
+            volume: data.sz,
+            market: instId.replace("-", "").toLowerCase(),
+            at: parseInt(SafeMath.div(data.ts, "1000")),
+            side:
+              i === res.data.data.length - 1
+                ? "up"
+                : SafeMath.gte(data.px, res.data.data[i + 1].px)
+                ? "up"
+                : "down",
+          };
+        });
       return new ResponseFormat({
         message: "getTrades",
         payload,

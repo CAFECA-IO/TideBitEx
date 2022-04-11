@@ -81,7 +81,7 @@ const MarketTickers = (props) => {
   const storeCtx = useContext(StoreContext);
   const inputRef = useRef();
   const [selectedTicker, setSelectedTicker] = useState(null);
-  const [defaultActiveKey, setDefaultActiveKey] = useState("btc");
+  const [defaultActiveKey, setDefaultActiveKey] = useState("hkd");
   const [filteredTickers, setFilteredTickers] = useState([]);
 
   const filterTickers = useCallback(() => {
@@ -107,6 +107,7 @@ const MarketTickers = (props) => {
         storeCtx.selectedTicker?.instId !== selectedTicker?.instId)
     ) {
       setSelectedTicker(storeCtx.selectedTicker);
+      console.log(`storeCtx.selectedTicker`, storeCtx.selectedTicker)
       setDefaultActiveKey(storeCtx.selectedTicker?.group);
     }
   }, [selectedTicker, storeCtx.selectedTicker]);

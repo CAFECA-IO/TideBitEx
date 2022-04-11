@@ -302,8 +302,9 @@ const StoreProvider = (props) => {
         // await getPendingOrders();
         // await getAccounts();
         // await getBooks(order.instId);
-        await getTrades(order.instId);
-        await getCandles(order.instId);
+        // await getTrades(order.instId);
+        if (selectedTicker?.source === "TideBit")
+          await getCandles(order.instId);
         // await getTicker(order.instId);
         // await getTickers();
         // return result;
@@ -340,8 +341,9 @@ const StoreProvider = (props) => {
       // getCloseOrders,
       // getPendingOrders,
       // getTicker,
+      selectedTicker,
       getCandles,
-      getTrades,
+      // getTrades,
       middleman,
       token,
     ]
@@ -499,6 +501,9 @@ const StoreProvider = (props) => {
 
   useEffect(() => {
     start();
+    return () => {
+      middleman.unregiterAll();
+    };
   }, []);
 
   return (

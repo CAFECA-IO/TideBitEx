@@ -50,6 +50,15 @@ class Middleman {
     }
   }
 
+  async unregiterAll() {
+    try {
+      await this.communicator.unregiterAll();
+    } catch (error) {
+      console.error(`unregiterAll error`, error);
+      throw error;
+    }
+  }
+
   updateSelectedTicker(ticker) {
     // console.log(`updateSelectedTicker ticker`, ticker);
     const _ticker = this.updateTicker(ticker);
@@ -199,6 +208,7 @@ class Middleman {
   }
 
   updateBooks(data) {
+    console.log(`updateBooks data`, data);
     if (data.instId !== this.selectedTicker.instId) return;
     const updateRawBooks = {
       asks: this.rawBooks?.asks ? this.rawBooks.asks : [],
@@ -232,6 +242,7 @@ class Middleman {
     });
     this.rawBooks = updateRawBooks;
     this.books = this.handleBooks();
+    console.log(`updateBooks updateRawBooks`, updateRawBooks);
     return this.books;
   }
 
@@ -239,6 +250,7 @@ class Middleman {
     try {
       const rawBooks = await this.communicator.books(instId, sz);
       this.rawBooks = rawBooks;
+      console.log(`getBooks this.rawBooks`, this.rawBooks);
       this.books = this.handleBooks();
       return this.books;
     } catch (error) {
@@ -247,14 +259,26 @@ class Middleman {
   }
 
   updateTrades = (updateData) => {
+    console.log(`updateTrades updateData`, updateData);
+    console.log(`updateTrades this.trades`, this.trades);
     const _updateTrades = updateData
       .filter(
         (trade) =>
           trade.instId === this.selectedTicker.instId &&
-          this.trades.findIndex((t) => t.tradeId === trade.tradeId) === -1
+          this.trades.findIndex((t) => t.id === trade.id) === -1
       )
-      .map((trade) => ({
+      .map((trade, i) => ({
         ...trade,
+        side:
+          i === updateData.length - 1
+            ? !this.trades[0]
+              ? SafeMath.gte(trade.price, this.trades[0].price)
+                ? "up"
+                : "down"
+              : "up"
+            : SafeMath.gte(trade.px, updateData[i + 1].px)
+            ? "up"
+            : "down",
         update: true,
       }))
       .concat(this.trades || []);

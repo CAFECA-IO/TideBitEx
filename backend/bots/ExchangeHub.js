@@ -175,6 +175,67 @@ class ExchangeHub extends Bot {
     // return this.okexConnector.router('getBalance', { memberId: null, params, query });
   }
 
+  async _tbOrderBooks(instId) {
+    const tbBooksRes = await axios.get(
+      `${this.config.peatio.domain}/api/v2/order_book?market=${instId
+        .replace("-", "")
+        .toLowerCase()}`
+    );
+    if (!tbBooksRes || !tbBooksRes.data) {
+      return new ResponseFormat({
+        message: "Something went wrong",
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+    const tbBooks = tbBooksRes.data;
+    const asks = [];
+    const bids = [];
+    this.logger.log(`tbBooks instId`, instId.replace("-", "").toLowerCase());
+
+    tbBooks.asks.forEach((ask) => {
+      if (
+        ask.market === instId.replace("-", "").toLowerCase() &&
+        ask.ord_type === "limit" &&
+        ask.state === "wait"
+      ) {
+        let index;
+        index = asks.findIndex((_ask) =>
+          SafeMath.eq(_ask[0], ask.price.toString())
+        );
+        if (index !== -1) {
+          let updateAsk = asks[index];
+          updateAsk[1] = SafeMath.plus(updateAsk[1], ask.remaining_volume);
+          asks[index] = updateAsk;
+        } else {
+          let newAsk = [ask.price.toString(), ask.remaining_volume]; // [價格, volume]
+          asks.push(newAsk);
+        }
+      }
+    });
+    tbBooks.bids.forEach((bid) => {
+      if (
+        bid.market === instId.replace("-", "").toLowerCase() &&
+        bid.ord_type === "limit" &&
+        bid.state === "wait"
+      ) {
+        let index;
+        index = bids.findIndex((_bid) =>
+          SafeMath.eq(_bid[0], bid.price.toString())
+        );
+        if (index !== -1) {
+          let updateBid = bids[index];
+          updateBid[1] = SafeMath.plus(updateBid[1], bid.remaining_volume);
+          bids[index] = updateBid;
+        } else {
+          let newBid = [bid.price.toString(), bid.remaining_volume]; // [價格, volume]
+          bids.push(newBid);
+        }
+      }
+    });
+    const books = { asks, bids, ts: new Date().toISOString() };
+    return books;
+  }
+
   async _tbGetTickers({ list }) {
     const tideBitOnlyMarkets = Utils.marketFilterExclude(
       list,
@@ -230,6 +291,24 @@ class ExchangeHub extends Bot {
     });
     // this.logger.debug(`formatTBTickers`, formatTBTickers);
     return formatTBTickers;
+  }
+
+  async unregiterAll() {
+    try {
+      this.tideBitConnector.unregiterAll();
+      this.logger.debug(`++++++++++++++`);
+      this.logger.debug(`unregiterAll`);
+      this.logger.debug(`++++++++++++++`);
+      return new ResponseFormat({
+        message: `unregiterAll`,
+        code: Codes.SUCCESS,
+      });
+    } catch (error) {
+      return new ResponseFormat({
+        message: error.message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
   }
 
   async registerGlobalChannel({ header }) {
@@ -406,47 +485,63 @@ class ExchangeHub extends Bot {
     });
   }
 
-  async getOrderBooks({ params, query }) {
+  async getOrderBooks({ header, params, query }) {
     switch (this._findSource(query.instId)) {
       case SupportedExchange.OKEX:
         return this.okexConnector.router("getOrderBooks", { params, query });
       case SupportedExchange.TIDEBIT:
+        // try {
+        //   const orders = await this._tbGetOrderList({
+        //     instId: query.instId,
+        //     state: this.database.ORDER_STATE.WAIT,
+        //     orderType: "limit",
+        //   });
+        //   const asks = [];
+        //   const bids = [];
+        //   orders.forEach((order) => {
+        //     let index;
+        //     if (order.side === "sell") {
+        //       index = asks.findIndex((ask) => ask[0] === order.px);
+        //       if (index !== -1) {
+        //         let updateAsk = asks[index];
+        //         updateAsk[1] = SafeMath.plus(updateAsk[1], order.sz);
+        //         asks[index] = updateAsk;
+        //       } else {
+        //         let newAsk = [order.px, order.sz]; // [價格, 價格訂單張數, ?, volume]
+        //         asks.push(newAsk);
+        //       }
+        //     }
+        //     if (order.side === "buy") {
+        //       index = bids.findIndex((bid) => bid[0] === order.px);
+        //       if (index !== -1) {
+        //         let updateBid = bids[index];
+        //         updateBid[1] = SafeMath.plus(updateBid[1], order.sz);
+        //         bids[index] = updateBid;
+        //       } else {
+        //         let newBid = [order.px, order.sz];
+        //         bids.push(newBid);
+        //       }
+        //     }
+        //   });
+        //   const books = { asks, bids, ts: new Date().toISOString() };
+        //   return new ResponseFormat({
+        //     message: "getOrderList",
+        //     // payload: books,
+        //     payload: [], // ++ TODO WORKAROUND
+        //   });
+        // } catch (error) {
+        //   this.logger.error(error);
+        //   const message = error.message;
+        //   return new ResponseFormat({
+        //     message,
+        //     code: Codes.API_UNKNOWN_ERROR,
+        //   });
+        // }
         try {
-          const orders = await this._tbGetOrderList({
-            instId: query.instId,
-            state: this.database.ORDER_STATE.WAIT,
-            orderType: "limit",
-          });
-          const asks = [];
-          const bids = [];
-          orders.forEach((order) => {
-            let index;
-            if (order.side === "sell") {
-              index = asks.findIndex((ask) => ask[0] === order.px);
-              if (index !== -1) {
-                let updateAsk = asks[index];
-                updateAsk[1] = SafeMath.plus(updateAsk[1], order.sz);
-                asks[index] = updateAsk;
-              } else {
-                let newAsk = [order.px, order.sz]; // [價格, 價格訂單張數, ?, volume]
-                asks.push(newAsk);
-              }
-            }
-            if (order.side === "buy") {
-              index = bids.findIndex((bid) => bid[0] === order.px);
-              if (index !== -1) {
-                let updateBid = bids[index];
-                updateBid[1] = SafeMath.plus(updateBid[1], order.sz);
-                bids[index] = updateBid;
-              } else {
-                let newBid = [order.px, order.sz];
-                bids.push(newBid);
-              }
-            }
-          });
-          const books = { asks, bids, ts: new Date().toISOString() };
+          const books = await this._tbOrderBooks(query.instId);
+          this.logger.log(`getOrderBooks books`, books);
           return new ResponseFormat({
-            message: "getOrderList",
+            message: "getOrderBooks",
             payload: books,
           });
         } catch (error) {
@@ -460,7 +555,7 @@ class ExchangeHub extends Bot {
       default:
         return new ResponseFormat({
           message: "getOrderBooks",
-          payload: [{}],
+          payload: {},
         });
     }
   }
@@ -471,7 +566,7 @@ class ExchangeHub extends Bot {
         return this.okexConnector.router("getCandlesticks", { params, query });
       case SupportedExchange.TIDEBIT:
         try {
-          const trades = await this._tbGetTradeHistory({
+          const trades = await this._tbGetTrades({
             instId: query.instId,
             increase: true,
           });
@@ -506,23 +601,23 @@ class ExchangeHub extends Bot {
             defaultObj[now - i] = [(now - i) * interval, 0, 0, 0, 0, 0, 0];
           }
           candles = trades.reduce((prev, curr) => {
-            const index = Math.floor(curr.ts / interval);
+            const index = Math.floor((curr.at * 1000) / interval);
             let point = prev[index];
             if (point) {
-              point[2] = Math.max(point[2], +curr.px);
-              point[3] = Math.min(point[3], +curr.px);
-              point[4] = +curr.px;
-              point[5] += +curr.sz;
-              point[6] += +curr.sz * +curr.px;
+              point[2] = Math.max(point[2], +curr.price);
+              point[3] = Math.min(point[3], +curr.price);
+              point[4] = +curr.price;
+              point[5] += +curr.volume;
+              point[6] += +curr.volume * +curr.price;
             } else {
               point = [
                 index * interval,
-                +curr.px,
-                +curr.px,
-                +curr.px,
-                +curr.px,
-                +curr.sz,
-                +curr.sz * +curr.px,
+                +curr.price,
+                +curr.price,
+                +curr.price,
+                +curr.price,
+                +curr.volume,
+                +curr.volume * +curr.price,
               ];
             }
             prev[index] = point;
@@ -554,7 +649,7 @@ class ExchangeHub extends Bot {
         return this.okexConnector.router("getTrades", { params, query });
       case SupportedExchange.TIDEBIT:
         try {
-          const trades = await this._tbGetTradeHistory({
+          const trades = await this._tbGetTrades({
             instId: query.instId,
           });
           return new ResponseFormat({
@@ -726,38 +821,67 @@ class ExchangeHub extends Bot {
         });
     }
   }
-  async _tbGetTradeHistory({ instId, increase }) {
-    const market = this._findMarket(instId);
-    if (!market) {
-      throw new Error(`this.tidebitMarkets.instId ${instId} not found.`);
-    }
-    const { id: quoteCcy } = await this.database.getCurrencyByKey(
-      market.quote_unit
+  async _tbGetTrades({ instId, increase }) {
+    /**
+    [
+      {
+        "id": 48,
+        "price": "110.0",
+        "volume": "54.593",
+        "funds": "6005.263",
+        "market": "ethhkd",
+        "created_at": "2022-04-01T09:40:21Z",
+        "at": 1648806021,
+        "side": "down"
+      },
+    ]
+    */
+    const tbTradesRes = await axios.get(
+      `${this.config.peatio.domain}/api/v2/trades?market=${instId
+        .replace("-", "")
+        .toLowerCase()}`
     );
-    const { id: baseCcy } = await this.database.getCurrencyByKey(
-      market.base_unit
+    if (!tbTradesRes || !tbTradesRes.data) {
+      return new ResponseFormat({
+        message: "Something went wrong",
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+    const tbTrades = tbTradesRes.data.sort((a, b) =>
+      increase ? a.at - b.at : b.at - a.at
     );
-    if (!quoteCcy) {
-      throw new Error(`quoteCcy not found`);
-    }
-    if (!baseCcy) {
-      throw new Error(`baseCcy not found`);
-    }
-    let trades;
-    trades = await this.database.getTrades(quoteCcy, baseCcy);
-    const tradeHistory = trades
-      .map((trade) => ({
-        ordId: trade.order_id,
-        instId: instId,
-        side: "",
-        sz: trade.volume,
-        px: trade.price,
-        tradeId: trade.id,
-        trend: trade.trend,
-        ts: new Date(trade.created_at).getTime(),
-      }))
-      .sort((a, b) => (increase ? a.ts - b.ts : b.ts - a.ts));
-    return tradeHistory;
+    // .map((trade) => ({ ...trade, instId }));
+    return tbTrades;
+    // const market = this._findMarket(instId);
+    // if (!market) {
+    //   throw new Error(`this.tidebitMarkets.instId ${instId} not found.`);
+    // }
+    // const { id: quoteCcy } = await this.database.getCurrencyByKey(
+    //   market.quote_unit
+    // );
+    // const { id: baseCcy } = await this.database.getCurrencyByKey(
+    //   market.base_unit
+    // );
+    // if (!quoteCcy) {
+    //   throw new Error(`quoteCcy not found`);
+    // }
+    // if (!baseCcy) {
+    //   throw new Error(`baseCcy not found`);
+    // }
+    // let trades;
+    // trades = await this.database.getTrades(quoteCcy, baseCcy);
+    // const tradeHistory = trades
+    //   .map((trade) => ({
+    //     ordId: trade.order_id,
+    //     instId: instId,
+    //     side: "",
+    //     amount: trade.volume,
+    //     price: trade.price,
+    //     tid: trade.id,
+    //     trend: trade.trend,
+    //     date: new Date(trade.created_at).getTime(),
+    //   }))
+    //   .sort((a, b) => (increase ? a.ts - b.ts : b.ts - a.ts));
   }
 
   async _tbGetOrderList({ memberId, instId, state, orderType }) {
