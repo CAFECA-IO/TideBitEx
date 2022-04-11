@@ -360,7 +360,7 @@ class TibeBitConnector extends ConnectorBase {
     };
     this.logger.debug(`_updateTrade data`, data);
     this.logger.debug(`_updateTrade formatTrade`, formatTrade);
-    EventBus.emit(Events.tradesOnUpdate, [formatTrade]);
+    EventBus.emit(Events.tradesOnUpdate, this.current_instId, [formatTrade]);
   }
 
   async registerPrivateChannel({ header, sn }) {
