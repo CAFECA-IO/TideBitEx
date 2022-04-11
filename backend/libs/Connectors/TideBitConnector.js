@@ -209,6 +209,16 @@ class TibeBitConnector extends ConnectorBase {
     EventBus.emit(Events.tideBitTradesOnUpdate, instId, formatTrades);
   }
 
+  async getOrderBooks(instId) {
+    const response = await axios({
+      url: `${this.peatio}/channels/market-${instId
+        .replace("-", "")
+        .toLowerCase()}-global`,
+      method: "GET",
+    });
+    this.logger.log(`getOrderBooks response`, response);
+  }
+
   registerMarketChannel({ header, instId }) {
     if (!this.start) this._start({ header });
     try {

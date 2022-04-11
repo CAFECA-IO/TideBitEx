@@ -411,43 +411,60 @@ class ExchangeHub extends Bot {
       case SupportedExchange.OKEX:
         return this.okexConnector.router("getOrderBooks", { params, query });
       case SupportedExchange.TIDEBIT:
+        // try {
+        //   const orders = await this._tbGetOrderList({
+        //     instId: query.instId,
+        //     state: this.database.ORDER_STATE.WAIT,
+        //     orderType: "limit",
+        //   });
+        //   const asks = [];
+        //   const bids = [];
+        //   orders.forEach((order) => {
+        //     let index;
+        //     if (order.side === "sell") {
+        //       index = asks.findIndex((ask) => ask[0] === order.px);
+        //       if (index !== -1) {
+        //         let updateAsk = asks[index];
+        //         updateAsk[1] = SafeMath.plus(updateAsk[1], order.sz);
+        //         asks[index] = updateAsk;
+        //       } else {
+        //         let newAsk = [order.px, order.sz]; // [價格, 價格訂單張數, ?, volume]
+        //         asks.push(newAsk);
+        //       }
+        //     }
+        //     if (order.side === "buy") {
+        //       index = bids.findIndex((bid) => bid[0] === order.px);
+        //       if (index !== -1) {
+        //         let updateBid = bids[index];
+        //         updateBid[1] = SafeMath.plus(updateBid[1], order.sz);
+        //         bids[index] = updateBid;
+        //       } else {
+        //         let newBid = [order.px, order.sz];
+        //         bids.push(newBid);
+        //       }
+        //     }
+        //   });
+        //   const books = { asks, bids, ts: new Date().toISOString() };
+        //   return new ResponseFormat({
+        //     message: "getOrderList",
+        //     // payload: books,
+        //     payload: [], // ++ TODO WORKAROUND
+        //   });
+        // } catch (error) {
+        //   this.logger.error(error);
+        //   const message = error.message;
+        //   return new ResponseFormat({
+        //     message,
+        //     code: Codes.API_UNKNOWN_ERROR,
+        //   });
+        // }
         try {
-          const orders = await this._tbGetOrderList({
-            instId: query.instId,
-            state: this.database.ORDER_STATE.WAIT,
-            orderType: "limit",
-          });
-          const asks = [];
-          const bids = [];
-          orders.forEach((order) => {
-            let index;
-            if (order.side === "sell") {
-              index = asks.findIndex((ask) => ask[0] === order.px);
-              if (index !== -1) {
-                let updateAsk = asks[index];
-                updateAsk[1] = SafeMath.plus(updateAsk[1], order.sz);
-                asks[index] = updateAsk;
-              } else {
-                let newAsk = [order.px, order.sz]; // [價格, 價格訂單張數, ?, volume]
-                asks.push(newAsk);
-              }
-            }
-            if (order.side === "buy") {
-              index = bids.findIndex((bid) => bid[0] === order.px);
-              if (index !== -1) {
-                let updateBid = bids[index];
-                updateBid[1] = SafeMath.plus(updateBid[1], order.sz);
-                bids[index] = updateBid;
-              } else {
-                let newBid = [order.px, order.sz];
-                bids.push(newBid);
-              }
-            }
-          });
-          const books = { asks, bids, ts: new Date().toISOString() };
+          const orders = await this.tideBitConnector.getOrderBooks(
+            query.instId
+          );
           return new ResponseFormat({
             message: "getOrderList",
-            payload: books,
+            payload: [],
           });
         } catch (error) {
           this.logger.error(error);
