@@ -348,8 +348,11 @@ class OkexConnector extends ConnectorBase {
 
       const payload = res.data.data.map((data) => {
         return {
-          ...data,
-          ts: parseInt(data.ts),
+          amount: data.sz,
+          date: parseInt(data.ts),
+          price: data.px,
+          tid: data.tradeId,
+          type: data.side,
         };
       });
       return new ResponseFormat({

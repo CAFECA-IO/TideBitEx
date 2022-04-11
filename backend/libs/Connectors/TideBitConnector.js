@@ -338,6 +338,10 @@ class TibeBitConnector extends ConnectorBase {
     */
     // ++ TODO
     // formatTrade
+    const formatTrade = {
+      ...data,
+      date: parseInt(SafeMath(data.date.toString(), "1000")),
+    };
     this.logger.debug(`_updateTrade data`, data);
     EventBus.emit(Events.tradeOnUpdate, data);
   }

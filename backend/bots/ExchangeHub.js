@@ -198,17 +198,17 @@ class ExchangeHub extends Bot {
         ask.ord_type === "limit" &&
         ask.state === "wait"
       ) {
-        this.logger.log(`tbBooks ask`, ask);
+        this.logger.log(`tbBooks ask`, ask, ask.price, ask['price']);
         let index;
         index = asks.findIndex((ask) =>
-          SafeMath.eq(ask[0], ask.price.toString())
+          SafeMath.eq(ask[0], ask['price'].toString())
         );
         if (index !== -1) {
           let updateAsk = asks[index];
           updateAsk[1] = SafeMath.plus(updateAsk[1], ask.remaining_volume);
           asks[index] = updateAsk;
         } else {
-          let newAsk = [ask.price.toString(), ask.remaining_volume]; // [價格, volume]
+          let newAsk = [ask['price'].toString(), ask.remaining_volume]; // [價格, volume]
           asks.push(newAsk);
         }
       }
@@ -222,14 +222,14 @@ class ExchangeHub extends Bot {
         this.logger.log(`tbBooks bid`, bid);
         let index;
         index = bids.findIndex((bid) =>
-          SafeMath.eq(bid[0], bid.price.toString())
+          SafeMath.eq(bid[0], bid['price'].toString())
         );
         if (index !== -1) {
           let updateBid = bids[index];
           updateBid[1] = SafeMath.plus(updateBid[1], bid.remaining_volume);
           bids[index] = updateBid;
         } else {
-          let newBid = [bid.price.toString(), bid.remaining_volume]; // [價格, volume]
+          let newBid = [bid['price'].toString(), bid.remaining_volume]; // [價格, volume]
           bids.push(newBid);
         }
       }
@@ -847,11 +847,11 @@ class ExchangeHub extends Bot {
         ordId: trade.order_id,
         instId: instId,
         side: "",
-        sz: trade.volume,
-        px: trade.price,
-        tradeId: trade.id,
+        amount: trade.volume,
+        price: trade.price,
+        tid: trade.id,
         trend: trade.trend,
-        ts: new Date(trade.created_at).getTime(),
+        date: new Date(trade.created_at).getTime(),
       }))
       .sort((a, b) => (increase ? a.ts - b.ts : b.ts - a.ts));
     return tradeHistory;
