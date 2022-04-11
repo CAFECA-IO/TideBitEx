@@ -358,7 +358,8 @@ class TibeBitConnector extends ConnectorBase {
       at: data.date,
       side: data.type === "sell" ? "down" : "up",
     };
-    this.logger.debug(`_updateTrade formatTrade`, data);
+    this.logger.debug(`_updateTrade data`, data);
+    this.logger.debug(`_updateTrade formatTrade`, formatTrade);
     EventBus.emit(Events.tradesOnUpdate, [formatTrade]);
   }
 
