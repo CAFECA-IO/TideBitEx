@@ -176,6 +176,7 @@ class OkexConnector extends ConnectorBase {
           ? "0"
           : "1";
         return {
+          id: data.instId.replace("-", "").toLowerCase(),
           name: data.instId.replace("-", "/"),
           base_unit: data.instId.split("-")[0].toLowerCase(),
           quote_unit: data.instId.split("-")[1].toLowerCase(),
