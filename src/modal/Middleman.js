@@ -7,9 +7,9 @@ class Middleman {
     this.tickers = [];
   }
 
-  async registerPrivateChannel(token, instId, resolution) {
+  async registerPrivateChannel(token, id, resolution) {
     try {
-      await this.communicator.registerPrivateChannel(token, instId, resolution);
+      await this.communicator.registerPrivateChannel(token, id, resolution);
     } catch (error) {
       console.error(`registerPrivateChannel error`, error);
       throw error;

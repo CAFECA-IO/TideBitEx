@@ -155,9 +155,9 @@ const StoreProvider = (props) => {
   );
 
   const registerPrivateChannel = useCallback(
-    async (token, instId, resolution) => {
+    async (token, id, resolution) => {
       try {
-        await middleman.registerPrivateChannel(token, instId, resolution);
+        await middleman.registerPrivateChannel(token, id, resolution);
       } catch (error) {
         enqueueSnackbar(`"registerPrivateChannel error: ${error?.message}"`, {
           variant: "error",
