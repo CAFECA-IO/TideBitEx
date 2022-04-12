@@ -46,9 +46,9 @@ const StoreProvider = (props) => {
     orderTimestamp = 0;
 
   const getBooks = useCallback(
-    async (instId, sz = 100) => {
+    async (id, sz = 100) => {
       try {
-        const result = await middleman.getBooks(instId, sz);
+        const result = await middleman.getBooks(id, sz);
         setBooks(result);
         // return result;
       } catch (error) {
@@ -61,10 +61,10 @@ const StoreProvider = (props) => {
   );
 
   const getTrades = useCallback(
-    async (instId, limit) => {
+    async (id, limit) => {
       try {
         const { trades, candles, volumes } = await middleman.getTrades(
-          instId,
+          id,
           limit,
           selectedBar
         );
@@ -166,22 +166,21 @@ const StoreProvider = (props) => {
   );
 
   const selectTickerHandler = useCallback(
-    async (ticker) => {
-      const _ticker = await middleman.updateSelectedTicker(ticker, selectedBar);
-      setSelectedTicker(_ticker);
-      document.title = `${_ticker.last} ${_ticker.name}`;
-      if (ticker.instId !== selectedTicker?.instId || !selectedTicker) {
+    async (id) => {
+      if (!selectedTicker || id !== selectedTicker?.id) {
         history.push({
-          pathname: `/markets/${ticker.instId.replace("-", "").toLowerCase()}`,
+          pathname: `/markets/${id}`,
         });
-        await getBooks(ticker.instId);
-        await getTrades(ticker.instId);
-        // await getCandles(ticker.instId, selectedBar);
+        const _ticker = await middleman.updateSelectedTicker(id, selectedBar);
+        setSelectedTicker(_ticker);
+        document.title = `${_ticker.last} ${_ticker.name}`;
+        await getBooks(id);
+        await getTrades(id);
         wsClient.send(
           JSON.stringify({
             op: "switchTradingPair",
             args: {
-              instId: ticker.instId,
+              instId: _ticker.instId,
             },
           })
         );
@@ -191,30 +190,17 @@ const StoreProvider = (props) => {
   );
 
   const getTickers = useCallback(
-    async (force = false, instType = "SPOT", from = 0, limit = 100) => {
+    async (instType = "SPOT", from = 0, limit = 100) => {
       try {
         const result = await middleman.getTickers(instType, from, limit);
         setTickers(result);
-        if (selectedTicker === null || force) {
-          const id = location.pathname.includes("/markets/")
-            ? location.pathname.replace("/markets/", "")
-            : null;
-          const ticker = middleman.findTicker(id);
-          selectTickerHandler(ticker ?? result[0]);
-        }
       } catch (error) {
         enqueueSnackbar(`"getTickers error: ${error?.message}"`, {
           variant: "error",
         });
       }
     },
-    [
-      enqueueSnackbar,
-      location.pathname,
-      middleman,
-      selectTickerHandler,
-      selectedTicker,
-    ]
+    [enqueueSnackbar, middleman]
   );
 
   const getCSRFToken = useCallback(async () => {
@@ -231,11 +217,10 @@ const StoreProvider = (props) => {
           setIsLogin(true);
           await getPendingOrders();
           await getCloseOrders();
-          await registerPrivateChannel(
-            token,
-            selectedTicker?.instId,
-            selectedBar
-          );
+          const id = location.pathname.includes("/markets/")
+            ? location.pathname.replace("/markets/", "")
+            : null;
+          if (id) await registerPrivateChannel(token, id, selectedBar);
         }
       }
     } catch (error) {
@@ -247,9 +232,9 @@ const StoreProvider = (props) => {
     enqueueSnackbar,
     getCloseOrders,
     getPendingOrders,
+    location.pathname,
     registerPrivateChannel,
     selectedBar,
-    selectedTicker?.instId,
   ]);
 
   const getAccounts = useCallback(async () => {
@@ -349,9 +334,13 @@ const StoreProvider = (props) => {
   };
 
   const start = useCallback(async () => {
-    await getTickers(true);
+    const id = location.pathname.includes("/markets/")
+      ? location.pathname.replace("/markets/", "")
+      : null;
+    await getTickers();
+    await selectTickerHandler(id);
     await getAccounts();
-  }, [getAccounts, getTickers]);
+  }, [getAccounts, getTickers, location.pathname, selectTickerHandler]);
 
   useEffect(() => {
     start();

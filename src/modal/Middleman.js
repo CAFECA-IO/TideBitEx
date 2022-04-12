@@ -25,19 +25,18 @@ class Middleman {
     }
   }
 
-  async updateSelectedTicker(ticker, resolution) {
-    if (ticker.instId !== this.selectedTicker?.instId || !this.selectedTicker) {
-      try {
-        await this.communicator.registerMarketChannel(
-          ticker.instId,
-          resolution
-        );
-      } catch (error) {
-        console.error(`registerMarketChannel error`, error);
-        throw error;
-      }
+  async updateSelectedTicker(id, resolution) {
+    console.log(`updateSelectedTicker id`, id);
+    try {
+      await this.communicator.registerMarketChannel(id, resolution);
+    } catch (error) {
+      console.error(`registerMarketChannel error`, error);
+      throw error;
     }
-    this.selectedTicker = ticker;
+    this.selectedTicker = this.tickers?.find((ticker) => ticker.id === id);
+    if (!this.selectedTicker) {
+      this.selectedTicker = await this.communicator.ticker(id);
+    }
     return this.selectedTicker;
   }
 
@@ -214,9 +213,9 @@ class Middleman {
     return this.books;
   }
 
-  async getBooks(instId, sz) {
+  async getBooks(id, sz) {
     try {
-      const rawBooks = await this.communicator.books(instId, sz);
+      const rawBooks = await this.communicator.books(id, sz);
       this.rawBooks = rawBooks;
       console.log(`getBooks this.rawBooks`, this.rawBooks);
       this.books = this.handleBooks();
@@ -269,9 +268,9 @@ class Middleman {
     this.trades = this.trades.map((trade) => ({ ...trade, update: false }));
   };
 
-  async getTrades(instId, limit, resolution) {
+  async getTrades(id, limit, resolution) {
     try {
-      const trades = await this.communicator.trades(instId, limit);
+      const trades = await this.communicator.trades(id, limit);
       this.trades = trades.reduce(
         (prev, curr, i) => [
           ...prev,

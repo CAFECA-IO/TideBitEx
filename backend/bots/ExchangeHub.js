@@ -175,11 +175,9 @@ class ExchangeHub extends Bot {
     // return this.okexConnector.router('getBalance', { memberId: null, params, query });
   }
 
-  async _tbOrderBooks(instId) {
+  async _tbOrderBooks(id) {
     const tbBooksRes = await axios.get(
-      `${this.config.peatio.domain}/api/v2/order_book?market=${instId
-        .replace("-", "")
-        .toLowerCase()}`
+      `${this.config.peatio.domain}/api/v2/order_book?market=${id}`
     );
     if (!tbBooksRes || !tbBooksRes.data) {
       return new ResponseFormat({
@@ -190,11 +188,11 @@ class ExchangeHub extends Bot {
     const tbBooks = tbBooksRes.data;
     const asks = [];
     const bids = [];
-    this.logger.log(`tbBooks instId`, instId.replace("-", "").toLowerCase());
+    this.logger.log(`tbBooks id`, id);
 
     tbBooks.asks.forEach((ask) => {
       if (
-        ask.market === instId.replace("-", "").toLowerCase() &&
+        ask.market === id &&
         ask.ord_type === "limit" &&
         ask.state === "wait"
       ) {
@@ -214,7 +212,7 @@ class ExchangeHub extends Bot {
     });
     tbBooks.bids.forEach((bid) => {
       if (
-        bid.market === instId.replace("-", "").toLowerCase() &&
+        bid.market === id &&
         bid.ord_type === "limit" &&
         bid.state === "wait"
       ) {
@@ -341,11 +339,11 @@ class ExchangeHub extends Bot {
           "content-type": "application/json",
           cookie: header.cookie,
         },
-        instId: query.instId,
+        instId: this._findInstId(query.id),
         resolution: query.resolution,
       });
       this.logger.debug(`++++++++++++++`);
-      this.logger.debug(`registerMarketChannel instId`, query.instId);
+      this.logger.debug(`registerMarketChannel id`, query.id);
       this.logger.debug(`++++++++++++++`);
       return new ResponseFormat({
         message: `registerMarketChannel`,
@@ -372,7 +370,10 @@ class ExchangeHub extends Bot {
     this.logger.debug(`++++++++++++++`);
     this.logger.debug(`registerPrivateChannel member.sn`, member.sn);
     this.logger.debug(`registerPrivateChannel body.instId`, body.instId);
-    this.logger.debug(`registerPrivateChannel body.resolution`, body.resolution);
+    this.logger.debug(
+      `registerPrivateChannel body.resolution`,
+      body.resolution
+    );
     this.logger.debug(`++++++++++++++`);
     try {
       this.tideBitConnector.registerPrivateChannel({
@@ -382,7 +383,7 @@ class ExchangeHub extends Bot {
           cookie: header.cookie,
         },
         sn: member.sn,
-        instId: body.instId,
+        instId: this._findInstId(body.id),
         resolution: body.resolution,
       });
       this.logger.debug(`++++++++++++++`);
@@ -401,40 +402,62 @@ class ExchangeHub extends Bot {
   }
 
   async getTicker({ params, query }) {
-    const index = this.tidebitMarkets.findIndex(
-      (market) => query.instId === market.instId
-    );
-    if (index !== -1) {
-      const url = `${this.config.peatio.domain}/api/v2/tickers/${query.instId
-        .replace("-", "")
-        .toLowerCase()}`;
-      // this.logger.debug(`getTicker url:`, url);
-      const tBTickerRes = await axios.get(url);
-      // this.logger.debug(`getTicker tBTickerRes.data:`, tBTickerRes.data);
-      if (!tBTickerRes || !tBTickerRes.data) {
-        return new ResponseFormat({
-          message: "Something went wrong",
-          code: Codes.API_UNKNOWN_ERROR,
+    const instId = this._findInstId(query.id);
+    switch (this._findSource(query.instId)) {
+      case SupportedExchange.OKEX:
+        return this.okexConnector.router("getTicker", {
+          params,
+          query: { ...query, instId },
         });
-      }
-      const tBTicker = tBTickerRes.data;
-      const change = SafeMath.minus(tBTicker.ticker.last, tBTicker.ticker.open);
-      const changePct = SafeMath.gt(tBTicker.ticker.open, "0")
-        ? SafeMath.div(change, tBTicker.ticker.open)
-        : SafeMath.eq(change, "0")
-        ? "0"
-        : "1";
-      const formatTBTicker = {
-        ...tBTicker.ticker,
-        at: tBTicker.at,
-        change,
-        changePct,
-        volume: tBTicker.ticker.vol.toString(),
-      };
-      return new ResponseFormat({
-        message: "getTicker",
-        payload: formatTBTicker,
-      });
+      case SupportedExchange.TIDEBIT:
+        const index = this.tidebitMarkets.findIndex(
+          (market) => instId === market.instId
+        );
+        if (index !== -1) {
+          const url = `${
+            this.config.peatio.domain
+          }/api/v2/tickers/${query.instId.replace("-", "").toLowerCase()}`;
+          // this.logger.debug(`getTicker url:`, url);
+          const tBTickerRes = await axios.get(url);
+          // this.logger.debug(`getTicker tBTickerRes.data:`, tBTickerRes.data);
+          if (!tBTickerRes || !tBTickerRes.data) {
+            return new ResponseFormat({
+              message: "Something went wrong",
+              code: Codes.API_UNKNOWN_ERROR,
+            });
+          }
+          const tBTicker = tBTickerRes.data;
+          const change = SafeMath.minus(
+            tBTicker.ticker.last,
+            tBTicker.ticker.open
+          );
+          const changePct = SafeMath.gt(tBTicker.ticker.open, "0")
+            ? SafeMath.div(change, tBTicker.ticker.open)
+            : SafeMath.eq(change, "0")
+            ? "0"
+            : "1";
+          const formatTBTicker = {
+            ...tBTicker.ticker,
+            at: tBTicker.at,
+            change,
+            changePct,
+            volume: tBTicker.ticker.vol.toString(),
+          };
+          return new ResponseFormat({
+            message: "getTicker",
+            payload: formatTBTicker,
+          });
+        } else {
+          return new ResponseFormat({
+            message: "getTicker",
+            payload: null,
+          });
+        }
+      default:
+        return new ResponseFormat({
+          message: "getOrderBooks",
+          payload: null,
+        });
     }
   }
   // account api end
@@ -493,7 +516,11 @@ class ExchangeHub extends Bot {
   async getOrderBooks({ header, params, query }) {
     switch (this._findSource(query.instId)) {
       case SupportedExchange.OKEX:
-        return this.okexConnector.router("getOrderBooks", { params, query });
+        const instId = this._findInstId(query.id);
+        return this.okexConnector.router("getOrderBooks", {
+          params,
+          query: { ...query, instId },
+        });
       case SupportedExchange.TIDEBIT:
         // try {
         //   const orders = await this._tbGetOrderList({
@@ -543,7 +570,7 @@ class ExchangeHub extends Bot {
         //   });
         // }
         try {
-          const books = await this._tbOrderBooks(query.instId);
+          const books = await this._tbOrderBooks(query.id);
           this.logger.log(`getOrderBooks books`, books);
           return new ResponseFormat({
             message: "getOrderBooks",
@@ -565,48 +592,52 @@ class ExchangeHub extends Bot {
     }
   }
 
-  async getCandlesticks({ params, query }) {
-    switch (this._findSource(query.instId)) {
-      case SupportedExchange.OKEX:
-        return this.okexConnector.router("getCandlesticks", { params, query });
-      case SupportedExchange.TIDEBIT:
-        try {
-          const trades = await this._tbGetTrades({
-            instId: query.instId,
-            increase: true,
-          });
-          let candles = this.tideBitConnector.transformTradesToCandle(
-            trades,
-            query.bar
-          );
-          return new ResponseFormat({
-            message: "getCandlesticks",
-            payload: Object.values(candles),
-          });
-        } catch (error) {
-          this.logger.error(error);
-          const message = error.message;
-          return new ResponseFormat({
-            message,
-            code: Codes.API_UNKNOWN_ERROR,
-          });
-        }
-      default:
-        return new ResponseFormat({
-          message: "getCandlesticks",
-          payload: [],
-        });
-    }
-  }
+  // async getCandlesticks({ params, query }) {
+  //   switch (this._findSource(query.instId)) {
+  //     case SupportedExchange.OKEX:
+  //       return this.okexConnector.router("getCandlesticks", { params, query });
+  //     case SupportedExchange.TIDEBIT:
+  //       try {
+  //         const trades = await this._tbGetTrades({
+  //           instId: query.instId,
+  //           increase: true,
+  //         });
+  //         let candles = this.tideBitConnector.transformTradesToCandle(
+  //           trades,
+  //           query.bar
+  //         );
+  //         return new ResponseFormat({
+  //           message: "getCandlesticks",
+  //           payload: Object.values(candles),
+  //         });
+  //       } catch (error) {
+  //         this.logger.error(error);
+  //         const message = error.message;
+  //         return new ResponseFormat({
+  //           message,
+  //           code: Codes.API_UNKNOWN_ERROR,
+  //         });
+  //       }
+  //     default:
+  //       return new ResponseFormat({
+  //         message: "getCandlesticks",
+  //         payload: [],
+  //       });
+  //   }
+  // }
 
   async getTrades({ params, query }) {
     switch (this._findSource(query.instId)) {
       case SupportedExchange.OKEX:
-        return this.okexConnector.router("getTrades", { params, query });
+        const instId = this._findInstId(query.id);
+        return this.okexConnector.router("getTrades", {
+          params,
+          query: { ...query, instId },
+        });
       case SupportedExchange.TIDEBIT:
         try {
           const trades = await this._tbGetTrades({
-            instId: query.instId,
+            id: query.id,
           });
           return new ResponseFormat({
             message: "getTrades",
@@ -777,7 +808,7 @@ class ExchangeHub extends Bot {
         });
     }
   }
-  async _tbGetTrades({ instId, increase }) {
+  async _tbGetTrades({ id, increase }) {
     /**
     [
       {
@@ -793,9 +824,7 @@ class ExchangeHub extends Bot {
     ]
     */
     const tbTradesRes = await axios.get(
-      `${this.config.peatio.domain}/api/v2/trades?market=${instId
-        .replace("-", "")
-        .toLowerCase()}`
+      `${this.config.peatio.domain}/api/v2/trades?market=${id}`
     );
     if (!tbTradesRes || !tbTradesRes.data) {
       return new ResponseFormat({
@@ -1593,6 +1622,10 @@ class ExchangeHub extends Bot {
     return (
       Utils.marketFilterInclude(this.tidebitMarkets, [{ instId }]).length > 0
     );
+  }
+
+  _findInstId(id) {
+    return this.config.markets[id.toUpperCase()];
   }
 
   _findSource(instId) {

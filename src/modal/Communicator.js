@@ -64,10 +64,10 @@ class Communicator {
   }
 
   // Market
-  async ticker(instId) {
+  async ticker(id) {
     try {
-      if (!instId) return { message: "instId cannot be null" };
-      const res = await this._get(`/market/ticker?instId=${instId}`);
+      if (!id) return { message: "id cannot be null" };
+      const res = await this._get(`/market/ticker?id=${id}`);
       if (res.success) {
         return res.data;
       }
@@ -101,11 +101,11 @@ class Communicator {
     }
   }
 
-  async registerMarketChannel(instId, resolution) {
+  async registerMarketChannel(id, resolution) {
     try {
-      if (!instId) return { message: "instId cannot be null" };
+      if (!id) return { message: "id cannot be null" };
       const res = await this._get(
-        `/pusher/register-market-channel?instId=${instId}&resolution=${resolution}`
+        `/pusher/register-market-channel?id=${id}&resolution=${resolution}`
       );
       if (res.success) {
         return res.data;
@@ -151,11 +151,11 @@ class Communicator {
   }
 
   // Market
-  async books(instId, sz) {
+  async books(id, sz) {
     try {
-      if (!instId) return { message: "instId cannot be null" };
+      if (!id) return { message: "id cannot be null" };
       const res = await this._get(
-        `/market/books?instId=${instId}${sz ? `&sz=${sz}` : ""}`
+        `/market/books?id=${id}${sz ? `&sz=${sz}` : ""}`
       );
       if (res.success) {
         return res.data;
@@ -167,11 +167,11 @@ class Communicator {
   }
 
   // Market
-  async trades(instId, limit) {
+  async trades(id, limit) {
     try {
-      if (!instId) return { message: "instId cannot be null" };
+      if (!id) return { message: "id cannot be null" };
       const res = await this._get(
-        `/market/trades?instId=${instId}${limit ? `&limit=${limit}` : ""}`
+        `/market/trades?id=${id}${limit ? `&limit=${limit}` : ""}`
       );
       if (res.success) {
         return res.data;

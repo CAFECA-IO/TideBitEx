@@ -46,7 +46,7 @@ const StoreContext = React.createContext({
    * @param {Ticker} ticker
    * @returns null
    */
-  selectTickerHandler: (ticker) => {},
+  selectTickerHandler: (id) => {},
   /**
    * @param {String} instType SPOT,MARGIN,SWAP,FUTURES,OPTION
    * @param {String} from
