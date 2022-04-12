@@ -71,6 +71,7 @@ const StoreProvider = (props) => {
 
         // candles update
         const candles = middleman.transformTradesToCandle(result, selectedBar);
+        console.log(`getTrades candles`, candles);
         setCandles(candles);
       } catch (error) {
         enqueueSnackbar(`"getTrades error: ${error?.message}"`, {
@@ -433,6 +434,7 @@ const StoreProvider = (props) => {
                   updateTrades,
                   selectedBar
                 );
+                console.log(`tradesOnUpdate candles`, candles);
                 setCandles(candles);
               }
               break;
