@@ -259,9 +259,8 @@ class Middleman {
     }
   }
 
-  updateTrades = (updateData) => {
+  updateTrades = (updateData, resolution) => {
     console.log(`updateTrades updateData`, updateData);
-    console.log(`updateTrades this.trades`, this.trades);
     const _updateTrades = updateData
       .filter(
         (trade) =>
@@ -284,14 +283,22 @@ class Middleman {
       }))
       .concat(this.trades || []);
     this.trades = _updateTrades;
-    return _updateTrades;
+    const candlesData = this.transformTradesToCandle(_updateTrades, resolution);
+    let candles = [],
+      volumes = [];
+    this.candles = Object.values(candlesData);
+    this.candles.forEach((candle) => {
+      candles.push(candle.slice(0, 5));
+      volumes.push([candle[0], candle[5]]);
+    });
+    return { trades: _updateTrades, candles, volumes };
   };
 
   resetTrades = () => {
     this.trades = this.trades.map((trade) => ({ ...trade, update: false }));
   };
 
-  async getTrades(instId, limit) {
+  async getTrades(instId, limit, resolution) {
     try {
       const trades = await this.communicator.trades(instId, limit);
       this.trades = trades.reduce(
@@ -306,7 +313,15 @@ class Middleman {
         ],
         []
       );
-      return trades;
+      const candlesData = this.transformTradesToCandle(trades, resolution);
+      let candles = [],
+        volumes = [];
+      this.candles = Object.values(candlesData);
+      this.candles.forEach((candle) => {
+        candles.push(candle.slice(0, 5));
+        volumes.push([candle[0], candle[5]]);
+      });
+      return { trades, candles, volumes };
     } catch (error) {
       throw error;
     }
@@ -370,7 +385,7 @@ class Middleman {
    */
   transformTradesToCandle(trades, resolution) {
     let interval,
-      candles,
+      data,
       defaultObj = {};
     switch (resolution) {
       case "1m":
@@ -397,7 +412,7 @@ class Middleman {
     for (let i = 0; i < 100; i++) {
       defaultObj[now - i] = [(now - i) * interval, 0, 0, 0, 0, 0, 0];
     }
-    candles = trades.reduce((prev, curr) => {
+    data = trades.reduce((prev, curr) => {
       const index = Math.floor(curr.at / interval);
       let point = prev[index];
       if (point) {
@@ -420,8 +435,8 @@ class Middleman {
       prev[index] = point;
       return prev;
     }, defaultObj);
-    console.log(`transformTradesToCandle candles`, Object.values(candles));
-    return Object.values(candles);
+    console.log(`transformTradesToCandle data`, Object.values(data));
+    return Object.values(data);
   }
 
   async getCandles(instId, bar, after, before, limit) {

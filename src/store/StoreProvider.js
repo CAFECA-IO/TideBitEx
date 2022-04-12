@@ -66,12 +66,13 @@ const StoreProvider = (props) => {
   const getTrades = useCallback(
     async (instId, limit) => {
       try {
-        const result = await middleman.getTrades(instId, limit);
-        setTrades(result);
-
-        // candles update
-        const candles = middleman.transformTradesToCandle(result, selectedBar);
-        setCandles(candles);
+        const { trades, candles, volumes } = await middleman.getTrades(
+          instId,
+          limit,
+          selectedBar
+        );
+        setTrades(trades);
+        setCandles({ candles, volumes });
       } catch (error) {
         enqueueSnackbar(`"getTrades error: ${error?.message}"`, {
           variant: "error",
@@ -422,19 +423,15 @@ const StoreProvider = (props) => {
               }
               break;
             case "tradesOnUpdate":
-              const updateTrades = middleman.updateTrades(metaData.data);
+              const { updateTrades, updateCandles, updateVolume } =
+                middleman.updateTrades(metaData.data, selectedBar);
               _tradeTimestamp = new Date().getTime();
               if (_tradeTimestamp - +tradeTimestamp > 1000) {
                 // console.log(`updateTrades`, updateTrades);
                 tradeTimestamp = _tradeTimestamp;
                 setTrades(updateTrades);
                 middleman.resetTrades();
-                const candles = middleman.transformTradesToCandle(
-                  updateTrades,
-                  selectedBar
-                );
-                console.log(`tradesOnUpdate candles`, candles);
-                setCandles(candles);
+                setCandles({ candles: updateCandles, volumes: updateVolume });
               }
               break;
             case "orderBooksOnUpdate":
