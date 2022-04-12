@@ -101,12 +101,11 @@ class Communicator {
     }
   }
 
-
-  async registerMarketChannel(instId) {
+  async registerMarketChannel(instId, resolution) {
     try {
       if (!instId) return { message: "instId cannot be null" };
       const res = await this._get(
-        `/pusher/register-market-channel?instId=${instId}`
+        `/pusher/register-market-channel?instId=${instId}&resolution=${resolution}`
       );
       if (res.success) {
         return res.data;

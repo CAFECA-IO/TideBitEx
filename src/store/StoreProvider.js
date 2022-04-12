@@ -68,45 +68,50 @@ const StoreProvider = (props) => {
       try {
         const result = await middleman.getTrades(instId, limit);
         setTrades(result);
-        // return result;
+
+        // candles update
+        const candles = middleman.transformTradesToCandle(result, selectedBar);
+        setCandles(candles);
       } catch (error) {
         enqueueSnackbar(`"getTrades error: ${error?.message}"`, {
           variant: "error",
         });
       }
     },
-    [enqueueSnackbar, middleman]
+    [enqueueSnackbar, middleman, selectedBar]
   );
 
-  const getCandles = useCallback(
-    async (instId, bar, after, before, limit) => {
-      try {
-        const result = await middleman.getCandles(
-          instId,
-          bar,
-          after,
-          before,
-          limit
-        );
-        setCandles(result);
-        // return result;
-      } catch (error) {
-        enqueueSnackbar(`"getMarketPrices error: ${error?.message}"`, {
-          variant: "error",
-        });
-      }
-    },
-    [enqueueSnackbar, middleman]
-  );
+  // const getCandles = useCallback(
+  //   async (instId, bar, after, before, limit) => {
+  //     try {
+  //       const result = await middleman.getCandles(
+  //         instId,
+  //         bar,
+  //         after,
+  //         before,
+  //         limit
+  //       );
+  //       setCandles(result);
+  //       // return result;
+  //     } catch (error) {
+  //       enqueueSnackbar(`"getMarketPrices error: ${error?.message}"`, {
+  //         variant: "error",
+  //       });
+  //     }
+  //   },
+  //   [enqueueSnackbar, middleman]
+  // );
 
   const candleBarHandler = useCallback(
     async (bar) => {
       if (bar !== selectedBar) {
         setSelectedBar(bar);
-        await getCandles(selectedTicker?.instId, bar);
+        const candles = middleman.transformTradesToCandle(trades, bar);
+        setCandles(candles);
+        // await getCandles(selectedTicker?.instId, bar);
       }
     },
-    [getCandles, selectedBar, selectedTicker?.instId]
+    [middleman, selectedBar, trades]
   );
 
   const findTicker = useCallback(
@@ -150,9 +155,9 @@ const StoreProvider = (props) => {
   );
 
   const registerMarketChannel = useCallback(
-    async (instId) => {
+    async (instId, selectedBar) => {
       try {
-        await middleman.registerMarketChannel(instId);
+        await middleman.registerMarketChannel(instId, selectedBar);
       } catch (error) {
         enqueueSnackbar(`"registerMarketChannel error: ${error?.message}"`, {
           variant: "error",
@@ -199,10 +204,10 @@ const StoreProvider = (props) => {
         });
         await getBooks(ticker.instId);
         await getTrades(ticker.instId);
-        await getCandles(ticker.instId, selectedBar);
+        // await getCandles(ticker.instId, selectedBar);
         await getPendingOrders();
         await getCloseOrders();
-        await registerMarketChannel(ticker.instId);
+        await registerMarketChannel(ticker.instId, selectedBar);
         wsClient.send(
           JSON.stringify({
             op: "switchTradingPair",
@@ -220,7 +225,7 @@ const StoreProvider = (props) => {
       history,
       getBooks,
       getTrades,
-      getCandles,
+      // getCandles,
       selectedBar,
       getPendingOrders,
       getCloseOrders,
@@ -298,16 +303,6 @@ const StoreProvider = (props) => {
       };
       try {
         const result = await middleman.postOrder(_order);
-        // await getCloseOrders();
-        // await getPendingOrders();
-        // await getAccounts();
-        // await getBooks(order.instId);
-        // await getTrades(order.instId);
-        if (selectedTicker?.source === "TideBit")
-          await getCandles(order.instId);
-        // await getTicker(order.instId);
-        // await getTickers();
-        // return result;
         enqueueSnackbar(
           `${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
             order.instId.split("-")[0]
@@ -334,19 +329,7 @@ const StoreProvider = (props) => {
         );
       }
     },
-    [
-      enqueueSnackbar,
-      // getAccounts,
-      // getBooks,
-      // getCloseOrders,
-      // getPendingOrders,
-      // getTicker,
-      selectedTicker,
-      getCandles,
-      // getTrades,
-      middleman,
-      token,
-    ]
+    [enqueueSnackbar, middleman, token]
   );
 
   const cancelOrder = useCallback(
@@ -446,6 +429,11 @@ const StoreProvider = (props) => {
                 tradeTimestamp = _tradeTimestamp;
                 setTrades(updateTrades);
                 middleman.resetTrades();
+                const candles = middleman.transformTradesToCandle(
+                  updateTrades,
+                  selectedBar
+                );
+                setCandles(candles);
               }
               break;
             case "orderBooksOnUpdate":
@@ -457,14 +445,14 @@ const StoreProvider = (props) => {
                 setBooks(updateBooks);
               }
               break;
-            case "candleOnUpdate":
-              const updateCandles = middleman.updateCandles(metaData.data);
-              _candleTimestamp = new Date().getTime();
-              if (_candleTimestamp - +candleTimestamp > 1000) {
-                candleTimestamp = _candleTimestamp;
-                setCandles(updateCandles);
-              }
-              break;
+            // case "candleOnUpdate":
+            //   const updateCandles = middleman.updateCandles(metaData.data);
+            //   _candleTimestamp = new Date().getTime();
+            //   if (_candleTimestamp - +candleTimestamp > 1000) {
+            //     candleTimestamp = _candleTimestamp;
+            //     setCandles(updateCandles);
+            //   }
+            //   break;
             // // ++ TODO TideBit WS 要與 OKEX整合
             case "accountOnUpdate":
               const updateAccounts = middleman.updateAccounts(metaData.data);
@@ -533,7 +521,7 @@ const StoreProvider = (props) => {
         getTickers,
         getBooks,
         getTrades,
-        getCandles,
+        // getCandles,
         candleBarHandler,
         getPendingOrders,
         getCloseOrders,

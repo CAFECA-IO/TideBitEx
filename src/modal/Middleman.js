@@ -32,9 +32,9 @@ class Middleman {
     }
   }
 
-  async registerMarketChannel(instId) {
+  async registerMarketChannel(instId, resolution) {
     try {
-      await this.communicator.registerMarketChannel(instId);
+      await this.communicator.registerMarketChannel(instId, resolution);
     } catch (error) {
       console.error(`registerMarketChannel error`, error);
       throw error;
@@ -361,6 +361,68 @@ class Middleman {
     });
     // console.log(`candleOnUpdate`, { candles, volumes });
     return { candles, volumes };
+  }
+
+  /**
+   *
+   * @param {Array} trades
+   */
+  transformTradesToCandle(trades, resolution) {
+    this.logger.log(`transformTradesToCandle resolution`, resolution);
+    this.logger.log(`transformTradesToCandle this.resolution`, this.resolution);
+    let interval,
+      candles,
+      defaultObj = {};
+    switch (resolution || this.resolution) {
+      case "1m":
+        interval = 1 * 60 * 1000;
+        break;
+      case "30m":
+        interval = 30 * 60 * 1000;
+        break;
+      case "1H":
+        interval = 60 * 60 * 1000;
+        break;
+      case "1W":
+        interval = 7 * 24 * 60 * 60 * 1000;
+        break;
+      case "M":
+        interval = 30 * 24 * 60 * 60 * 1000;
+        break;
+      case "1D":
+      default:
+        interval = 24 * 60 * 60 * 1000;
+    }
+    const now = Math.floor(new Date().getTime() / interval);
+    defaultObj[now] = [now * interval, 0, 0, 0, 0, 0, 0];
+    for (let i = 0; i < 100; i++) {
+      defaultObj[now - i] = [(now - i) * interval, 0, 0, 0, 0, 0, 0];
+    }
+    candles = trades.reduce((prev, curr) => {
+      const index = Math.floor(curr.at / interval);
+      let point = prev[index];
+      if (point) {
+        point[2] = Math.max(point[2], +curr.price);
+        point[3] = Math.min(point[3], +curr.price);
+        point[4] = +curr.price;
+        point[5] += +curr.volume;
+        point[6] += +curr.volume * +curr.price;
+      } else {
+        point = [
+          index * interval,
+          +curr.price,
+          +curr.price,
+          +curr.price,
+          +curr.price,
+          +curr.volume,
+          +curr.volume * +curr.price,
+        ];
+      }
+      prev[index] = point;
+      return prev;
+    }, defaultObj);
+
+    return candles;
   }
 
   async getCandles(instId, bar, after, before, limit) {

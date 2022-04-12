@@ -342,6 +342,7 @@ class ExchangeHub extends Bot {
           cookie: header.cookie,
         },
         instId: query.instId,
+        resolution: query.resolution,
       });
       this.logger.debug(`++++++++++++++`);
       this.logger.debug(`registerMarketChannel instId`, query.instId);
@@ -570,59 +571,10 @@ class ExchangeHub extends Bot {
             instId: query.instId,
             increase: true,
           });
-          // ++ TODO
-          // let time = new Date().getTime();
-          let interval;
-          switch (query.bar) {
-            case "1m":
-              interval = 1 * 60 * 1000;
-              break;
-            case "30m":
-              interval = 30 * 60 * 1000;
-              break;
-            case "1H":
-              interval = 60 * 60 * 1000;
-              break;
-            case "1W":
-              interval = 7 * 24 * 60 * 60 * 1000;
-              break;
-            case "M":
-              interval = 30 * 24 * 60 * 60 * 1000;
-              break;
-            case "1D":
-            default:
-              interval = 24 * 60 * 60 * 1000;
-          }
-          let candles;
-          const now = Math.floor(new Date().getTime() / interval);
-          const defaultObj = {};
-          defaultObj[now] = [now * interval, 0, 0, 0, 0, 0, 0];
-          for (let i = 0; i < 100; i++) {
-            defaultObj[now - i] = [(now - i) * interval, 0, 0, 0, 0, 0, 0];
-          }
-          candles = trades.reduce((prev, curr) => {
-            const index = Math.floor((curr.at * 1000) / interval);
-            let point = prev[index];
-            if (point) {
-              point[2] = Math.max(point[2], +curr.price);
-              point[3] = Math.min(point[3], +curr.price);
-              point[4] = +curr.price;
-              point[5] += +curr.volume;
-              point[6] += +curr.volume * +curr.price;
-            } else {
-              point = [
-                index * interval,
-                +curr.price,
-                +curr.price,
-                +curr.price,
-                +curr.price,
-                +curr.volume,
-                +curr.volume * +curr.price,
-              ];
-            }
-            prev[index] = point;
-            return prev;
-          }, defaultObj);
+          let candles = this.tideBitConnector.transformTradesToCandle(
+            trades,
+            query.bar
+          );
           return new ResponseFormat({
             message: "getCandlesticks",
             payload: Object.values(candles),

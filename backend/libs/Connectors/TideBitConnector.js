@@ -11,6 +11,7 @@ class TibeBitConnector extends ConnectorBase {
   constructor({ logger }) {
     super({ logger });
     this.start = false;
+    this.name = "TibeBitConnector";
     return this;
   }
   async init({
@@ -152,8 +153,8 @@ class TibeBitConnector extends ConnectorBase {
         ]
     }
     */
-   if (data.asks.length === 0 || data.bids.length === 0) return;
-   this.logger.debug(`_updateBooks data`, data);
+    if (data.asks.length === 0 || data.bids.length === 0) return;
+    this.logger.debug(`_updateBooks data`, data);
     let index,
       asks = [],
       bids = [];
@@ -194,10 +195,29 @@ class TibeBitConnector extends ConnectorBase {
     };
     this.logger.debug(`_updateBooks formatBooks`, formatBooks);
     // if (asks.length > 0 || bids.length > 0)
-      EventBus.emit(Events.orderBooksOnUpdate, instId, formatBooks);
+    EventBus.emit(Events.orderBooksOnUpdate, instId, formatBooks);
   }
 
-  _updateTrades(instId, data) {
+  _updateTrade(data) {
+    /**  {
+    at: 1649675739
+    id: 6
+    kind: "ask"
+    market: "ethhkd"
+    price: "105.0"
+    volume: "0.1"
+    }*/
+    const formatTrade = {
+      ...data,
+      instId: this.current_instId,
+      at: data.at * 1000,
+    };
+    this.logger.debug(`_updateTrade data`, data);
+    this.logger.debug(`_updateTrade formatTrade`, formatTrade);
+    EventBus.emit(Events.tradesOnUpdate, this.current_instId, [formatTrade]);
+  }
+
+  _updateTrades(data) {
     /**
     {
       trades: [
@@ -214,18 +234,18 @@ class TibeBitConnector extends ConnectorBase {
     */
     const formatTrades = data.trades
       .map((t) => ({
-        instId,
+        instId: this.current_instId,
         id: t.tid,
         price: t.price,
         volume: t.amount,
         market: t.market,
         type: t.type,
-        at: t.date,
+        at: t.date * 1000,
         side: t.type === "sell" ? "down" : "up",
       }))
       .sort((a, b) => b.at - a.at);
     this.logger.debug(`_updateTrade formatTrades`, formatTrades);
-    EventBus.emit(Events.tradesOnUpdate, instId, formatTrades);
+    EventBus.emit(Events.tradesOnUpdate, this.current_instId, formatTrades);
   }
 
   async getOrderBooks({ header, instId }) {
@@ -250,7 +270,7 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
-  registerMarketChannel({ header, instId }) {
+  registerMarketChannel({ header, instId, resolution }) {
     if (!this.start) this._start({ header });
     try {
       if (
@@ -265,15 +285,17 @@ class TibeBitConnector extends ConnectorBase {
         this.market_channel = null;
       }
       this.current_instId = instId;
+      this.resolution = resolution;
       this.market_channel = this.pusher.subscribe(
         `market-${instId.replace("-", "").toLowerCase()}-global`
       );
       this.market_channel.bind("update", (data) =>
         this._updateBooks(instId, data)
       );
-      this.market_channel.bind("trades", (data) =>
-        this._updateTrades(instId, data)
-      );
+      this.market_channel.bind("trades", (data) => {
+        this._updateTrades(data);
+        this._updateCandles(data);
+      });
     } catch (error) {
       this.logger.error(`registerMarketChannel error`, error);
       throw error;
@@ -340,28 +362,6 @@ class TibeBitConnector extends ConnectorBase {
     EventBus.emit(Events.orderOnUpdate, formatOrder);
   }
 
-  _updateTrade(data) {
-    /**  {
-    at: 1649675739
-    id: 6
-    kind: "ask"
-    market: "ethhkd"
-    price: "105.0"
-    volume: "0.1"
-    }*/
-    const formatTrade = {
-      instId: this.current_instId,
-      id: data.id,
-      price: data.price,
-      volume: data.volume,
-      market: data.market,
-      at: data.at,
-    };
-    this.logger.debug(`_updateTrade data`, data);
-    this.logger.debug(`_updateTrade formatTrade`, formatTrade);
-    EventBus.emit(Events.tradesOnUpdate, this.current_instId, [formatTrade]);
-  }
-
   async registerPrivateChannel({ header, sn }) {
     if (!this.start) this._start({ header });
     try {
@@ -374,7 +374,10 @@ class TibeBitConnector extends ConnectorBase {
       this.private_channel = this.pusher.subscribe(`private-${sn}`);
       this.private_channel.bind("account", (data) => this._updateAccount(data));
       this.private_channel.bind("order", (data) => this._updateOrder(data));
-      this.private_channel.bind("trade", (data) => this._updateTrade(data));
+      this.private_channel.bind("trade", (data) => {
+        this._updateTrade(data);
+        this._updateCandle(data);
+      });
     } catch (error) {
       this.logger.error(`private_channel error`, error);
       throw error;
