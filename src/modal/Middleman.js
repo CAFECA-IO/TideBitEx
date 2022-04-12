@@ -252,15 +252,7 @@ class Middleman {
       `updateTrades _updateTrades[${_updateTrades.length}]`,
       _updateTrades
     );
-    this.trades = _updateTrades;
-    const candlesData = this.transformTradesToCandle(_updateTrades, resolution);
-    let candles = [],
-      volumes = [];
-    this.candles = Object.values(candlesData);
-    this.candles.forEach((candle) => {
-      candles.push(candle.slice(0, 5));
-      volumes.push([candle[0], candle[5]]);
-    });
+    const { candles, volumes } = this.updateCandles(_updateTrades, resolution);
     return { trades: _updateTrades, candles, volumes };
   };
 
@@ -283,47 +275,22 @@ class Middleman {
         ],
         []
       );
-      const candlesData = this.transformTradesToCandle(trades, resolution);
-      let candles = [],
-        volumes = [];
-      this.candles = Object.values(candlesData);
-      this.candles.forEach((candle) => {
-        candles.push(candle.slice(0, 5));
-        volumes.push([candle[0], candle[5]]);
-      });
+      const { candles, volumes } = this.updateCandles(trades, resolution);
       return { trades, candles, volumes };
     } catch (error) {
       throw error;
     }
   }
 
-  updateCandles(data) {
+  updateCandles(trades, resolution) {
+    const candlesData = this.transformTradesToCandle(trades, resolution);
     let candles = [],
       volumes = [];
-    const updateCandles = this.candles.map((data) => [...data]);
-    data.forEach((d) => {
-      let i = updateCandles.findIndex((candle) => d.candle[0] === candle[0]);
-      if (i === -1) {
-        if (SafeMath.gt(d.candle[0], updateCandles[0][0])) {
-          updateCandles.unshift(d.candle);
-          // console.log(`updateCandles unshift updateCandles`, updateCandles);
-        } else if (
-          SafeMath.lt(d.candle[0], updateCandles[updateCandles.length - 1][0])
-        ) {
-          updateCandles.push(d.candle);
-          // console.log(`updateCandles push updateCandles`, updateCandles);
-        }
-      } else {
-        // console.log(`updateCandles index: ${i} updateCandles`, updateCandles);
-        updateCandles[i] = d.candle;
-      }
-    });
-    this.candles = updateCandles;
+    this.candles = Object.values(candlesData);
     this.candles.forEach((candle) => {
       candles.push(candle.slice(0, 5));
       volumes.push([candle[0], candle[5]]);
     });
-    // console.log(`candleOnUpdate`, { candles, volumes });
     return { candles, volumes };
   }
 

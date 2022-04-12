@@ -104,9 +104,11 @@ const StoreProvider = (props) => {
     async (bar) => {
       if (bar !== selectedBar) {
         setSelectedBar(bar);
-        const candles = middleman.transformTradesToCandle(trades, bar);
-        setCandles(candles);
-        // await getCandles(selectedTicker?.instId, bar);
+        const {  candles, volumes } = middleman.updateCandles(
+          trades,
+          selectedBar
+        );
+        setCandles({  candles, volumes });
       }
     },
     [middleman, selectedBar, trades]
@@ -176,6 +178,10 @@ const StoreProvider = (props) => {
         document.title = `${_ticker.last} ${_ticker.name}`;
         await getBooks(id);
         await getTrades(id);
+        if (isLogin) {
+          await getPendingOrders();
+          await getCloseOrders();
+        }
         wsClient.send(
           JSON.stringify({
             op: "switchTradingPair",
@@ -186,7 +192,17 @@ const StoreProvider = (props) => {
         );
       }
     },
-    [middleman, selectedTicker, history, getBooks, getTrades, selectedBar]
+    [
+      selectedTicker,
+      history,
+      middleman,
+      selectedBar,
+      getBooks,
+      getTrades,
+      isLogin,
+      getPendingOrders,
+      getCloseOrders,
+    ]
   );
 
   const getTickers = useCallback(
