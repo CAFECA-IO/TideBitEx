@@ -256,6 +256,7 @@ class Middleman {
 
   updateTrades = (updateData, resolution) => {
     console.log(`updateTrades updateData`, updateData);
+    console.log(`updateTrades this.trades[${this.trades.length}]`, this.trades);
     const _updateTrades = updateData
       .filter(
         (trade) =>
@@ -277,7 +278,6 @@ class Middleman {
         update: true,
       }))
       .concat(this.trades || []);
-    console.log(`updateTrades this.trades[${this.trades.length}]`, this.trades);
     console.log(
       `updateTrades _updateTrades[${_updateTrades.length}]`,
       _updateTrades
@@ -435,7 +435,6 @@ class Middleman {
       prev[index] = point;
       return prev;
     }, defaultObj);
-    console.log(`transformTradesToCandle data`, Object.values(data));
     return Object.values(data);
   }
 

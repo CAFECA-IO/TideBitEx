@@ -236,7 +236,6 @@ class TibeBitConnector extends ConnectorBase {
     const formatTrade = {
       ...data,
       instId: this.current_instId,
-      at: data.at * 1000,
     };
     this.logger.debug(`_updateTrade data`, data);
     this.logger.debug(`_updateTrade formatTrade`, formatTrade);
@@ -266,7 +265,7 @@ class TibeBitConnector extends ConnectorBase {
         volume: t.amount,
         market: t.market,
         type: t.type,
-        at: t.date * 1000,
+        at: t.date,
         side: t.type === "sell" ? "down" : "up",
       }))
       .sort((a, b) => b.at - a.at);

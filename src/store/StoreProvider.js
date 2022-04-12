@@ -414,15 +414,17 @@ const StoreProvider = (props) => {
               }
               break;
             case "tradesOnUpdate":
-              const { updateTrades, updateCandles, updateVolume } =
-                middleman.updateTrades(metaData.data, selectedBar);
+              const { trades, candles, volumes } = middleman.updateTrades(
+                metaData.data,
+                selectedBar
+              );
               _tradeTimestamp = new Date().getTime();
               if (_tradeTimestamp - +tradeTimestamp > 1000) {
                 // console.log(`updateTrades`, updateTrades);
                 tradeTimestamp = _tradeTimestamp;
-                setTrades(updateTrades);
+                setTrades(trades);
                 middleman.resetTrades();
-                setCandles({ candles: updateCandles, volumes: updateVolume });
+                setCandles({ candles, volumes });
               }
               break;
             case "orderBooksOnUpdate":
