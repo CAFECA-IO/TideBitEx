@@ -149,8 +149,10 @@ class TibeBitConnector extends ConnectorBase {
           source: SupportedExchange.TIDEBIT,
         };
       });
-    this.logger.log(`_updateTickers formatTickers`, formatTickers);
-    EventBus.emit(Events.tickersOnUpdate, formatTickers);
+    if (formatTickers.length > 0) {
+      this.logger.log(`_updateTickers formatTickers`, formatTickers);
+      EventBus.emit(Events.tickersOnUpdate, formatTickers);
+    }
   }
 
   registerGlobalChannel({ header }) {

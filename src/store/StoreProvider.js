@@ -281,14 +281,11 @@ const StoreProvider = (props) => {
     }
   }, [enqueueSnackbar, registerPrivateChannel]);
 
-  const getAccounts = useCallback(
-    async () => {
-      await middleman.getAccounts();
-      setAccounts(middleman.accounts);
-      if (middleman.isLogin) getCSRFToken();
-    },
-    [getCSRFToken, middleman]
-  );
+  const getAccounts = useCallback(async () => {
+    await middleman.getAccounts();
+    setAccounts(middleman.accounts);
+    if (middleman.isLogin) await getCSRFToken();
+  }, [getCSRFToken, middleman]);
 
   const postOrder = useCallback(
     async (order) => {
