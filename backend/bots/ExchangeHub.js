@@ -371,6 +371,8 @@ class ExchangeHub extends Bot {
     const member = await this.database.getMemberById(memberId);
     this.logger.debug(`++++++++++++++`);
     this.logger.debug(`registerPrivateChannel member.sn`, member.sn);
+    this.logger.debug(`registerPrivateChannel body.instId`, body.instId);
+    this.logger.debug(`registerPrivateChannel body.resolution`, body.resolution);
     this.logger.debug(`++++++++++++++`);
     try {
       this.tideBitConnector.registerPrivateChannel({
