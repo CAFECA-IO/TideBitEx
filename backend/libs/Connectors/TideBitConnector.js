@@ -116,18 +116,18 @@ class TibeBitConnector extends ConnectorBase {
     }
     this.logger.log(`_updateTickers this.tickers`, this.tickers);
     const formatTickers = Object.values(data)
-      .filter((d) => {
-        let t = this.tickers?.find((ticker) => ticker.name === d.name);
-        return (
-          !t ||
-          t.last !== d.last ||
-          t.open !== d.open ||
-          t.close !== d.close ||
-          t.high !== d.high ||
-          t.low !== d.low ||
-          t.volume !== d.volume
-        );
-      })
+      // .filter((d) => {
+      //   let t = this.tickers?.find((ticker) => ticker.name === d.name);
+      //   return (
+      //     !t ||
+      //     t.last !== d.last ||
+      //     t.open !== d.open ||
+      //     t.close !== d.close ||
+      //     t.high !== d.high ||
+      //     t.low !== d.low ||
+      //     t.volume !== d.volume
+      //   );
+      // })
       .map((d) => {
         const change = SafeMath.minus(d.last, d.open);
         const changePct = SafeMath.gt(d.open24h, "0")
