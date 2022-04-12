@@ -6,44 +6,10 @@ class Middleman {
     this.communicator = new Communicator();
     this.tickers = [];
   }
-  updateTicker(ticker) {
-    let _ticker;
-    const instrument = this.instruments.find((i) => i.instId === ticker.instId);
-    _ticker = { ...ticker, minSz: instrument?.minSz || "0.001" }; // -- TEST for ETH-USDT
-    const quoteBalance = this.accounts?.find(
-      (detail) => detail.ccy === ticker.quote_unit.toUpperCase()
-    );
-    if (quoteBalance) _ticker.quoteCcyAvailable = quoteBalance.availBal;
-    else _ticker.quoteCcyAvailable = 0;
-    const baseBalance = this.accounts?.find(
-      (detail) => detail.ccy === ticker.base_unit.toUpperCase()
-    );
-    if (baseBalance) _ticker.baseCcyAvailable = baseBalance.availBal;
-    else _ticker.baseCcyAvailable = 0;
-    return _ticker;
-  }
 
-  async registerGlobalChannel() {
+  async registerPrivateChannel(token, instId, resolution) {
     try {
-      await this.communicator.registerGlobalChannel();
-    } catch (error) {
-      console.error(`registerGlobalChannel error`, error);
-      throw error;
-    }
-  }
-
-  async registerMarketChannel(instId, resolution) {
-    try {
-      await this.communicator.registerMarketChannel(instId, resolution);
-    } catch (error) {
-      console.error(`registerMarketChannel error`, error);
-      throw error;
-    }
-  }
-
-  async registerPrivateChannel(token) {
-    try {
-      await this.communicator.registerPrivateChannel(token);
+      await this.communicator.registerPrivateChannel(token, instId, resolution);
     } catch (error) {
       console.error(`registerPrivateChannel error`, error);
       throw error;
@@ -59,15 +25,24 @@ class Middleman {
     }
   }
 
-  updateSelectedTicker(ticker) {
-    // console.log(`updateSelectedTicker ticker`, ticker);
-    const _ticker = this.updateTicker(ticker);
-    this.selectedTicker = _ticker;
+  async updateSelectedTicker(ticker, resolution) {
+    if (ticker.instId !== this.selectedTicker?.instId || !this.selectedTicker) {
+      try {
+        await this.communicator.registerMarketChannel(
+          ticker.instId,
+          resolution
+        );
+      } catch (error) {
+        console.error(`registerMarketChannel error`, error);
+        throw error;
+      }
+    }
+    this.selectedTicker = ticker;
     return this.selectedTicker;
   }
 
   updateTickers(tickers) {
-    if (!this.tickers.length > 0) return;
+    if (!this.tickers || !this.tickers.length > 0) return;
     let updateTickers = this.tickers.map((t) => ({ ...t, update: false }));
     let updateTicker;
     tickers.forEach((t) => {
@@ -115,39 +90,32 @@ class Middleman {
       throw error;
     }
   }
-  async getTicker(instId) {
-    try {
-      const index = this.tickers.findIndex((t) => t.instId === instId);
-      const ticker = this.tickers[index];
-      const rawTicker = await this.communicator.ticker(instId);
-      const updateTicker = {
-        ...ticker,
-        at: rawTicker.at,
-        change: rawTicker.change,
-        changePct: rawTicker.changePct,
-        buy: rawTicker.buy,
-        sell: rawTicker.sell,
-        low: rawTicker.low,
-        high: rawTicker.high,
-        last: rawTicker.last,
-        open: rawTicker.open,
-        volume: rawTicker.volume,
-      };
-      this.tickers[index] = updateTicker;
-      return ticker;
-    } catch (error) {
-      throw error;
-    }
-  }
 
   async getTickers(instType, from, limit) {
+    let instruments, rawTickers;
     try {
-      const rawTickers = await this.communicator.tickers(instType, from, limit);
-      this.tickers = rawTickers;
-      return this.tickers;
+      instruments = await this.communicator.instruments(instType);
     } catch (error) {
+      console.error(`get instruments error`, error);
       throw error;
     }
+    try {
+      rawTickers = await this.communicator.tickers(instType, from, limit);
+      this.tickers = rawTickers.map((t) => {
+        let instrument = instruments.find((i) => i.instId === t.instId);
+        return { ...t, minSz: instrument?.minSz || "0.001" };
+      });
+    } catch (error) {
+      console.error(`get tickers error`, error);
+      throw error;
+    }
+    try {
+      await this.communicator.registerGlobalChannel();
+    } catch (error) {
+      console.error(`registerGlobalChannel error`, error);
+      throw error;
+    }
+    return this.tickers;
   }
 
   handleBooks() {
@@ -207,8 +175,12 @@ class Middleman {
     console.log(`updateBooks data`, data);
     if (data.instId !== this.selectedTicker.instId) return;
     const updateRawBooks = {
-      asks: this.rawBooks?.asks ? this.rawBooks.asks : [],
-      bids: this.rawBooks?.bids ? this.rawBooks.bids : [],
+      asks: this.rawBooks?.asks
+        ? this.rawBooks.asks.map((ask) => [...ask])
+        : [],
+      bids: this.rawBooks?.bids
+        ? this.rawBooks.bids.map((bid) => [...bid])
+        : [],
     };
     data.asks.forEach((ask) => {
       let index,
@@ -255,13 +227,12 @@ class Middleman {
   }
 
   updateTrades = (updateData, resolution) => {
-    console.log(`updateTrades updateData`, updateData);
-    console.log(`updateTrades this.trades[${this.trades.length}]`, this.trades);
     const _updateTrades = updateData
       .filter(
         (trade) =>
-          trade.instId === this.selectedTicker.instId &&
-          this.trades.findIndex((t) => t.id === trade.id) === -1
+          !this.trades ||
+          (trade.instId === this.selectedTicker.instId &&
+            this.trades.findIndex((t) => t.id === trade.id) === -1)
       )
       .map((trade, i) => ({
         ...trade,
@@ -327,32 +298,10 @@ class Middleman {
     }
   }
 
-  handleCandles(data) {
-    let candles = [],
-      volumes = [];
-    data.forEach((d) => {
-      const timestamp = parseInt(d[0]);
-      const date = new Date(timestamp);
-      candles.push({
-        x: date,
-        y: d.slice(1, 5),
-      });
-      volumes.push({
-        x: date,
-        y: d[6],
-        upward: SafeMath.gt(d[2], d[1]),
-      });
-    });
-    return {
-      candles,
-      volumes,
-    };
-  }
-
   updateCandles(data) {
     let candles = [],
       volumes = [];
-    const updateCandles = [...this.candles];
+    const updateCandles = this.candles.map((data) => [...data]);
     data.forEach((d) => {
       let i = updateCandles.findIndex((candle) => d.candle[0] === candle[0]);
       if (i === -1) {
@@ -461,8 +410,12 @@ class Middleman {
   }
 
   updateOrders(data) {
-    const updatePendingOrders = [...this.pendingOrders];
-    const updateCloseOrders = [...this.closeOrders];
+    const updatePendingOrders =
+      this.pendingOrders?.map((order) => ({
+        ...order,
+      })) || [];
+    const updateCloseOrders =
+      this.closeOrders?.map((order) => ({ ...order })) || [];
     if (data.market === this.selectedTicker.id) {
       const index = updatePendingOrders.findIndex(
         (order) => order.ordId === data.ordId
@@ -520,7 +473,7 @@ class Middleman {
   }
 
   updateAccounts(data) {
-    const updateAccounts = [...this.accounts];
+    const updateAccounts = this.accounts.map((account) => ({ ...account }));
     const index = updateAccounts.findIndex(
       (account) => account.ccy === data.ccy
     );
@@ -539,11 +492,8 @@ class Middleman {
       );
       this.accounts = result;
       if (this.accounts) this.isLogin = true;
-      return this.accounts;
     } catch (error) {
       this.isLogin = false;
-      this.accounts = [];
-      return this.accounts;
     }
   }
 

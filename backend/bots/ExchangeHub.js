@@ -380,6 +380,8 @@ class ExchangeHub extends Bot {
           cookie: header.cookie,
         },
         sn: member.sn,
+        instId: body.instId,
+        resolution: body.resolution,
       });
       this.logger.debug(`++++++++++++++`);
       this.logger.debug(`registerPrivateChannel SUCCESS`);

@@ -19,7 +19,6 @@ const StoreProvider = (props) => {
   const [isLogin, setIsLogin] = useState(false);
   const [tickers, setTickers] = useState([]);
   const [books, setBooks] = useState(null);
-  const [init, setInit] = useState(true);
   const [trades, setTrades] = useState([]);
   const [candles, setCandles] = useState(null);
   const [selectedBar, setSelectedBar] = useState("1D");
@@ -51,7 +50,6 @@ const StoreProvider = (props) => {
       try {
         const result = await middleman.getBooks(instId, sz);
         setBooks(result);
-        setInit(true);
         // return result;
       } catch (error) {
         enqueueSnackbar(`"getBooks error: ${error?.message}"`, {
@@ -154,33 +152,10 @@ const StoreProvider = (props) => {
     [enqueueSnackbar, middleman]
   );
 
-  const registerMarketChannel = useCallback(
-    async (instId, selectedBar) => {
-      try {
-        await middleman.registerMarketChannel(instId, selectedBar);
-      } catch (error) {
-        enqueueSnackbar(`"registerMarketChannel error: ${error?.message}"`, {
-          variant: "error",
-        });
-      }
-    },
-    [enqueueSnackbar, middleman]
-  );
-
-  const registerGlobalChannel = useCallback(async () => {
-    try {
-      await middleman.registerGlobalChannel();
-    } catch (error) {
-      enqueueSnackbar(`"registerGlobalChannel error: ${error?.message}"`, {
-        variant: "error",
-      });
-    }
-  }, [enqueueSnackbar, middleman]);
-
   const registerPrivateChannel = useCallback(
-    async (token) => {
+    async (token, instId, resolution) => {
       try {
-        await middleman.registerPrivateChannel(token);
+        await middleman.registerPrivateChannel(token, instId, resolution);
       } catch (error) {
         enqueueSnackbar(`"registerPrivateChannel error: ${error?.message}"`, {
           variant: "error",
@@ -192,10 +167,7 @@ const StoreProvider = (props) => {
 
   const selectTickerHandler = useCallback(
     async (ticker) => {
-      const _ticker = middleman.updateSelectedTicker(ticker);
-      // ++ TODO 需要改用websocket呼叫的方式
-      // console.log(`selectTickerHandler _ticker`, _ticker);
-      //
+      const _ticker = await middleman.updateSelectedTicker(ticker, selectedBar);
       setSelectedTicker(_ticker);
       document.title = `${_ticker.last} ${_ticker.name}`;
       if (ticker.instId !== selectedTicker?.instId || !selectedTicker) {
@@ -205,9 +177,6 @@ const StoreProvider = (props) => {
         await getBooks(ticker.instId);
         await getTrades(ticker.instId);
         // await getCandles(ticker.instId, selectedBar);
-        await getPendingOrders();
-        await getCloseOrders();
-        await registerMarketChannel(ticker.instId, selectedBar);
         wsClient.send(
           JSON.stringify({
             op: "switchTradingPair",
@@ -218,18 +187,7 @@ const StoreProvider = (props) => {
         );
       }
     },
-    [
-      middleman,
-      registerMarketChannel,
-      selectedTicker,
-      history,
-      getBooks,
-      getTrades,
-      // getCandles,
-      selectedBar,
-      getPendingOrders,
-      getCloseOrders,
-    ]
+    [middleman, selectedTicker, history, getBooks, getTrades, selectedBar]
   );
 
   const getTickers = useCallback(
@@ -271,7 +229,13 @@ const StoreProvider = (props) => {
         if (token) {
           setToken(token);
           setIsLogin(true);
-          await registerPrivateChannel(token);
+          await getPendingOrders();
+          await getCloseOrders();
+          await registerPrivateChannel(
+            token,
+            selectedTicker?.instId,
+            selectedBar
+          );
         }
       }
     } catch (error) {
@@ -279,7 +243,14 @@ const StoreProvider = (props) => {
         variant: "error",
       });
     }
-  }, [enqueueSnackbar, registerPrivateChannel]);
+  }, [
+    enqueueSnackbar,
+    getCloseOrders,
+    getPendingOrders,
+    registerPrivateChannel,
+    selectedBar,
+    selectedTicker?.instId,
+  ]);
 
   const getAccounts = useCallback(async () => {
     await middleman.getAccounts();
@@ -377,109 +348,98 @@ const StoreProvider = (props) => {
     setActivePage(page);
   };
 
-  const sync = useCallback(
-    async (isInit = false) => {
-      await middleman.getInstruments();
-      await getAccounts();
-      await getTickers(true);
-      await registerGlobalChannel();
-      if (isInit) {
-        wsClient.addEventListener("open", function () {
-          setWsConnected(true);
-        });
-        wsClient.addEventListener("close", function () {
-          setWsConnected(false);
-        });
-        wsClient.addEventListener("message", (msg) => {
-          let _tickerTimestamp = 0,
-            _tradeTimestamp = 0,
-            _bookTimestamp = 0,
-            _candleTimestamp = 0,
-            _accountTimestamp = 0,
-            _orderTimestamp = 0,
-            metaData = JSON.parse(msg.data);
-          switch (metaData.type) {
-            case "tickersOnUpdate":
-              const { updateTicker, updateTickers } = middleman.updateTickers(
-                metaData.data
-              );
-              _tickerTimestamp = new Date().getTime();
-              if (!!updateTicker) {
-                setSelectedTicker(updateTicker);
-                document.title = `${updateTicker.last} ${updateTicker.pair}`;
-              }
-              if (_tickerTimestamp - +tickerTimestamp > 1000) {
-                tickerTimestamp = _tickerTimestamp;
-                setTickers(updateTickers);
-              }
-              break;
-            case "tradesOnUpdate":
-              const { trades, candles, volumes } = middleman.updateTrades(
-                metaData.data,
-                selectedBar
-              );
-              _tradeTimestamp = new Date().getTime();
-              if (_tradeTimestamp - +tradeTimestamp > 1000) {
-                // console.log(`updateTrades`, updateTrades);
-                tradeTimestamp = _tradeTimestamp;
-                setTrades(trades);
-                middleman.resetTrades();
-                setCandles({ candles, volumes });
-              }
-              break;
-            case "orderBooksOnUpdate":
-              const updateBooks = middleman.updateBooks(metaData.data);
-              _bookTimestamp = new Date().getTime();
-              if (_bookTimestamp - +bookTimestamp > 1000) {
-                // console.log(`updateBooks`, updateBooks);
-                bookTimestamp = _bookTimestamp;
-                setBooks(updateBooks);
-              }
-              break;
-            // case "candleOnUpdate":
-            //   const updateCandles = middleman.updateCandles(metaData.data);
-            //   _candleTimestamp = new Date().getTime();
-            //   if (_candleTimestamp - +candleTimestamp > 1000) {
-            //     candleTimestamp = _candleTimestamp;
-            //     setCandles(updateCandles);
-            //   }
-            //   break;
-            // // ++ TODO TideBit WS 要與 OKEX整合
-            case "accountOnUpdate":
-              const updateAccounts = middleman.updateAccounts(metaData.data);
-              _accountTimestamp = new Date().getTime();
-              if (_accountTimestamp - +accountTimestamp > 1000) {
-                accountTimestamp = _accountTimestamp;
-                setAccounts(updateAccounts);
-              }
-              break;
-            case "orderOnUpdate":
-              const { updatePendingOrders, updateCloseOrders } =
-                middleman.updateOrders(metaData.data);
-              _orderTimestamp = new Date().getTime();
-              if (_orderTimestamp - +orderTimestamp > 1000) {
-                orderTimestamp = _orderTimestamp;
-                setPendingOrders(updatePendingOrders);
-                setCloseOrders(updateCloseOrders);
-              }
-              break;
-            case "tradeOnUpdate":
-              console.info(`tradeOnUpdate trade`, metaData.data);
-              break;
-            default:
-          }
-        });
-      }
-    },
-    [getAccounts, getCloseOrders, getPendingOrders, getTickers, middleman]
-  );
-
   const start = useCallback(async () => {
-    sync(true);
-  }, [sync]);
+    await getTickers(true);
+    await getAccounts();
+  }, [getAccounts, getTickers]);
 
   useEffect(() => {
     start();
+    wsClient.addEventListener("open", function () {
+      setWsConnected(true);
+    });
+    wsClient.addEventListener("close", function () {
+      setWsConnected(false);
+    });
+    wsClient.addEventListener("message", (msg) => {
+      let _tickerTimestamp = 0,
+        _tradeTimestamp = 0,
+        _bookTimestamp = 0,
+        // _candleTimestamp = 0,
+        _accountTimestamp = 0,
+        _orderTimestamp = 0,
+        metaData = JSON.parse(msg.data);
+      switch (metaData.type) {
+        case "tickersOnUpdate":
+          const { updateTicker, updateTickers } = middleman.updateTickers(
+            metaData.data
+          );
+          _tickerTimestamp = new Date().getTime();
+          if (!!updateTicker) {
+            setSelectedTicker(updateTicker);
+            document.title = `${updateTicker.last} ${updateTicker.pair}`;
+          }
+          if (_tickerTimestamp - +tickerTimestamp > 1000) {
+            tickerTimestamp = _tickerTimestamp;
+            setTickers(updateTickers);
+          }
+          break;
+        case "tradesOnUpdate":
+          const { trades, candles, volumes } = middleman.updateTrades(
+            metaData.data,
+            selectedBar
+          );
+          _tradeTimestamp = new Date().getTime();
+          if (_tradeTimestamp - +tradeTimestamp > 1000) {
+            // console.log(`updateTrades`, updateTrades);
+            tradeTimestamp = _tradeTimestamp;
+            setTrades(trades);
+            middleman.resetTrades();
+            setCandles({ candles, volumes });
+          }
+          break;
+        case "orderBooksOnUpdate":
+          const updateBooks = middleman.updateBooks(metaData.data);
+          _bookTimestamp = new Date().getTime();
+          if (_bookTimestamp - +bookTimestamp > 1000) {
+            // console.log(`updateBooks`, updateBooks);
+            bookTimestamp = _bookTimestamp;
+            setBooks(updateBooks);
+          }
+          break;
+        // case "candleOnUpdate":
+        //   const updateCandles = middleman.updateCandles(metaData.data);
+        //   _candleTimestamp = new Date().getTime();
+        //   if (_candleTimestamp - +candleTimestamp > 1000) {
+        //     candleTimestamp = _candleTimestamp;
+        //     setCandles(updateCandles);
+        //   }
+        //   break;
+        // // ++ TODO TideBit WS 要與 OKEX整合
+        case "accountOnUpdate":
+          const updateAccounts = middleman.updateAccounts(metaData.data);
+          _accountTimestamp = new Date().getTime();
+          if (_accountTimestamp - +accountTimestamp > 1000) {
+            accountTimestamp = _accountTimestamp;
+            setAccounts(updateAccounts);
+          }
+          break;
+        case "orderOnUpdate":
+          const { updatePendingOrders, updateCloseOrders } =
+            middleman.updateOrders(metaData.data);
+          _orderTimestamp = new Date().getTime();
+          if (_orderTimestamp - +orderTimestamp > 1000) {
+            orderTimestamp = _orderTimestamp;
+            setPendingOrders(updatePendingOrders);
+            setCloseOrders(updateCloseOrders);
+          }
+          break;
+        // case "tradeOnUpdate":
+        //   console.info(`tradeOnUpdate trade`, metaData.data);
+        //   break;
+        default:
+      }
+    });
     return () => {
       middleman.unregiterAll();
     };
@@ -488,7 +448,6 @@ const StoreProvider = (props) => {
   return (
     <StoreContext.Provider
       value={{
-        init,
         isLogin,
         tickers,
         books,
@@ -505,7 +464,6 @@ const StoreProvider = (props) => {
         languageKey,
         orderBookHandler,
         setLanguageKey,
-        setInit,
         findTicker,
         selectTickerHandler,
         getTickers,

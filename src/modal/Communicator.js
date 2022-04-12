@@ -116,11 +116,13 @@ class Communicator {
     }
   }
 
-  async registerPrivateChannel(token) {
+  async registerPrivateChannel(token, instId, resolution) {
     try {
       if (!token) return { message: "token cannot be null" };
       const res = await this._post(`/pusher/register-private-channel`, {
         token,
+        instId,
+        resolution,
       });
       if (res.success) {
         return res.data;
