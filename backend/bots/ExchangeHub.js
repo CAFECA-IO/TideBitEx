@@ -515,9 +515,9 @@ class ExchangeHub extends Bot {
   }
 
   async getOrderBooks({ header, params, query }) {
-    switch (this._findSource(query.instId)) {
+    const instId = this._findInstId(query.id);
+    switch (this._findSource(instId)) {
       case SupportedExchange.OKEX:
-        const instId = this._findInstId(query.id);
         return this.okexConnector.router("getOrderBooks", {
           params,
           query: { ...query, instId },
@@ -628,9 +628,9 @@ class ExchangeHub extends Bot {
   // }
 
   async getTrades({ params, query }) {
-    switch (this._findSource(query.instId)) {
+    const instId = this._findInstId(query.id);
+    switch (this._findSource(instId)) {
       case SupportedExchange.OKEX:
-        const instId = this._findInstId(query.id);
         return this.okexConnector.router("getTrades", {
           params,
           query: { ...query, instId },
