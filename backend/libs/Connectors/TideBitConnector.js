@@ -307,7 +307,7 @@ class TibeBitConnector extends ConnectorBase {
       ) {
         this.market_channel.unbind();
         this.pusher.unsubscribe(
-          `market-${this.instId.replace("-", "").toLowerCase()}-global`
+          `market-${this.current_instId.replace("-", "").toLowerCase()}-global`
         );
         this.market_channel = null;
       }

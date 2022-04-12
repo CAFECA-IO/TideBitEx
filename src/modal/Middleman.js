@@ -31,7 +31,7 @@ class Middleman {
       await this.communicator.registerMarketChannel(id, resolution);
     } catch (error) {
       console.error(`registerMarketChannel error`, error);
-      throw error;
+      // throw error;
     }
     this.selectedTicker = this.tickers?.find((ticker) => ticker.id === id);
     if (!this.selectedTicker) {
