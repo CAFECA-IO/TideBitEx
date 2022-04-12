@@ -390,7 +390,7 @@ class TibeBitConnector extends ConnectorBase {
 
   async registerPrivateChannel({ header, sn, instId, resolution }) {
     this.unregisterAll();
-    this.pusher = null;
+    this.start = false;
     if (!this.start) this._start({ header });
     try {
       if (this.current_user) {
