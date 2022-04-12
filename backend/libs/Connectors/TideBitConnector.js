@@ -315,7 +315,6 @@ class TibeBitConnector extends ConnectorBase {
       );
       this.market_channel.bind("trades", (data) => {
         this._updateTrades(data);
-        this._updateCandles(data);
       });
     } catch (error) {
       this.logger.error(`registerMarketChannel error`, error);
