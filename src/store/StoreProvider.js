@@ -18,7 +18,6 @@ const StoreProvider = (props) => {
   const [wsConnected, setWsConnected] = useState(false);
   const [isLogin, setIsLogin] = useState(false);
   const [tickers, setTickers] = useState([]);
-  const [updateTickerIndexs, setUpdateTickerIndexs] = useState([]);
   const [books, setBooks] = useState(null);
   const [init, setInit] = useState(true);
   const [trades, setTrades] = useState([]);
@@ -287,13 +286,10 @@ const StoreProvider = (props) => {
       if (middleman.isLogin) {
         await getCSRFToken();
         setIsLogin(true);
-        enqueueSnackbar(`User Login`, {
-          variant: "success",
-        });
       }
       setAccounts(middleman.accounts);
     },
-    [enqueueSnackbar, getCSRFToken, middleman]
+    [getCSRFToken, middleman]
   );
 
   const postOrder = useCallback(
@@ -409,7 +405,7 @@ const StoreProvider = (props) => {
             metaData = JSON.parse(msg.data);
           switch (metaData.type) {
             case "tickersOnUpdate":
-              const { updateTicker, updateTickers, updateIndexes } =
+              const { updateTicker, updateTickers } =
                 middleman.updateTickers(metaData.data);
               _tickerTimestamp = new Date().getTime();
               if (!!updateTicker) {
@@ -419,7 +415,6 @@ const StoreProvider = (props) => {
               if (_tickerTimestamp - +tickerTimestamp > 1000) {
                 tickerTimestamp = _tickerTimestamp;
                 setTickers(updateTickers);
-                setUpdateTickerIndexs(updateIndexes);
               }
               break;
             case "tradesOnUpdate":
@@ -507,7 +502,6 @@ const StoreProvider = (props) => {
         orderHistories,
         accounts,
         selectedTicker,
-        updateTickerIndexs,
         activePage,
         orderbook,
         languageKey,

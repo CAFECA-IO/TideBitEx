@@ -67,20 +67,16 @@ class Middleman {
   }
 
   updateTickers(tickers) {
-    console.log(`updateTickers tickers`, tickers);
     if (!this.tickers.length > 0) return;
-    let updateTickers = [...this.tickers];
+    let updateTickers = this.tickers.map((t) => ({ ...t, update: false }));
     let updateTicker;
-    const updateIndexes = tickers.map((t) => {
-      const index = this.tickers.findIndex(
-        (ticker) => ticker.instId === t.instId
-      );
-      if (index === -1) {
-        updateTickers.push(t);
-        return updateTickers.length - 1;
+    tickers.forEach((t) => {
+      const i = this.tickers.findIndex((ticker) => ticker.instId === t.instId);
+      if (i === -1) {
+        updateTickers.push({ ...t, update: true });
       } else {
         const ticker = {
-          ...updateTickers[index],
+          ...updateTickers[i],
           last: t.last,
           change: t.change,
           changePct: t.changePct,
@@ -88,18 +84,17 @@ class Middleman {
           high: t.high,
           low: t.low,
           volume: t.volume,
+          update: true,
         };
         if (t.instId === this.selectedTicker?.instId)
           updateTicker = this.updateSelectedTicker(ticker);
-        updateTickers[index] = ticker;
-        return index;
+        updateTickers[i] = ticker;
       }
     });
     this.tickers = updateTickers;
     return {
       updateTicker,
       updateTickers,
-      updateIndexes,
     };
   }
 
@@ -413,7 +408,7 @@ class Middleman {
       defaultObj[now - i] = [(now - i) * interval, 0, 0, 0, 0, 0, 0];
     }
     data = trades.reduce((prev, curr) => {
-      const index = Math.floor(curr.at / interval);
+      const index = Math.floor((curr.at * 1000) / interval);
       let point = prev[index];
       if (point) {
         point[2] = Math.max(point[2], +curr.price);

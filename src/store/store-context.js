@@ -6,7 +6,6 @@ const StoreContext = React.createContext({
   isLogin: null,
   selectedTicker: null,
   tickers: [],
-  updateTickerIndexs: [],
   books: [],
   trades: [],
   candles: null,
