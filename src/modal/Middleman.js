@@ -6,44 +6,10 @@ class Middleman {
     this.communicator = new Communicator();
     this.tickers = [];
   }
-  updateTicker(ticker) {
-    let _ticker;
-    const instrument = this.instruments.find((i) => i.instId === ticker.instId);
-    _ticker = { ...ticker, minSz: instrument?.minSz || "0.001" }; // -- TEST for ETH-USDT
-    const quoteBalance = this.accounts?.find(
-      (detail) => detail.ccy === ticker.quote_unit.toUpperCase()
-    );
-    if (quoteBalance) _ticker.quoteCcyAvailable = quoteBalance.availBal;
-    else _ticker.quoteCcyAvailable = 0;
-    const baseBalance = this.accounts?.find(
-      (detail) => detail.ccy === ticker.base_unit.toUpperCase()
-    );
-    if (baseBalance) _ticker.baseCcyAvailable = baseBalance.availBal;
-    else _ticker.baseCcyAvailable = 0;
-    return _ticker;
-  }
 
-  async registerGlobalChannel() {
+  async registerPrivateChannel(token, id, resolution) {
     try {
-      await this.communicator.registerGlobalChannel();
-    } catch (error) {
-      console.error(`registerGlobalChannel error`, error);
-      throw error;
-    }
-  }
-
-  async registerMarketChannel(instId) {
-    try {
-      await this.communicator.registerMarketChannel(instId);
-    } catch (error) {
-      console.error(`registerMarketChannel error`, error);
-      throw error;
-    }
-  }
-
-  async registerPrivateChannel(token) {
-    try {
-      await this.communicator.registerPrivateChannel(token);
+      await this.communicator.registerPrivateChannel(token, id, resolution);
     } catch (error) {
       console.error(`registerPrivateChannel error`, error);
       throw error;
@@ -59,27 +25,32 @@ class Middleman {
     }
   }
 
-  updateSelectedTicker(ticker) {
-    // console.log(`updateSelectedTicker ticker`, ticker);
-    const _ticker = this.updateTicker(ticker);
-    this.selectedTicker = _ticker;
+  async updateSelectedTicker(id, resolution) {
+    console.log(`updateSelectedTicker id`, id);
+    try {
+      await this.communicator.registerMarketChannel(id, resolution);
+    } catch (error) {
+      console.error(`registerMarketChannel error`, error);
+      // throw error;
+    }
+    this.selectedTicker = this.tickers?.find((ticker) => ticker.id === id);
+    if (!this.selectedTicker) {
+      this.selectedTicker = await this.communicator.ticker(id);
+    }
     return this.selectedTicker;
   }
 
   updateTickers(tickers) {
-    if (!this.tickers.length > 0) return;
-    let updateTickers = [...this.tickers];
+    if (!this.tickers || !this.tickers.length > 0) return;
+    let updateTickers = this.tickers.map((t) => ({ ...t, update: false }));
     let updateTicker;
-    const updateIndexes = tickers.map((t) => {
-      const index = this.tickers.findIndex(
-        (ticker) => ticker.instId === t.instId
-      );
-      if (index === -1) {
-        updateTickers.push(t);
-        return updateTickers.length - 1;
+    tickers.forEach((t) => {
+      const i = this.tickers.findIndex((ticker) => ticker.instId === t.instId);
+      if (i === -1) {
+        updateTickers.push({ ...t, update: true });
       } else {
         const ticker = {
-          ...updateTickers[index],
+          ...updateTickers[i],
           last: t.last,
           change: t.change,
           changePct: t.changePct,
@@ -87,18 +58,17 @@ class Middleman {
           high: t.high,
           low: t.low,
           volume: t.volume,
+          update: true,
         };
-        if (t.instId === this.selectedTicker?.instId)
+        if (!!this.selectedTicker && t.instId === this.selectedTicker?.instId)
           updateTicker = this.updateSelectedTicker(ticker);
-        updateTickers[index] = ticker;
-        return index;
+        updateTickers[i] = ticker;
       }
     });
     this.tickers = updateTickers;
     return {
       updateTicker,
       updateTickers,
-      updateIndexes,
     };
   }
 
@@ -119,39 +89,32 @@ class Middleman {
       throw error;
     }
   }
-  async getTicker(instId) {
-    try {
-      const index = this.tickers.findIndex((t) => t.instId === instId);
-      const ticker = this.tickers[index];
-      const rawTicker = await this.communicator.ticker(instId);
-      const updateTicker = {
-        ...ticker,
-        at: rawTicker.at,
-        change: rawTicker.change,
-        changePct: rawTicker.changePct,
-        buy: rawTicker.buy,
-        sell: rawTicker.sell,
-        low: rawTicker.low,
-        high: rawTicker.high,
-        last: rawTicker.last,
-        open: rawTicker.open,
-        volume: rawTicker.volume,
-      };
-      this.tickers[index] = updateTicker;
-      return ticker;
-    } catch (error) {
-      throw error;
-    }
-  }
 
   async getTickers(instType, from, limit) {
+    let instruments, rawTickers;
     try {
-      const rawTickers = await this.communicator.tickers(instType, from, limit);
-      this.tickers = rawTickers;
-      return this.tickers;
+      instruments = await this.communicator.instruments(instType);
     } catch (error) {
+      console.error(`get instruments error`, error);
       throw error;
     }
+    try {
+      rawTickers = await this.communicator.tickers(instType, from, limit);
+      this.tickers = rawTickers.map((t) => {
+        let instrument = instruments.find((i) => i.instId === t.instId);
+        return { ...t, minSz: instrument?.minSz || "0.001" };
+      });
+    } catch (error) {
+      console.error(`get tickers error`, error);
+      throw error;
+    }
+    try {
+      await this.communicator.registerGlobalChannel();
+    } catch (error) {
+      console.error(`registerGlobalChannel error`, error);
+      throw error;
+    }
+    return this.tickers;
   }
 
   handleBooks() {
@@ -211,8 +174,12 @@ class Middleman {
     console.log(`updateBooks data`, data);
     if (data.instId !== this.selectedTicker.instId) return;
     const updateRawBooks = {
-      asks: this.rawBooks?.asks ? this.rawBooks.asks : [],
-      bids: this.rawBooks?.bids ? this.rawBooks.bids : [],
+      asks: this.rawBooks?.asks
+        ? this.rawBooks.asks.map((ask) => [...ask])
+        : [],
+      bids: this.rawBooks?.bids
+        ? this.rawBooks.bids.map((bid) => [...bid])
+        : [],
     };
     data.asks.forEach((ask) => {
       let index,
@@ -246,9 +213,9 @@ class Middleman {
     return this.books;
   }
 
-  async getBooks(instId, sz) {
+  async getBooks(id, sz) {
     try {
-      const rawBooks = await this.communicator.books(instId, sz);
+      const rawBooks = await this.communicator.books(id, sz);
       this.rawBooks = rawBooks;
       console.log(`getBooks this.rawBooks`, this.rawBooks);
       this.books = this.handleBooks();
@@ -258,14 +225,13 @@ class Middleman {
     }
   }
 
-  updateTrades = (updateData) => {
-    console.log(`updateTrades updateData`, updateData);
-    console.log(`updateTrades this.trades`, this.trades);
+  updateTrades = (updateData, resolution) => {
     const _updateTrades = updateData
       .filter(
         (trade) =>
-          trade.instId === this.selectedTicker.instId &&
-          this.trades.findIndex((t) => t.id === trade.id) === -1
+          !this.trades ||
+          (trade.instId === this.selectedTicker.instId &&
+            this.trades.findIndex((t) => t.id === trade.id) === -1)
       )
       .map((trade, i) => ({
         ...trade,
@@ -282,17 +248,21 @@ class Middleman {
         update: true,
       }))
       .concat(this.trades || []);
-    this.trades = _updateTrades;
-    return _updateTrades;
+    console.log(
+      `updateTrades _updateTrades[${_updateTrades.length}]`,
+      _updateTrades
+    );
+    const { candles, volumes } = this.updateCandles(_updateTrades, resolution);
+    return { trades: _updateTrades, candles, volumes };
   };
 
   resetTrades = () => {
     this.trades = this.trades.map((trade) => ({ ...trade, update: false }));
   };
 
-  async getTrades(instId, limit) {
+  async getTrades(id, limit, resolution) {
     try {
-      const trades = await this.communicator.trades(instId, limit);
+      const trades = await this.communicator.trades(id, limit);
       this.trades = trades.reduce(
         (prev, curr, i) => [
           ...prev,
@@ -305,62 +275,82 @@ class Middleman {
         ],
         []
       );
-      return trades;
+      const { candles, volumes } = this.updateCandles(trades, resolution);
+      return { trades, candles, volumes };
     } catch (error) {
       throw error;
     }
   }
 
-  handleCandles(data) {
+  updateCandles(trades, resolution) {
+    const candlesData = this.transformTradesToCandle(trades, resolution);
     let candles = [],
       volumes = [];
-    data.forEach((d) => {
-      const timestamp = parseInt(d[0]);
-      const date = new Date(timestamp);
-      candles.push({
-        x: date,
-        y: d.slice(1, 5),
-      });
-      volumes.push({
-        x: date,
-        y: d[6],
-        upward: SafeMath.gt(d[2], d[1]),
-      });
-    });
-    return {
-      candles,
-      volumes,
-    };
-  }
-
-  updateCandles(data) {
-    let candles = [],
-      volumes = [];
-    const updateCandles = [...this.candles];
-    data.forEach((d) => {
-      let i = updateCandles.findIndex((candle) => d.candle[0] === candle[0]);
-      if (i === -1) {
-        if (SafeMath.gt(d.candle[0], updateCandles[0][0])) {
-          updateCandles.unshift(d.candle);
-          // console.log(`updateCandles unshift updateCandles`, updateCandles);
-        } else if (
-          SafeMath.lt(d.candle[0], updateCandles[updateCandles.length - 1][0])
-        ) {
-          updateCandles.push(d.candle);
-          // console.log(`updateCandles push updateCandles`, updateCandles);
-        }
-      } else {
-        // console.log(`updateCandles index: ${i} updateCandles`, updateCandles);
-        updateCandles[i] = d.candle;
-      }
-    });
-    this.candles = updateCandles;
+    this.candles = Object.values(candlesData);
     this.candles.forEach((candle) => {
       candles.push(candle.slice(0, 5));
       volumes.push([candle[0], candle[5]]);
     });
-    // console.log(`candleOnUpdate`, { candles, volumes });
     return { candles, volumes };
+  }
+
+  /**
+   *
+   * @param {Array} trades
+   */
+  transformTradesToCandle(trades, resolution) {
+    let interval,
+      data,
+      defaultObj = {};
+    switch (resolution) {
+      case "1m":
+        interval = 1 * 60 * 1000;
+        break;
+      case "30m":
+        interval = 30 * 60 * 1000;
+        break;
+      case "1H":
+        interval = 60 * 60 * 1000;
+        break;
+      case "1W":
+        interval = 7 * 24 * 60 * 60 * 1000;
+        break;
+      case "M":
+        interval = 30 * 24 * 60 * 60 * 1000;
+        break;
+      case "1D":
+      default:
+        interval = 24 * 60 * 60 * 1000;
+    }
+    const now = Math.floor(new Date().getTime() / interval);
+    defaultObj[now] = [now * interval, 0, 0, 0, 0, 0, 0];
+    for (let i = 0; i < 100; i++) {
+      defaultObj[now - i] = [(now - i) * interval, 0, 0, 0, 0, 0, 0];
+    }
+    data = trades.reduce((prev, curr) => {
+      const index = Math.floor((curr.at * 1000) / interval);
+      let point = prev[index];
+      if (point) {
+        point[2] = Math.max(point[2], +curr.price);
+        point[3] = Math.min(point[3], +curr.price);
+        point[4] = +curr.price;
+        point[5] += +curr.volume;
+        point[6] += +curr.volume * +curr.price;
+      } else {
+        point = [
+          index * interval,
+          +curr.price,
+          +curr.price,
+          +curr.price,
+          +curr.price,
+          +curr.volume,
+          +curr.volume * +curr.price,
+        ];
+      }
+      prev[index] = point;
+      return prev;
+    }, defaultObj);
+    return Object.values(data);
   }
 
   async getCandles(instId, bar, after, before, limit) {
@@ -386,8 +376,12 @@ class Middleman {
   }
 
   updateOrders(data) {
-    const updatePendingOrders = [...this.pendingOrders];
-    const updateCloseOrders = [...this.closeOrders];
+    const updatePendingOrders =
+      this.pendingOrders?.map((order) => ({
+        ...order,
+      })) || [];
+    const updateCloseOrders =
+      this.closeOrders?.map((order) => ({ ...order })) || [];
     if (data.market === this.selectedTicker.id) {
       const index = updatePendingOrders.findIndex(
         (order) => order.ordId === data.ordId
@@ -445,7 +439,7 @@ class Middleman {
   }
 
   updateAccounts(data) {
-    const updateAccounts = [...this.accounts];
+    const updateAccounts = this.accounts.map((account) => ({ ...account }));
     const index = updateAccounts.findIndex(
       (account) => account.ccy === data.ccy
     );
@@ -464,11 +458,8 @@ class Middleman {
       );
       this.accounts = result;
       if (this.accounts) this.isLogin = true;
-      return this.accounts;
     } catch (error) {
       this.isLogin = false;
-      this.accounts = [];
-      return this.accounts;
     }
   }
 

@@ -11,6 +11,7 @@ class TibeBitConnector extends ConnectorBase {
   constructor({ logger }) {
     super({ logger });
     this.start = false;
+    this.name = "TibeBitConnector";
     return this;
   }
   async init({
@@ -97,35 +98,61 @@ class TibeBitConnector extends ConnectorBase {
 
   _updateTickers(data) {
     /**
-    name: 'ETC/USDT',
-    base_unit: 'etc',
-    quote_unit: 'usdt',
-    group: 'usdx',
+   {
+   btchkd: {
+    name: 'BTC/HKD',
+    base_unit: 'btc',
+    quote_unit: 'hkd',
+    group: 'hkd',
     low: '0.0',
     high: '0.0',
     last: '0.0',
     open: '0.0',
     volume: '0.0',
     sell: '0.0',
-    buy: '0.0',
-    at: 1649315293
+    buy: '1000.0',
+    at: 1649742406
+  },}
     */
-    const formatTickers = Object.values(data).map((data) => {
-      const change = SafeMath.minus(data.last, data.open);
-      const changePct = SafeMath.gt(data.open24h, "0")
-        ? SafeMath.div(change, data.open24h)
-        : SafeMath.eq(change, "0")
-        ? "0"
-        : "100";
-      return {
-        ...data,
-        instId: data.name.replace("/", "-"),
-        change,
-        changePct,
-        source: SupportedExchange.TIDEBIT,
-      };
-    });
-    EventBus.emit(Events.tickersOnUpdate, formatTickers);
+    if (!this.tickers || this.tickers.length === 0) {
+      this.tickers = Object.values(data);
+      this.logger.log(`_updateTickers this.tickers`, this.tickers);
+    }
+    const formatTickers = Object.values(data)
+      .filter((d) => {
+        let index = this.tickers?.findIndex((ticker) => ticker.name === d.name);
+        if (
+          index === -1 ||
+          this.tickers[index].last !== d.last ||
+          this.tickers[index].open !== d.open ||
+          this.tickers[index].close !== d.close ||
+          this.tickers[index].high !== d.high ||
+          this.tickers[index].low !== d.low ||
+          this.tickers[index].volume !== d.volume
+        ) {
+          this.tickers[index] = d;
+          return true;
+        } else return false;
+      })
+      .map((d) => {
+        const change = SafeMath.minus(d.last, d.open);
+        const changePct = SafeMath.gt(d.open24h, "0")
+          ? SafeMath.div(change, d.open24h)
+          : SafeMath.eq(change, "0")
+          ? "0"
+          : "1";
+        return {
+          ...d,
+          instId: d.name.replace("/", "-"),
+          change,
+          changePct,
+          source: SupportedExchange.TIDEBIT,
+        };
+      });
+    if (formatTickers.length > 0) {
+      this.logger.log(`_updateTickers formatTickers`, formatTickers);
+      EventBus.emit(Events.tickersOnUpdate, formatTickers);
+    }
   }
 
   registerGlobalChannel({ header }) {
@@ -152,8 +179,8 @@ class TibeBitConnector extends ConnectorBase {
         ]
     }
     */
-   if (data.asks.length === 0 || data.bids.length === 0) return;
-   this.logger.debug(`_updateBooks data`, data);
+    if (data.asks.length === 0 || data.bids.length === 0) return;
+    this.logger.debug(`_updateBooks data`, data);
     let index,
       asks = [],
       bids = [];
@@ -194,10 +221,28 @@ class TibeBitConnector extends ConnectorBase {
     };
     this.logger.debug(`_updateBooks formatBooks`, formatBooks);
     // if (asks.length > 0 || bids.length > 0)
-      EventBus.emit(Events.orderBooksOnUpdate, instId, formatBooks);
+    EventBus.emit(Events.orderBooksOnUpdate, instId, formatBooks);
   }
 
-  _updateTrades(instId, data) {
+  _updateTrade(data) {
+    /**  {
+    at: 1649675739
+    id: 6
+    kind: "ask"
+    market: "ethhkd"
+    price: "105.0"
+    volume: "0.1"
+    }*/
+    const formatTrade = {
+      ...data,
+      instId: this.current_instId,
+    };
+    this.logger.debug(`_updateTrade data`, data);
+    this.logger.debug(`_updateTrade formatTrade`, formatTrade);
+    EventBus.emit(Events.tradesOnUpdate, this.current_instId, [formatTrade]);
+  }
+
+  _updateTrades(data) {
     /**
     {
       trades: [
@@ -214,7 +259,7 @@ class TibeBitConnector extends ConnectorBase {
     */
     const formatTrades = data.trades
       .map((t) => ({
-        instId,
+        instId: this.current_instId,
         id: t.tid,
         price: t.price,
         volume: t.amount,
@@ -224,8 +269,10 @@ class TibeBitConnector extends ConnectorBase {
         side: t.type === "sell" ? "down" : "up",
       }))
       .sort((a, b) => b.at - a.at);
-    this.logger.debug(`_updateTrade formatTrades`, formatTrades);
-    EventBus.emit(Events.tradesOnUpdate, instId, formatTrades);
+    if (formatTrades.length > 0) {
+      this.logger.debug(`_updateTrade formatTrades`, formatTrades);
+      EventBus.emit(Events.tradesOnUpdate, this.current_instId, formatTrades);
+    }
   }
 
   async getOrderBooks({ header, instId }) {
@@ -250,7 +297,7 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
-  registerMarketChannel({ header, instId }) {
+  registerMarketChannel({ header, instId, resolution }) {
     if (!this.start) this._start({ header });
     try {
       if (
@@ -265,15 +312,16 @@ class TibeBitConnector extends ConnectorBase {
         this.market_channel = null;
       }
       this.current_instId = instId;
+      this.resolution = resolution;
       this.market_channel = this.pusher.subscribe(
         `market-${instId.replace("-", "").toLowerCase()}-global`
       );
       this.market_channel.bind("update", (data) =>
         this._updateBooks(instId, data)
       );
-      this.market_channel.bind("trades", (data) =>
-        this._updateTrades(instId, data)
-      );
+      this.market_channel.bind("trades", (data) => {
+        this._updateTrades(data);
+      });
     } catch (error) {
       this.logger.error(`registerMarketChannel error`, error);
       throw error;
@@ -340,57 +388,43 @@ class TibeBitConnector extends ConnectorBase {
     EventBus.emit(Events.orderOnUpdate, formatOrder);
   }
 
-  _updateTrade(data) {
-    /**  {
-    at: 1649675739
-    id: 6
-    kind: "ask"
-    market: "ethhkd"
-    price: "105.0"
-    volume: "0.1"
-    }*/
-    const formatTrade = {
-      instId: this.current_instId,
-      id: data.id,
-      price: data.price,
-      volume: data.volume,
-      market: data.market,
-      at: data.at,
-    };
-    this.logger.debug(`_updateTrade data`, data);
-    this.logger.debug(`_updateTrade formatTrade`, formatTrade);
-    EventBus.emit(Events.tradesOnUpdate, this.current_instId, [formatTrade]);
-  }
-
-  async registerPrivateChannel({ header, sn }) {
+  async registerPrivateChannel({ header, sn, instId, resolution }) {
+    this.unregisterAll();
+    this.start = false;
     if (!this.start) this._start({ header });
     try {
       if (this.current_user) {
         this.private_channel?.unbind();
         this.pusher.unsubscribe(`private-${this.current_user}`);
       }
-
+      this.registerGlobalChannel({ header });
+      this.registerMarketChannel({ header, instId, resolution });
       this.current_user = sn;
       this.private_channel = this.pusher.subscribe(`private-${sn}`);
       this.private_channel.bind("account", (data) => this._updateAccount(data));
       this.private_channel.bind("order", (data) => this._updateOrder(data));
-      this.private_channel.bind("trade", (data) => this._updateTrade(data));
+      this.private_channel.bind("trade", (data) => {
+        this._updateTrade(data);
+      });
     } catch (error) {
       this.logger.error(`private_channel error`, error);
       throw error;
     }
   }
 
-  unregiterAll() {
+  unregisterAll() {
     try {
       this.global_channel?.unbind();
       this.market_channel?.unbind();
       this.private_channel?.unbind();
-      this.pusher.unsubscribe("market-global");
-      this.pusher.unsubscribe(
+      this.pusher?.unsubscribe("market-global");
+      this.pusher?.unsubscribe(
         `market-${this.current_instId.replace("-", "").toLowerCase()}-global`
       );
-      this.pusher.unsubscribe(`private-${this.current_user}`);
+      this.pusher?.unsubscribe(`private-${this.current_user}`);
+      this.market_channel = null;
+      this.global_channel = null;
+      this.private_channel = null;
     } catch (error) {
       this.logger.error(`registerGlobalChannel error`, error);
       throw error;

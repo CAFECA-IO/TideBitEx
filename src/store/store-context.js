@@ -2,11 +2,9 @@ import React from "react";
 
 const StoreContext = React.createContext({
   languageKey: "en",
-  init: true,
   isLogin: null,
   selectedTicker: null,
   tickers: [],
-  updateTickerIndexs: [],
   books: [],
   trades: [],
   candles: null,
@@ -22,7 +20,6 @@ const StoreContext = React.createContext({
   orderTypeHandler: (orderType) => {},
   orderBookHandler: (price, amount) => {},
   // sellHandler: (price, amount) => {},
-  setInit: (init) => {},
   setLanguageKey: (key) => {},
   /**
    * @typedef {Object} Ticker
@@ -49,7 +46,7 @@ const StoreContext = React.createContext({
    * @param {Ticker} ticker
    * @returns null
    */
-  selectTickerHandler: (ticker) => {},
+  selectTickerHandler: (id) => {},
   /**
    * @param {String} instType SPOT,MARGIN,SWAP,FUTURES,OPTION
    * @param {String} from

@@ -16,10 +16,10 @@ const TickerTile = (props) => {
   const storeCtx = useContext(StoreContext);
   return (
     <li
-      onClick={(_) => storeCtx.selectTickerHandler(props.ticker)}
+      onClick={(_) => storeCtx.selectTickerHandler(props.ticker.id)}
       className={`market-tile ${
         props.ticker.instId === storeCtx?.selectedTicker?.instId ? "active" : ""
-      } ${storeCtx.updateTickerIndexs.includes(props.index) ? "update" : ""}`}
+      } ${props.ticker.update ? "update" : ""}`}
     >
       <div>{props.ticker.name}</div>
       <div>{formateDecimal(props.ticker.last, 8)}</div>
@@ -107,7 +107,7 @@ const MarketTickers = (props) => {
         storeCtx.selectedTicker?.instId !== selectedTicker?.instId)
     ) {
       setSelectedTicker(storeCtx.selectedTicker);
-      console.log(`storeCtx.selectedTicker`, storeCtx.selectedTicker)
+      console.log(`storeCtx.selectedTicker`, storeCtx.selectedTicker);
       setDefaultActiveKey(storeCtx.selectedTicker?.group);
     }
   }, [selectedTicker, storeCtx.selectedTicker]);

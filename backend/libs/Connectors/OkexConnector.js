@@ -141,6 +141,77 @@ class OkexConnector extends ConnectorBase {
       });
     }
   }
+
+  async getTicker({ query }) {
+    const method = "GET";
+    const path = "/api/v5/market/ticker";
+    const { instId } = query;
+
+    const arr = [];
+    if (instId) arr.push(`instId=${instId}`);
+    const qs = !!arr.length ? `?${arr.join("&")}` : "";
+
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}${qs}`,
+        headers: this.getHeaders(false),
+      });
+      if (res.data && res.data.code !== "0") {
+        const message = JSON.stringify(res.data);
+        this.logger.trace(message);
+        return new ResponseFormat({
+          message,
+          code: Codes.THIRD_PARTY_API_ERROR,
+        });
+      }
+
+      const [payload] = res.data.data.map((data) => {
+        const change = SafeMath.minus(data.last, data.open24h);
+        const changePct = SafeMath.gt(data.open24h, "0")
+          ? SafeMath.div(change, data.open24h)
+          : SafeMath.eq(change, "0")
+          ? "0"
+          : "1";
+        return {
+          id: data.instId.replace("-", "").toLowerCase(),
+          name: data.instId.replace("-", "/"),
+          base_unit: data.instId.split("-")[0].toLowerCase(),
+          quote_unit: data.instId.split("-")[1].toLowerCase(),
+          group:
+            data.instId.split("-")[1].toLowerCase().includes("usd") &&
+            data.instId.split("-")[1].toLowerCase().length > 3
+              ? "usdx"
+              : data.instId.split("-")[1].toLowerCase(),
+          sell: data.askPx,
+          buy: data.bidPx,
+          instId: data.instId,
+          last: data.last,
+          change,
+          changePct,
+          open: data.open24h,
+          high: data.high24h,
+          low: data.low24h,
+          volume: data.vol24h,
+          at: parseInt(data.ts),
+          source: SupportedExchange.OKEX,
+        };
+      });
+      return new ResponseFormat({
+        message: "getTickers",
+        payload,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      let message = error.message;
+      if (error.response && error.response.data)
+        message = error.response.data.msg;
+      return new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
   // account api end
   // market api
   async getTickers({ query }) {
@@ -174,8 +245,9 @@ class OkexConnector extends ConnectorBase {
           ? SafeMath.div(change, data.open24h)
           : SafeMath.eq(change, "0")
           ? "0"
-          : "100";
+          : "1";
         return {
+          id: data.instId.replace("-", "").toLowerCase(),
           name: data.instId.replace("-", "/"),
           base_unit: data.instId.split("-")[0].toLowerCase(),
           quote_unit: data.instId.split("-")[1].toLowerCase(),
@@ -901,7 +973,7 @@ class OkexConnector extends ConnectorBase {
         ? SafeMath.div(change, data.open24h)
         : SafeMath.eq(change, "0")
         ? "0"
-        : "100";
+        : "1";
       return {
         instId,
         name: data.instId.replace("-", "/"),
@@ -923,7 +995,7 @@ class OkexConnector extends ConnectorBase {
         source: SupportedExchange.OKEX,
       };
     });
-    EventBus.emit(Events.tickersOnUpdate, formatTickers);
+    EventBus.emit(Events.tickersOnUpdate, instId, formatTickers);
   }
 
   _subscribeInstruments() {
