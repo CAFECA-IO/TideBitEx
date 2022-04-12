@@ -60,7 +60,7 @@ class Middleman {
           volume: t.volume,
           update: true,
         };
-        if (t.instId === this.selectedTicker?.instId)
+        if (!!this.selectedTicker && t.instId === this.selectedTicker?.instId)
           updateTicker = this.updateSelectedTicker(ticker);
         updateTickers[i] = ticker;
       }

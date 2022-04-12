@@ -333,18 +333,19 @@ class ExchangeHub extends Bot {
   }
 
   async registerMarketChannel({ header, query }) {
+    const instId = this._findInstId(query.id);
+    this.logger.debug(`++++++++++++++`);
+    this.logger.debug(`registerMarketChannel instId`, instId);
+    this.logger.debug(`++++++++++++++`);
     try {
       this.tideBitConnector.registerMarketChannel({
         header: {
           "content-type": "application/json",
           cookie: header.cookie,
         },
-        instId: this._findInstId(query.id),
+        instId,
         resolution: query.resolution,
       });
-      this.logger.debug(`++++++++++++++`);
-      this.logger.debug(`registerMarketChannel id`, query.id);
-      this.logger.debug(`++++++++++++++`);
       return new ResponseFormat({
         message: `registerMarketChannel`,
         code: Codes.SUCCESS,
