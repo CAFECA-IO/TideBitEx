@@ -34,6 +34,7 @@ class TibeBitConnector extends ConnectorBase {
     this.wssPort = wssPort;
     this.encrypted = encrypted;
     this.peatio = peatioDomain;
+    this.tickers = [];
     return this;
   }
 
@@ -111,21 +112,38 @@ class TibeBitConnector extends ConnectorBase {
     buy: '0.0',
     at: 1649315293
     */
-    const formatTickers = Object.values(data).map((data) => {
-      const change = SafeMath.minus(data.last, data.open);
-      const changePct = SafeMath.gt(data.open24h, "0")
-        ? SafeMath.div(change, data.open24h)
-        : SafeMath.eq(change, "0")
-        ? "0"
-        : "100";
-      return {
-        ...data,
-        instId: data.name.replace("/", "-"),
-        change,
-        changePct,
-        source: SupportedExchange.TIDEBIT,
-      };
-    });
+    if (this.tickers.length === 0) {
+      this.tickers = data;
+    }
+    const formatTickers = Object.values(data)
+      .filter((d) => {
+        let t = this.tickers.find((ticker) => ticker.name === d.name);
+        return (
+          !t ||
+          t.last !== d.last ||
+          t.open !== d.open ||
+          t.close !== d.close ||
+          t.high !== d.high ||
+          t.low !== d.low ||
+          t.volume !== d.volume
+        );
+      })
+      .map((d) => {
+        const change = SafeMath.minus(d.last, d.open);
+        const changePct = SafeMath.gt(d.open24h, "0")
+          ? SafeMath.div(change, d.open24h)
+          : SafeMath.eq(change, "0")
+          ? "0"
+          : "100";
+        return {
+          ...d,
+          instId: d.name.replace("/", "-"),
+          change,
+          changePct,
+          source: SupportedExchange.TIDEBIT,
+        };
+      });
+    this.logger.log(`_updateTickers formatTickers`, formatTickers);
     EventBus.emit(Events.tickersOnUpdate, formatTickers);
   }
 
@@ -376,7 +394,6 @@ class TibeBitConnector extends ConnectorBase {
       this.private_channel.bind("order", (data) => this._updateOrder(data));
       this.private_channel.bind("trade", (data) => {
         this._updateTrade(data);
-        this._updateCandle(data);
       });
     } catch (error) {
       this.logger.error(`private_channel error`, error);

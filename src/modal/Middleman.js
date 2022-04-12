@@ -67,6 +67,7 @@ class Middleman {
   }
 
   updateTickers(tickers) {
+    console.log(`updateTickers tickers`, tickers);
     if (!this.tickers.length > 0) return;
     let updateTickers = [...this.tickers];
     let updateTicker;
