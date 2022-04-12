@@ -98,18 +98,21 @@ class TibeBitConnector extends ConnectorBase {
 
   _updateTickers(data) {
     /**
-    name: 'ETC/USDT',
-    base_unit: 'etc',
-    quote_unit: 'usdt',
-    group: 'usdx',
+   {
+   btchkd: {
+    name: 'BTC/HKD',
+    base_unit: 'btc',
+    quote_unit: 'hkd',
+    group: 'hkd',
     low: '0.0',
     high: '0.0',
     last: '0.0',
     open: '0.0',
     volume: '0.0',
     sell: '0.0',
-    buy: '0.0',
-    at: 1649315293
+    buy: '1000.0',
+    at: 1649742406
+  },}
     */
     if (!this.tickers || this.tickers.length === 0) {
       this.tickers = Object.values(data);
