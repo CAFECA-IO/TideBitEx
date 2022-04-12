@@ -369,7 +369,6 @@ class Middleman {
    * @param {Array} trades
    */
   transformTradesToCandle(trades, resolution) {
-    console.log(`transformTradesToCandle resolution`, resolution);
     let interval,
       candles,
       defaultObj = {};
@@ -421,8 +420,8 @@ class Middleman {
       prev[index] = point;
       return prev;
     }, defaultObj);
-    console.log(`transformTradesToCandle candles`, candles);
-    return candles;
+    console.log(`transformTradesToCandle candles`, Object.values(candles));
+    return Object.values(candles);
   }
 
   async getCandles(instId, bar, after, before, limit) {

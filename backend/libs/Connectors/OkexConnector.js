@@ -923,7 +923,7 @@ class OkexConnector extends ConnectorBase {
         source: SupportedExchange.OKEX,
       };
     });
-    EventBus.emit(Events.tickersOnUpdate, formatTickers);
+    EventBus.emit(Events.tickersOnUpdate, instId, formatTickers);
   }
 
   _subscribeInstruments() {
