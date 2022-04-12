@@ -417,11 +417,11 @@ class TibeBitConnector extends ConnectorBase {
       this.global_channel?.unbind();
       this.market_channel?.unbind();
       this.private_channel?.unbind();
-      this.pusher.unsubscribe("market-global");
-      this.pusher.unsubscribe(
+      this.pusher?.unsubscribe("market-global");
+      this.pusher?.unsubscribe(
         `market-${this.current_instId.replace("-", "").toLowerCase()}-global`
       );
-      this.pusher.unsubscribe(`private-${this.current_user}`);
+      this.pusher?.unsubscribe(`private-${this.current_user}`);
       this.market_channel = null;
       this.global_channel = null;
       this.private_channel = null;
