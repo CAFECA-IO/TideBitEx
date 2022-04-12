@@ -277,6 +277,11 @@ class Middleman {
         update: true,
       }))
       .concat(this.trades || []);
+    console.log(`updateTrades this.trades[${this.trades.length}]`, this.trades);
+    console.log(
+      `updateTrades _updateTrades[${_updateTrades.length}]`,
+      _updateTrades
+    );
     this.trades = _updateTrades;
     const candlesData = this.transformTradesToCandle(_updateTrades, resolution);
     let candles = [],
