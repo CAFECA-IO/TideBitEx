@@ -364,6 +364,7 @@ const StoreProvider = (props) => {
             metaData.data
           );
           _tickerTimestamp = new Date().getTime();
+          console.log(`tickersOnUpdate updateTicker`, updateTicker);
           if (!!updateTicker) {
             setSelectedTicker(updateTicker);
             document.title = `${updateTicker.last} ${updateTicker.pair}`;
