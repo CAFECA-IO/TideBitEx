@@ -34,7 +34,6 @@ class TibeBitConnector extends ConnectorBase {
     this.wssPort = wssPort;
     this.encrypted = encrypted;
     this.peatio = peatioDomain;
-    this.tickers = [];
     return this;
   }
 
@@ -112,12 +111,13 @@ class TibeBitConnector extends ConnectorBase {
     buy: '0.0',
     at: 1649315293
     */
-    if (this.tickers.length === 0) {
+    if (!this.tickers || this.tickers.length === 0) {
       this.tickers = data;
     }
+    this.logger.log(`_updateTickers this.tickers`, this.tickers);
     const formatTickers = Object.values(data)
       .filter((d) => {
-        let t = this.tickers.find((ticker) => ticker.name === d.name);
+        let t = this.tickers?.find((ticker) => ticker.name === d.name);
         return (
           !t ||
           t.last !== d.last ||
