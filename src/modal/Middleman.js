@@ -369,12 +369,11 @@ class Middleman {
    * @param {Array} trades
    */
   transformTradesToCandle(trades, resolution) {
-    this.logger.log(`transformTradesToCandle resolution`, resolution);
-    this.logger.log(`transformTradesToCandle this.resolution`, this.resolution);
+    console.log(`transformTradesToCandle resolution`, resolution);
     let interval,
       candles,
       defaultObj = {};
-    switch (resolution || this.resolution) {
+    switch (resolution) {
       case "1m":
         interval = 1 * 60 * 1000;
         break;
@@ -422,7 +421,7 @@ class Middleman {
       prev[index] = point;
       return prev;
     }, defaultObj);
-
+    console.log(`transformTradesToCandle candles`, candles);
     return candles;
   }
 
