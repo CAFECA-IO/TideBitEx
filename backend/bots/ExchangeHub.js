@@ -258,10 +258,10 @@ class ExchangeHub extends Bot {
       const tBTicker = tBTickers[market.id];
       const change = SafeMath.minus(tBTicker.ticker.last, tBTicker.ticker.open);
       const changePct = SafeMath.gt(tBTicker.ticker.open, "0")
-        ? SafeMath.mult(SafeMath.div(change, tBTicker.ticker.open), "100")
+        ? SafeMath.div(change, tBTicker.ticker.open)
         : SafeMath.eq(change, "0")
         ? "0"
-        : "100";
+        : "1";
       let formatTBTicker = {
         ...market,
         instType: "",
@@ -419,7 +419,7 @@ class ExchangeHub extends Bot {
         ? SafeMath.div(change, tBTicker.ticker.open)
         : SafeMath.eq(change, "0")
         ? "0"
-        : "100";
+        : "1";
       const formatTBTicker = {
         ...tBTicker.ticker,
         at: tBTicker.at,

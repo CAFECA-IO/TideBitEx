@@ -140,7 +140,7 @@ class TibeBitConnector extends ConnectorBase {
           ? SafeMath.div(change, d.open24h)
           : SafeMath.eq(change, "0")
           ? "0"
-          : "100";
+          : "1";
         return {
           ...d,
           instId: d.name.replace("/", "-"),

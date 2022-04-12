@@ -174,7 +174,7 @@ class OkexConnector extends ConnectorBase {
           ? SafeMath.div(change, data.open24h)
           : SafeMath.eq(change, "0")
           ? "0"
-          : "100";
+          : "1";
         return {
           name: data.instId.replace("-", "/"),
           base_unit: data.instId.split("-")[0].toLowerCase(),
@@ -901,7 +901,7 @@ class OkexConnector extends ConnectorBase {
         ? SafeMath.div(change, data.open24h)
         : SafeMath.eq(change, "0")
         ? "0"
-        : "100";
+        : "1";
       return {
         instId,
         name: data.instId.replace("-", "/"),
