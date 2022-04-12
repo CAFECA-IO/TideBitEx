@@ -270,6 +270,7 @@ const StoreProvider = (props) => {
         const token = await getToken(XSRF);
         if (token) {
           setToken(token);
+          setIsLogin(true);
           await registerPrivateChannel(token);
         }
       }
@@ -281,13 +282,10 @@ const StoreProvider = (props) => {
   }, [enqueueSnackbar, registerPrivateChannel]);
 
   const getAccounts = useCallback(
-    async (ccy) => {
+    async () => {
       await middleman.getAccounts();
-      if (middleman.isLogin) {
-        await getCSRFToken();
-        setIsLogin(true);
-      }
       setAccounts(middleman.accounts);
+      if (middleman.isLogin) getCSRFToken();
     },
     [getCSRFToken, middleman]
   );
@@ -405,8 +403,9 @@ const StoreProvider = (props) => {
             metaData = JSON.parse(msg.data);
           switch (metaData.type) {
             case "tickersOnUpdate":
-              const { updateTicker, updateTickers } =
-                middleman.updateTickers(metaData.data);
+              const { updateTicker, updateTickers } = middleman.updateTickers(
+                metaData.data
+              );
               _tickerTimestamp = new Date().getTime();
               if (!!updateTicker) {
                 setSelectedTicker(updateTicker);
