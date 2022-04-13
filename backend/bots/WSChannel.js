@@ -120,7 +120,7 @@ class WSChannel extends Bot {
     const findClient = this._client[ws.id];
     const token = Utils.peatioToken(headers);
     if (!findClient.isStart) {
-      findClient.channel = args.id;
+      findClient.channel = args.market;
       findClient.isStart = true;
 
       // add channel-client map
