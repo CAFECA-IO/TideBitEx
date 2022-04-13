@@ -39,6 +39,7 @@ class TibeBitConnector extends ConnectorBase {
     this.peatio = peatio;
     this.markets = markets;
     this.database = database;
+    this.redis = redis;
     return this;
   }
 
@@ -461,7 +462,7 @@ class TibeBitConnector extends ConnectorBase {
 
   async _getMemberIdFromRedis(peatioSession) {
     const client = redis.createClient({
-      url: this.config.redis.domain,
+      url: this.redis,
     });
 
     client.on("error", (err) => this.logger.error("Redis Client Error", err));
