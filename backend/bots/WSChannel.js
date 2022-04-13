@@ -144,7 +144,16 @@ class WSChannel extends Bot {
       const oldChannel = findClient.channel;
       delete this._channelClients[oldChannel][ws.id];
       if (Object.values(this._channelClients[oldChannel]).length === 0) {
-        EventBus.emit(Events.userOnSubscribe, oldChannel);
+        EventBus.emit(Events.userOnSubscribe, {
+          headers: {
+            cookie: headers.cookie,
+            "content-type": "application/json",
+            "x-csrf-token": args.token,
+          },
+          market: args.market,
+          resolution: args.resolution,
+          token,
+        });
       }
       findClient.channel = args.market;
       if (!this._channelClients[args.market]) {
