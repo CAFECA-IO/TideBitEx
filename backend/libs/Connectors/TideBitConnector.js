@@ -27,6 +27,7 @@ class TibeBitConnector extends ConnectorBase {
     peatio,
     markets,
     database,
+    redis,
   }) {
     await super.init();
     this.app = app;
