@@ -130,7 +130,7 @@ class ExchangeHub extends Bot {
       const accounts = await this.database.getBalance(memberId);
       this.logger.debug(`accounts`, accounts);
       const details = accounts.map((account, i) => ({
-        ccy: this.currenciess.find((curr) => curr.id === account.currency)
+        ccy: this.currencies.find((curr) => curr.id === account.currency)
           .symbol,
         availBal: Utils.removeZeroEnd(account.balance),
         totalBal: SafeMath.plus(account.balance, account.locked),
