@@ -122,13 +122,16 @@ class ExchangeHub extends Bot {
       const memberId = await this.getMemberIdFromRedis(token);
       // if (memberId === -1) throw new Error("get member_id fail");
       if (memberId === -1) {
-        this.logger.error(`[${this.name} getBalance] error: "get member_id fail`);
+        this.logger.error(
+          `[${this.name} getBalance] error: "get member_id fail`
+        );
         return null;
       }
       const accounts = await this.database.getBalance(memberId);
       this.logger.debug(`accounts`, accounts);
       const details = accounts.map((account, i) => ({
-        ccy: this.currenciess[i].key.toUpperCase(),
+        ccy: this.currenciess.find((curr) => curr.id === account.currency)
+          .symbol,
         availBal: Utils.removeZeroEnd(account.balance),
         totalBal: SafeMath.plus(account.balance, account.locked),
         frozenBal: Utils.removeZeroEnd(account.locked),
