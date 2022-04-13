@@ -117,8 +117,6 @@ class ExchangeHub extends Bot {
   // account api
   async getBalance({ token, params, query }) {
     try {
-      this.logger.debug(`getBalance token`, token);
-      this.logger.debug(`this.currencies`, this.currencies);
       const memberId = await this.getMemberIdFromRedis(token);
       // if (memberId === -1) throw new Error("get member_id fail");
       if (memberId === -1) {
