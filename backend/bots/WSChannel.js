@@ -47,6 +47,9 @@ class WSChannel extends Bot {
       })
       .then((wss) => {
         wss.on("connection", (ws, req) => {
+          this.logger.log(`++++++++++connection++++++++++++`);
+          this.logger.log(`req`, req);
+          this.logger.log(`++++++++++connection++++++++++++`);
           ws.id = req.headers["sec-websocket-key"];
           this._client[ws.id] = {
             ws,
@@ -116,8 +119,7 @@ class WSChannel extends Bot {
   }
 
   _onOpUserLogin(headers, ws, args) {
-    this.logger.log(`_onOpUserLogin headers`, headers)
-    this.logger.log(`_onOpUserLogin ws`, ws)
+
     const findClient = this._client[ws.id];
     if (!findClient.isStart) {
       findClient.channel = args.id;
@@ -128,7 +130,15 @@ class WSChannel extends Bot {
         this._channelClients[args.market] = {};
       }
       if (Object.values(this._channelClients[args.market]).length === 0) {
-        EventBus.emit(Events.userOnSubscribe, args);
+        EventBus.emit(Events.userOnSubscribe, {
+          headers: {
+            cookie: headers.cookie,
+            "content-type": "application/json",
+            "x-csrf-token": args.token,
+          },
+          market: args.market,
+          resolution: args.resolution,
+        });
       }
       this._channelClients[args.market][ws.id] = ws;
     } else {
@@ -142,7 +152,15 @@ class WSChannel extends Bot {
         this._channelClients[args.market] = {};
       }
       if (Object.values(this._channelClients[args.market]).length === 0) {
-        EventBus.emit(Events.userOnSubscribe, args);
+        EventBus.emit(Events.userOnSubscribe, {
+          headers: {
+            cookie: headers.cookie,
+            "content-type": "application/json",
+            "x-csrf-token": args.token,
+          },
+          market: args.market,
+          resolution: args.resolution,
+        });
       }
       this._channelClients[args.market][ws.id] = ws;
     }
