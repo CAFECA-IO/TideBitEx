@@ -78,7 +78,7 @@ class WSChannel extends Bot {
             }
             switch (op) {
               case "userLogin":
-                this._onOpUserLogin(ws, args);
+                this._onOpUserLogin(req.headers, ws, args);
                 break;
               case "switchTradingPair":
                 this._onOpSwitchTradingPair(ws, args);
@@ -105,6 +105,7 @@ class WSChannel extends Bot {
                   .length === 0
               ) {
                 EventBus.emit(Events.pairOnUnsubscribe, findClient.channel);
+                EventBus.emit(Events.userOnUnsubscribe, findClient.channel);
               }
             }
             delete this._client[ws.id];
@@ -114,7 +115,9 @@ class WSChannel extends Bot {
       });
   }
 
-  _onOpUserLogin(ws, args) {
+  _onOpUserLogin(headers, ws, args) {
+    this.logger.log(`_onOpUserLogin headers`, headers)
+    this.logger.log(`_onOpUserLogin ws`, ws)
     const findClient = this._client[ws.id];
     if (!findClient.isStart) {
       findClient.channel = args.id;
