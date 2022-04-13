@@ -32,11 +32,11 @@ class ConnectorBase {
     EventBus.on(Events.pairOnUnsubscribe, (market) => {
       this._unsubscribeMarket(market);
     })
-    EventBus.on(Events.userOnSubscribe, (sn) => {
-      this._subscribeUser(sn);
+    EventBus.on(Events.userOnSubscribe, (data) => {
+      this._subscribeUser(data);
     })
-    EventBus.on(Events.userOnUnsubscribe, (sn) => {
-      this._unsubscribeUser(sn);
+    EventBus.on(Events.userOnUnsubscribe, (data) => {
+      this._unsubscribeUser(data);
     })
   }
 

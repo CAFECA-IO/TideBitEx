@@ -120,7 +120,7 @@ class WSChannel extends Bot {
     this.logger.log(`THIS IS CALLED`, ws, args);
     this.logger.log(`++++++++++_onOpUserLogin++++++++++++`);
     if (!findClient.isStart) {
-      findClient.channel = args.sn;
+      findClient.channel = args.id;
       findClient.isStart = true;
 
       // add channel-client map
