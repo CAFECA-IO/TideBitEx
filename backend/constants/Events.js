@@ -2,6 +2,8 @@ module.exports = {
   // subscribe pair event
   pairOnSubscribe: 'pairOnSubscribe',
   pairOnUnsubscribe: 'pairOnUnsubscribe',
+  userOnSubscribe: 'userOnSubscribe',
+  userOnUnsubscribe: 'userOnUnsubscribe',
 
   // update event
   tickersOnUpdate: 'tickersOnUpdate',

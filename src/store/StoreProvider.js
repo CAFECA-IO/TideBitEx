@@ -104,11 +104,11 @@ const StoreProvider = (props) => {
     async (bar) => {
       if (bar !== selectedBar) {
         setSelectedBar(bar);
-        const {  candles, volumes } = middleman.updateCandles(
+        const { candles, volumes } = middleman.updateCandles(
           trades,
           selectedBar
         );
-        setCandles({  candles, volumes });
+        setCandles({ candles, volumes });
       }
     },
     [middleman, selectedBar, trades]
@@ -186,7 +186,7 @@ const StoreProvider = (props) => {
           JSON.stringify({
             op: "switchTradingPair",
             args: {
-              instId: _ticker.instId,
+              market: _ticker.instId.replace("-", "").toLowerCase(),
             },
           })
         );
@@ -236,7 +236,19 @@ const StoreProvider = (props) => {
           const id = location.pathname.includes("/markets/")
             ? location.pathname.replace("/markets/", "")
             : null;
-          if (id) await registerPrivateChannel(token, id, selectedBar);
+          if (id) {
+            await registerPrivateChannel(token, id, selectedBar);
+            wsClient.send(
+              JSON.stringify({
+                op: "userLogin",
+                args: {
+                  token,
+                  market: id,
+                  resolution: selectedBar,
+                },
+              })
+            );
+          }
         }
       }
     } catch (error) {

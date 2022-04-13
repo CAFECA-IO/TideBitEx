@@ -23,7 +23,8 @@ class TibeBitConnector extends ConnectorBase {
     wsPort,
     wssPort,
     encrypted,
-    peatioDomain,
+    peatio,
+    markets,
   }) {
     await super.init();
     this.app = app;
@@ -33,7 +34,8 @@ class TibeBitConnector extends ConnectorBase {
     this.wsPort = wsPort;
     this.wssPort = wssPort;
     this.encrypted = encrypted;
-    this.peatio = peatioDomain;
+    this.peatio = peatio;
+    this.markets = markets;
     return this;
   }
 
@@ -455,14 +457,37 @@ class TibeBitConnector extends ConnectorBase {
     this.market_channel = null;
   }
 
-  // ++ TODO
-  _subscribeInstId(instId) {
-    // this._registerMarketChannel(instId);
+  _subscribeUser(data) {
+    const instId = this._findInstId(data.market);
+    this.logger.log(`++++++++++_subscribeUser++++++++++++`);
+    this.logger.log(`THIS IS CALLED`, data, instId);
+    this.logger.log(`++++++++++_subscribeUser++++++++++++`);
   }
 
   // ++ TODO
-  _unsubscribeInstId(instId) {
-    // this._unregisterMarketChannel(instId);
+  _unsubscribeUser(data) {
+    const instId = this._findInstId(data.market);
+    this.logger.log(`++++++++++_unsubscribeUser++++++++++++`);
+    this.logger.log(`THIS IS CALLED`, data, instId);
+    this.logger.log(`++++++++++_unsubscribeUser++++++++++++`);
+  }
+  _subscribeInstId(market) {
+    const instId = this._findInstId(market);
+    this.logger.log(`++++++++++_subscribeInstId++++++++++++`);
+    this.logger.log(`THIS IS CALLED`, instId);
+    this.logger.log(`++++++++++_subscribeInstId++++++++++++`);
+  }
+
+  // ++ TODO
+  _unsubscribeInstId(market) {
+    const instId = this._findInstId(market);
+    this.logger.log(`++++++++++_unsubscribeInstId++++++++++++`);
+    this.logger.log(`THIS IS CALLED`, instId);
+    this.logger.log(`++++++++++_unsubscribeInstId++++++++++++`);
+  }
+
+  _findInstId(id) {
+    return this.markets[id.toUpperCase()];
   }
 }
 

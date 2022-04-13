@@ -29,6 +29,7 @@ class OkexConnector extends ConnectorBase {
     brokerId,
     wssPublic,
     wssPrivate,
+    markets,
   }) {
     await super.init();
     this.domain = domain;
@@ -36,6 +37,7 @@ class OkexConnector extends ConnectorBase {
     this.secretKey = secretKey;
     this.passPhrase = passPhrase;
     this.brokerId = brokerId;
+    this.markets = markets;
     this.okexWsChannels = {};
     await this.websocket.init({ url: wssPublic, heartBeat: HEART_BEAT_TIME });
     await this.websocketPrivate.init({
@@ -1163,17 +1165,26 @@ class OkexConnector extends ConnectorBase {
   // okex ws end
 
   // TideBitEx ws
-  _subscribeInstId(instId) {
+  _subscribeMarket(market) {
+    const instId = this._findInstId(market);
     this._subscribeTrades(instId);
     this._subscribeBook(instId);
     this._subscribeCandle1m(instId);
   }
 
-  _unsubscribeInstId(instId) {
+  _unsubscribeMarket(market) {
+    const instId = this._findInstId(market);
     this._unsubscribeTrades(instId);
     this._unsubscribeBook(instId);
     this._unsubscribeCandle1m(instId);
   }
   // TideBitEx ws end
+  _subscribeUser() {}
+
+  _unsubscribeUser() {}
+
+  _findInstId(id) {
+    return this.markets[id.toUpperCase()];
+  }
 }
 module.exports = OkexConnector;

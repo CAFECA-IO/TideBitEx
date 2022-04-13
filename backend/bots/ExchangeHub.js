@@ -34,6 +34,7 @@ class ExchangeHub extends Bot {
           brokerId: this.config.okex.brokerId,
           wssPublic: this.config.okex.wssPublic,
           wssPrivate: this.config.okex.wssPrivate,
+          markets:this.config.markets,
         });
         this.tideBitConnector = new TideBitConnector({ logger });
         this.tideBitConnector.init({
@@ -45,7 +46,8 @@ class ExchangeHub extends Bot {
           wsPort: this.config.pusher.wsPort,
           wssPort: this.config.pusher.wssPort,
           encrypted: this.config.pusher.encrypted,
-          peatioDomain: this.config.peatio.domain,
+          peatio: this.config.peatio.domain,
+          markets:this.config.markets,
         });
       })
       .then(() => {
