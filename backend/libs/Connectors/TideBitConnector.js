@@ -458,17 +458,17 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _subscribeUser(data) {
-    const instId = this._findInstId(data.market);
+    // const instId = this._findInstId(data.market);
     this.logger.log(`++++++++++_subscribeUser++++++++++++`);
-    this.logger.log(`THIS IS CALLED`, data, instId);
+    this.logger.log(`THIS IS CALLED`, data);
     this.logger.log(`++++++++++_subscribeUser++++++++++++`);
   }
 
   // ++ TODO
   _unsubscribeUser(data) {
-    const instId = this._findInstId(data.market);
+    // const instId = this._findInstId(data.market);
     this.logger.log(`++++++++++_unsubscribeUser++++++++++++`);
-    this.logger.log(`THIS IS CALLED`, data, instId);
+    this.logger.log(`THIS IS CALLED`, data);
     this.logger.log(`++++++++++_unsubscribeUser++++++++++++`);
   }
   _subscribeMarket(market) {
