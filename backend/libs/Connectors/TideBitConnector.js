@@ -118,7 +118,7 @@ class TibeBitConnector extends ConnectorBase {
     */
     if (!this.tickers || this.tickers.length === 0) {
       this.tickers = Object.values(data);
-      this.logger.log(`_updateTickers this.tickers`, this.tickers);
+      // this.logger.log(`_updateTickers this.tickers`, this.tickers);
     }
     const formatTickers = Object.values(data)
       .filter((d) => {
@@ -471,7 +471,7 @@ class TibeBitConnector extends ConnectorBase {
     this.logger.log(`THIS IS CALLED`, data, instId);
     this.logger.log(`++++++++++_unsubscribeUser++++++++++++`);
   }
-  _subscribeInstId(market) {
+  _subscribeMarket(market) {
     const instId = this._findInstId(market);
     this.logger.log(`++++++++++_subscribeInstId++++++++++++`);
     this.logger.log(`THIS IS CALLED`, instId);
@@ -479,7 +479,7 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   // ++ TODO
-  _unsubscribeInstId(market) {
+  _unsubscribeMarket(market) {
     const instId = this._findInstId(market);
     this.logger.log(`++++++++++_unsubscribeInstId++++++++++++`);
     this.logger.log(`THIS IS CALLED`, instId);
