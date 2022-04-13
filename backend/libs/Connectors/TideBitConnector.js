@@ -492,67 +492,6 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
-  _init({ token, cookie }) {
-    this.pusher = new Pusher(this.key, {
-      //   appId: app,
-      //   key,
-      //   secret,
-      encrypted: this.encrypted,
-      wsHost: this.wsHost,
-      wsPort: this.wsPort,
-      wssPort: this.wssPort,
-      disableFlash: true,
-      disableStats: true,
-      // enabledTransports: ["ws"],
-      disabledTransports: ["flash", "sockjs"],
-      forceTLS: false,
-      authorizer: (channel, options) => {
-        return {
-          authorize: (socketId, callback) => {
-            const data = JSON.stringify({
-              socket_id: socketId,
-              channel_name: channel.name,
-            });
-            axios({
-              url: `${this.peatio}/pusher/auth`,
-              method: "POST",
-              headers: {
-                "content-type": "application/json",
-                "x-csrf-token": token,
-                cookie: cookie,
-                "Content-Length": Buffer.from(data, "utf-8").length,
-              },
-              data,
-            })
-              .then((res) => {
-                if (res.status !== 200) {
-                  throw new Error(
-                    `Received ${res.statusCode} from /pusher/auth`
-                  );
-                }
-                return res.data;
-              })
-              .then((data) => {
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-                this.logger.debug(`authorize data`, data);
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-                callback(null, data);
-              })
-              .catch((err) => {
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-                this.logger.error(`authorize err`, err);
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-                callback(new Error(`Error calling auth endpoint: ${err}`), {
-                  auth: "",
-                });
-              });
-          },
-        };
-      },
-    });
-    this.start = true;
-  }
-
   async _subscribeUser(data) {
     // const instId = this._findInstId(data.market);
     this.logger.log(`++++++++++_subscribeUser++++++++++++`);
