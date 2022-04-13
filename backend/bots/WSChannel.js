@@ -145,8 +145,8 @@ class WSChannel extends Bot {
       const oldChannel = findClient.channel;
       delete this._channelClients[oldChannel][ws.id];
       if (Object.values(this._channelClients[oldChannel]).length === 0) {
-        this.logger.log(`++++++++++ EventBus.emit(Events.userOnSubscribe)2[oldChannel:${oldChannel}]++++++++++++`);
-        EventBus.emit(Events.userOnSubscribe, {
+        this.logger.log(`++++++++++ EventBus.emit(Events.userOnUnsubscribe)2[oldChannel:${oldChannel}]++++++++++++`);
+        EventBus.emit(Events.userOnUnsubscribe, {
           headers: {
             cookie: headers.cookie,
             "content-type": "application/json",
