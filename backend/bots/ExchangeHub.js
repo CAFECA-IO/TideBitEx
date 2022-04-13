@@ -52,7 +52,8 @@ class ExchangeHub extends Bot {
           database: database,
         });
       })
-      .then(() => {
+      .then(async () => {
+        this.currencies = await this.database.getCurrencies();
         this.tidebitMarkets = this.getTidebitMarkets();
         return this;
       });
@@ -117,18 +118,14 @@ class ExchangeHub extends Bot {
   async getBalance({ token, params, query }) {
     try {
       this.logger.debug(`getBalance token`, token);
+      this.logger.debug(`this.currencie`, this.currencie);
       const memberId = await this.getMemberIdFromRedis(token);
       // if (memberId === -1) throw new Error("get member_id fail");
       this.logger.error(`[${this.name} getBalance] error: "get member_id fail`);
       if (memberId === -1) return null;
       const accounts = await this.database.getBalance(memberId);
-      const jobs = accounts.map((acc) =>
-        this.database.getCurrency(acc.currency)
-      );
-      const currencies = await Promise.all(jobs);
-
       const details = accounts.map((account, i) => ({
-        ccy: currencies[i].key.toUpperCase(),
+        ccy: this.currencies[i].key.toUpperCase(),
         availBal: Utils.removeZeroEnd(account.balance),
         totalBal: SafeMath.plus(account.balance, account.locked),
         frozenBal: Utils.removeZeroEnd(account.locked),

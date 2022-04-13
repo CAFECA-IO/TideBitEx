@@ -66,6 +66,10 @@ class DBOperator {
     return this.database.getBalance(memberId);
   }
 
+  async getCurrencies(currencyId) {
+    return this.database.getCurrencies(currencyId);
+  }
+
   async getCurrency(currencyId) {
     return this.database.getCurrency(currencyId);
   }
