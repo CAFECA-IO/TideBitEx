@@ -461,7 +461,7 @@ class TibeBitConnector extends ConnectorBase {
     this.market_channel = null;
   }
 
-  async _getMemberIdFromRedis(peatioSession) {
+  async getMemberIdFromRedis(peatioSession) {
     const client = redis.createClient({
       url: this.redis,
     });
@@ -558,7 +558,7 @@ class TibeBitConnector extends ConnectorBase {
     this.logger.log(`++++++++++_subscribeUser++++++++++++`);
     this.logger.log(`THIS IS CALLED`, data);
     const instId = this._findInstId(data["market"]);
-    const memberId = await this._getMemberIdFromRedis(data["token"]);
+    const memberId = await this.getMemberIdFromRedis(data["token"]);
     this.logger.log(`THIS IS CALLED instId`, instId, memberId);
     if (memberId !== -1) {
       const member = await this.database.getMemberById(memberId);

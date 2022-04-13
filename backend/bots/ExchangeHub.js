@@ -110,34 +110,7 @@ class ExchangeHub extends Bot {
   }
 
   async getMemberIdFromRedis(peatioSession) {
-    const client = redis.createClient({
-      url: this.config.redis.domain,
-    });
-
-    client.on("error", (err) => this.logger.error("Redis Client Error", err));
-
-    try {
-      await client.connect(); // 會因為連線不到卡住
-      const value = await client.get(
-        redis.commandOptions({ returnBuffers: true }),
-        peatioSession
-      );
-      await client.quit();
-      // ++ TODO: 下面補error handle
-      const split1 = value
-        .toString("latin1")
-        .split("member_id\x06:\x06EFi\x02");
-      const memberIdLatin1 = split1[1].split('I"')[0];
-      const memberIdString = Buffer.from(memberIdLatin1, "latin1")
-        .reverse()
-        .toString("hex");
-      const memberId = parseInt(memberIdString, 16);
-      return memberId;
-    } catch (error) {
-      this.logger.error(error);
-      await client.quit();
-      return -1;
-    }
+    return this.tideBitConnector.getMemberIdFromRedis(peatioSession);
   }
 
   // account api
