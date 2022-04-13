@@ -116,9 +116,6 @@ class WSChannel extends Bot {
 
   _onOpUserLogin(ws, args) {
     const findClient = this._client[ws.id];
-    this.logger.log(`++++++++++_onOpUserLogin++++++++++++`);
-    this.logger.log(`THIS IS CALLED`, ws, args);
-    this.logger.log(`++++++++++_onOpUserLogin++++++++++++`);
     if (!findClient.isStart) {
       findClient.channel = args.id;
       findClient.isStart = true;
