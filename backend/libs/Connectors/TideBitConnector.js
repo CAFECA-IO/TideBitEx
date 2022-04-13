@@ -6,6 +6,7 @@ const EventBus = require("../EventBus");
 const Events = require("../../constants/Events");
 const SupportedExchange = require("../../constants/SupportedExchange");
 const Utils = require("../Utils");
+const redis = require("redis");
 
 class TibeBitConnector extends ConnectorBase {
   constructor({ logger }) {
@@ -25,6 +26,7 @@ class TibeBitConnector extends ConnectorBase {
     encrypted,
     peatio,
     markets,
+    database,
   }) {
     await super.init();
     this.app = app;
@@ -36,6 +38,7 @@ class TibeBitConnector extends ConnectorBase {
     this.encrypted = encrypted;
     this.peatio = peatio;
     this.markets = markets;
+    this.database = database;
     return this;
   }
 
@@ -456,6 +459,37 @@ class TibeBitConnector extends ConnectorBase {
     this.market_channel = null;
   }
 
+  async _getMemberIdFromRedis(peatioSession) {
+    const client = redis.createClient({
+      url: this.config.redis.domain,
+    });
+
+    client.on("error", (err) => this.logger.error("Redis Client Error", err));
+
+    try {
+      await client.connect(); // 會因為連線不到卡住
+      const value = await client.get(
+        redis.commandOptions({ returnBuffers: true }),
+        peatioSession
+      );
+      await client.quit();
+      // ++ TODO: 下面補error handle
+      const split1 = value
+        .toString("latin1")
+        .split("member_id\x06:\x06EFi\x02");
+      const memberIdLatin1 = split1[1].split('I"')[0];
+      const memberIdString = Buffer.from(memberIdLatin1, "latin1")
+        .reverse()
+        .toString("hex");
+      const memberId = parseInt(memberIdString, 16);
+      return memberId;
+    } catch (error) {
+      this.logger.error(error);
+      await client.quit();
+      return -1;
+    }
+  }
+
   _init({ token, cookie }) {
     this.pusher = new Pusher(this.key, {
       //   appId: app,
@@ -517,12 +551,19 @@ class TibeBitConnector extends ConnectorBase {
     this.start = true;
   }
 
-  _subscribeUser(data) {
+  async _subscribeUser(data) {
     // const instId = this._findInstId(data.market);
     this.logger.log(`++++++++++_subscribeUser++++++++++++`);
     this.logger.log(`THIS IS CALLED`, data);
-    const instId = this._findInstId(data.market);
-    this.logger.log(`THIS IS CALLED instId`, instId);
+    const instId = this._findInstId(data["market"]);
+    const memberId = this._getMemberIdFromRedis(data["token"]);
+    this.logger.log(`THIS IS CALLED instId`, instId, memberId);
+    if (memberId !== -1) {
+      const member = await this.database.getMemberById(memberId);
+      this.logger.debug(`++++++++++++++`);
+      this.logger.debug(`_subscribeUser member.sn`, member.sn);
+      this.logger.debug(`++++++++++++++`);
+    }
     this.logger.log(`++++++++++_subscribeUser++++++++++++`);
   }
 

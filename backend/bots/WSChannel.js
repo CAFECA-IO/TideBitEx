@@ -5,6 +5,7 @@ const Codes = require("../constants/Codes");
 const ResponseFormat = require("../libs/ResponseFormat");
 const EventBus = require("../libs/EventBus");
 const Events = require("../constants/Events");
+const Utils = require("../libs/Utils");
 
 const Bot = require(path.resolve(__dirname, "Bot.js"));
 
@@ -47,9 +48,6 @@ class WSChannel extends Bot {
       })
       .then((wss) => {
         wss.on("connection", (ws, req) => {
-          this.logger.log(`++++++++++connection++++++++++++`);
-          this.logger.log(`req`, req);
-          this.logger.log(`++++++++++connection++++++++++++`);
           ws.id = req.headers["sec-websocket-key"];
           this._client[ws.id] = {
             ws,
@@ -119,8 +117,8 @@ class WSChannel extends Bot {
   }
 
   _onOpUserLogin(headers, ws, args) {
-
     const findClient = this._client[ws.id];
+    const token = Utils.peatioToken(headers);
     if (!findClient.isStart) {
       findClient.channel = args.id;
       findClient.isStart = true;
@@ -138,6 +136,7 @@ class WSChannel extends Bot {
           },
           market: args.market,
           resolution: args.resolution,
+          token,
         });
       }
       this._channelClients[args.market][ws.id] = ws;
@@ -160,6 +159,7 @@ class WSChannel extends Bot {
           },
           market: args.market,
           resolution: args.resolution,
+          token,
         });
       }
       this._channelClients[args.market][ws.id] = ws;
