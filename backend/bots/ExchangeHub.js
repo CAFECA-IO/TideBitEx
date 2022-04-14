@@ -1101,7 +1101,7 @@ class ExchangeHub extends Bot {
 
     EventBus.on(Events.tradeOnUpdate, (tradeData) => {
       this.broadcast({
-        type: Events.tradesOnUpdate,
+        type: Events.tradeOnUpdate,
         data: tradeData,
       });
     });

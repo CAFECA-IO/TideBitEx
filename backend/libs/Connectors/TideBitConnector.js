@@ -320,7 +320,7 @@ class TibeBitConnector extends ConnectorBase {
         id: t.tid,
         price: t.price,
         volume: t.amount,
-        market: t.instId.replace("-", "").toLowerCase(),
+        market: instId.replace("-", "").toLowerCase(),
         type: t.type,
         at: t.date,
         side: t.type === "sell" ? "down" : "up",

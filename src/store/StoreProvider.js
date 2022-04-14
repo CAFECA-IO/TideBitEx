@@ -257,6 +257,27 @@ const StoreProvider = (props) => {
       };
       try {
         const result = await middleman.postOrder(_order);
+        if (order.side === "buy") {
+          let index, updateQuoteAccount;
+          index = accounts.findIndex(
+            (account) => account.ccy === this.selectedTicker.quote_unit
+          );
+          if (index !== -1) {
+            updateQuoteAccount = accounts[index];
+            updateQuoteAccount.availBal = SafeMath.minus(
+              accounts[index].availBal,
+              SafeMath.mult(order.px, order.sz)
+            );
+            updateQuoteAccount.frozenBal = SafeMath.plus(
+              accounts[index].frozenBal,
+              SafeMath.mult(order.px, order.sz)
+            );
+            const updateAccounts = accounts.map((account) => ({ ...account }));
+            updateAccounts[index] = updateQuoteAccount;
+            middleman.updateAccounts(updateQuoteAccount);
+            setAccounts(updateAccounts);
+          }
+        }
         enqueueSnackbar(
           `${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
             order.instId.split("-")[0]
