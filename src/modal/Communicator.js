@@ -77,61 +77,6 @@ class Communicator {
     }
   }
 
-  async registerGlobalChannel() {
-    try {
-      const res = await this._get(`/pusher/register-global-channel`);
-      if (res.success) {
-        return res.data;
-      }
-      return Promise.reject({ message: res.message, code: res.code });
-    } catch (error) {
-      return Promise.reject({ message: error });
-    }
-  }
-
-  async unregiterAll() {
-    try {
-      const res = await this._get(`/pusher/unregister-all`);
-      if (res.success) {
-        return res.data;
-      }
-      return Promise.reject({ message: res.message, code: res.code });
-    } catch (error) {
-      return Promise.reject({ message: error });
-    }
-  }
-
-  async registerMarketChannel(id, resolution) {
-    try {
-      if (!id) return { message: "id cannot be null" };
-      const res = await this._get(
-        `/pusher/register-market-channel?id=${id}&resolution=${resolution}`
-      );
-      if (res.success) {
-        return res.data;
-      }
-      return Promise.reject({ message: res.message, code: res.code });
-    } catch (error) {
-      return Promise.reject({ message: error });
-    }
-  }
-
-  async registerPrivateChannel(token, id, resolution) {
-    try {
-      if (!token) return { message: "token cannot be null" };
-      const res = await this._post(`/pusher/register-private-channel`, {
-        token,
-        id,
-        resolution,
-      });
-      if (res.success) {
-        return res.data;
-      }
-      return Promise.reject({ message: res.message, code: res.code });
-    } catch (error) {
-      return Promise.reject({ message: error });
-    }
-  }
   // Market
   async tickers(instType, from, limit) {
     try {

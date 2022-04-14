@@ -154,19 +154,6 @@ const StoreProvider = (props) => {
     [enqueueSnackbar, middleman]
   );
 
-  const registerPrivateChannel = useCallback(
-    async (token, id, resolution) => {
-      try {
-        await middleman.registerPrivateChannel(token, id, resolution);
-      } catch (error) {
-        enqueueSnackbar(`"registerPrivateChannel error: ${error?.message}"`, {
-          variant: "error",
-        });
-      }
-    },
-    [enqueueSnackbar, middleman]
-  );
-
   const selectTickerHandler = useCallback(
     async (id) => {
       if (!selectedTicker || id !== selectedTicker?.id) {
@@ -237,14 +224,12 @@ const StoreProvider = (props) => {
             ? location.pathname.replace("/markets/", "")
             : null;
           if (id) {
-            await registerPrivateChannel(token, id, selectedBar);
             wsClient.send(
               JSON.stringify({
                 op: "userLogin",
                 args: {
                   token,
                   market: id,
-                  resolution: selectedBar,
                 },
               })
             );
@@ -256,14 +241,7 @@ const StoreProvider = (props) => {
         variant: "error",
       });
     }
-  }, [
-    enqueueSnackbar,
-    getCloseOrders,
-    getPendingOrders,
-    location.pathname,
-    registerPrivateChannel,
-    selectedBar,
-  ]);
+  }, [enqueueSnackbar, getCloseOrders, getPendingOrders, location.pathname]);
 
   const getAccounts = useCallback(async () => {
     await middleman.getAccounts();

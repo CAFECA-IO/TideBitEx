@@ -7,32 +7,8 @@ class Middleman {
     this.tickers = [];
   }
 
-  async registerPrivateChannel(token, id, resolution) {
-    try {
-      await this.communicator.registerPrivateChannel(token, id, resolution);
-    } catch (error) {
-      console.error(`registerPrivateChannel error`, error);
-      throw error;
-    }
-  }
-
-  async unregiterAll() {
-    try {
-      await this.communicator.unregiterAll();
-    } catch (error) {
-      console.error(`unregiterAll error`, error);
-      throw error;
-    }
-  }
-
   async updateSelectedTicker(id, resolution) {
     console.log(`updateSelectedTicker id`, id);
-    try {
-      await this.communicator.registerMarketChannel(id, resolution);
-    } catch (error) {
-      console.error(`registerMarketChannel error`, error);
-      // throw error;
-    }
     this.selectedTicker = this.tickers?.find((ticker) => ticker.id === id);
     if (!this.selectedTicker) {
       this.selectedTicker = await this.communicator.ticker(id);
@@ -106,12 +82,6 @@ class Middleman {
       });
     } catch (error) {
       console.error(`get tickers error`, error);
-      throw error;
-    }
-    try {
-      await this.communicator.registerGlobalChannel();
-    } catch (error) {
-      console.error(`registerGlobalChannel error`, error);
       throw error;
     }
     return this.tickers;

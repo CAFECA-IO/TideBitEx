@@ -128,7 +128,9 @@ class WSChannel extends Bot {
         this._channelClients[args.market] = {};
       }
       if (Object.values(this._channelClients[args.market]).length === 0) {
-        this.logger.log(`++++++++++ EventBus.emit(Events.userOnSubscribe)1[args.market:${args.market}]++++++++++++`);
+        this.logger.log(
+          `++++++++++ EventBus.emit(Events.userOnSubscribe)1[args.market:${args.market}]++++++++++++`
+        );
         EventBus.emit(Events.userOnSubscribe, {
           headers: {
             cookie: headers.cookie,
@@ -136,7 +138,6 @@ class WSChannel extends Bot {
             "x-csrf-token": args.token,
           },
           market: args.market,
-          resolution: args.resolution,
           token,
         });
       }
@@ -145,15 +146,16 @@ class WSChannel extends Bot {
       const oldChannel = findClient.channel;
       delete this._channelClients[oldChannel][ws.id];
       if (Object.values(this._channelClients[oldChannel]).length === 0) {
-        this.logger.log(`++++++++++ EventBus.emit(Events.userOnUnsubscribe)2[oldChannel:${oldChannel}]++++++++++++`);
+        this.logger.log(
+          `++++++++++ EventBus.emit(Events.userOnUnsubscribe)2[oldChannel:${oldChannel}]++++++++++++`
+        );
         EventBus.emit(Events.userOnUnsubscribe, {
           headers: {
             cookie: headers.cookie,
             "content-type": "application/json",
             "x-csrf-token": args.token,
           },
-          market: args.market,
-          resolution: args.resolution,
+          market: oldChannel,
           token,
         });
       }
@@ -162,7 +164,9 @@ class WSChannel extends Bot {
         this._channelClients[args.market] = {};
       }
       if (Object.values(this._channelClients[args.market]).length === 0) {
-        this.logger.log(`++++++++++ EventBus.emit(Events.userOnSubscribe)3[args.market:${args.market}]++++++++++++`);
+        this.logger.log(
+          `++++++++++ EventBus.emit(Events.userOnSubscribe)3[args.market:${args.market}]++++++++++++`
+        );
         EventBus.emit(Events.userOnSubscribe, {
           headers: {
             cookie: headers.cookie,
@@ -170,7 +174,6 @@ class WSChannel extends Bot {
             "x-csrf-token": args.token,
           },
           market: args.market,
-          resolution: args.resolution,
           token,
         });
       }

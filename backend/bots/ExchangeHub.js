@@ -269,120 +269,6 @@ class ExchangeHub extends Bot {
     return formatTBTickers;
   }
 
-  async unregiterAll() {
-    try {
-      this.tideBitConnector.unregiterAll();
-      this.logger.debug(`++++++++++++++`);
-      this.logger.debug(`unregiterAll`);
-      this.logger.debug(`++++++++++++++`);
-      return new ResponseFormat({
-        message: `unregiterAll`,
-        code: Codes.SUCCESS,
-      });
-    } catch (error) {
-      return new ResponseFormat({
-        message: error.message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
-    }
-  }
-
-  async registerGlobalChannel({ header }) {
-    try {
-      this.tideBitConnector.registerGlobalChannel({
-        header: {
-          "content-type": "application/json",
-          cookie: header.cookie,
-        },
-      });
-      this.logger.debug(`++++++++++++++`);
-      this.logger.debug(`registerGlobalChannel`);
-      this.logger.debug(`++++++++++++++`);
-      return new ResponseFormat({
-        message: `registerGlobalChannel`,
-        code: Codes.SUCCESS,
-      });
-    } catch (error) {
-      return new ResponseFormat({
-        message: error.message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
-    }
-  }
-
-  async registerMarketChannel({ header, query }) {
-    const instId = this._findInstId(query.id);
-    this.logger.debug(`++++++++++++++`);
-    this.logger.debug(`registerMarketChannel instId`, instId);
-    this.logger.debug(`++++++++++++++`);
-    try {
-      this.tideBitConnector.registerMarketChannel({
-        header: {
-          "content-type": "application/json",
-          cookie: header.cookie,
-        },
-        instId,
-        resolution: query.resolution,
-      });
-      return new ResponseFormat({
-        message: `registerMarketChannel`,
-        code: Codes.SUCCESS,
-      });
-    } catch (error) {
-      return new ResponseFormat({
-        message: error.message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
-    }
-  }
-
-  async registerPrivateChannel({ header, body, token }) {
-    if (!body.token) return;
-    const memberId = await this.getMemberIdFromRedis(token);
-    if (memberId === -1) {
-      return new ResponseFormat({
-        message: "member_id not found",
-        code: Codes.MEMBER_ID_NOT_FOUND,
-      });
-    }
-    const member = await this.database.getMemberById(memberId);
-    this.logger.debug(`++++++++++++++`);
-    this.logger.debug(`registerPrivateChannel member.sn`, member.sn);
-    this.logger.debug(
-      `registerPrivateChannel body.id`,
-      body.id,
-      this._findInstId(body.id)
-    );
-    this.logger.debug(
-      `registerPrivateChannel body.resolution`,
-      body.resolution
-    );
-    this.logger.debug(`++++++++++++++`);
-    try {
-      this.tideBitConnector.registerPrivateChannel({
-        header: {
-          "content-type": "application/json",
-          "x-csrf-token": body.token,
-          cookie: header.cookie,
-        },
-        sn: member.sn,
-        instId: this._findInstId(body.id),
-        resolution: body.resolution,
-      });
-      this.logger.debug(`++++++++++++++`);
-      this.logger.debug(`registerPrivateChannel SUCCESS`);
-      this.logger.debug(`++++++++++++++`);
-      return new ResponseFormat({
-        message: `registerPrivateChannel`,
-        code: Codes.SUCCESS,
-      });
-    } catch (error) {
-      return new ResponseFormat({
-        message: error.message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
-    }
-  }
 
   async getTicker({ params, query }) {
     const instId = this._findInstId(query.id);
@@ -1231,17 +1117,13 @@ class ExchangeHub extends Bot {
         data: account,
       });
     });
-    EventBus.on(Events.orderOnUpdate, (order) => {
-      this.broadcastAllClient({
-        type: Events.orderOnUpdate,
-        data: order,
-      });
-    });
-    EventBus.on(Events.tradeOnUpdate, (trade) => {
-      this.broadcastAllClient({
-        type: Events.tradeOnUpdate,
-        data: trade,
-      });
+    EventBus.on(Events.orderOnUpdate, (instId, order) => {
+      if (this._isIncludeTideBitMarket(instId)) {
+        this.broadcastAllClient({
+          type: Events.orderOnUpdate,
+          data: order,
+        });
+      }
     });
 
     EventBus.on(Events.tradesOnUpdate, (instId, tradeData) => {
