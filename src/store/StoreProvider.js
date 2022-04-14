@@ -381,6 +381,9 @@ const StoreProvider = (props) => {
           }
           break;
         case "tradesOnUpdate":
+          console.log(`***********tradesOnUpdate************`);
+          console.log(`metaData`, metaData);
+          console.log(`***********tradesOnUpdate************`);
           const { trades, candles, volumes } = middleman.updateTrades(
             metaData.data,
             selectedBar
@@ -395,6 +398,9 @@ const StoreProvider = (props) => {
           }
           break;
         case "orderBooksOnUpdate":
+          console.log(`*^^^^^^^^orderBooksOnUpdate*^^^^^^^^*`);
+          console.log(`metaData`, metaData);
+          console.log(`*^^^^^^^^*orderBooksOnUpdate*^^^^^^^^*`);
           const updateBooks = middleman.updateBooks(metaData.data);
           _bookTimestamp = new Date().getTime();
           if (_bookTimestamp - +bookTimestamp > 1000) {
@@ -421,6 +427,9 @@ const StoreProvider = (props) => {
           }
           break;
         case "orderOnUpdate":
+          console.log(`*&&&&&&&&&&&*orderOnUpdate*&&&&&&&&&&&**`);
+          console.log(`metaData`, metaData);
+          console.log(`*&&&&&&&&&&&*orderOnUpdate*&&&&&&&&&&&**`);
           const { updatePendingOrders, updateCloseOrders } =
             middleman.updateOrders(metaData.data);
           _orderTimestamp = new Date().getTime();

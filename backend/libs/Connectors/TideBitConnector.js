@@ -279,7 +279,6 @@ class TibeBitConnector extends ConnectorBase {
   _updateTrade(data) {
     this.logger.debug(`***********_updateTrade************`);
     this.logger.debug(`_updateTrade data`, data);
-    this.logger.debug(`***********_updateTrade************`);
     /**  {
     at: 1649675739
     id: 6
@@ -292,9 +291,9 @@ class TibeBitConnector extends ConnectorBase {
       ...data,
       instId: this._findInstId(data.market),
     };
-    EventBus.emit(Events.tradesOnUpdate, this._findInstId(data.market), [
-      formatTrade,
-    ]);
+    this.logger.debug(`_updateTrade formatTrade`, formatTrade);
+    this.logger.debug(`***********_updateTrade************`);
+    EventBus.emit(Events.tradeOnUpdate, formatTrade);
   }
 
   _updateTrades(instId, data) {
@@ -321,7 +320,7 @@ class TibeBitConnector extends ConnectorBase {
         id: t.tid,
         price: t.price,
         volume: t.amount,
-        market: t.market,
+        market: t.instId.replace("-", "").toLowerCase(),
         type: t.type,
         at: t.date,
         side: t.type === "sell" ? "down" : "up",
