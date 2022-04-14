@@ -21,15 +21,20 @@
 // }
 .market-order-item > li {
   min-width: 75px;
-  text-align: left;
-}
-
-.market-order-item > li:last-child {
   text-align: right;
 }
 
+.market-order-item > li:first-child,
+.market-order-item > li:last-child {
+  text-align: center;
+}
+
 .market-order-item.market-balance > li {
-  width: 25%;
+  width: 24%;
+  text-align: right;
+}
+.market-order-item.market-balance > li:first-child {
+  width: 20%;
   text-align: left;
 }
 
