@@ -11,7 +11,7 @@ const redis = require("redis");
 class TibeBitConnector extends ConnectorBase {
   constructor({ logger }) {
     super({ logger });
-    this.start = false;
+    this.isStarted = false;
     this.name = "TibeBitConnector";
     return this;
   }
@@ -45,7 +45,7 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async getOrderBooks({ header, instId }) {
-    if (!this.start) this._start({ header });
+    if (!this.isStarted) this._start({ header });
     // const response = await this.pusher.get({
     //   path: `${this.peatio}/channels/market-${instId
     //     .replace("-", "")
@@ -155,7 +155,8 @@ class TibeBitConnector extends ConnectorBase {
         };
       },
     });
-    this.start = true;
+    this.isStarted = true;
+    if (headers) this.isCredential = true;
   }
 
   _updateTickers(data) {
@@ -393,7 +394,11 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async _registerPrivateChannel(credential) {
-    if (!this.start) this._start(credential.headers);
+    this.logger.debug(`++++++++_registerPrivateChannel++++++`);
+    this.logger.debug(`this.isStarted`, this.isStarted);
+    this.logger.debug(`this.isCredential`, this.isCredential);
+    this.logger.debug(`++++++++_registerPrivateChannel++++++`);
+    if (!this.isStarted || !this.isCredential) this._start(credential.headers);
     try {
       const memberId = await this.getMemberIdFromRedis(credential["token"]);
       if (memberId !== -1) {
@@ -419,12 +424,16 @@ class TibeBitConnector extends ConnectorBase {
   async _unregisterPrivateChannel(credential) {
     try {
       const memberId = await this.getMemberIdFromRedis(credential["token"]);
+      this.logger.debug(`++++++++_unregisterPrivateChannel++++++`);
+      this.logger.debug(`memberId`, memberId);
+      this.logger.debug(`++++++++_unregisterPrivateChannel++++++`);
       if (memberId !== -1) {
         const member = await this.database.getMemberById(memberId);
         this.private_channel?.unbind();
         this.private_channel = this.pusher.unsubscribe(`private-${member.sn}`);
         this.private_channel = null;
-        this.start = false;
+        this.pusher = null;
+        this.isStarted = false;
         this.logger.debug(`++++++++++++++`);
         this.logger.debug(`_unsubscribeUser member.sn`, member.sn);
         this.logger.debug(`++++++++++++++`);
@@ -436,7 +445,7 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _registerMarketChannel(instId) {
-    if (!this.start) this._start();
+    if (!this.isStarted) this._start();
     try {
       this.market_channel = this.pusher.subscribe(
         `market-${instId.replace("-", "").toLowerCase()}-global`
@@ -471,7 +480,6 @@ class TibeBitConnector extends ConnectorBase {
       this.pusher?.unsubscribe("market-global");
       this.market_channel = null;
       this.global_channel = null;
-      this.start = false;
     } catch (error) {
       this.logger.error(`_unregisterMarketChannel error`, error);
       throw error;
@@ -479,19 +487,31 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async _subscribeUser(credential) {
+    this.logger.log(`++++++++++_subscribeUser++++++++++++`);
+    this.logger.log(`credential`, credential);
+    this.logger.log(`++++++++++_subscribeUser++++++++++++`);
     await this._registerPrivateChannel(credential);
     this._registerMarketChannel(this._findInstId(credential.market));
   }
 
   async _unsubscribeUser(credential) {
+    this.logger.log(`---------_unsubscribeUser---------+un+`);
+    this.logger.log(`credential`, credential);
+    this.logger.log(`---------_unsubscribeUser---------+un+`);
     await this._unregisterPrivateChannel(credential);
     this._unregisterMarketChannel(this._findInstId(credential.market));
   }
 
   _subscribeMarket(market) {
+    this.logger.log(`++++++++++_subscribeMarket++++++++++++`);
+    this.logger.log(`market`, market);
+    this.logger.log(`++++++++++_subscribeMarket++++++++++++`);
     this._registerMarketChannel(this._findInstId(market));
   }
   _unsubscribeMarket(market) {
+    this.logger.log(`---------_unsubscribeMarket---------+un+`);
+    this.logger.log(`market`, market);
+    this.logger.log(`---------_unsubscribeMarket---------+un+`);
     this._unregisterMarketChannel(this._findInstId(market));
   }
 
