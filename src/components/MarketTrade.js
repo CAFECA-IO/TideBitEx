@@ -173,6 +173,7 @@ const TradePannel = (props) => {
   const [selectedMarketSellPct, setSelectedMarketSellPct] = useState(null);
   const [buyErrorMessage, setBuyErrorMessage] = useState(null);
   const [sellErrorMessage, setSellErrorMessage] = useState(null);
+  const [refresh, setRefresh] = useState(false);
   const { t } = useTranslation();
 
   const limitBuyPxHandler = (value) => {
@@ -355,7 +356,8 @@ const TradePannel = (props) => {
             props.orderType === "market" ? selectedTicker.last : order.px
           } ${order.instId.split("-")[1]} per ${order.instId.split("-")[0]}`);
     if (confirm) {
-      storeCtx.postOrder(order);
+      await storeCtx.postOrder(order);
+      setRefresh(true);
     }
     if (side === "buy") {
       if (props.orderType === "market") {
@@ -392,13 +394,16 @@ const TradePannel = (props) => {
 
   useEffect(() => {
     if (
-      storeCtx.accounts?.length > 0 &&
-      ((storeCtx.selectedTicker && !selectedTicker) ||
-        (storeCtx.selectedTicker &&
-          storeCtx.selectedTicker.instId !== selectedTicker?.instId))
+      (storeCtx.accounts?.length > 0 &&
+        ((storeCtx.selectedTicker && !selectedTicker) ||
+          (storeCtx.selectedTicker &&
+            storeCtx.selectedTicker.instId !== selectedTicker?.instId))) ||
+      refresh
     ) {
       let quoteCcyBalance = storeCtx.accounts?.find((balance) => {
-        return balance.ccy === storeCtx.selectedTicker?.quote_unit.toUpperCase();
+        return (
+          balance.ccy === storeCtx.selectedTicker?.quote_unit.toUpperCase()
+        );
       });
 
       if (quoteCcyBalance) {
@@ -417,7 +422,8 @@ const TradePannel = (props) => {
         );
       }
       let baseCcyBalance = storeCtx.accounts?.find(
-        (balance) => balance.ccy === storeCtx.selectedTicker?.base_unit.toUpperCase()
+        (balance) =>
+          balance.ccy === storeCtx.selectedTicker?.base_unit.toUpperCase()
       );
       if (baseCcyBalance) {
         setBaseCcyAvailable(baseCcyBalance?.availBal);
@@ -446,6 +452,7 @@ const TradePannel = (props) => {
     sellPctHandler,
     selectedMarketSellPct,
     selectedLimitSellPct,
+    refresh,
   ]);
 
   return (

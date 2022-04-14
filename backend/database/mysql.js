@@ -58,6 +58,20 @@ class mysql {
     }
   }
 
+  async getCurrencies() {
+    const query = "SELECT * FROM `asset_bases`;";
+    try {
+      this.logger.log("getCurrencies", query);
+      const [currencies] = await this.db.query({
+        query,
+      });
+      return currencies;
+    } catch (error) {
+      this.logger.log(error);
+      return [];
+    }
+  }
+
   async getCurrency(currencyId) {
     const query = "SELECT * FROM `asset_bases` WHERE `asset_bases`.`id` = ?;";
     try {

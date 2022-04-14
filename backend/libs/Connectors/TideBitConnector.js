@@ -6,11 +6,12 @@ const EventBus = require("../EventBus");
 const Events = require("../../constants/Events");
 const SupportedExchange = require("../../constants/SupportedExchange");
 const Utils = require("../Utils");
+const redis = require("redis");
 
 class TibeBitConnector extends ConnectorBase {
   constructor({ logger }) {
     super({ logger });
-    this.start = false;
+    this.isStarted = false;
     this.name = "TibeBitConnector";
     return this;
   }
@@ -23,7 +24,10 @@ class TibeBitConnector extends ConnectorBase {
     wsPort,
     wssPort,
     encrypted,
-    peatioDomain,
+    peatio,
+    markets,
+    database,
+    redis,
   }) {
     await super.init();
     this.app = app;
@@ -33,11 +37,67 @@ class TibeBitConnector extends ConnectorBase {
     this.wsPort = wsPort;
     this.wssPort = wssPort;
     this.encrypted = encrypted;
-    this.peatio = peatioDomain;
+    this.peatio = peatio;
+    this.markets = markets;
+    this.database = database;
+    this.redis = redis;
     return this;
   }
 
-  _start({ header }) {
+  async getOrderBooks({ header, instId }) {
+    if (!this.isStarted) this._start({ header });
+    // const response = await this.pusher.get({
+    //   path: `${this.peatio}/channels/market-${instId
+    //     .replace("-", "")
+    //     .toLowerCase()}-global`,
+    // });
+    const response = await axios({
+      method: "GET",
+      url: `${this.peatio}/apps/${this.app}/channels/market-${instId
+        .replace("-", "")
+        .toLowerCase()}-global`,
+      headers: header,
+    });
+    if (response.status === 200) {
+      const body = await response.json();
+      const channelsInfo = body.channels;
+      this.logger.log(`getOrderBooks response`, response);
+      this.logger.log(`getOrderBooks channelsInfo`, channelsInfo);
+    }
+  }
+
+  async getMemberIdFromRedis(peatioSession) {
+    const client = redis.createClient({
+      url: this.redis,
+    });
+
+    client.on("error", (err) => this.logger.error("Redis Client Error", err));
+
+    try {
+      await client.connect(); // 會因為連線不到卡住
+      const value = await client.get(
+        redis.commandOptions({ returnBuffers: true }),
+        peatioSession
+      );
+      await client.quit();
+      // ++ TODO: 下面補error handle
+      const split1 = value
+        .toString("latin1")
+        .split("member_id\x06:\x06EFi\x02");
+      const memberIdLatin1 = split1[1].split('I"')[0];
+      const memberIdString = Buffer.from(memberIdLatin1, "latin1")
+        .reverse()
+        .toString("hex");
+      const memberId = parseInt(memberIdString, 16);
+      return memberId;
+    } catch (error) {
+      this.logger.error(error);
+      await client.quit();
+      return -1;
+    }
+  }
+
+  _start(headers) {
     this.pusher = new Pusher(this.key, {
       //   appId: app,
       //   key,
@@ -53,47 +113,50 @@ class TibeBitConnector extends ConnectorBase {
       forceTLS: false,
       authorizer: (channel, options) => {
         return {
-          authorize: (socketId, callback) => {
-            const data = JSON.stringify({
-              socket_id: socketId,
-              channel_name: channel.name,
-            });
-            axios({
-              url: `${this.peatio}/pusher/auth`,
-              method: "POST",
-              headers: {
-                ...header,
-                "Content-Length": Buffer.from(data, "utf-8").length,
-              },
-              data,
-            })
-              .then((res) => {
-                if (res.status !== 200) {
-                  throw new Error(
-                    `Received ${res.statusCode} from /pusher/auth`
-                  );
-                }
-                return res.data;
-              })
-              .then((data) => {
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-                this.logger.debug(`authorize data`, data);
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-                callback(null, data);
-              })
-              .catch((err) => {
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-                this.logger.error(`authorize err`, err);
-                this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
-                callback(new Error(`Error calling auth endpoint: ${err}`), {
-                  auth: "",
+          authorize: headers
+            ? (socketId, callback) => {
+                const data = JSON.stringify({
+                  socket_id: socketId,
+                  channel_name: channel.name,
                 });
-              });
-          },
+                axios({
+                  url: `${this.peatio}/pusher/auth`,
+                  method: "POST",
+                  headers: {
+                    ...headers,
+                    "Content-Length": Buffer.from(data, "utf-8").length,
+                  },
+                  data,
+                })
+                  .then((res) => {
+                    if (res.status !== 200) {
+                      throw new Error(
+                        `Received ${res.statusCode} from /pusher/auth`
+                      );
+                    }
+                    return res.data;
+                  })
+                  .then((data) => {
+                    this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+                    this.logger.debug(`authorize data`, data);
+                    this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+                    callback(null, data);
+                  })
+                  .catch((err) => {
+                    this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+                    this.logger.error(`authorize err`, err);
+                    this.logger.debug(`%*%*%*%%%%%%%%%%%%%%%%%%%%%%%*%*%*%`);
+                    callback(new Error(`Error calling auth endpoint: ${err}`), {
+                      auth: "",
+                    });
+                  });
+              }
+            : null,
         };
       },
     });
-    this.start = true;
+    this.isStarted = true;
+    if (headers) this.isCredential = true;
   }
 
   _updateTickers(data) {
@@ -116,7 +179,7 @@ class TibeBitConnector extends ConnectorBase {
     */
     if (!this.tickers || this.tickers.length === 0) {
       this.tickers = Object.values(data);
-      this.logger.log(`_updateTickers this.tickers`, this.tickers);
+      // this.logger.log(`_updateTickers this.tickers`, this.tickers);
     }
     const formatTickers = Object.values(data)
       .filter((d) => {
@@ -155,17 +218,6 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
-  registerGlobalChannel({ header }) {
-    if (!this.start) this._start({ header });
-    try {
-      this.global_channel = this.pusher.subscribe("market-global");
-      this.global_channel.bind("tickers", (data) => this._updateTickers(data));
-    } catch (error) {
-      this.logger.error(`registerGlobalChannel error`, error);
-      throw error;
-    }
-  }
-
   _updateBooks(instId, data) {
     /**
     {
@@ -180,7 +232,6 @@ class TibeBitConnector extends ConnectorBase {
     }
     */
     if (data.asks.length === 0 || data.bids.length === 0) return;
-    this.logger.debug(`_updateBooks data`, data);
     let index,
       asks = [],
       bids = [];
@@ -219,12 +270,19 @@ class TibeBitConnector extends ConnectorBase {
       instId,
       ts: Date.now(),
     };
-    this.logger.debug(`_updateBooks formatBooks`, formatBooks);
-    // if (asks.length > 0 || bids.length > 0)
-    EventBus.emit(Events.orderBooksOnUpdate, instId, formatBooks);
+    if (asks.length > 0 || bids.length > 0) {
+      this.logger.debug(`_updateBooks formatBooks`, formatBooks);
+      EventBus.emit(
+        Events.orderBooksOnUpdate,
+        instId.replace("-", "").toLowerCase(),
+        formatBooks
+      );
+    }
   }
 
   _updateTrade(data) {
+    this.logger.debug(`***********_updateTrade************`);
+    this.logger.debug(`_updateTrade data`, data);
     /**  {
     at: 1649675739
     id: 6
@@ -235,14 +293,17 @@ class TibeBitConnector extends ConnectorBase {
     }*/
     const formatTrade = {
       ...data,
-      instId: this.current_instId,
+      instId: this._findInstId(data.market),
     };
-    this.logger.debug(`_updateTrade data`, data);
     this.logger.debug(`_updateTrade formatTrade`, formatTrade);
-    EventBus.emit(Events.tradesOnUpdate, this.current_instId, [formatTrade]);
+    this.logger.debug(`***********_updateTrade************`);
+    EventBus.emit(Events.tradeOnUpdate, data.market, formatTrade);
   }
 
-  _updateTrades(data) {
+  _updateTrades(instId, data) {
+    this.logger.debug(`****$$*****_updateTradeS*****$$*****`);
+    this.logger.debug(`_updateTrade data`, data);
+    this.logger.debug(`****$$*****_updateTradeS*****$$*****`);
     /**
     {
       trades: [
@@ -259,11 +320,11 @@ class TibeBitConnector extends ConnectorBase {
     */
     const formatTrades = data.trades
       .map((t) => ({
-        instId: this.current_instId,
+        instId,
         id: t.tid,
         price: t.price,
         volume: t.amount,
-        market: t.market,
+        market: instId.replace("-", "").toLowerCase(),
         type: t.type,
         at: t.date,
         side: t.type === "sell" ? "down" : "up",
@@ -271,60 +332,11 @@ class TibeBitConnector extends ConnectorBase {
       .sort((a, b) => b.at - a.at);
     if (formatTrades.length > 0) {
       this.logger.debug(`_updateTrade formatTrades`, formatTrades);
-      EventBus.emit(Events.tradesOnUpdate, this.current_instId, formatTrades);
-    }
-  }
-
-  async getOrderBooks({ header, instId }) {
-    if (!this.start) this._start({ header });
-    // const response = await this.pusher.get({
-    //   path: `${this.peatio}/channels/market-${instId
-    //     .replace("-", "")
-    //     .toLowerCase()}-global`,
-    // });
-    const response = await axios({
-      method: "GET",
-      url: `${this.peatio}/apps/${this.app}/channels/market-${instId
-        .replace("-", "")
-        .toLowerCase()}-global`,
-      headers: header,
-    });
-    if (response.status === 200) {
-      const body = await response.json();
-      const channelsInfo = body.channels;
-      this.logger.log(`getOrderBooks response`, response);
-      this.logger.log(`getOrderBooks channelsInfo`, channelsInfo);
-    }
-  }
-
-  registerMarketChannel({ header, instId, resolution }) {
-    if (!this.start) this._start({ header });
-    try {
-      if (
-        this.current_instId &&
-        this.current_instId !== instId &&
-        this.market_channel
-      ) {
-        this.market_channel.unbind();
-        this.pusher.unsubscribe(
-          `market-${this.current_instId.replace("-", "").toLowerCase()}-global`
-        );
-        this.market_channel = null;
-      }
-      this.current_instId = instId;
-      this.resolution = resolution;
-      this.market_channel = this.pusher.subscribe(
-        `market-${instId.replace("-", "").toLowerCase()}-global`
+      EventBus.emit(
+        Events.tradesOnUpdate,
+        instId.replace("-", "").toLowerCase(),
+        formatTrades
       );
-      this.market_channel.bind("update", (data) =>
-        this._updateBooks(instId, data)
-      );
-      this.market_channel.bind("trades", (data) => {
-        this._updateTrades(data);
-      });
-    } catch (error) {
-      this.logger.error(`registerMarketChannel error`, error);
-      throw error;
     }
   }
 
@@ -368,7 +380,7 @@ class TibeBitConnector extends ConnectorBase {
     const formatOrder = {
       ordId: data.id,
       clOrdId: data.id,
-      instId: this.current_instId,
+      instId: this._findInstId(data.market),
       market: data.market,
       ordType: data.price === undefined ? "market" : "limit",
       px: data.price,
@@ -385,84 +397,144 @@ class TibeBitConnector extends ConnectorBase {
           : "canceled",
     };
     this.logger.debug(`_updateOrder formatOrder`, formatOrder);
-    EventBus.emit(Events.orderOnUpdate, formatOrder);
+    EventBus.emit(Events.orderOnUpdate, data.market, formatOrder);
   }
 
-  async registerPrivateChannel({ header, sn, instId, resolution }) {
-    this.unregisterAll();
-    this.start = false;
-    if (!this.start) this._start({ header });
+  async _registerPrivateChannel(credential) {
+    this.logger.debug(`++++++++_registerPrivateChannel++++++`);
+    this.logger.debug(`this.isStarted`, this.isStarted);
+    this.logger.debug(`this.isCredential`, this.isCredential);
+    this.logger.debug(`++++++++_registerPrivateChannel++++++`);
+    if (!this.isStarted || !this.isCredential) this._start(credential.headers);
     try {
-      if (this.current_user) {
-        this.private_channel?.unbind();
-        this.pusher.unsubscribe(`private-${this.current_user}`);
+      const memberId = await this.getMemberIdFromRedis(credential["token"]);
+      if (memberId !== -1) {
+        this.token = credential["token"];
+        const member = await this.database.getMemberById(memberId);
+        this.memberSN = member.sn;
+        this.private_channel = this.pusher.subscribe(`private-${member.sn}`);
+        this.private_channel.bind("account", (data) =>
+          this._updateAccount(data)
+        );
+        this.private_channel.bind("order", (data) => this._updateOrder(data));
+        // this.private_channel.bind("trade", (data) => {
+        //   this._updateTrade(data);
+        // });
+        this.logger.debug(`++++++++++++++`);
+        this.logger.debug(`_subscribeUser member.sn`, member.sn);
+        this.logger.debug(`++++++++++++++`);
       }
-      this.registerGlobalChannel({ header });
-      this.registerMarketChannel({ header, instId, resolution });
-      this.current_user = sn;
-      this.private_channel = this.pusher.subscribe(`private-${sn}`);
-      this.private_channel.bind("account", (data) => this._updateAccount(data));
-      this.private_channel.bind("order", (data) => this._updateOrder(data));
-      this.private_channel.bind("trade", (data) => {
-        this._updateTrade(data);
-      });
     } catch (error) {
       this.logger.error(`private_channel error`, error);
       throw error;
     }
   }
 
-  unregisterAll() {
+  async _unregisterPrivateChannel(credential) {
+    if (!this.isCredential || !this.memberSN) return;
     try {
-      this.global_channel?.unbind();
-      this.market_channel?.unbind();
+      this.logger.debug(`++++++++_unregisterPrivateChannel++++++`);
+      this.logger.debug(`this.memberSN`, this.memberSN);
+      this.logger.debug(`++++++++_unregisterPrivateChannel++++++`);
       this.private_channel?.unbind();
-      this.pusher?.unsubscribe("market-global");
-      this.pusher?.unsubscribe(
-        `market-${this.current_instId.replace("-", "").toLowerCase()}-global`
+      this.private_channel = this.pusher.unsubscribe(
+        `private-${this.memberSN}`
       );
-      this.pusher?.unsubscribe(`private-${this.current_user}`);
-      this.market_channel = null;
-      this.global_channel = null;
+      if (credential["token"] && this.token !== credential["token"]) {
+        const memberId = await this.getMemberIdFromRedis(credential["token"]);
+        if (memberId !== -1) {
+          const member = await this.database.getMemberById(memberId);
+          this.private_channel = this.pusher.unsubscribe(
+            `private-${member.sn}`
+          );
+        }
+      }
       this.private_channel = null;
+      this.pusher = null;
+      this.isStarted = false;
+      this.logger.debug(`++++++++++++++`);
+      this.logger.debug(`_unsubscribeUser this.memberSN`, this.memberSN);
+      this.logger.debug(`++++++++++++++`);
     } catch (error) {
-      this.logger.error(`registerGlobalChannel error`, error);
+      this.logger.error(`_unregisterPrivateChannel error`, error);
       throw error;
     }
   }
 
   _registerMarketChannel(instId) {
-    if (!this.start) return;
-    this.current_instId = instId;
-    this.market_channel = this.pusher.subscribe(
-      `market-${instId.replace("-", "").toLowerCase()}-global`
-    );
-    this.market_channel.bind("update", (data) =>
-      this._updateBooks(instId, data)
-    );
-    this.market_channel.bind("trades", (data) =>
-      this._updateTrades(instId, data)
-    );
+    if (!this.isStarted) this._start();
+    try {
+      this.market_channel = this.pusher.subscribe(
+        `market-${instId.replace("-", "").toLowerCase()}-global`
+      );
+      this.global_channel = this.pusher.subscribe("market-global");
+      this.logger.log(`++++++++++_registerMarketChannel++++++++++++`);
+      this.logger.log(`instId`, instId);
+      this.logger.log(`++++++++++_registerMarketChannel++++++++++++`);
+      this.market_channel.bind("update", (data) =>
+        this._updateBooks(instId, data)
+      );
+      this.market_channel.bind("trades", (data) => {
+        this._updateTrades(instId, data);
+      });
+      this.global_channel.bind("tickers", (data) => this._updateTickers(data));
+    } catch (error) {
+      this.logger.error(`_registerMarketChannel error`, error);
+      throw error;
+    }
   }
 
-  _unregisterMarketChannel() {
-    if (!this.start) return;
-    this.market_channel.unbind(`update`);
-    this.market_channel.unbind(`trades`);
-    this.pusher.unsubscribe(
-      `market-${this.current_instId.replace("-", "").toLowerCase()}-global`
-    );
-    this.market_channel = null;
+  _unregisterMarketChannel(instId) {
+    try {
+      this.market_channel?.unbind();
+      this.global_channel?.unbind();
+      this.logger.log(`++++++++++_unregisterMarketChannel++++++++++++`);
+      this.logger.log(`THIS IS CALLED instId`, instId);
+      this.logger.log(`++++++++++_unregisterMarketChannel++++++++++++`);
+      this.pusher?.unsubscribe(
+        `market-${instId.replace("-", "").toLowerCase()}-global`
+      );
+      this.pusher?.unsubscribe("market-global");
+      this.market_channel = null;
+      this.global_channel = null;
+    } catch (error) {
+      this.logger.error(`_unregisterMarketChannel error`, error);
+      throw error;
+    }
   }
 
-  // ++ TODO
-  _subscribeInstId(instId) {
-    // this._registerMarketChannel(instId);
+  async _subscribeUser(credential) {
+    this.logger.log(`++++++++++_subscribeUser++++++++++++`);
+    this.logger.log(`credential`, credential);
+    this.logger.log(`++++++++++_subscribeUser++++++++++++`);
+    await this._registerPrivateChannel(credential);
+    this._registerMarketChannel(this._findInstId(credential.market));
   }
 
-  // ++ TODO
-  _unsubscribeInstId(instId) {
-    // this._unregisterMarketChannel(instId);
+  async _unsubscribeUser(market) {
+    this.logger.log(`---------_UNsubscribeUSER-----------`);
+    this.logger.log(`market`);
+    this.logger.log(`---------_UNsubscribeUSER-----------`);
+    this._unregisterPrivateChannel();
+    this._unregisterMarketChannel(this._findInstId(market));
+  }
+
+  _subscribeMarket(market) {
+    this.logger.log(`++++++++++_subscribeMarket++++++++++++`);
+    this.logger.log(`market`, market);
+    this.logger.log(`++++++++++_subscribeMarket++++++++++++`);
+    this._registerMarketChannel(this._findInstId(market));
+  }
+
+  async _unsubscribeMarket(market) {
+    this.logger.log(`---------_UNsubscribeMARKET-----------`);
+    this.logger.log(`market`, market);
+    this.logger.log(`---------_UNsubscribeMARKET-----------`);
+    this._unregisterMarketChannel(this._findInstId(market));
+  }
+
+  _findInstId(id) {
+    return this.markets[id.toUpperCase()];
   }
 }
 

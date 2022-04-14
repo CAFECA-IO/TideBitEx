@@ -15,20 +15,27 @@
   color: #758696;
   padding: 8px 15px;
 }
+// .market-order-item > li {
+//   // width: 12%;
+//   text-align: right;
+// }
 .market-order-item > li {
-  // width: 12%;
+  min-width: 75px;
   text-align: right;
 }
 .market-order-item > li:first-child {
-  width: 24%;
   text-align: left;
 }
+.market-order-item > li:last-child {
+  text-align: center;
+}
+
 .market-order-item.market-balance > li {
-  width: 20%;
+  width: 24%;
   text-align: right;
 }
 .market-order-item.market-balance > li:first-child {
-  width: 25%;
+  width: 20%;
   text-align: left;
 }
 

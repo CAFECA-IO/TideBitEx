@@ -7,32 +7,8 @@ class Middleman {
     this.tickers = [];
   }
 
-  async registerPrivateChannel(token, id, resolution) {
-    try {
-      await this.communicator.registerPrivateChannel(token, id, resolution);
-    } catch (error) {
-      console.error(`registerPrivateChannel error`, error);
-      throw error;
-    }
-  }
-
-  async unregiterAll() {
-    try {
-      await this.communicator.unregiterAll();
-    } catch (error) {
-      console.error(`unregiterAll error`, error);
-      throw error;
-    }
-  }
-
   async updateSelectedTicker(id, resolution) {
-    console.log(`updateSelectedTicker id`, id);
-    try {
-      await this.communicator.registerMarketChannel(id, resolution);
-    } catch (error) {
-      console.error(`registerMarketChannel error`, error);
-      // throw error;
-    }
+    // console.log(`updateSelectedTicker id`, id);
     this.selectedTicker = this.tickers?.find((ticker) => ticker.id === id);
     if (!this.selectedTicker) {
       this.selectedTicker = await this.communicator.ticker(id);
@@ -108,12 +84,6 @@ class Middleman {
       console.error(`get tickers error`, error);
       throw error;
     }
-    try {
-      await this.communicator.registerGlobalChannel();
-    } catch (error) {
-      console.error(`registerGlobalChannel error`, error);
-      throw error;
-    }
     return this.tickers;
   }
 
@@ -171,7 +141,9 @@ class Middleman {
   }
 
   updateBooks(data) {
-    console.log(`updateBooks data`, data);
+    console.log(`*^^^^^^^^orderBooksOnUpdate*^^^^^^^^*`);
+    console.log(`data`, data);
+    console.log(`*^^^^^^^^*orderBooksOnUpdate*^^^^^^^^*`);
     if (data.instId !== this.selectedTicker.instId) return;
     const updateRawBooks = {
       asks: this.rawBooks?.asks
@@ -209,7 +181,7 @@ class Middleman {
     });
     this.rawBooks = updateRawBooks;
     this.books = this.handleBooks();
-    console.log(`updateBooks updateRawBooks`, updateRawBooks);
+    // console.log(`updateBooks updateRawBooks`, updateRawBooks);
     return this.books;
   }
 
@@ -217,7 +189,7 @@ class Middleman {
     try {
       const rawBooks = await this.communicator.books(id, sz);
       this.rawBooks = rawBooks;
-      console.log(`getBooks this.rawBooks`, this.rawBooks);
+      // console.log(`getBooks this.rawBooks`, this.rawBooks);
       this.books = this.handleBooks();
       return this.books;
     } catch (error) {
@@ -226,6 +198,10 @@ class Middleman {
   }
 
   updateTrades = (updateData, resolution) => {
+    // console.log(`***********tradesOnUpdate************`);
+    // console.log(`updateData`, updateData);
+    // console.log(`resolution`, resolution);
+    // console.log(`***********tradesOnUpdate************`);
     const _updateTrades = updateData
       .filter(
         (trade) =>
@@ -248,10 +224,10 @@ class Middleman {
         update: true,
       }))
       .concat(this.trades || []);
-    console.log(
-      `updateTrades _updateTrades[${_updateTrades.length}]`,
-      _updateTrades
-    );
+    // console.log(
+    //   `updateTrades _updateTrades[${_updateTrades.length}]`,
+    //   _updateTrades
+    // );
     const { candles, volumes } = this.updateCandles(_updateTrades, resolution);
     return { trades: _updateTrades, candles, volumes };
   };
@@ -376,6 +352,9 @@ class Middleman {
   }
 
   updateOrders(data) {
+    // console.log(`*&&&&&&&&&&&*orderOnUpdate*&&&&&&&&&&&**`);
+    // console.log(`data`, data);
+    // console.log(`this.selectedTicker.id`, this.selectedTicker.id);
     const updatePendingOrders =
       this.pendingOrders?.map((order) => ({
         ...order,
@@ -390,6 +369,7 @@ class Middleman {
         if (data.state !== "waiting") {
           updatePendingOrders.splice(index, 1);
           updateCloseOrders.push({ ...data, uTime: Date.now() });
+          // console.log(`updateCloseOrders.push`, { ...data, uTime: Date.now() });
         } else {
           const updateOrder = updatePendingOrders[index];
           updatePendingOrders[index] = {
@@ -397,15 +377,22 @@ class Middleman {
             sz: data.sz,
             filled: data.filled,
           };
+          // console.log(` updatePendingOrders[${index}]`, {
+          //   ...updateOrder,
+          //   sz: data.sz,
+          //   filled: data.filled,
+          // });
         }
       } else {
-        if (data.state === "waiting")
-          updatePendingOrders.push({ ...data, cTime: Date.now() });
-        else updateCloseOrders.push({ ...data, uTime: Date.now() });
+        if (data.price)
+          if (data.state === "waiting") {
+            updatePendingOrders.push({ ...data, cTime: Date.now() });
+          } else updateCloseOrders.push({ ...data, uTime: Date.now() });
       }
       this.pendingOrders = updatePendingOrders;
       this.closeOrders = updateCloseOrders;
     }
+    // console.log(`*&&&&&&&&&&&*orderOnUpdate*&&&&&&&&&&&**`);
     return {
       updatePendingOrders: updatePendingOrders.sort(
         (a, b) => b.cTime - a.cTime
@@ -421,7 +408,9 @@ class Middleman {
         instId: this.selectedTicker?.instId,
       });
       // ++ WORKAROUND
-      this.pendingOrders = orders.filter((order) => order.px !== "NaN");
+      this.pendingOrders = orders.filter(
+        (order) => order.px !== "NaN" || !order.px
+      );
       return this.pendingOrders;
     }
   }
@@ -433,7 +422,9 @@ class Middleman {
         instId: this.selectedTicker?.instId,
       });
       // ++ WORKAROUND
-      this.closeOrders = orders.filter((order) => order.px !== "NaN");
+      this.closeOrders = orders.filter(
+        (order) => order.px !== "NaN" || !order.px
+      );
       return this.closeOrders;
     }
   }

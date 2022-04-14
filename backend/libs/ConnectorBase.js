@@ -26,20 +26,34 @@ class ConnectorBase {
   }
 
   async _tideBitExEventListener() {
-    EventBus.on(Events.pairOnSubscribe, (instId) => {
-      this._subscribeInstId(instId);
+    EventBus.on(Events.pairOnSubscribe, (market) => {
+      this._subscribeMarket(market);
     })
-    EventBus.on(Events.pairOnUnsubscribe, (instId) => {
-      this._unsubscribeInstId(instId);
+    EventBus.on(Events.pairOnUnsubscribe, (market) => {
+      this._unsubscribeMarket(market);
+    })
+    EventBus.on(Events.userOnSubscribe, (data) => {
+      this._subscribeUser(data);
+    })
+    EventBus.on(Events.userOnUnsubscribe, (data) => {
+      this._unsubscribeUser(data);
     })
   }
 
-  _subscribeInstId() {
-    throw new Error('need override _subscribeInstId');
+  _subscribeUser(){
+    throw new Error('need override _subscribeUser');
   }
 
-  _unsubscribeInstId() {
-    throw new Error('need override _unsubscribeInstId');
+  _unsubscribeUser(){
+    throw new Error('need override _unsubscribeUser');
+  }
+
+  _subscribeMarket() {
+    throw new Error('need override _subscribeMarket');
+  }
+
+  _unsubscribeMarket() {
+    throw new Error('need override _unsubscribeMarket');
   }
 }
 module.exports = ConnectorBase;

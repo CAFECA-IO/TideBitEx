@@ -34,6 +34,7 @@ class ExchangeHub extends Bot {
           brokerId: this.config.okex.brokerId,
           wssPublic: this.config.okex.wssPublic,
           wssPrivate: this.config.okex.wssPrivate,
+          markets: this.config.markets,
         });
         this.tideBitConnector = new TideBitConnector({ logger });
         this.tideBitConnector.init({
@@ -45,10 +46,14 @@ class ExchangeHub extends Bot {
           wsPort: this.config.pusher.wsPort,
           wssPort: this.config.pusher.wssPort,
           encrypted: this.config.pusher.encrypted,
-          peatioDomain: this.config.peatio.domain,
+          peatio: this.config.peatio.domain,
+          redis: this.config.redis.domain,
+          markets: this.config.markets,
+          database: database,
         });
       })
-      .then(() => {
+      .then(async () => {
+        this.currencies = await this.database.getCurrencies();
         this.tidebitMarkets = this.getTidebitMarkets();
         return this;
       });
@@ -106,52 +111,24 @@ class ExchangeHub extends Bot {
   }
 
   async getMemberIdFromRedis(peatioSession) {
-    const client = redis.createClient({
-      url: this.config.redis.domain,
-    });
-
-    client.on("error", (err) => this.logger.error("Redis Client Error", err));
-
-    try {
-      await client.connect(); // 會因為連線不到卡住
-      const value = await client.get(
-        redis.commandOptions({ returnBuffers: true }),
-        peatioSession
-      );
-      await client.quit();
-      // ++ TODO: 下面補error handle
-      const split1 = value
-        .toString("latin1")
-        .split("member_id\x06:\x06EFi\x02");
-      const memberIdLatin1 = split1[1].split('I"')[0];
-      const memberIdString = Buffer.from(memberIdLatin1, "latin1")
-        .reverse()
-        .toString("hex");
-      const memberId = parseInt(memberIdString, 16);
-      return memberId;
-    } catch (error) {
-      this.logger.error(error);
-      await client.quit();
-      return -1;
-    }
+    return this.tideBitConnector.getMemberIdFromRedis(peatioSession);
   }
 
   // account api
   async getBalance({ token, params, query }) {
     try {
-      this.logger.debug(`getBalance token`, token);
       const memberId = await this.getMemberIdFromRedis(token);
       // if (memberId === -1) throw new Error("get member_id fail");
-      this.logger.error(`[${this.name} getBalance] error: "get member_id fail`);
-      if (memberId === -1) return null;
+      if (memberId === -1) {
+        this.logger.error(
+          `[${this.name} getBalance] error: "get member_id fail`
+        );
+        return null;
+      }
       const accounts = await this.database.getBalance(memberId);
-      const jobs = accounts.map((acc) =>
-        this.database.getCurrency(acc.currency)
-      );
-      const currencies = await Promise.all(jobs);
-
       const details = accounts.map((account, i) => ({
-        ccy: currencies[i].key.toUpperCase(),
+        ccy: this.currencies.find((curr) => curr.id === account.currency)
+          .symbol,
         availBal: Utils.removeZeroEnd(account.balance),
         totalBal: SafeMath.plus(account.balance, account.locked),
         frozenBal: Utils.removeZeroEnd(account.locked),
@@ -289,121 +266,6 @@ class ExchangeHub extends Bot {
     });
     // this.logger.debug(`formatTBTickers`, formatTBTickers);
     return formatTBTickers;
-  }
-
-  async unregiterAll() {
-    try {
-      this.tideBitConnector.unregiterAll();
-      this.logger.debug(`++++++++++++++`);
-      this.logger.debug(`unregiterAll`);
-      this.logger.debug(`++++++++++++++`);
-      return new ResponseFormat({
-        message: `unregiterAll`,
-        code: Codes.SUCCESS,
-      });
-    } catch (error) {
-      return new ResponseFormat({
-        message: error.message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
-    }
-  }
-
-  async registerGlobalChannel({ header }) {
-    try {
-      this.tideBitConnector.registerGlobalChannel({
-        header: {
-          "content-type": "application/json",
-          cookie: header.cookie,
-        },
-      });
-      this.logger.debug(`++++++++++++++`);
-      this.logger.debug(`registerGlobalChannel`);
-      this.logger.debug(`++++++++++++++`);
-      return new ResponseFormat({
-        message: `registerGlobalChannel`,
-        code: Codes.SUCCESS,
-      });
-    } catch (error) {
-      return new ResponseFormat({
-        message: error.message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
-    }
-  }
-
-  async registerMarketChannel({ header, query }) {
-    const instId = this._findInstId(query.id);
-    this.logger.debug(`++++++++++++++`);
-    this.logger.debug(`registerMarketChannel instId`, instId);
-    this.logger.debug(`++++++++++++++`);
-    try {
-      this.tideBitConnector.registerMarketChannel({
-        header: {
-          "content-type": "application/json",
-          cookie: header.cookie,
-        },
-        instId,
-        resolution: query.resolution,
-      });
-      return new ResponseFormat({
-        message: `registerMarketChannel`,
-        code: Codes.SUCCESS,
-      });
-    } catch (error) {
-      return new ResponseFormat({
-        message: error.message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
-    }
-  }
-
-  async registerPrivateChannel({ header, body, token }) {
-    if (!body.token) return;
-    const memberId = await this.getMemberIdFromRedis(token);
-    if (memberId === -1) {
-      return new ResponseFormat({
-        message: "member_id not found",
-        code: Codes.MEMBER_ID_NOT_FOUND,
-      });
-    }
-    const member = await this.database.getMemberById(memberId);
-    this.logger.debug(`++++++++++++++`);
-    this.logger.debug(`registerPrivateChannel member.sn`, member.sn);
-    this.logger.debug(
-      `registerPrivateChannel body.id`,
-      body.id,
-      this._findInstId(body.id)
-    );
-    this.logger.debug(
-      `registerPrivateChannel body.resolution`,
-      body.resolution
-    );
-    this.logger.debug(`++++++++++++++`);
-    try {
-      this.tideBitConnector.registerPrivateChannel({
-        header: {
-          "content-type": "application/json",
-          "x-csrf-token": body.token,
-          cookie: header.cookie,
-        },
-        sn: member.sn,
-        instId: this._findInstId(body.id),
-        resolution: body.resolution,
-      });
-      this.logger.debug(`++++++++++++++`);
-      this.logger.debug(`registerPrivateChannel SUCCESS`);
-      this.logger.debug(`++++++++++++++`);
-      return new ResponseFormat({
-        message: `registerPrivateChannel`,
-        code: Codes.SUCCESS,
-      });
-    } catch (error) {
-      return new ResponseFormat({
-        message: error.message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
-    }
   }
 
   async getTicker({ params, query }) {
@@ -1222,75 +1084,47 @@ class ExchangeHub extends Bot {
   // public api end
 
   async _eventListener() {
-    // EventBus.on(Events.tideBitTickersOnUpdate, (formatPair) => {
-    //   this.broadcastAllClient({
-    //     type: Events.tideBitTickersOnUpdate,
-    //     data: formatPair,
-    //   });
-    // });
-
-    // EventBus.on(Events.tideBitBooksOnUpdate, (instId, formatBooks) => {
-    //   if (this._isIncludeTideBitMarket(instId)) {
-    //     this.broadcast(instId, {
-    //       type: Events.tideBitBooksOnUpdate,
-    //       data: formatBooks,
-    //     });
-    //   }
-    // });
-
-    // EventBus.on(Events.tideBitTradesOnUpdate, (instId, formatTrades) => {
-    //   if (this._isIncludeTideBitMarket(instId)) {
-    //     this.broadcast(instId, {
-    //       type: Events.tideBitTradesOnUpdate,
-    //       data: formatTrades,
-    //     });
-    //   }
-    // });
-
     EventBus.on(Events.accountOnUpdate, (account) => {
       this.broadcastAllClient({
         type: Events.accountOnUpdate,
         data: account,
       });
     });
-    EventBus.on(Events.orderOnUpdate, (order) => {
-      this.broadcastAllClient({
+    EventBus.on(Events.orderOnUpdate, (market, order) => {
+      this.broadcast(market, {
         type: Events.orderOnUpdate,
         data: order,
       });
     });
-    EventBus.on(Events.tradeOnUpdate, (trade) => {
-      this.broadcastAllClient({
-        type: Events.tradeOnUpdate,
-        data: trade,
-      });
-    });
 
-    EventBus.on(Events.tradesOnUpdate, (instId, tradeData) => {
-      if (this._isIncludeTideBitMarket(instId)) {
-        this.broadcast(instId, {
-          type: Events.tradesOnUpdate,
+    EventBus.on(Events.tradeOnUpdate, (market, tradeData) => {
+      if (this._isIncludeTideBitMarket(market)) {
+        this.broadcast(market, {
+          type: Events.tradeOnUpdate,
           data: tradeData,
         });
       }
     });
 
-    EventBus.on(Events.orderBooksOnUpdate, (instId, booksData) => {
-      if (this._isIncludeTideBitMarket(instId)) {
-        this.broadcast(instId, {
-          type: Events.orderBooksOnUpdate,
-          data: booksData,
-        });
-      }
+    EventBus.on(Events.tradesOnUpdate, (market, tradesData) => {
+      this.broadcast(market, {
+        type: Events.tradesOnUpdate,
+        data: tradesData,
+      });
     });
 
-    EventBus.on(Events.candleOnUpdate, (instId, formatCandle) => {
-      if (this._isIncludeTideBitMarket(instId)) {
-        this.broadcast(instId, {
-          type: Events.candleOnUpdate,
-          data: formatCandle,
-        });
-      }
+    EventBus.on(Events.orderBooksOnUpdate, (market, booksData) => {
+      this.broadcast(market, {
+        type: Events.orderBooksOnUpdate,
+        data: booksData,
+      });
+    });
+
+    EventBus.on(Events.candleOnUpdate, (market, formatCandle) => {
+      this.broadcast(market, {
+        type: Events.candleOnUpdate,
+        data: formatCandle,
+      });
     });
 
     EventBus.on(Events.tickersOnUpdate, (instId, formatTickers) => {

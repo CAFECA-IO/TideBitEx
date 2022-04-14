@@ -21,7 +21,7 @@ const StoreProvider = (props) => {
   const [books, setBooks] = useState(null);
   const [trades, setTrades] = useState([]);
   const [candles, setCandles] = useState(null);
-  const [selectedBar, setSelectedBar] = useState("1D");
+  const [resolution, setResolution] = useState("1D");
   const [pendingOrders, setPendingOrders] = useState([]);
   const [closeOrders, setCloseOrders] = useState([]);
   const [orderHistories, setOrderHistories] = useState([]);
@@ -39,11 +39,8 @@ const StoreProvider = (props) => {
   }, []);
 
   let tickerTimestamp = 0,
-    tradeTimestamp = 0,
     bookTimestamp = 0,
-    candleTimestamp = 0,
-    accountTimestamp = 0,
-    orderTimestamp = 0;
+    accountTimestamp = 0;
 
   const getBooks = useCallback(
     async (id, sz = 100) => {
@@ -66,7 +63,7 @@ const StoreProvider = (props) => {
         const { trades, candles, volumes } = await middleman.getTrades(
           id,
           limit,
-          selectedBar
+          resolution
         );
         setTrades(trades);
         setCandles({ candles, volumes });
@@ -76,7 +73,7 @@ const StoreProvider = (props) => {
         });
       }
     },
-    [enqueueSnackbar, middleman, selectedBar]
+    [enqueueSnackbar, middleman, resolution]
   );
 
   // const getCandles = useCallback(
@@ -100,18 +97,18 @@ const StoreProvider = (props) => {
   //   [enqueueSnackbar, middleman]
   // );
 
-  const candleBarHandler = useCallback(
-    async (bar) => {
-      if (bar !== selectedBar) {
-        setSelectedBar(bar);
-        const {  candles, volumes } = middleman.updateCandles(
+  const resolutionHandler = useCallback(
+    async (newResolution) => {
+      if (newResolution !== resolution) {
+        setResolution(newResolution);
+        const { candles, volumes } = middleman.updateCandles(
           trades,
-          selectedBar
+          newResolution
         );
-        setCandles({  candles, volumes });
+        setCandles({ candles, volumes });
       }
     },
-    [middleman, selectedBar, trades]
+    [middleman, resolution, trades]
   );
 
   const findTicker = useCallback(
@@ -154,26 +151,13 @@ const StoreProvider = (props) => {
     [enqueueSnackbar, middleman]
   );
 
-  const registerPrivateChannel = useCallback(
-    async (token, id, resolution) => {
-      try {
-        await middleman.registerPrivateChannel(token, id, resolution);
-      } catch (error) {
-        enqueueSnackbar(`"registerPrivateChannel error: ${error?.message}"`, {
-          variant: "error",
-        });
-      }
-    },
-    [enqueueSnackbar, middleman]
-  );
-
   const selectTickerHandler = useCallback(
     async (id) => {
       if (!selectedTicker || id !== selectedTicker?.id) {
         history.push({
           pathname: `/markets/${id}`,
         });
-        const _ticker = await middleman.updateSelectedTicker(id, selectedBar);
+        const _ticker = await middleman.updateSelectedTicker(id, resolution);
         setSelectedTicker(_ticker);
         document.title = `${_ticker.last} ${_ticker.name}`;
         await getBooks(id);
@@ -186,7 +170,7 @@ const StoreProvider = (props) => {
           JSON.stringify({
             op: "switchTradingPair",
             args: {
-              instId: _ticker.instId,
+              market: _ticker.instId.replace("-", "").toLowerCase(),
             },
           })
         );
@@ -196,7 +180,7 @@ const StoreProvider = (props) => {
       selectedTicker,
       history,
       middleman,
-      selectedBar,
+      resolution,
       getBooks,
       getTrades,
       isLogin,
@@ -236,7 +220,17 @@ const StoreProvider = (props) => {
           const id = location.pathname.includes("/markets/")
             ? location.pathname.replace("/markets/", "")
             : null;
-          if (id) await registerPrivateChannel(token, id, selectedBar);
+          if (id) {
+            wsClient.send(
+              JSON.stringify({
+                op: "userLogin",
+                args: {
+                  token,
+                  market: id,
+                },
+              })
+            );
+          }
         }
       }
     } catch (error) {
@@ -244,14 +238,7 @@ const StoreProvider = (props) => {
         variant: "error",
       });
     }
-  }, [
-    enqueueSnackbar,
-    getCloseOrders,
-    getPendingOrders,
-    location.pathname,
-    registerPrivateChannel,
-    selectedBar,
-  ]);
+  }, [enqueueSnackbar, getCloseOrders, getPendingOrders, location.pathname]);
 
   const getAccounts = useCallback(async () => {
     await middleman.getAccounts();
@@ -267,6 +254,46 @@ const StoreProvider = (props) => {
       };
       try {
         const result = await middleman.postOrder(_order);
+        let index, updateQuoteAccount, updateBaseAccount;
+        if (order.side === "buy") {
+          index = accounts.findIndex(
+            (account) => account.ccy === selectedTicker?.quote_unit
+          );
+          if (index !== -1) {
+            updateQuoteAccount = accounts[index];
+            updateQuoteAccount.availBal = SafeMath.minus(
+              accounts[index].availBal,
+              SafeMath.mult(order.px, order.sz)
+            );
+            updateQuoteAccount.frozenBal = SafeMath.plus(
+              accounts[index].frozenBal,
+              SafeMath.mult(order.px, order.sz)
+            );
+            const updateAccounts = accounts.map((account) => ({ ...account }));
+            updateAccounts[index] = updateQuoteAccount;
+            middleman.updateAccounts(updateQuoteAccount);
+            setAccounts(updateAccounts);
+          }
+        } else {
+          index = accounts.findIndex(
+            (account) => account.ccy === selectedTicker?.base_unit
+          );
+          if (index !== -1) {
+            updateBaseAccount = accounts[index];
+            updateBaseAccount.availBal = SafeMath.minus(
+              accounts[index].availBal,
+              order.sz
+            );
+            updateBaseAccount.frozenBal = SafeMath.plus(
+              accounts[index].frozenBal,
+              order.sz
+            );
+            const updateAccounts = accounts.map((account) => ({ ...account }));
+            updateAccounts[index] = updateBaseAccount;
+            middleman.updateAccounts(updateBaseAccount);
+            setAccounts(updateAccounts);
+          }
+        }
         enqueueSnackbar(
           `${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
             order.instId.split("-")[0]
@@ -293,7 +320,14 @@ const StoreProvider = (props) => {
         );
       }
     },
-    [enqueueSnackbar, middleman, token]
+    [
+      accounts,
+      enqueueSnackbar,
+      middleman,
+      selectedTicker?.base_unit,
+      selectedTicker?.quote_unit,
+      token,
+    ]
   );
 
   const cancelOrder = useCallback(
@@ -368,11 +402,9 @@ const StoreProvider = (props) => {
     });
     wsClient.addEventListener("message", (msg) => {
       let _tickerTimestamp = 0,
-        _tradeTimestamp = 0,
         _bookTimestamp = 0,
         // _candleTimestamp = 0,
         _accountTimestamp = 0,
-        _orderTimestamp = 0,
         metaData = JSON.parse(msg.data);
       switch (metaData.type) {
         case "tickersOnUpdate":
@@ -393,22 +425,17 @@ const StoreProvider = (props) => {
         case "tradesOnUpdate":
           const { trades, candles, volumes } = middleman.updateTrades(
             metaData.data,
-            selectedBar
+            resolution
           );
-          _tradeTimestamp = new Date().getTime();
-          if (_tradeTimestamp - +tradeTimestamp > 1000) {
-            // console.log(`updateTrades`, updateTrades);
-            tradeTimestamp = _tradeTimestamp;
-            setTrades(trades);
-            middleman.resetTrades();
-            setCandles({ candles, volumes });
-          }
+          setTrades(trades);
+          setCandles({ candles, volumes });
+          middleman.resetTrades();
           break;
         case "orderBooksOnUpdate":
           const updateBooks = middleman.updateBooks(metaData.data);
           _bookTimestamp = new Date().getTime();
           if (_bookTimestamp - +bookTimestamp > 1000) {
-            // console.log(`updateBooks`, updateBooks);
+            console.log(`updateBooks`, updateBooks);
             bookTimestamp = _bookTimestamp;
             setBooks(updateBooks);
           }
@@ -433,12 +460,8 @@ const StoreProvider = (props) => {
         case "orderOnUpdate":
           const { updatePendingOrders, updateCloseOrders } =
             middleman.updateOrders(metaData.data);
-          _orderTimestamp = new Date().getTime();
-          if (_orderTimestamp - +orderTimestamp > 1000) {
-            orderTimestamp = _orderTimestamp;
-            setPendingOrders(updatePendingOrders);
-            setCloseOrders(updateCloseOrders);
-          }
+          setPendingOrders(updatePendingOrders);
+          setCloseOrders(updateCloseOrders);
           break;
         // case "tradeOnUpdate":
         //   console.info(`tradeOnUpdate trade`, metaData.data);
@@ -459,7 +482,7 @@ const StoreProvider = (props) => {
         books,
         trades,
         candles,
-        selectedBar,
+        resolution,
         pendingOrders,
         closeOrders,
         orderHistories,
@@ -476,7 +499,7 @@ const StoreProvider = (props) => {
         getBooks,
         getTrades,
         // getCandles,
-        candleBarHandler,
+        resolutionHandler,
         getPendingOrders,
         getCloseOrders,
         getAccounts,
