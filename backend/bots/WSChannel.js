@@ -212,10 +212,10 @@ class WSChannel extends Bot {
     }
   }
 
-  broadcast(isdtId, { type, data }) {
+  broadcast(market, { type, data }) {
     const msg = JSON.stringify({ type, data });
     // this.WebSocket.send(msg);
-    const channel = this._channelClients[isdtId];
+    const channel = this._channelClients[market];
     if (channel) {
       const clients = Object.values(channel);
       clients.map((ws) => {

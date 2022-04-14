@@ -272,7 +272,11 @@ class TibeBitConnector extends ConnectorBase {
     };
     if (asks.length > 0 || bids.length > 0) {
       this.logger.debug(`_updateBooks formatBooks`, formatBooks);
-      EventBus.emit(Events.orderBooksOnUpdate, instId, formatBooks);
+      EventBus.emit(
+        Events.orderBooksOnUpdate,
+        instId.replace("-", "").toLowerCase(),
+        formatBooks
+      );
     }
   }
 
@@ -293,11 +297,7 @@ class TibeBitConnector extends ConnectorBase {
     };
     this.logger.debug(`_updateTrade formatTrade`, formatTrade);
     this.logger.debug(`***********_updateTrade************`);
-    EventBus.emit(
-      Events.tradeOnUpdate,
-      this._findInstId(data.market),
-      formatTrade
-    );
+    EventBus.emit(Events.tradeOnUpdate, data.market, formatTrade);
   }
 
   _updateTrades(instId, data) {
@@ -332,7 +332,11 @@ class TibeBitConnector extends ConnectorBase {
       .sort((a, b) => b.at - a.at);
     if (formatTrades.length > 0) {
       this.logger.debug(`_updateTrade formatTrades`, formatTrades);
-      EventBus.emit(Events.tradesOnUpdate, instId, formatTrades);
+      EventBus.emit(
+        Events.tradesOnUpdate,
+        instId.replace("-", "").toLowerCase(),
+        formatTrades
+      );
     }
   }
 
@@ -393,11 +397,7 @@ class TibeBitConnector extends ConnectorBase {
           : "canceled",
     };
     this.logger.debug(`_updateOrder formatOrder`, formatOrder);
-    EventBus.emit(
-      Events.orderOnUpdate,
-      this._findInstId(data.market),
-      formatOrder
-    );
+    EventBus.emit(Events.orderOnUpdate, data.market, formatOrder);
   }
 
   async _registerPrivateChannel(credential) {

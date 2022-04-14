@@ -1090,78 +1090,46 @@ class ExchangeHub extends Bot {
         data: account,
       });
     });
-    EventBus.on(Events.orderOnUpdate, (instId, order) => {
-      this.logger.log(
-        `[orderOnUpdate] this._isIncludeTideBitMarket(${instId})${this._isIncludeTideBitMarket(
-          instId
-        )}`
-      );
-      if (this._isIncludeTideBitMarket(instId)) {
-        this.broadcast(instId, {
-          type: Events.orderOnUpdate,
-          data: order,
-        });
-      }
+    EventBus.on(Events.orderOnUpdate, (market, order) => {
+      this.broadcast(market, {
+        type: Events.orderOnUpdate,
+        data: order,
+      });
     });
 
-    EventBus.on(Events.tradeOnUpdate, (instId, tradeData) => {
-      this.logger.log(
-        `[tradeOnUpdate] this._isIncludeTideBitMarket(${instId})${this._isIncludeTideBitMarket(
-          instId
-        )}`
-      );
-      if (this._isIncludeTideBitMarket(instId)) {
-        this.broadcast(instId, {
-          type: Events.tradeOnUpdate,
-          data: tradeData,
-        });
-      }
+    EventBus.on(Events.tradeOnUpdate, (market, tradeData) => {
+      this.broadcast(market, {
+        type: Events.tradeOnUpdate,
+        data: tradeData,
+      });
     });
 
-    EventBus.on(Events.tradesOnUpdate, (instId, tradesData) => {
-      this.logger.log(
-        `[tradesOnUpdate] this._isIncludeTideBitMarket(${instId})${this._isIncludeTideBitMarket(
-          instId
-        )}`
-      );
-      if (this._isIncludeTideBitMarket(instId)) {
-        this.broadcast(instId, {
-          type: Events.tradesOnUpdate,
-          data: tradesData,
-        });
-      }
+    EventBus.on(Events.tradesOnUpdate, (market, tradesData) => {
+      this.broadcast(market, {
+        type: Events.tradesOnUpdate,
+        data: tradesData,
+      });
     });
 
-    EventBus.on(Events.orderBooksOnUpdate, (instId, booksData) => {
-      this.logger.log(
-        `[orderBooksOnUpdate] this._isIncludeTideBitMarket(${instId})${this._isIncludeTideBitMarket(
-          instId
-        )}`
-      );
-      if (this._isIncludeTideBitMarket(instId)) {
-        this.broadcast(instId, {
-          type: Events.orderBooksOnUpdate,
-          data: booksData,
-        });
-      }
+    EventBus.on(Events.orderBooksOnUpdate, (market, booksData) => {
+      this.broadcast(market, {
+        type: Events.orderBooksOnUpdate,
+        data: booksData,
+      });
     });
 
-    EventBus.on(Events.candleOnUpdate, (instId, formatCandle) => {
-      if (this._isIncludeTideBitMarket(instId)) {
-        this.broadcast(instId, {
-          type: Events.candleOnUpdate,
-          data: formatCandle,
-        });
-      }
+    EventBus.on(Events.candleOnUpdate, (market, formatCandle) => {
+      this.broadcast(market, {
+        type: Events.candleOnUpdate,
+        data: formatCandle,
+      });
     });
 
     EventBus.on(Events.tickersOnUpdate, (instId, formatTickers) => {
-      // if (this._isIncludeTideBitMarket(instId)) {
-        this.broadcastAllClient({
-          type: Events.tickersOnUpdate,
-          data: formatTickers,
-        });
-      // }
+      this.broadcastAllClient({
+        type: Events.tickersOnUpdate,
+        data: formatTickers,
+      });
     });
 
     EventBus.on(Events.orderDetailUpdate, async (instType, formatOrders) => {
