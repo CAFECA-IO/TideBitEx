@@ -39,11 +39,8 @@ const StoreProvider = (props) => {
   }, []);
 
   let tickerTimestamp = 0,
-    tradeTimestamp = 0,
     bookTimestamp = 0,
-    candleTimestamp = 0,
-    accountTimestamp = 0,
-    orderTimestamp = 0;
+    accountTimestamp = 0;
 
   const getBooks = useCallback(
     async (id, sz = 100) => {
@@ -405,11 +402,9 @@ const StoreProvider = (props) => {
     });
     wsClient.addEventListener("message", (msg) => {
       let _tickerTimestamp = 0,
-        _tradeTimestamp = 0,
         _bookTimestamp = 0,
         // _candleTimestamp = 0,
         _accountTimestamp = 0,
-        _orderTimestamp = 0,
         metaData = JSON.parse(msg.data);
       switch (metaData.type) {
         case "tickersOnUpdate":
@@ -432,20 +427,15 @@ const StoreProvider = (props) => {
             metaData.data,
             resolution
           );
-          _tradeTimestamp = new Date().getTime();
-          if (_tradeTimestamp - +tradeTimestamp > 1000) {
-            // console.log(`updateTrades`, updateTrades);
-            tradeTimestamp = _tradeTimestamp;
-            setTrades(trades);
-            middleman.resetTrades();
-            setCandles({ candles, volumes });
-          }
+          setTrades(trades);
+          setCandles({ candles, volumes });
+          middleman.resetTrades();
           break;
         case "orderBooksOnUpdate":
           const updateBooks = middleman.updateBooks(metaData.data);
           _bookTimestamp = new Date().getTime();
           if (_bookTimestamp - +bookTimestamp > 1000) {
-            // console.log(`updateBooks`, updateBooks);
+            console.log(`updateBooks`, updateBooks);
             bookTimestamp = _bookTimestamp;
             setBooks(updateBooks);
           }
@@ -470,12 +460,8 @@ const StoreProvider = (props) => {
         case "orderOnUpdate":
           const { updatePendingOrders, updateCloseOrders } =
             middleman.updateOrders(metaData.data);
-          _orderTimestamp = new Date().getTime();
-          if (_orderTimestamp - +orderTimestamp > 1000) {
-            orderTimestamp = _orderTimestamp;
-            setPendingOrders(updatePendingOrders);
-            setCloseOrders(updateCloseOrders);
-          }
+          setPendingOrders(updatePendingOrders);
+          setCloseOrders(updateCloseOrders);
           break;
         // case "tradeOnUpdate":
         //   console.info(`tradeOnUpdate trade`, metaData.data);

@@ -1098,10 +1098,12 @@ class ExchangeHub extends Bot {
     });
 
     EventBus.on(Events.tradeOnUpdate, (market, tradeData) => {
-      this.broadcast(market, {
-        type: Events.tradeOnUpdate,
-        data: tradeData,
-      });
+      if (this._isIncludeTideBitMarket(market)) {
+        this.broadcast(market, {
+          type: Events.tradeOnUpdate,
+          data: tradeData,
+        });
+      }
     });
 
     EventBus.on(Events.tradesOnUpdate, (market, tradesData) => {
@@ -1126,10 +1128,12 @@ class ExchangeHub extends Bot {
     });
 
     EventBus.on(Events.tickersOnUpdate, (instId, formatTickers) => {
-      this.broadcastAllClient({
-        type: Events.tickersOnUpdate,
-        data: formatTickers,
-      });
+      if (this._isIncludeTideBitMarket(instId)) {
+        this.broadcastAllClient({
+          type: Events.tickersOnUpdate,
+          data: formatTickers,
+        });
+      }
     });
 
     EventBus.on(Events.orderDetailUpdate, async (instType, formatOrders) => {
