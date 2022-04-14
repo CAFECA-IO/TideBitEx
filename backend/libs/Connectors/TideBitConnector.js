@@ -518,9 +518,6 @@ class TibeBitConnector extends ConnectorBase {
     this.logger.log(`market`, market);
     this.logger.log(`---------_UNsubscribeMARKET-----------`);
     this._unregisterMarketChannel(this._findInstId(market));
-    if (this.isCredential) {
-      await this._unregisterPrivateChannel();
-    }
   }
 
   _findInstId(id) {
