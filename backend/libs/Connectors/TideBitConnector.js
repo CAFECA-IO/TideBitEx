@@ -293,7 +293,11 @@ class TibeBitConnector extends ConnectorBase {
     };
     this.logger.debug(`_updateTrade formatTrade`, formatTrade);
     this.logger.debug(`***********_updateTrade************`);
-    EventBus.emit(Events.tradeOnUpdate, formatTrade);
+    EventBus.emit(
+      Events.tradeOnUpdate,
+      this._findInstId(data.market),
+      formatTrade
+    );
   }
 
   _updateTrades(instId, data) {

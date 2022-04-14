@@ -1085,39 +1085,41 @@ class ExchangeHub extends Bot {
 
   async _eventListener() {
     EventBus.on(Events.accountOnUpdate, (account) => {
-      this.broadcastAllClient({
+      this.broadcast({
         type: Events.accountOnUpdate,
         data: account,
       });
     });
     EventBus.on(Events.orderOnUpdate, (instId, order) => {
       if (this._isIncludeTideBitMarket(instId)) {
-        this.broadcastAllClient({
+        this.broadcast({
           type: Events.orderOnUpdate,
           data: order,
         });
       }
     });
 
-    EventBus.on(Events.tradeOnUpdate, (tradeData) => {
-      this.broadcast({
-        type: Events.tradeOnUpdate,
-        data: tradeData,
-      });
+    EventBus.on(Events.tradeOnUpdate, (instId, tradeData) => {
+      if (this._isIncludeTideBitMarket(instId)) {
+        this.broadcast({
+          type: Events.tradeOnUpdate,
+          data: tradeData,
+        });
+      }
     });
 
-    EventBus.on(Events.tradesOnUpdate, (instId, tradeData) => {
+    EventBus.on(Events.tradesOnUpdate, (instId, tradesData) => {
       if (this._isIncludeTideBitMarket(instId)) {
-        this.broadcast(instId, {
+        this.broadcastAllClient(instId, {
           type: Events.tradesOnUpdate,
-          data: tradeData,
+          data: tradesData,
         });
       }
     });
 
     EventBus.on(Events.orderBooksOnUpdate, (instId, booksData) => {
       if (this._isIncludeTideBitMarket(instId)) {
-        this.broadcast(instId, {
+        this.broadcastAllClient(instId, {
           type: Events.orderBooksOnUpdate,
           data: booksData,
         });
