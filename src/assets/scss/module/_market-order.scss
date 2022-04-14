@@ -23,7 +23,9 @@
   min-width: 75px;
   text-align: right;
 }
-
+.market-order-item > li:first-child {
+  text-align: left;
+}
 .market-order-item > li:last-child {
   text-align: center;
 }

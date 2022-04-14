@@ -1092,7 +1092,7 @@ class ExchangeHub extends Bot {
     });
     EventBus.on(Events.orderOnUpdate, (instId, order) => {
       this.logger.log(
-        `this._isIncludeTideBitMarket(${instId})${this._isIncludeTideBitMarket(
+        `[orderOnUpdate] this._isIncludeTideBitMarket(${instId})${this._isIncludeTideBitMarket(
           instId
         )}`
       );
@@ -1106,7 +1106,7 @@ class ExchangeHub extends Bot {
 
     EventBus.on(Events.tradeOnUpdate, (instId, tradeData) => {
       this.logger.log(
-        `this._isIncludeTideBitMarket(${instId})${this._isIncludeTideBitMarket(
+        `[tradeOnUpdate] this._isIncludeTideBitMarket(${instId})${this._isIncludeTideBitMarket(
           instId
         )}`
       );
@@ -1120,7 +1120,7 @@ class ExchangeHub extends Bot {
 
     EventBus.on(Events.tradesOnUpdate, (instId, tradesData) => {
       this.logger.log(
-        `this._isIncludeTideBitMarket(${instId})${this._isIncludeTideBitMarket(
+        `[tradesOnUpdate] this._isIncludeTideBitMarket(${instId})${this._isIncludeTideBitMarket(
           instId
         )}`
       );
@@ -1134,7 +1134,7 @@ class ExchangeHub extends Bot {
 
     EventBus.on(Events.orderBooksOnUpdate, (instId, booksData) => {
       this.logger.log(
-        `this._isIncludeTideBitMarket(${instId})${this._isIncludeTideBitMarket(
+        `[orderBooksOnUpdate] this._isIncludeTideBitMarket(${instId})${this._isIncludeTideBitMarket(
           instId
         )}`
       );

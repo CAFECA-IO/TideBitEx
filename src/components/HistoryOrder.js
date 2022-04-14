@@ -136,7 +136,7 @@ const HistoryOrder = (props) => {
             </ul>
           </Tab>
           <Tab eventKey="closed-orders" title={t("close_orders")}>
-            <ul className="d-flex justify-content-between market-order-item market-order__title market-balance">
+            <ul className="d-flex justify-content-between market-order-item market-order__title">
               {/* <li>Time</li> */}
               {/* <li>All pairs</li>
               <li>All Types</li>*/}
@@ -185,7 +185,7 @@ const HistoryOrder = (props) => {
               ))}
           </Tab> */}
           <Tab eventKey="balance" title={t("balance")}>
-            <ul className="d-flex justify-content-between market-order-item market-order__title">
+            <ul className="d-flex justify-content-between market-order-item market-order__title market-balance">
               {/* <li>Update time</li> */}
               <li>{t("currency")}</li>
               {/* <li>Currency Equity</li>

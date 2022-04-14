@@ -260,7 +260,7 @@ const StoreProvider = (props) => {
         let index, updateQuoteAccount, updateBaseAccount;
         if (order.side === "buy") {
           index = accounts.findIndex(
-            (account) => account.ccy === selectedTicker.quote_unit
+            (account) => account.ccy === selectedTicker?.quote_unit
           );
           if (index !== -1) {
             updateQuoteAccount = accounts[index];
@@ -279,7 +279,7 @@ const StoreProvider = (props) => {
           }
         } else {
           index = accounts.findIndex(
-            (account) => account.ccy === selectedTicker.base_unit
+            (account) => account.ccy === selectedTicker?.base_unit
           );
           if (index !== -1) {
             updateBaseAccount = accounts[index];
@@ -323,7 +323,14 @@ const StoreProvider = (props) => {
         );
       }
     },
-    [enqueueSnackbar, middleman, token]
+    [
+      accounts,
+      enqueueSnackbar,
+      middleman,
+      selectedTicker?.base_unit,
+      selectedTicker?.quote_unit,
+      token,
+    ]
   );
 
   const cancelOrder = useCallback(
