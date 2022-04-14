@@ -384,9 +384,10 @@ class Middleman {
           });
         }
       } else {
-        if (data.state === "waiting")
-          updatePendingOrders.push({ ...data, cTime: Date.now() });
-        else updateCloseOrders.push({ ...data, uTime: Date.now() });
+        if (data.state === "waiting") {
+          if (data.price)
+            updatePendingOrders.push({ ...data, cTime: Date.now() });
+        } else updateCloseOrders.push({ ...data, uTime: Date.now() });
       }
       this.pendingOrders = updatePendingOrders;
       this.closeOrders = updateCloseOrders;

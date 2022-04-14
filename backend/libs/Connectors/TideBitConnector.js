@@ -440,7 +440,7 @@ class TibeBitConnector extends ConnectorBase {
       this.private_channel = this.pusher.unsubscribe(
         `private-${this.memberSN}`
       );
-      if (this.token !== credential["token"]) {
+      if (credential["token"] && this.token !== credential["token"]) {
         const memberId = await this.getMemberIdFromRedis(credential["token"]);
         if (memberId !== -1) {
           const member = await this.database.getMemberById(memberId);
@@ -511,12 +511,12 @@ class TibeBitConnector extends ConnectorBase {
     this._registerMarketChannel(this._findInstId(credential.market));
   }
 
-  async _unsubscribeUser(credential) {
+  async _unsubscribeUser(market) {
     this.logger.log(`---------_UNsubscribeUSER-----------`);
-    this.logger.log(`credential`, credential);
+    this.logger.log(`market`);
     this.logger.log(`---------_UNsubscribeUSER-----------`);
-    this._unregisterPrivateChannel(credential);
-    this._unregisterMarketChannel(this._findInstId(credential.market));
+    this._unregisterPrivateChannel();
+    this._unregisterMarketChannel(this._findInstId(market));
   }
 
   _subscribeMarket(market) {
