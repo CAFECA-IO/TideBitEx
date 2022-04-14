@@ -406,6 +406,7 @@ class TibeBitConnector extends ConnectorBase {
     try {
       const memberId = await this.getMemberIdFromRedis(credential["token"]);
       if (memberId !== -1) {
+        this.token = credential["token"];
         const member = await this.database.getMemberById(memberId);
         this.memberSN = member.sn;
         this.private_channel = this.pusher.subscribe(`private-${member.sn}`);
@@ -426,7 +427,7 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
-  async _unregisterPrivateChannel() {
+  async _unregisterPrivateChannel(credential) {
     if (!this.isCredential || !this.memberSN) return;
     try {
       this.logger.debug(`++++++++_unregisterPrivateChannel++++++`);
@@ -436,6 +437,15 @@ class TibeBitConnector extends ConnectorBase {
       this.private_channel = this.pusher.unsubscribe(
         `private-${this.memberSN}`
       );
+      if (this.token !== credential["token"]) {
+        const memberId = await this.getMemberIdFromRedis(credential["token"]);
+        if (memberId !== -1) {
+          const member = await this.database.getMemberById(memberId);
+          this.private_channel = this.pusher.unsubscribe(
+            `private-${member.sn}`
+          );
+        }
+      }
       this.private_channel = null;
       this.pusher = null;
       this.isStarted = false;
@@ -502,7 +512,7 @@ class TibeBitConnector extends ConnectorBase {
     this.logger.log(`---------_UNsubscribeUSER-----------`);
     this.logger.log(`credential`, credential);
     this.logger.log(`---------_UNsubscribeUSER-----------`);
-    this._unregisterPrivateChannel();
+    this._unregisterPrivateChannel(credential);
     this._unregisterMarketChannel(this._findInstId(credential.market));
   }
 
