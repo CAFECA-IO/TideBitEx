@@ -126,7 +126,6 @@ class ExchangeHub extends Bot {
         return null;
       }
       const accounts = await this.database.getBalance(memberId);
-      this.logger.debug(`accounts`, accounts);
       const details = accounts.map((account, i) => ({
         ccy: this.currencies.find((curr) => curr.id === account.currency)
           .symbol,

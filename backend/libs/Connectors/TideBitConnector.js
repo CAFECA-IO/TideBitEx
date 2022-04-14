@@ -277,6 +277,9 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _updateTrade(data) {
+    this.logger.debug(`***********_updateTrade************`);
+    this.logger.debug(`_updateTrade data`, data);
+    this.logger.debug(`***********_updateTrade************`);
     /**  {
     at: 1649675739
     id: 6
@@ -289,14 +292,15 @@ class TibeBitConnector extends ConnectorBase {
       ...data,
       instId: this._findInstId(data.market),
     };
-    this.logger.debug(`_updateTrade data`, data);
-    this.logger.debug(`_updateTrade formatTrade`, formatTrade);
     EventBus.emit(Events.tradesOnUpdate, this._findInstId(data.market), [
       formatTrade,
     ]);
   }
 
   _updateTrades(instId, data) {
+    this.logger.debug(`****$$*****_updateTradeS*****$$*****`);
+    this.logger.debug(`_updateTrade data`, data);
+    this.logger.debug(`****$$*****_updateTradeS*****$$*****`);
     /**
     {
       trades: [
@@ -403,6 +407,7 @@ class TibeBitConnector extends ConnectorBase {
       const memberId = await this.getMemberIdFromRedis(credential["token"]);
       if (memberId !== -1) {
         const member = await this.database.getMemberById(memberId);
+        this.memberSN = member.sn;
         this.private_channel = this.pusher.subscribe(`private-${member.sn}`);
         this.private_channel.bind("account", (data) =>
           this._updateAccount(data)
@@ -421,24 +426,22 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
-  async _unregisterPrivateChannel(credential) {
+  async _unregisterPrivateChannel() {
     if (!this.isCredential) return;
     try {
-      const memberId = await this.getMemberIdFromRedis(credential["token"]);
       this.logger.debug(`++++++++_unregisterPrivateChannel++++++`);
-      this.logger.debug(`memberId`, memberId);
+      this.logger.debug(`this.memberSN`, this.memberSN);
       this.logger.debug(`++++++++_unregisterPrivateChannel++++++`);
-      if (memberId !== -1) {
-        const member = await this.database.getMemberById(memberId);
-        this.private_channel?.unbind();
-        this.private_channel = this.pusher.unsubscribe(`private-${member.sn}`);
-        this.private_channel = null;
-        this.pusher = null;
-        this.isStarted = false;
-        this.logger.debug(`++++++++++++++`);
-        this.logger.debug(`_unsubscribeUser member.sn`, member.sn);
-        this.logger.debug(`++++++++++++++`);
-      }
+      this.private_channel?.unbind();
+      this.private_channel = this.pusher.unsubscribe(
+        `private-${this.memberSN}`
+      );
+      this.private_channel = null;
+      this.pusher = null;
+      this.isStarted = false;
+      this.logger.debug(`++++++++++++++`);
+      this.logger.debug(`_unsubscribeUser this.memberSN`, this.memberSN);
+      this.logger.debug(`++++++++++++++`);
     } catch (error) {
       this.logger.error(`_unregisterPrivateChannel error`, error);
       throw error;
@@ -496,10 +499,10 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async _unsubscribeUser(credential) {
-    this.logger.log(`---------_unsubscribeUser---------+un+`);
+    this.logger.log(`---------_UNsubscribeUSER-----------`);
     this.logger.log(`credential`, credential);
-    this.logger.log(`---------_unsubscribeUser---------+un+`);
-    await this._unregisterPrivateChannel(credential);
+    this.logger.log(`---------_UNsubscribeUSER-----------`);
+    this._unregisterPrivateChannel();
     this._unregisterMarketChannel(this._findInstId(credential.market));
   }
 
@@ -509,11 +512,15 @@ class TibeBitConnector extends ConnectorBase {
     this.logger.log(`++++++++++_subscribeMarket++++++++++++`);
     this._registerMarketChannel(this._findInstId(market));
   }
-  _unsubscribeMarket(market) {
-    this.logger.log(`---------_unsubscribeMarket---------+un+`);
+
+  async _unsubscribeMarket(market) {
+    this.logger.log(`---------_UNsubscribeMARKET-----------`);
     this.logger.log(`market`, market);
-    this.logger.log(`---------_unsubscribeMarket---------+un+`);
+    this.logger.log(`---------_UNsubscribeMARKET-----------`);
     this._unregisterMarketChannel(this._findInstId(market));
+    if (this.isCredential) {
+      await this._unregisterPrivateChannel();
+    }
   }
 
   _findInstId(id) {
