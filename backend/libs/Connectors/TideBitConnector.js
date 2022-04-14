@@ -427,7 +427,7 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async _unregisterPrivateChannel() {
-    if (!this.isCredential) return;
+    if (!this.isCredential || !this.memberSN) return;
     try {
       this.logger.debug(`++++++++_unregisterPrivateChannel++++++`);
       this.logger.debug(`this.memberSN`, this.memberSN);
