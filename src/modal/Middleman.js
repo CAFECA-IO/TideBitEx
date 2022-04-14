@@ -275,6 +275,9 @@ class Middleman {
    * @param {Array} trades
    */
   transformTradesToCandle(trades, resolution) {
+    console.log(`*_____*transformTradesToCandle*_____*`);
+    console.log(`resolution`, resolution);
+    console.log(`*_____*transformTradesToCandle*_____*`);
     let interval,
       data,
       defaultObj = {};

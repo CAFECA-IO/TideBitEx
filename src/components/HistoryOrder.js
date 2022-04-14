@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { Tabs, Tab } from "react-bootstrap";
 import StoreContext from "../store/store-context";
 import SafeMath from "../utils/SafeMath";
-import { dateFormatter } from "../utils/Utils";
+import { dateFormatter, formateDecimal } from "../utils/Utils";
 import { FaTrashAlt } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 
@@ -39,9 +39,11 @@ const OrderTile = (props) => {
           </div>
         )}
       </li>
-      <li>{props.order.px}</li>
-      <li>{props.order.sz}</li>
-      <li>{SafeMath.mult(props.order.px, props.order.sz)}</li>
+      <li>{formateDecimal(props.order.px, 8)}</li>
+      <li>{formateDecimal(props.order.sz, 8)}</li>
+      <li>
+        {formateDecimal(SafeMath.mult(props.order.px, props.order.sz), 8)}
+      </li>
       {/* <li>{props.order.fillSz}</li> */}
       {/* <li>{SafeMath.minus(props.order.sz, props.order.fillSz)}</li> */}
       {props.type === "pending" ? (
@@ -62,10 +64,18 @@ export const BalanceTile = (props) => {
       <li>{props.balance.ccy || "--"}</li>
       {/* <li>{props.balance.eq || "--"}</li>
       <li>{props.balance.cashBal || "--"}</li>*/}
-      <li>{props.balance.totalBal || "--"}</li>
-      <li>{props.balance.availBal || "--"}</li>{" "}
+      <li>
+        {props.balance.totalBal ? formateDecimal(props.balance.totalBal) : "--"}
+      </li>
+      <li>
+        {props.balance.availBal ? formateDecimal(props.balance.availBal) : "--"}
+      </li>
+      <li>
+        {props.balance.frozenBal
+          ? formateDecimal(props.balance.frozenBal)
+          : "--"}
+      </li>
       {/* -- TODO: check api return object */}
-      <li>{props.balance.frozenBal || "--"}</li>
       {/* <li>{props.balance.interest || "--"}</li> */}
     </ul>
   );
