@@ -21,7 +21,7 @@ const StoreProvider = (props) => {
   const [books, setBooks] = useState(null);
   const [trades, setTrades] = useState([]);
   const [candles, setCandles] = useState(null);
-  const [selectedBar, setSelectedBar] = useState("1D");
+  const [resolution, setResolution] = useState("1D");
   const [pendingOrders, setPendingOrders] = useState([]);
   const [closeOrders, setCloseOrders] = useState([]);
   const [orderHistories, setOrderHistories] = useState([]);
@@ -66,7 +66,7 @@ const StoreProvider = (props) => {
         const { trades, candles, volumes } = await middleman.getTrades(
           id,
           limit,
-          selectedBar
+          resolution
         );
         setTrades(trades);
         setCandles({ candles, volumes });
@@ -76,7 +76,7 @@ const StoreProvider = (props) => {
         });
       }
     },
-    [enqueueSnackbar, middleman, selectedBar]
+    [enqueueSnackbar, middleman, resolution]
   );
 
   // const getCandles = useCallback(
@@ -100,18 +100,18 @@ const StoreProvider = (props) => {
   //   [enqueueSnackbar, middleman]
   // );
 
-  const candleBarHandler = useCallback(
-    async (bar) => {
-      if (bar !== selectedBar) {
-        setSelectedBar(bar);
+  const resolutionHandler = useCallback(
+    async (newResolution) => {
+      if (newResolution !== resolution) {
+        setResolution(newResolution);
         const { candles, volumes } = middleman.updateCandles(
           trades,
-          selectedBar
+          newResolution
         );
         setCandles({ candles, volumes });
       }
     },
-    [middleman, selectedBar, trades]
+    [middleman, resolution, trades]
   );
 
   const findTicker = useCallback(
@@ -160,7 +160,7 @@ const StoreProvider = (props) => {
         history.push({
           pathname: `/markets/${id}`,
         });
-        const _ticker = await middleman.updateSelectedTicker(id, selectedBar);
+        const _ticker = await middleman.updateSelectedTicker(id, resolution);
         setSelectedTicker(_ticker);
         document.title = `${_ticker.last} ${_ticker.name}`;
         await getBooks(id);
@@ -183,7 +183,7 @@ const StoreProvider = (props) => {
       selectedTicker,
       history,
       middleman,
-      selectedBar,
+      resolution,
       getBooks,
       getTrades,
       isLogin,
@@ -404,7 +404,7 @@ const StoreProvider = (props) => {
         case "tradesOnUpdate":
           const { trades, candles, volumes } = middleman.updateTrades(
             metaData.data,
-            selectedBar
+            resolution
           );
           _tradeTimestamp = new Date().getTime();
           if (_tradeTimestamp - +tradeTimestamp > 1000) {
@@ -470,7 +470,7 @@ const StoreProvider = (props) => {
         books,
         trades,
         candles,
-        selectedBar,
+        resolution,
         pendingOrders,
         closeOrders,
         orderHistories,
@@ -487,7 +487,7 @@ const StoreProvider = (props) => {
         getBooks,
         getTrades,
         // getCandles,
-        candleBarHandler,
+        resolutionHandler,
         getPendingOrders,
         getCloseOrders,
         getAccounts,

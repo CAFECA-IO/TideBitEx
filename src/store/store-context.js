@@ -8,7 +8,7 @@ const StoreContext = React.createContext({
   books: [],
   trades: [],
   candles: null,
-  selectedBar: null,
+  resolution: null,
   pendingOrders: [],
   closeOrders: [],
   orderHistories: [],
@@ -94,7 +94,7 @@ const StoreContext = React.createContext({
    * @param {String} limit The maximum is 300. The default is 100.
    * @returns {Promise<Array<Array<String>>>}
    */
-  candleBarHandler: async (instId, bar, after, before, limit) => {},
+   resolutionHandler: async (resolution) => {},
   /**
    * @typedef {Object} PendingOrder
    * @property {string} accFillSz

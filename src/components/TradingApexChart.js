@@ -8,44 +8,44 @@ const TradingApexChart = (props) => {
     <React.Fragment>
       <div className="tool-bar">
         <div
-          className={`tool ${storeCtx.selectedBar === "1m" ? "active" : ""}`}
+          className={`tool ${storeCtx.resolution === "1m" ? "active" : ""}`}
           bar={"1m"}
-          onClick={() => storeCtx.candleBarHandler("1m")}
+          onClick={() => storeCtx.resolutionHandler("1m")}
         >
           1m
         </div>
         <div
-          className={`tool ${storeCtx.selectedBar === "30m" ? "active" : ""}`}
+          className={`tool ${storeCtx.resolution === "30m" ? "active" : ""}`}
           bar={"30m"}
-          onClick={() => storeCtx.candleBarHandler("30m")}
+          onClick={() => storeCtx.resolutionHandler("30m")}
         >
           30m
         </div>
         <div
-          className={`tool ${storeCtx.selectedBar === "1H" ? "active" : ""}`}
+          className={`tool ${storeCtx.resolution === "1H" ? "active" : ""}`}
           bar={"1H"}
-          onClick={() => storeCtx.candleBarHandler("1H")}
+          onClick={() => storeCtx.resolutionHandler("1H")}
         >
           1H
         </div>
         <div
-          className={`tool ${storeCtx.selectedBar === "1D" ? "active" : ""}`}
+          className={`tool ${storeCtx.resolution === "1D" ? "active" : ""}`}
           bar={"D"}
-          onClick={() => storeCtx.candleBarHandler("1D")}
+          onClick={() => storeCtx.resolutionHandler("1D")}
         >
           1D
         </div>
         <div
-          className={`tool ${storeCtx.selectedBar === "1W" ? "active" : ""}`}
+          className={`tool ${storeCtx.resolution === "1W" ? "active" : ""}`}
           bar={"W"}
-          onClick={() => storeCtx.candleBarHandler("1W")}
+          onClick={() => storeCtx.resolutionHandler("1W")}
         >
           1W
         </div>
         <div
-          className={`tool ${storeCtx.selectedBar === "1M" ? "active" : ""}`}
+          className={`tool ${storeCtx.resolution === "1M" ? "active" : ""}`}
           bar={"1M"}
-          onClick={() => storeCtx.candleBarHandler("1M")}
+          onClick={() => storeCtx.resolutionHandler("1M")}
         >
           M
         </div>
