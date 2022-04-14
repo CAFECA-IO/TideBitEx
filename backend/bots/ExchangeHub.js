@@ -1091,6 +1091,11 @@ class ExchangeHub extends Bot {
       });
     });
     EventBus.on(Events.orderOnUpdate, (instId, order) => {
+      this.logger.log(
+        `this._isIncludeTideBitMarket(${instId})${this._isIncludeTideBitMarket(
+          instId
+        )}`
+      );
       if (this._isIncludeTideBitMarket(instId)) {
         this.broadcast(instId, {
           type: Events.orderOnUpdate,
@@ -1100,6 +1105,11 @@ class ExchangeHub extends Bot {
     });
 
     EventBus.on(Events.tradeOnUpdate, (instId, tradeData) => {
+      this.logger.log(
+        `this._isIncludeTideBitMarket(${instId})${this._isIncludeTideBitMarket(
+          instId
+        )}`
+      );
       if (this._isIncludeTideBitMarket(instId)) {
         this.broadcast(instId, {
           type: Events.tradeOnUpdate,
@@ -1109,6 +1119,11 @@ class ExchangeHub extends Bot {
     });
 
     EventBus.on(Events.tradesOnUpdate, (instId, tradesData) => {
+      this.logger.log(
+        `this._isIncludeTideBitMarket(${instId})${this._isIncludeTideBitMarket(
+          instId
+        )}`
+      );
       if (this._isIncludeTideBitMarket(instId)) {
         this.broadcast(instId, {
           type: Events.tradesOnUpdate,
@@ -1118,6 +1133,11 @@ class ExchangeHub extends Bot {
     });
 
     EventBus.on(Events.orderBooksOnUpdate, (instId, booksData) => {
+      this.logger.log(
+        `this._isIncludeTideBitMarket(${instId})${this._isIncludeTideBitMarket(
+          instId
+        )}`
+      );
       if (this._isIncludeTideBitMarket(instId)) {
         this.broadcast(instId, {
           type: Events.orderBooksOnUpdate,
@@ -1136,12 +1156,12 @@ class ExchangeHub extends Bot {
     });
 
     EventBus.on(Events.tickersOnUpdate, (instId, formatTickers) => {
-      if (this._isIncludeTideBitMarket(instId)) {
+      // if (this._isIncludeTideBitMarket(instId)) {
         this.broadcastAllClient({
           type: Events.tickersOnUpdate,
           data: formatTickers,
         });
-      }
+      // }
     });
 
     EventBus.on(Events.orderDetailUpdate, async (instType, formatOrders) => {
