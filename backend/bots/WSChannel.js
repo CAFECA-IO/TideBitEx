@@ -116,6 +116,8 @@ class WSChannel extends Bot {
       });
   }
 
+  // TODO SPA LOGIN
+  // ++ CURRENT_USER UNSAVED
   _onOpUserLogin(headers, ws, args) {
     const findClient = this._client[ws.id];
     const token = Utils.peatioToken(headers);
