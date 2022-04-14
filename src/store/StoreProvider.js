@@ -257,8 +257,8 @@ const StoreProvider = (props) => {
       };
       try {
         const result = await middleman.postOrder(_order);
+        let index, updateQuoteAccount, updateBaseAccount;
         if (order.side === "buy") {
-          let index, updateQuoteAccount;
           index = accounts.findIndex(
             (account) => account.ccy === this.selectedTicker.quote_unit
           );
@@ -275,6 +275,25 @@ const StoreProvider = (props) => {
             const updateAccounts = accounts.map((account) => ({ ...account }));
             updateAccounts[index] = updateQuoteAccount;
             middleman.updateAccounts(updateQuoteAccount);
+            setAccounts(updateAccounts);
+          }
+        } else {
+          index = accounts.findIndex(
+            (account) => account.ccy === this.selectedTicker.base_unit
+          );
+          if (index !== -1) {
+            updateBaseAccount = accounts[index];
+            updateBaseAccount.availBal = SafeMath.minus(
+              accounts[index].availBal,
+              order.sz
+            );
+            updateBaseAccount.frozenBal = SafeMath.plus(
+              accounts[index].frozenBal,
+              order.sz
+            );
+            const updateAccounts = accounts.map((account) => ({ ...account }));
+            updateAccounts[index] = updateBaseAccount;
+            middleman.updateAccounts(updateBaseAccount);
             setAccounts(updateAccounts);
           }
         }

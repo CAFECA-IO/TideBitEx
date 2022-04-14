@@ -271,9 +271,10 @@ class TibeBitConnector extends ConnectorBase {
       instId,
       ts: Date.now(),
     };
-    this.logger.debug(`_updateBooks formatBooks`, formatBooks);
-    // if (asks.length > 0 || bids.length > 0)
-    EventBus.emit(Events.orderBooksOnUpdate, instId, formatBooks);
+    if (asks.length > 0 || bids.length > 0) {
+      this.logger.debug(`_updateBooks formatBooks`, formatBooks);
+      EventBus.emit(Events.orderBooksOnUpdate, instId, formatBooks);
+    }
   }
 
   _updateTrade(data) {
@@ -417,9 +418,9 @@ class TibeBitConnector extends ConnectorBase {
           this._updateAccount(data)
         );
         this.private_channel.bind("order", (data) => this._updateOrder(data));
-        this.private_channel.bind("trade", (data) => {
-          this._updateTrade(data);
-        });
+        // this.private_channel.bind("trade", (data) => {
+        //   this._updateTrade(data);
+        // });
         this.logger.debug(`++++++++++++++`);
         this.logger.debug(`_subscribeUser member.sn`, member.sn);
         this.logger.debug(`++++++++++++++`);
