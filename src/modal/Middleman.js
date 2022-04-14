@@ -141,7 +141,9 @@ class Middleman {
   }
 
   updateBooks(data) {
-    console.log(`updateBooks data`, data);
+    console.log(`*^^^^^^^^orderBooksOnUpdate*^^^^^^^^*`);
+    console.log(`data`, data);
+    console.log(`*^^^^^^^^*orderBooksOnUpdate*^^^^^^^^*`);
     if (data.instId !== this.selectedTicker.instId) return;
     const updateRawBooks = {
       asks: this.rawBooks?.asks
@@ -196,6 +198,10 @@ class Middleman {
   }
 
   updateTrades = (updateData, resolution) => {
+    console.log(`***********tradesOnUpdate************`);
+    console.log(`updateData`, updateData);
+    console.log(`resolution`, resolution);
+    console.log(`***********tradesOnUpdate************`);
     const _updateTrades = updateData
       .filter(
         (trade) =>
@@ -346,6 +352,9 @@ class Middleman {
   }
 
   updateOrders(data) {
+    console.log(`*&&&&&&&&&&&*orderOnUpdate*&&&&&&&&&&&**`);
+    console.log(`data`, data);
+    console.log(`this.selectedTicker.id`, this.selectedTicker.id);
     const updatePendingOrders =
       this.pendingOrders?.map((order) => ({
         ...order,
@@ -360,6 +369,7 @@ class Middleman {
         if (data.state !== "waiting") {
           updatePendingOrders.splice(index, 1);
           updateCloseOrders.push({ ...data, uTime: Date.now() });
+          console.log(`updateCloseOrders.push`, { ...data, uTime: Date.now() });
         } else {
           const updateOrder = updatePendingOrders[index];
           updatePendingOrders[index] = {
@@ -367,6 +377,11 @@ class Middleman {
             sz: data.sz,
             filled: data.filled,
           };
+          console.log(` updatePendingOrders[${index}]`, {
+            ...updateOrder,
+            sz: data.sz,
+            filled: data.filled,
+          });
         }
       } else {
         if (data.state === "waiting")
@@ -376,6 +391,7 @@ class Middleman {
       this.pendingOrders = updatePendingOrders;
       this.closeOrders = updateCloseOrders;
     }
+    console.log(`*&&&&&&&&&&&*orderOnUpdate*&&&&&&&&&&&**`);
     return {
       updatePendingOrders: updatePendingOrders.sort(
         (a, b) => b.cTime - a.cTime
