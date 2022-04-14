@@ -422,6 +422,7 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async _unregisterPrivateChannel(credential) {
+    if (!this.isCredential) return;
     try {
       const memberId = await this.getMemberIdFromRedis(credential["token"]);
       this.logger.debug(`++++++++_unregisterPrivateChannel++++++`);
