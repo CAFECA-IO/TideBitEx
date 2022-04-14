@@ -23,11 +23,12 @@
   min-width: 75px;
   text-align: left;
 }
-.market-order-item.market-balance > li {
-  width: 20%;
+
+.market-order-item > li:last-child {
   text-align: right;
 }
-.market-order-item.market-balance > li:first-child {
+
+.market-order-item.market-balance > li {
   width: 25%;
   text-align: left;
 }
