@@ -352,9 +352,9 @@ class Middleman {
   }
 
   updateOrders(data) {
-    console.log(`*&&&&&&&&&&&*orderOnUpdate*&&&&&&&&&&&**`);
-    console.log(`data`, data);
-    console.log(`this.selectedTicker.id`, this.selectedTicker.id);
+    // console.log(`*&&&&&&&&&&&*orderOnUpdate*&&&&&&&&&&&**`);
+    // console.log(`data`, data);
+    // console.log(`this.selectedTicker.id`, this.selectedTicker.id);
     const updatePendingOrders =
       this.pendingOrders?.map((order) => ({
         ...order,
@@ -369,7 +369,7 @@ class Middleman {
         if (data.state !== "waiting") {
           updatePendingOrders.splice(index, 1);
           updateCloseOrders.push({ ...data, uTime: Date.now() });
-          console.log(`updateCloseOrders.push`, { ...data, uTime: Date.now() });
+          // console.log(`updateCloseOrders.push`, { ...data, uTime: Date.now() });
         } else {
           const updateOrder = updatePendingOrders[index];
           updatePendingOrders[index] = {
@@ -377,19 +377,19 @@ class Middleman {
             sz: data.sz,
             filled: data.filled,
           };
-          console.log(` updatePendingOrders[${index}]`, {
-            ...updateOrder,
-            sz: data.sz,
-            filled: data.filled,
-          });
+          // console.log(` updatePendingOrders[${index}]`, {
+          //   ...updateOrder,
+          //   sz: data.sz,
+          //   filled: data.filled,
+          // });
         }
       } else {
         if (data.state === "waiting")
           updatePendingOrders.push({ ...data, cTime: Date.now() });
         else updateCloseOrders.push({ ...data, uTime: Date.now() });
-        console.log(` updatePendingOrders[${index}]`, {
-          ...data,
-        });
+        // console.log(` updatePendingOrders[${index}]`, {
+        //   ...data,
+        // });
       }
       this.pendingOrders = updatePendingOrders;
       this.closeOrders = updateCloseOrders;
@@ -410,9 +410,10 @@ class Middleman {
         instId: this.selectedTicker?.instId,
       });
       // ++ WORKAROUND
-      this.pendingOrders = orders.filter(
-        (order) => order.px !== "NaN" || !order.px
-      );
+      // this.pendingOrders = orders.filter(
+      //   (order) => order.px !== "NaN" || !order.px
+      // );
+      this.pendingOrders = orders;
       return this.pendingOrders;
     }
   }
@@ -424,9 +425,10 @@ class Middleman {
         instId: this.selectedTicker?.instId,
       });
       // ++ WORKAROUND
-      this.closeOrders = orders.filter(
-        (order) => order.px !== "NaN" || !order.px
-      );
+      // this.closeOrders = orders.filter(
+      //   (order) => order.px !== "NaN" || !order.px
+      // );
+      this.closeOrders = orders;
       return this.closeOrders;
     }
   }
