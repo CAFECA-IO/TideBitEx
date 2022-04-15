@@ -107,7 +107,6 @@ const MarketTickers = (props) => {
         storeCtx.selectedTicker?.instId !== selectedTicker?.instId)
     ) {
       setSelectedTicker(storeCtx.selectedTicker);
-      console.log(`storeCtx.selectedTicker`, storeCtx.selectedTicker);
       setDefaultActiveKey(storeCtx.selectedTicker?.group);
     }
   }, [selectedTicker, storeCtx.selectedTicker]);

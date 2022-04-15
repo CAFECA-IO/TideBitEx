@@ -157,7 +157,7 @@ const StoreProvider = (props) => {
         history.push({
           pathname: `/markets/${id}`,
         });
-        const _ticker = await middleman.updateSelectedTicker(id, resolution);
+        const _ticker = await middleman.updateSelectedTicker(id);
         setSelectedTicker(_ticker);
         document.title = `${_ticker.last} ${_ticker.name}`;
         await getBooks(id);
@@ -177,13 +177,12 @@ const StoreProvider = (props) => {
       }
     },
     [
+      isLogin,
       selectedTicker,
       history,
       middleman,
-      resolution,
       getBooks,
       getTrades,
-      isLogin,
       getPendingOrders,
       getCloseOrders,
     ]
@@ -418,8 +417,16 @@ const StoreProvider = (props) => {
             document.title = `${updateTicker.last} ${updateTicker.pair}`;
           }
           if (_tickerTimestamp - +tickerTimestamp > 1000) {
+            console.log(
+              `++++++++****+++++ tickersOnUpdate[START] +++++*****+++++`
+            );
             tickerTimestamp = _tickerTimestamp;
             setTickers(updateTickers);
+            console.log(`updateTickers`, updateTickers);
+            console.log(`updateTicker`, updateTicker);
+            console.log(
+              `++++++++****+++++ tickersOnUpdate[END] +++++*****+++++`
+            );
           }
           break;
         case "tradesOnUpdate":

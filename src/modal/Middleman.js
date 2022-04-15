@@ -7,20 +7,23 @@ class Middleman {
     this.tickers = [];
   }
 
-  async updateSelectedTicker(id, resolution) {
-    // console.log(`updateSelectedTicker id`, id);
+  async updateSelectedTicker(id) {
+    console.log(`****----**** updateSelectedTicker [START] ****----****`);
     this.selectedTicker = this.tickers?.find((ticker) => ticker.id === id);
+    console.log(`this.selectedTicker`, this.selectedTicker);
     if (!this.selectedTicker) {
       this.selectedTicker = await this.communicator.ticker(id);
+      console.log(`[communicator] this.selectedTicker`, this.selectedTicker);
     }
+    console.log(`****----**** updateSelectedTicker [END] ****----****`);
     return this.selectedTicker;
   }
 
   updateTickers(tickers) {
-    if (!this.tickers || !this.tickers.length > 0) return;
-    let updateTickers = this.tickers.map((t) => ({ ...t, update: false }));
-    let updateTicker;
-    tickers.forEach((t) => {
+    // console.log(`************* updateTickers [START]***************`);
+    let updateTicker,
+      updateTickers = this.tickers.map((t) => ({ ...t, update: false }));
+    tickers.forEach(async (t) => {
       const i = this.tickers.findIndex((ticker) => ticker.instId === t.instId);
       if (i === -1) {
         updateTickers.push({ ...t, update: true });
@@ -36,14 +39,20 @@ class Middleman {
           volume: t.volume,
           update: true,
         };
-        if (!!this.selectedTicker && t.instId === this.selectedTicker?.instId)
-          updateTicker = this.updateSelectedTicker(ticker);
+        if (!!this.selectedTicker && t.instId === this.selectedTicker?.instId) {
+          updateTicker = await this.updateSelectedTicker(ticker.id);
+        }
         updateTickers[i] = ticker;
       }
     });
+    // console.log(`return`, {
+    //   updateTicker,
+    //   updateTickers,
+    // });
     this.tickers = updateTickers;
+    // console.log(`************* updateTickers [END]***************`);
     return {
-      updateTicker,
+      updateTicker: updateTicker,
       updateTickers,
     };
   }
@@ -141,9 +150,9 @@ class Middleman {
   }
 
   updateBooks(data) {
-    console.log(`*^^^^^^^^orderBooksOnUpdate*^^^^^^^^*`);
-    console.log(`data`, data);
-    console.log(`*^^^^^^^^*orderBooksOnUpdate*^^^^^^^^*`);
+    // console.log(`*^^^^^^^^orderBooksOnUpdate*^^^^^^^^*`);
+    // console.log(`data`, data);
+    // console.log(`*^^^^^^^^*orderBooksOnUpdate*^^^^^^^^*`);
     if (data.instId !== this.selectedTicker.instId) return;
     const updateRawBooks = {
       asks: this.rawBooks?.asks
@@ -394,7 +403,7 @@ class Middleman {
       this.pendingOrders = updatePendingOrders;
       this.closeOrders = updateCloseOrders;
     }
-    console.log(`*&&&&&&&&&&&*orderOnUpdate*&&&&&&&&&&&**`);
+    // console.log(`*&&&&&&&&&&&*orderOnUpdate*&&&&&&&&&&&**`);
     return {
       updatePendingOrders: updatePendingOrders.sort(
         (a, b) => b.cTime - a.cTime
