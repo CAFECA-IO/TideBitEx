@@ -110,5 +110,3 @@ private.*
 config.toml
 
 build
-
-db/data
