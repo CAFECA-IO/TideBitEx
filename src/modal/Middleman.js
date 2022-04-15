@@ -13,10 +13,10 @@ class Middleman {
   }
 
   async getTicker(id) {
-    // console.log(`****----**** getTicker [START] ****----****`);
+    console.log(`****----**** getTicker [START] ****----****`);
     const ticker = await this.communicator.ticker(id);
-    // console.log(`[getTicker] ticker`, ticker);
-    // console.log(`****----**** getTicker [END] ****----****`);
+    console.log(`[getTicker] ticker`, ticker);
+    console.log(`****----**** getTicker [END] ****----****`);
     return ticker;
   }
 
@@ -24,7 +24,7 @@ class Middleman {
     // console.log(`************* updateTickers [START]***************`);
     let updateTicker,
       updateTickers = this.tickers.map((t) => ({ ...t, update: false }));
-    console.log(`updateTickers`, updateTickers);
+    // console.log(`updateTickers`, updateTickers);
     tickers.forEach(async (t) => {
       const i = this.tickers.findIndex((ticker) => ticker.instId === t.instId);
       if (i === -1) {
