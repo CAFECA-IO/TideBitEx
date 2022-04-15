@@ -272,7 +272,8 @@ class ExchangeHub extends Bot {
     const instId = this._findInstId(query.id);
     this.logger.log(`****----**** getTicker [START] ****----****`);
     this.logger.log(`instId`, instId);
-    switch (this._findSource(query.instId)) {
+    this.logger.log(`this._findSource(instId)`, this._findSource(instId));
+    switch (this._findSource(instId)) {
       case SupportedExchange.OKEX:
         return this.okexConnector.router("getTicker", {
           params,
