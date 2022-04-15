@@ -270,7 +270,10 @@ class ExchangeHub extends Bot {
 
   async getTicker({ params, query }) {
     const instId = this._findInstId(query.id);
-    switch (this._findSource(query.instId)) {
+    this.logger.log(`****----**** getTicker [START] ****----****`);
+    this.logger.log(`instId`, instId);
+    this.logger.log(`this._findSource(instId)`, this._findSource(instId));
+    switch (this._findSource(instId)) {
       case SupportedExchange.OKEX:
         return this.okexConnector.router("getTicker", {
           params,
@@ -281,9 +284,7 @@ class ExchangeHub extends Bot {
           (market) => instId === market.instId
         );
         if (index !== -1) {
-          const url = `${
-            this.config.peatio.domain
-          }/api/v2/tickers/${query.instId.replace("-", "").toLowerCase()}`;
+          const url = `${this.config.peatio.domain}/api/v2/tickers/${query.id}`;
           // this.logger.debug(`getTicker url:`, url);
           const tBTickerRes = await axios.get(url);
           // this.logger.debug(`getTicker tBTickerRes.data:`, tBTickerRes.data);
@@ -304,12 +305,21 @@ class ExchangeHub extends Bot {
             ? "0"
             : "1";
           const formatTBTicker = {
+            id: query.id,
+            instId,
+            name: instId.replace("-", "/"),
+            base_unit: instId.split("-")[0].toLowerCase(),
+            quote_unit: instId.split("-")[1].toLowerCase(),
             ...tBTicker.ticker,
             at: tBTicker.at,
             change,
             changePct,
             volume: tBTicker.ticker.vol.toString(),
+            source: SupportedExchange.TIDEBIT,
+            group: undefined,
           };
+          this.logger.log(`formatTBTicker`, formatTBTicker);
+          this.logger.log(`****----**** getTicker [START] ****----****`);
           return new ResponseFormat({
             message: "getTicker",
             payload: formatTBTicker,

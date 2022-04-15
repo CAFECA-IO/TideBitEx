@@ -7,23 +7,30 @@ class Middleman {
     this.tickers = [];
   }
 
-  async updateSelectedTicker(id, resolution) {
-    // console.log(`updateSelectedTicker id`, id);
-    this.selectedTicker = this.tickers?.find((ticker) => ticker.id === id);
-    if (!this.selectedTicker) {
-      this.selectedTicker = await this.communicator.ticker(id);
-    }
+  updateSelectedTicker(ticker) {
+    this.selectedTicker = ticker;
     return this.selectedTicker;
   }
 
+  async getTicker(id) {
+    console.log(`****----**** getTicker [START] ****----****`);
+    const ticker = await this.communicator.ticker(id);
+    console.log(`[getTicker] ticker`, ticker);
+    console.log(`****----**** getTicker [END] ****----****`);
+    return ticker;
+  }
+
   updateTickers(tickers) {
-    if (!this.tickers || !this.tickers.length > 0) return;
-    let updateTickers = this.tickers.map((t) => ({ ...t, update: false }));
-    let updateTicker;
-    tickers.forEach((t) => {
+    // console.log(`************* updateTickers [START]***************`);
+    let updateTicker,
+      updateTickers = this.tickers.map((t) => ({ ...t, update: false }));
+    // console.log(`updateTickers`, updateTickers);
+    tickers.forEach(async (t) => {
       const i = this.tickers.findIndex((ticker) => ticker.instId === t.instId);
       if (i === -1) {
         updateTickers.push({ ...t, update: true });
+        // console.log(`updateTickers.push`, { ...t, update: true });
+        // console.log(`updateTickers`, updateTickers);
       } else {
         const ticker = {
           ...updateTickers[i],
@@ -36,14 +43,19 @@ class Middleman {
           volume: t.volume,
           update: true,
         };
-        if (!!this.selectedTicker && t.instId === this.selectedTicker?.instId)
-          updateTicker = this.updateSelectedTicker(ticker);
         updateTickers[i] = ticker;
+        if (!!this.selectedTicker && t.instId === this.selectedTicker?.instId) {
+          updateTicker = ticker;
+        }
+        // console.log(`updateTickers[i]`, ticker);
+        // console.log(`updateTickers`, updateTickers);
       }
     });
+
     this.tickers = updateTickers;
+    // console.log(`************* updateTickers [END]***************`);
     return {
-      updateTicker,
+      updateTicker: updateTicker,
       updateTickers,
     };
   }
@@ -141,9 +153,9 @@ class Middleman {
   }
 
   updateBooks(data) {
-    console.log(`*^^^^^^^^orderBooksOnUpdate*^^^^^^^^*`);
-    console.log(`data`, data);
-    console.log(`*^^^^^^^^*orderBooksOnUpdate*^^^^^^^^*`);
+    // console.log(`*^^^^^^^^orderBooksOnUpdate*^^^^^^^^*`);
+    // console.log(`data`, data);
+    // console.log(`*^^^^^^^^*orderBooksOnUpdate*^^^^^^^^*`);
     if (data.instId !== this.selectedTicker.instId) return;
     const updateRawBooks = {
       asks: this.rawBooks?.asks
@@ -384,10 +396,12 @@ class Middleman {
           // });
         }
       } else {
-        if (data.price)
-          if (data.state === "waiting") {
-            updatePendingOrders.push({ ...data, cTime: Date.now() });
-          } else updateCloseOrders.push({ ...data, uTime: Date.now() });
+        if (data.state === "waiting")
+          updatePendingOrders.push({ ...data, cTime: Date.now() });
+        else updateCloseOrders.push({ ...data, uTime: Date.now() });
+        // console.log(` updatePendingOrders[${index}]`, {
+        //   ...data,
+        // });
       }
       this.pendingOrders = updatePendingOrders;
       this.closeOrders = updateCloseOrders;
@@ -408,9 +422,10 @@ class Middleman {
         instId: this.selectedTicker?.instId,
       });
       // ++ WORKAROUND
-      this.pendingOrders = orders.filter(
-        (order) => order.px !== "NaN" || !order.px
-      );
+      // this.pendingOrders = orders.filter(
+      //   (order) => order.px !== "NaN" || !order.px
+      // );
+      this.pendingOrders = orders;
       return this.pendingOrders;
     }
   }
@@ -422,9 +437,10 @@ class Middleman {
         instId: this.selectedTicker?.instId,
       });
       // ++ WORKAROUND
-      this.closeOrders = orders.filter(
-        (order) => order.px !== "NaN" || !order.px
-      );
+      // this.closeOrders = orders.filter(
+      //   (order) => order.px !== "NaN" || !order.px
+      // );
+      this.closeOrders = orders;
       return this.closeOrders;
     }
   }

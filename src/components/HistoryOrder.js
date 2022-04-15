@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { Tabs, Tab } from "react-bootstrap";
 import StoreContext from "../store/store-context";
 import SafeMath from "../utils/SafeMath";
-import { dateFormatter, formateDecimal } from "../utils/Utils";
+import { formateDecimal } from "../utils/Utils";
 import { FaTrashAlt } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 
@@ -126,13 +126,15 @@ const HistoryOrder = (props) => {
             )} */}
             <ul className="order-list">
               {!!storeCtx.pendingOrders?.length &&
-                storeCtx.pendingOrders.map((order) => (
-                  <OrderTile
-                    order={order}
-                    type="pending"
-                    cancelOrder={cancelOrder}
-                  />
-                ))}
+                storeCtx.pendingOrders
+                  .filter((order) => !(order.px === "NaN" || !order.px)) // ++ WORKAROUND
+                  .map((order) => (
+                    <OrderTile
+                      order={order}
+                      type="pending"
+                      cancelOrder={cancelOrder}
+                    />
+                  ))}
             </ul>
           </Tab>
           <Tab eventKey="closed-orders" title={t("close_orders")}>
@@ -156,9 +158,9 @@ const HistoryOrder = (props) => {
             )} */}
             <ul className="order-list">
               {!!storeCtx.closeOrders?.length &&
-                storeCtx.closeOrders.map((order) => (
-                  <OrderTile order={order} />
-                ))}
+                storeCtx.closeOrders
+                  .filter((order) => !(order.px === "NaN" || !order.px)) // ++ WORKAROUND
+                  .map((order) => <OrderTile order={order} />)}
             </ul>
           </Tab>
           {/* <Tab eventKey="order-history" title="Order history">

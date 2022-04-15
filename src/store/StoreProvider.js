@@ -151,17 +151,35 @@ const StoreProvider = (props) => {
     [enqueueSnackbar, middleman]
   );
 
-  const selectTickerHandler = useCallback(
+  const getTicker = useCallback(
     async (id) => {
-      if (!selectedTicker || id !== selectedTicker?.id) {
-        history.push({
-          pathname: `/markets/${id}`,
+      try {
+        const result = await middleman.getTicker(id);
+        return result;
+      } catch (error) {
+        enqueueSnackbar(`"getTicker error: ${error?.message}"`, {
+          variant: "error",
         });
-        const _ticker = await middleman.updateSelectedTicker(id, resolution);
-        setSelectedTicker(_ticker);
-        document.title = `${_ticker.last} ${_ticker.name}`;
-        await getBooks(id);
-        await getTrades(id);
+      }
+    },
+    [enqueueSnackbar, middleman]
+  );
+
+  const selectTickerHandler = useCallback(
+    async (ticker) => {
+      console.log(`****^^^^**** selectTickerHandler [START] ****^^^^****`);
+      console.log(`selectedTicker`, selectedTicker, !selectedTicker);
+      console.log(`ticker`, ticker, ticker.id !== selectedTicker?.id);
+      if (!selectedTicker || ticker.id !== selectedTicker?.id) {
+        middleman.updateSelectedTicker(ticker);
+        setSelectedTicker(ticker);
+        console.log(`ticker`, ticker);
+        document.title = `${ticker.last} ${ticker.name}`;
+        history.push({
+          pathname: `/markets/${ticker.id}`,
+        });
+        await getBooks(ticker.id);
+        await getTrades(ticker.id);
         if (isLogin) {
           await getPendingOrders();
           await getCloseOrders();
@@ -170,20 +188,20 @@ const StoreProvider = (props) => {
           JSON.stringify({
             op: "switchTradingPair",
             args: {
-              market: _ticker.instId.replace("-", "").toLowerCase(),
+              market: ticker.id,
             },
           })
         );
       }
+      console.log(`****^^^^**** selectTickerHandler [END] ****^^^^****`);
     },
     [
+      isLogin,
       selectedTicker,
       history,
       middleman,
-      resolution,
       getBooks,
       getTrades,
-      isLogin,
       getPendingOrders,
       getCloseOrders,
     ]
@@ -387,10 +405,17 @@ const StoreProvider = (props) => {
     const id = location.pathname.includes("/markets/")
       ? location.pathname.replace("/markets/", "")
       : null;
+    const ticker = await getTicker(id);
+    await selectTickerHandler(ticker);
     await getTickers();
-    await selectTickerHandler(id);
     await getAccounts();
-  }, [getAccounts, getTickers, location.pathname, selectTickerHandler]);
+  }, [
+    getTicker,
+    getAccounts,
+    getTickers,
+    selectTickerHandler,
+    location.pathname,
+  ]);
 
   useEffect(() => {
     start();
@@ -401,7 +426,7 @@ const StoreProvider = (props) => {
       setWsConnected(false);
     });
     wsClient.addEventListener("message", (msg) => {
-      let _tickerTimestamp = 0,
+      let // _tickerTimestamp = 0,
         _bookTimestamp = 0,
         // _candleTimestamp = 0,
         _accountTimestamp = 0,
@@ -411,16 +436,24 @@ const StoreProvider = (props) => {
           const { updateTicker, updateTickers } = middleman.updateTickers(
             metaData.data
           );
-          _tickerTimestamp = new Date().getTime();
+          // _tickerTimestamp = new Date().getTime();
           if (!!updateTicker) {
             console.log(`tickersOnUpdate updateTicker`, updateTicker);
             setSelectedTicker(updateTicker);
             document.title = `${updateTicker.last} ${updateTicker.pair}`;
           }
-          if (_tickerTimestamp - +tickerTimestamp > 1000) {
-            tickerTimestamp = _tickerTimestamp;
-            setTickers(updateTickers);
-          }
+          // if (_tickerTimestamp - +tickerTimestamp > 1000) {
+          // console.log(
+          //   `++++++++****+++++ tickersOnUpdate[START] +++++*****+++++`
+          // );
+          // tickerTimestamp = _tickerTimestamp;
+          setTickers(updateTickers);
+          // console.log(`updateTickers`, updateTickers);
+          // console.log(`updateTicker`, updateTicker);
+          // console.log(
+          //   `++++++++****+++++ tickersOnUpdate[END] +++++*****+++++`
+          // );
+          // }
           break;
         case "tradesOnUpdate":
           const { trades, candles, volumes } = middleman.updateTrades(
