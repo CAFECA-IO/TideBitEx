@@ -307,6 +307,7 @@ class ExchangeHub extends Bot {
           const formatTBTicker = {
             id: query.id,
             instId,
+            name: instId.replace("-", "/"),
             base_unit: instId.split("-")[0].toLowerCase(),
             quote_unit: instId.split("-")[1].toLowerCase(),
             ...tBTicker.ticker,
