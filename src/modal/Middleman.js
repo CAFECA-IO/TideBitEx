@@ -13,15 +13,15 @@ class Middleman {
   }
 
   async getTicker(id) {
-    console.log(`****----**** getTicker [START] ****----****`);
+    // console.log(`****----**** getTicker [START] ****----****`);
     const ticker = await this.communicator.ticker(id);
-    console.log(`[getTicker] ticker`, ticker);
-    console.log(`****----**** getTicker [END] ****----****`);
+    // console.log(`[getTicker] ticker`, ticker);
+    // console.log(`****----**** getTicker [END] ****----****`);
     return ticker;
   }
 
   updateTickers(tickers) {
-    console.log(`************* updateTickers [START]***************`);
+    // console.log(`************* updateTickers [START]***************`);
     let updateTicker,
       updateTickers = this.tickers.map((t) => ({ ...t, update: false }));
     console.log(`updateTickers`, updateTickers);
@@ -29,8 +29,8 @@ class Middleman {
       const i = this.tickers.findIndex((ticker) => ticker.instId === t.instId);
       if (i === -1) {
         updateTickers.push({ ...t, update: true });
-        console.log(`updateTickers.push`, { ...t, update: true });
-        console.log(`updateTickers`, updateTickers);
+        // console.log(`updateTickers.push`, { ...t, update: true });
+        // console.log(`updateTickers`, updateTickers);
       } else {
         const ticker = {
           ...updateTickers[i],
@@ -47,13 +47,13 @@ class Middleman {
         if (!!this.selectedTicker && t.instId === this.selectedTicker?.instId) {
           updateTicker = ticker;
         }
-        console.log(`updateTickers[i]`, ticker);
-        console.log(`updateTickers`, updateTickers);
+        // console.log(`updateTickers[i]`, ticker);
+        // console.log(`updateTickers`, updateTickers);
       }
     });
 
     this.tickers = updateTickers;
-    console.log(`************* updateTickers [END]***************`);
+    // console.log(`************* updateTickers [END]***************`);
     return {
       updateTicker: updateTicker,
       updateTickers,
