@@ -151,36 +151,62 @@ const StoreProvider = (props) => {
     [enqueueSnackbar, middleman]
   );
 
-  const selectTickerHandler = useCallback(
+  const getTicker = useCallback(
     async (id) => {
-      if (!selectedTicker || id !== selectedTicker?.id) {
-        history.push({
-          pathname: `/markets/${id}`,
+      try {
+        const result = await middleman.getTicker(id);
+        return result;
+      } catch (error) {
+        enqueueSnackbar(`"getTicker error: ${error?.message}"`, {
+          variant: "error",
         });
-        const _ticker = await middleman.updateSelectedTicker(id);
-        setSelectedTicker(_ticker);
-        document.title = `${_ticker.last} ${_ticker.name}`;
-        await getBooks(id);
-        await getTrades(id);
-        if (isLogin) {
-          await getPendingOrders();
-          await getCloseOrders();
-        }
-        wsClient.send(
-          JSON.stringify({
-            op: "switchTradingPair",
-            args: {
-              market: _ticker.instId.replace("-", "").toLowerCase(),
-            },
-          })
-        );
       }
+    },
+    [enqueueSnackbar, middleman]
+  );
+
+  const selectTickerHandler = useCallback(
+    async (ticker) => {
+      console.log(`****^^^^**** selectTickerHandler [START] ****^^^^****`);
+      console.log(`selectedTicker`, selectedTicker, !selectedTicker);
+      console.log(`ticker`, ticker, ticker.id !== selectedTicker?.id);
+      if (!selectedTicker || ticker.id !== selectedTicker?.id) {
+        middleman.updateSelectedTicker(ticker);
+        setSelectedTicker(ticker);
+        console.log(`ticker`, ticker);
+        document.title = `${ticker.last} ${ticker.name}`;
+        const id = location.pathname.includes("/markets/")
+          ? location.pathname.replace("/markets/", "")
+          : null;
+        console.log(`id`, id);
+        if (id !== ticker.id) {
+          history.push({
+            pathname: `/markets/${ticker.id}`,
+          });
+          await getBooks(ticker.id);
+          await getTrades(ticker.id);
+          if (isLogin) {
+            await getPendingOrders();
+            await getCloseOrders();
+          }
+          wsClient.send(
+            JSON.stringify({
+              op: "switchTradingPair",
+              args: {
+                market: ticker.id,
+              },
+            })
+          );
+        }
+      }
+      console.log(`****^^^^**** selectTickerHandler [END] ****^^^^****`);
     },
     [
       isLogin,
       selectedTicker,
       history,
       middleman,
+      location,
       getBooks,
       getTrades,
       getPendingOrders,
@@ -386,10 +412,17 @@ const StoreProvider = (props) => {
     const id = location.pathname.includes("/markets/")
       ? location.pathname.replace("/markets/", "")
       : null;
+    const ticker = await getTicker(id);
+    await selectTickerHandler(ticker);
     await getTickers();
-    await selectTickerHandler(id);
     await getAccounts();
-  }, [getAccounts, getTickers, location.pathname, selectTickerHandler]);
+  }, [
+    getTicker,
+    getAccounts,
+    getTickers,
+    selectTickerHandler,
+    location.pathname,
+  ]);
 
   useEffect(() => {
     start();

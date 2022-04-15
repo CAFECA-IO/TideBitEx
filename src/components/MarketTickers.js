@@ -16,7 +16,7 @@ const TickerTile = (props) => {
   const storeCtx = useContext(StoreContext);
   return (
     <li
-      onClick={(_) => storeCtx.selectTickerHandler(props.ticker.id)}
+      onClick={(_) => storeCtx.selectTickerHandler(props.ticker)}
       className={`market-tile ${
         props.ticker.instId === storeCtx?.selectedTicker?.instId ? "active" : ""
       } ${props.ticker.update ? "update" : ""}`}

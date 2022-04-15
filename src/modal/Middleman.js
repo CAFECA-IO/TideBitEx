@@ -7,26 +7,30 @@ class Middleman {
     this.tickers = [];
   }
 
-  async updateSelectedTicker(id) {
-    console.log(`****----**** updateSelectedTicker [START] ****----****`);
-    this.selectedTicker = this.tickers?.find((ticker) => ticker.id === id);
-    console.log(`this.selectedTicker`, this.selectedTicker);
-    if (!this.selectedTicker) {
-      this.selectedTicker = await this.communicator.ticker(id);
-      console.log(`[communicator] this.selectedTicker`, this.selectedTicker);
-    }
-    console.log(`****----**** updateSelectedTicker [END] ****----****`);
+  updateSelectedTicker(ticker) {
+    this.selectedTicker = ticker;
     return this.selectedTicker;
   }
 
+  async getTicker(id) {
+    console.log(`****----**** getTicker [START] ****----****`);
+    const ticker = await this.communicator.ticker(id);
+    console.log(`[getTicker] ticker`, ticker);
+    console.log(`****----**** getTicker [END] ****----****`);
+    return ticker;
+  }
+
   updateTickers(tickers) {
-    // console.log(`************* updateTickers [START]***************`);
+    console.log(`************* updateTickers [START]***************`);
     let updateTicker,
       updateTickers = this.tickers.map((t) => ({ ...t, update: false }));
+    console.log(`updateTickers`, updateTickers);
     tickers.forEach(async (t) => {
       const i = this.tickers.findIndex((ticker) => ticker.instId === t.instId);
       if (i === -1) {
         updateTickers.push({ ...t, update: true });
+        console.log(`updateTickers.push`, { ...t, update: true });
+        console.log(`updateTickers`, updateTickers);
       } else {
         const ticker = {
           ...updateTickers[i],
@@ -39,18 +43,17 @@ class Middleman {
           volume: t.volume,
           update: true,
         };
-        if (!!this.selectedTicker && t.instId === this.selectedTicker?.instId) {
-          updateTicker = await this.updateSelectedTicker(ticker.id);
-        }
         updateTickers[i] = ticker;
+        if (!!this.selectedTicker && t.instId === this.selectedTicker?.instId) {
+          updateTicker = ticker;
+        }
+        console.log(`updateTickers[i]`, ticker);
+        console.log(`updateTickers`, updateTickers);
       }
     });
-    // console.log(`return`, {
-    //   updateTicker,
-    //   updateTickers,
-    // });
+
     this.tickers = updateTickers;
-    // console.log(`************* updateTickers [END]***************`);
+    console.log(`************* updateTickers [END]***************`);
     return {
       updateTicker: updateTicker,
       updateTickers,
