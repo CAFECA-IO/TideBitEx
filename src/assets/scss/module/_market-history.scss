@@ -27,8 +27,18 @@
     line-height: 1;
   }
   &__tile {
+    align-items: center;
     padding: 0 5px;
     font-size: 12px;
+    border-bottom: 1px solid #dee2e6;
+    &--time {
+      display: flex;
+      flex-direction: column;
+      font-size: 10px;
+    }
+    &--data {
+      font-size: 14px;
+    }
   }
   &__title > li:nth-child(1),
   &__tile > div:nth-child(1) {

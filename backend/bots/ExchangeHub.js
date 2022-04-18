@@ -1137,13 +1137,13 @@ class ExchangeHub extends Bot {
       });
     });
 
-    EventBus.on(Events.tickersOnUpdate, (instId, formatTickers) => {
-      if (this._isIncludeTideBitMarket(instId)) {
-        this.broadcastAllClient({
-          type: Events.tickersOnUpdate,
-          data: formatTickers,
-        });
-      }
+    EventBus.on(Events.tickersOnUpdate, (formatTickers) => {
+      this.broadcastAllClient({
+        type: Events.tickersOnUpdate,
+        data: formatTickers.filter((ticker) =>
+          this._isIncludeTideBitMarket(ticker.instId)
+        ),
+      });
     });
 
     EventBus.on(Events.orderDetailUpdate, async (instType, formatOrders) => {

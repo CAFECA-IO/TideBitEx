@@ -13,10 +13,7 @@ class Middleman {
   }
 
   async getTicker(id) {
-    console.log(`****----**** getTicker [START] ****----****`);
     const ticker = await this.communicator.ticker(id);
-    console.log(`[getTicker] ticker`, ticker);
-    console.log(`****----**** getTicker [END] ****----****`);
     return ticker;
   }
 
@@ -310,34 +307,36 @@ class Middleman {
       default:
         interval = 24 * 60 * 60 * 1000;
     }
-    const now = Math.floor(new Date().getTime() / interval);
-    defaultObj[now] = [now * interval, 0, 0, 0, 0, 0, 0];
-    for (let i = 0; i < 100; i++) {
-      defaultObj[now - i] = [(now - i) * interval, 0, 0, 0, 0, 0, 0];
-    }
     data = trades.reduce((prev, curr) => {
       const index = Math.floor((curr.at * 1000) / interval);
       let point = prev[index];
       if (point) {
-        point[2] = Math.max(point[2], +curr.price);
-        point[3] = Math.min(point[3], +curr.price);
-        point[4] = +curr.price;
-        point[5] += +curr.volume;
+        point[2] = Math.max(point[2], +curr.price); // high
+        point[3] = Math.min(point[3], +curr.price); // low
+        point[4] = +curr.price; // close
+        point[5] += +curr.volume; // volume
         point[6] += +curr.volume * +curr.price;
       } else {
         point = [
-          index * interval,
-          +curr.price,
-          +curr.price,
-          +curr.price,
-          +curr.price,
-          +curr.volume,
+          index * interval, // ts
+          +curr.price, // open
+          +curr.price, // high
+          +curr.price, // low
+          +curr.price, // close
+          +curr.volume, // volume
           +curr.volume * +curr.price,
         ];
       }
       prev[index] = point;
       return prev;
     }, defaultObj);
+
+    const now = Math.floor(new Date().getTime() / interval);
+    for (let i = 0; i < 100; i++) {
+      if (!defaultObj[now - i])
+        defaultObj[now - i] = [(now - i) * interval, 0, 0, 0, 0, 0, 0];
+    }
+
     return Object.values(data);
   }
 

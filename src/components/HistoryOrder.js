@@ -64,17 +64,9 @@ export const BalanceTile = (props) => {
       <li>{props.balance.ccy || "--"}</li>
       {/* <li>{props.balance.eq || "--"}</li>
       <li>{props.balance.cashBal || "--"}</li>*/}
-      <li>
-        {props.balance.totalBal ? formateDecimal(props.balance.totalBal) : "--"}
-      </li>
-      <li>
-        {props.balance.availBal ? formateDecimal(props.balance.availBal) : "--"}
-      </li>
-      <li>
-        {props.balance.frozenBal
-          ? formateDecimal(props.balance.frozenBal)
-          : "--"}
-      </li>
+      <li>{formateDecimal(props.balance.totalBal)}</li>
+      <li>{formateDecimal(props.balance.availBal)}</li>
+      <li>{formateDecimal(props.balance.frozenBal)}</li>
       {/* -- TODO: check api return object */}
       {/* <li>{props.balance.interest || "--"}</li> */}
     </ul>

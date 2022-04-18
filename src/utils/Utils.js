@@ -228,8 +228,8 @@ export const numberWithCommas = (x) => {
 };
 
 export const formateDecimal = (amount, maxLength = 18, decimalLength = 2) => {
+  if (isNaN(amount) || (!SafeMath.eq(amount, "0") && !amount)) return "--";
   if (SafeMath.eq(amount, "0")) return "0";
-  if (!amount) return "";
   const splitChunck = amount.toString().split(".");
   if (SafeMath.gte(splitChunck[0].length, maxLength))
     return formateNumber(amount, decimalLength);
@@ -316,10 +316,10 @@ export const dateFormatter = (timestamp, t24) => {
     " " +
     hours +
     ":" +
-    pad(minutes) ;
-    // +
-    // " " +
-    // suffix;
+    pad(minutes);
+  // +
+  // " " +
+  // suffix;
   return {
     text: mmddyyyykkmm,
     date: monthNames[month] + " " + pad(date) + ", " + year,
