@@ -51,6 +51,10 @@ const StoreProvider = (props) => {
     setOrderbook({ price, amount });
   }, []);
 
+  let tickerTimestamp = 0,
+    bookTimestamp = 0,
+    accountTimestamp = 0;
+
   const getBooks = useCallback(
     async (id, sz = 100) => {
       try {
@@ -84,7 +88,7 @@ const StoreProvider = (props) => {
         });
       }
     },
-    [action, enqueueSnackbar, middleman, resolution]
+    [enqueueSnackbar, middleman, resolution]
   );
 
   // const getCandles = useCallback(
@@ -436,21 +440,22 @@ const StoreProvider = (props) => {
 
   useEffect(() => {
     start();
-    wsClient.addEventListener("open", function () {
-      // ++TODO
-    });
-    wsClient.addEventListener("close", function () {
-      // ++TODO
-    });
+    wsClient.addEventListener("open", function () {});
+    wsClient.addEventListener("close", function () {});
     wsClient.addEventListener("message", (msg) => {
-      let metaData = JSON.parse(msg.data);
+      let // _tickerTimestamp = 0,
+        _bookTimestamp = 0,
+        // _candleTimestamp = 0,
+        _accountTimestamp = 0,
+        metaData = JSON.parse(msg.data);
       switch (metaData.type) {
         case "tickersOnUpdate":
           const { updateTicker, updateTickers } = middleman.updateTickers(
             metaData.data
           );
+          // _tickerTimestamp = new Date().getTime();
           if (!!updateTicker) {
-            // console.log(`tickersOnUpdate updateTicker`, updateTicker);
+            console.log(`tickersOnUpdate updateTicker`, updateTicker);
             setSelectedTicker(updateTicker);
             document.title = `${updateTicker.last} ${updateTicker.pair}`;
           }
@@ -478,16 +483,29 @@ const StoreProvider = (props) => {
           break;
         case "orderBooksOnUpdate":
           const updateBooks = middleman.updateBooks(metaData.data);
-          setBooks(updateBooks);
+          _bookTimestamp = new Date().getTime();
+          if (_bookTimestamp - +bookTimestamp > 1000) {
+            console.log(`updateBooks`, updateBooks);
+            bookTimestamp = _bookTimestamp;
+            setBooks(updateBooks);
+          }
           break;
         // case "candleOnUpdate":
         //   const updateCandles = middleman.updateCandles(metaData.data);
-        //   setCandles(updateCandles);
+        //   _candleTimestamp = new Date().getTime();
+        //   if (_candleTimestamp - +candleTimestamp > 1000) {
+        //     candleTimestamp = _candleTimestamp;
+        //     setCandles(updateCandles);
+        //   }
         //   break;
         // // ++ TODO TideBit WS 要與 OKEX整合
         case "accountOnUpdate":
           const updateAccounts = middleman.updateAccounts(metaData.data);
-          setAccounts(updateAccounts);
+          _accountTimestamp = new Date().getTime();
+          if (_accountTimestamp - +accountTimestamp > 1000) {
+            accountTimestamp = _accountTimestamp;
+            setAccounts(updateAccounts);
+          }
           break;
         case "orderOnUpdate":
           const { updatePendingOrders, updateCloseOrders } =

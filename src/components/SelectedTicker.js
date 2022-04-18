@@ -28,25 +28,6 @@ const SelectedTicker = (props) => {
         >
           {formateDecimal(storeCtx.selectedTicker?.last, 8) || "--"}
         </div>
-
-        {/* ${formateDecimal(storeCtx.selectedTicker?.last, 8) || "--"} */}
-        <div
-          className={`subPrice ${
-            SafeMath.gte(storeCtx.selectedTicker?.change, "0") ? "green" : "red"
-          }`}
-        >
-          {storeCtx.selectedTicker
-            ? SafeMath.gte(storeCtx.selectedTicker?.change, "0")
-              ? `+${formateDecimal(
-                  SafeMath.mult(storeCtx.selectedTicker?.changePct, "100"),
-                  3
-                )}%`
-              : `${formateDecimal(
-                  SafeMath.mult(storeCtx.selectedTicker?.changePct, "100"),
-                  3
-                )}%`
-            : "--"}
-        </div>
       </div>
       <div className="ticker__details">
         <div className="tickerItemLabel">{t("24_change")}</div>
@@ -60,12 +41,6 @@ const SelectedTicker = (props) => {
           }`}
         >
           <span>
-            {!storeCtx.selectedTicker
-              ? "--"
-              : formateDecimal(
-                  SafeMath.minus(storeCtx.selectedTicker?.change, "100"),
-                  3
-                )}{" "}
             {!storeCtx.selectedTicker
               ? "--%"
               : SafeMath.gt(storeCtx.selectedTicker?.change, "0")

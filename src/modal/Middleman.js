@@ -13,10 +13,7 @@ class Middleman {
   }
 
   async getTicker(id) {
-    console.log(`****----**** getTicker [START] ****----****`);
     const ticker = await this.communicator.ticker(id);
-    console.log(`[getTicker] ticker`, ticker);
-    console.log(`****----**** getTicker [END] ****----****`);
     return ticker;
   }
 
