@@ -285,7 +285,6 @@ class Middleman {
    */
   transformTradesToCandle(trades, resolution) {
     console.log(`transformTradesToCandle trades`, trades);
-    console.log(`transformTradesToCandle resolution`, resolution);
     let interval,
       data,
       defaultObj = {};
@@ -309,18 +308,10 @@ class Middleman {
       default:
         interval = 24 * 60 * 60 * 1000;
     }
-    const now = Math.floor(new Date().getTime() / interval);
-    console.log(`transformTradesToCandle now`, now);
-    defaultObj[now] = [now * interval, 0, 0, 0, 0, 0, 0];
-    console.log(`transformTradesToCandle defaultObj`, defaultObj);
-    for (let i = 0; i < 100; i++) {
-      defaultObj[now - i] = [(now - i) * interval, 0, 0, 0, 0, 0, 0];
-    }
     data = trades.reduce((prev, curr) => {
-      console.log(`transformTradesToCandle prev`, prev);
-      console.log(`transformTradesToCandle curr`, curr);
       const index = Math.floor((curr.at * 1000) / interval);
       let point = prev[index];
+      console.log(`transformTradesToCandle curr`, curr);
       console.log(`transformTradesToCandle point 1`, point);
       if (point) {
         point[2] = Math.max(point[2], +curr.price); // high
@@ -328,6 +319,7 @@ class Middleman {
         point[4] = +curr.price; // close
         point[5] += +curr.volume; // volume
         point[6] += +curr.volume * +curr.price;
+        console.log(`transformTradesToCandle point 2`, point);
       } else {
         point = [
           index * interval, // ts
@@ -338,12 +330,17 @@ class Middleman {
           +curr.volume, // volume
           +curr.volume * +curr.price,
         ];
+        console.log(`transformTradesToCandle point 3`, point);
       }
-      console.log(`transformTradesToCandle point 2`, point);
       prev[index] = point;
-      console.log(`transformTradesToCandle prev`, prev);
       return prev;
     }, defaultObj);
+    console.log(`transformTradesToCandle defaultObj`, defaultObj);
+    const now = Math.floor(new Date().getTime() / interval);
+    for (let i = 0; i < 100; i++) {
+      if (!defaultObj[now - i])
+        defaultObj[now - i] = [(now - i) * interval, 0, 0, 0, 0, 0, 0];
+    }
     console.log(`transformTradesToCandle data`, data);
     return Object.values(data);
   }
