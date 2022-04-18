@@ -12,16 +12,24 @@ const TradeTile = (props) => {
       }`}
       trade-id={props.trade.id}
     >
-      <div>
-        {
-          dateFormatter(parseInt(SafeMath.mult(props.trade.at, "1000")), true)
-            .time
-        }
+      <div className="market-history__tile--time">
+        <span>
+          {dateFormatter(parseInt(SafeMath.mult(props.trade.at, "1000"))).time}
+        </span>
+        <span>
+          {dateFormatter(parseInt(SafeMath.mult(props.trade.at, "1000"))).date}
+        </span>
       </div>
-      <div className={props.trade.side === "down" ? "red" : "green"}>
+      <div
+        className={`market-history__tile--data ${
+          props.trade.side === "down" ? "red" : "green"
+        }`}
+      >
         {formateDecimal(props.trade.price, 8)}
       </div>
-      <div>{formateDecimal(props.trade.volume, 8)}</div>
+      <div className="market-history__tile--data">
+        {formateDecimal(props.trade.volume, 8)}
+      </div>
     </li>
   );
 };

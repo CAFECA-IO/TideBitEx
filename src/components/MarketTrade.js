@@ -20,16 +20,12 @@ const TradeForm = (props) => {
       <p className="market-trade__text">
         {t("available")}:
         <span>
-          {`${
-            props.selectedTicker
-              ? formateDecimal(
-                  props.side === "buy"
-                    ? props.quoteCcyAvailable
-                    : props.baseCcyAvailable,
-                  8
-                )
-              : "0" || "--"
-          } `}
+          {formateDecimal(
+            props.side === "buy"
+              ? props.quoteCcyAvailable
+              : props.baseCcyAvailable,
+            8
+          )}
           {props.side === "buy"
             ? props.selectedTicker?.quote_unit.toUpperCase() || "--"
             : props.selectedTicker?.base_unit.toUpperCase() || "--"}

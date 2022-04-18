@@ -284,7 +284,6 @@ class Middleman {
    * @param {Array} trades
    */
   transformTradesToCandle(trades, resolution) {
-    console.log(`transformTradesToCandle trades`, trades);
     let interval,
       data,
       defaultObj = {};
@@ -311,15 +310,12 @@ class Middleman {
     data = trades.reduce((prev, curr) => {
       const index = Math.floor((curr.at * 1000) / interval);
       let point = prev[index];
-      console.log(`transformTradesToCandle curr`, curr);
-      console.log(`transformTradesToCandle point 1`, point);
       if (point) {
         point[2] = Math.max(point[2], +curr.price); // high
         point[3] = Math.min(point[3], +curr.price); // low
         point[4] = +curr.price; // close
         point[5] += +curr.volume; // volume
         point[6] += +curr.volume * +curr.price;
-        console.log(`transformTradesToCandle point 2`, point);
       } else {
         point = [
           index * interval, // ts
@@ -330,18 +326,17 @@ class Middleman {
           +curr.volume, // volume
           +curr.volume * +curr.price,
         ];
-        console.log(`transformTradesToCandle point 3`, point);
       }
       prev[index] = point;
       return prev;
     }, defaultObj);
-    console.log(`transformTradesToCandle defaultObj`, defaultObj);
+
     const now = Math.floor(new Date().getTime() / interval);
     for (let i = 0; i < 100; i++) {
       if (!defaultObj[now - i])
         defaultObj[now - i] = [(now - i) * interval, 0, 0, 0, 0, 0, 0];
     }
-    console.log(`transformTradesToCandle data`, data);
+
     return Object.values(data);
   }
 

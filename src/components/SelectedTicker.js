@@ -26,7 +26,7 @@ const SelectedTicker = (props) => {
               : "increase"
           }`}
         >
-          {formateDecimal(storeCtx.selectedTicker?.last, 8) || "--"}
+          {formateDecimal(storeCtx.selectedTicker?.last, 8)}
         </div>
       </div>
       <div className="ticker__details">
@@ -42,7 +42,7 @@ const SelectedTicker = (props) => {
         >
           <span>
             {!storeCtx.selectedTicker
-              ? "--%"
+              ? "-- %"
               : SafeMath.gt(storeCtx.selectedTicker?.change, "0")
               ? `+${formateDecimal(
                   SafeMath.mult(storeCtx.selectedTicker?.changePct, "100"),
@@ -58,23 +58,25 @@ const SelectedTicker = (props) => {
       <div className="ticker__details">
         <div className="tickerItemLabel">{t("24_high")}</div>
         <div className="tickerPriceText">
-          {formateDecimal(storeCtx.selectedTicker?.high, 8) || "--"}
+          {formateDecimal(storeCtx.selectedTicker?.high, 8)}
         </div>
       </div>
       <div className="ticker__details">
         <div className="tickerItemLabel">{t("24_low")}</div>
         <div className="tickerPriceText">
-          {formateDecimal(storeCtx.selectedTicker?.low, 8) || "--"}
+          {formateDecimal(storeCtx.selectedTicker?.low, 8)}
         </div>
       </div>
       <div className="ticker__details">
         <div className="tickerItemLabel">
-          {`${t("24_volume")}(${storeCtx.selectedTicker?.base_unit.toUpperCase() || "--"})`}
+          {`${t("24_volume")}(${
+            storeCtx.selectedTicker?.base_unit.toUpperCase() || "--"
+          })`}
         </div>
         <div className="tickerPriceText">
           {!storeCtx.selectedTicker
             ? "--"
-            : formateDecimal(storeCtx.selectedTicker?.volume, 8) || "--"}
+            : formateDecimal(storeCtx.selectedTicker?.volume, 8)}
         </div>
       </div>
       <div className="ticker__details">
@@ -84,7 +86,7 @@ const SelectedTicker = (props) => {
         <div className="tickerPriceText">
           {!storeCtx.selectedTicker
             ? "--"
-            : formateDecimal(storeCtx.selectedTicker?.volume, 8) || "--"}
+            : formateDecimal(storeCtx.selectedTicker?.volume, 8)}
         </div>
       </div>
     </div>

@@ -824,7 +824,7 @@ class OkexConnector extends ConnectorBase {
             this._updateCandle1m(values[0], data.data);
             break;
           case "tickers":
-            this._updateTickers(values[0], data.data);
+            this._updateTickers(data.data);
             break;
           default:
         }
@@ -968,7 +968,7 @@ class OkexConnector extends ConnectorBase {
     EventBus.emit(Events.candleOnUpdate, instId, formatCandle);
   }
 
-  _updateTickers(instId, tickerData) {
+  _updateTickers(tickerData) {
     const formatTickers = tickerData.map((data) => {
       const change = SafeMath.minus(data.last, data.open24h);
       const changePct = SafeMath.gt(data.open24h, "0")
@@ -978,7 +978,7 @@ class OkexConnector extends ConnectorBase {
         : "1";
       return {
         id: data.instId.replace("-", "/").toLowerCase,
-        instId,
+        instId: data.instId,
         name: data.instId.replace("-", "/"),
         base_unit: data.instId.split("-")[0].toLowerCase(),
         quote_unit: data.instId.split("-")[1].toLowerCase(),
@@ -998,7 +998,7 @@ class OkexConnector extends ConnectorBase {
         source: SupportedExchange.OKEX,
       };
     });
-    EventBus.emit(Events.tickersOnUpdate, instId, formatTickers);
+    EventBus.emit(Events.tickersOnUpdate, formatTickers);
   }
 
   _subscribeInstruments() {
