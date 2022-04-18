@@ -9,7 +9,11 @@ import { getToken } from "../utils/Token";
 
 // const wsServer = "wss://exchange.tidebit.network/ws/v1";
 // const wsServer = "ws://127.0.0.1";
-const connection_resolvers = [];
+
+let tickerTimestamp = 0,
+  bookTimestamp = 0,
+  accountTimestamp = 0,
+  connection_resolvers = [];
 
 const StoreProvider = (props) => {
   const middleman = useMemo(() => new Middleman(), []);
@@ -31,7 +35,6 @@ const StoreProvider = (props) => {
   const [orderbook, setOrderbook] = useState(null);
   const [token, setToken] = useState(null);
   const [languageKey, setLanguageKey] = useState("en");
-  const [ws, setWs] = useState(null);
 
   const action = useCallback(
     (key) => (
@@ -48,50 +51,8 @@ const StoreProvider = (props) => {
     [closeSnackbar]
   );
 
-  const send = useCallback(
-    async (data) => {
-      if (!ws) {
-        connection_resolvers.push(data);
-        return;
-      }
-      try {
-        ws.send(data);
-        console.log(`send data`, data);
-      } catch (error) {
-        connection_resolvers.push(data);
-        console.log(`send connection_resolvers `, connection_resolvers);
-      }
-    },
-    [ws]
-  );
-
-  const connect = useCallback(() => {
-    const ws = new WebSocket(Config[Config.status].websocket);
-    let interval;
-    setWs(ws);
-    let tickerTimestamp = 0,
-      bookTimestamp = 0,
-      accountTimestamp = 0;
-    ws.addEventListener("open", () => {
-      interval = setInterval(() => {
-        const data = connection_resolvers.shift();
-        if (data) send(data);
-        console.log(`open connection_resolvers`, connection_resolvers);
-      }, 1000);
-    });
-    ws.addEventListener("close", (msg) => {
-      clearInterval(interval);
-      setWs(null);
-      console.log(
-        "Socket is closed. Reconnect will be attempted in 1 second.",
-        msg.reason
-      );
-      setTimeout(function () {
-        connect();
-      }, 1000);
-    });
-    ws.addEventListener("message", (msg) => {
-      console.log(`message msg`, msg);
+  const wsUpdateHandler = useCallback(
+    (msg) => {
       let _tickerTimestamp = 0,
         _bookTimestamp = 0,
         // _candleTimestamp = 0,
@@ -167,8 +128,42 @@ const StoreProvider = (props) => {
         //   break;
         default:
       }
+    },
+    [middleman, resolution]
+  );
+
+  const connect = useCallback(() => {
+    const ws = new WebSocket(Config[Config.status].websocket);
+    let interval;
+
+    ws.addEventListener("open", () => {
+      clearInterval(interval);
+      const data = connection_resolvers.shift();
+      // console.log(`open data1`, data);
+      if (data) ws.send(data);
+      // console.log(`open connection_resolvers1`, connection_resolvers);
+      interval = setInterval(() => {
+        const data = connection_resolvers.shift();
+        // console.log(`open data2`, data);
+        if (data) ws.send(data);
+        // console.log(`open connection_resolvers2`, connection_resolvers);
+      }, 1000);
     });
-  }, [middleman, resolution, send]);
+    ws.addEventListener("close", (msg) => {
+      clearInterval(interval);
+      console.log(
+        "Socket is closed. Reconnect will be attempted in 1 second.",
+        msg.reason
+      );
+      setTimeout(function () {
+        connect();
+      }, 1000);
+    });
+    ws.addEventListener("message", (msg) => {
+      // console.log(`message msg`, msg);
+      wsUpdateHandler(msg);
+    });
+  }, [wsUpdateHandler]);
 
   const orderBookHandler = useCallback((price, amount) => {
     setOrderbook({ price, amount });
@@ -321,7 +316,7 @@ const StoreProvider = (props) => {
           await getPendingOrders();
           await getCloseOrders();
         }
-        send(
+        connection_resolvers.push(
           JSON.stringify({
             op: "switchTradingPair",
             args: {
@@ -333,7 +328,6 @@ const StoreProvider = (props) => {
       // console.log(`****^^^^**** selectTickerHandler [END] ****^^^^****`);
     },
     [
-      send,
       isLogin,
       selectedTicker,
       history,
@@ -378,7 +372,7 @@ const StoreProvider = (props) => {
             ? location.pathname.replace("/markets/", "")
             : null;
           if (id) {
-            send(
+            connection_resolvers.push(
               JSON.stringify({
                 op: "userLogin",
                 args: {
@@ -397,7 +391,6 @@ const StoreProvider = (props) => {
       });
     }
   }, [
-    send,
     action,
     enqueueSnackbar,
     getCloseOrders,
