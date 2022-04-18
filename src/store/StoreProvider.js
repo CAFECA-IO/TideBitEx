@@ -537,7 +537,7 @@ const StoreProvider = (props) => {
   };
 
   const start = useCallback(async () => {
-    console.log(`******** start [START] ********`);
+    // console.log(`******** start [START] ********`);
     connect();
     const id = location.pathname.includes("/markets/")
       ? location.pathname.replace("/markets/", "")
@@ -546,7 +546,7 @@ const StoreProvider = (props) => {
     await selectTickerHandler(ticker);
     await getTickers();
     await getAccounts();
-    console.log(`******** start [END] ********`);
+    // console.log(`******** start [END] ********`);
   }, [
     connect,
     getTicker,
