@@ -7,68 +7,53 @@ const Events = require("../../constants/Events");
 const SupportedExchange = require("../../constants/SupportedExchange");
 const Utils = require("../Utils");
 const redis = require("redis");
+const path = require("path");
+const ResponseFormat = require("../ResponseFormat");
+const Codes = require("../../constants/Codes");
 
-class TibeBitConnector extends ConnectorBase {
-  constructor({ logger }) {
+class TideBitConnector extends ConnectorBase {
+  constructor({ config, database, logger, i18n }) {
     super({ logger });
     this.isStarted = false;
-    this.name = "TibeBitConnector";
-    return this;
-  }
-  async init({
-    app,
-    key,
-    secret,
-    wsHost,
-    port,
-    wsPort,
-    wssPort,
-    encrypted,
-    peatio,
-    markets,
-    database,
-    redis,
-  }) {
-    await super.init();
-    this.app = app;
-    this.key = key;
-    this.secret = secret;
-    this.wsHost = wsHost;
-    this.wsPort = wsPort;
-    this.wssPort = wssPort;
-    this.encrypted = encrypted;
-    this.peatio = peatio;
-    this.markets = markets;
+    this.name = "TideBitConnector";
     this.database = database;
-    this.redis = redis;
+    this.config = config;
     return this;
   }
 
-  async getOrderBooks({ header, instId }) {
-    if (!this.isStarted) this._start({ header });
-    // const response = await this.pusher.get({
-    //   path: `${this.peatio}/channels/market-${instId
-    //     .replace("-", "")
-    //     .toLowerCase()}-global`,
-    // });
-    const response = await axios({
-      method: "GET",
-      url: `${this.peatio}/apps/${this.app}/channels/market-${instId
-        .replace("-", "")
-        .toLowerCase()}-global`,
-      headers: header,
-    });
-    if (response.status === 200) {
-      const body = await response.json();
-      const channelsInfo = body.channels;
-      this.logger.log(`getOrderBooks response`, response);
-      this.logger.log(`getOrderBooks channelsInfo`, channelsInfo);
+  async init() {
+    this.tidebitMarkets = this.getTidebitMarkets();
+    this.currencies = await this.database.getCurrencies();
+    return this;
+  }
+
+  getTidebitMarkets() {
+    try {
+      const p = path.join(
+        this.config.base.TideBitLegacyPath,
+        "config/markets/markets.yml"
+      );
+      const markets = Utils.marketParser(p);
+      const formatMarkets = markets.map((market) => {
+        const instId = market.name.split("/").join("-").toUpperCase();
+        return {
+          ...market,
+          instId,
+          state: market.visible,
+          group: market.tab_category,
+          source: SupportedExchange.TIDEBIT,
+        };
+      });
+      return formatMarkets;
+    } catch (error) {
+      this.logger.error(error);
+      process.exit(1);
     }
   }
 
-  async getMemberIdFromRedis(peatioSession) {
+  async getMemberIdFromRedis({ token }) {
     const client = redis.createClient({
-      url: this.redis,
+      url: this.config.redis.domain,
     });
 
     client.on("error", (err) => this.logger.error("Redis Client Error", err));
@@ -77,7 +62,7 @@ class TibeBitConnector extends ConnectorBase {
       await client.connect(); // 會因為連線不到卡住
       const value = await client.get(
         redis.commandOptions({ returnBuffers: true }),
-        peatioSession
+        token
       );
       await client.quit();
       // ++ TODO: 下面補error handle
@@ -97,15 +82,329 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
+  // account api
+  async getBalance({ token }) {
+    try {
+      const memberId = await this.getMemberIdFromRedis(token);
+      // if (memberId === -1) throw new Error("get member_id fail");
+      if (memberId === -1) {
+        this.logger.error(
+          `[${this.name} getBalance] error: "get member_id fail`
+        );
+        return null;
+      }
+      const accounts = await this.database.getBalance(memberId);
+      const details = accounts.map((account, i) => ({
+        ccy: this.currencies.find((curr) => curr.id === account.currency)
+          .symbol,
+        availBal: Utils.removeZeroEnd(account.balance),
+        totalBal: SafeMath.plus(account.balance, account.locked),
+        frozenBal: Utils.removeZeroEnd(account.locked),
+        uTime: new Date(account.updated_at).getTime(),
+      }));
+      return new ResponseFormat({
+        message: "getBalance",
+        payload: details,
+      });
+    } catch (error) {
+      return new ResponseFormat({
+        message: error.message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
+  async getTicker({ query }) {
+    try {
+      const response = await axios.get(
+        `${this.config.peatio.domain}/api/v2/tickers/${query.id}`
+      );
+      if (!response || !response.data) {
+        return new ResponseFormat({
+          message: "Something went wrong",
+          code: Codes.API_UNKNOWN_ERROR,
+        });
+      }
+      const tBTicker = response.data;
+      const change = SafeMath.minus(tBTicker.ticker.last, tBTicker.ticker.open);
+      const changePct = SafeMath.gt(tBTicker.ticker.open, "0")
+        ? SafeMath.div(change, tBTicker.ticker.open)
+        : SafeMath.eq(change, "0")
+        ? "0"
+        : "1";
+      const formatTBTicker = {
+        id: query.id,
+        instId: query.instId,
+        name: query.instId.replace("-", "/"),
+        base_unit: query.instId.split("-")[0].toLowerCase(),
+        quote_unit: query.instId.split("-")[1].toLowerCase(),
+        ...tBTicker.ticker,
+        at: tBTicker.at,
+        change,
+        changePct,
+        volume: tBTicker.ticker.vol.toString(),
+        source: SupportedExchange.TIDEBIT,
+        group: undefined,
+      };
+      this.logger.log(`formatTBTicker`, formatTBTicker);
+      this.logger.log(`****----**** getTicker [START] ****----****`);
+      return new ResponseFormat({
+        message: "getTicker",
+        payload: formatTBTicker,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      return new ResponseFormat({
+        message: error.stack,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
+  async getTickers() {
+    try {
+      const response = await axios.get(
+        `${this.config.peatio.domain}/api/v2/tickers`
+      );
+      if (!response || !response.data) {
+        throw Error("Something went wrong");
+      }
+      const tBTickers = response.data;
+      return tBTickers;
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
+  }
+
+  async getOrderBooks({ query }) {
+    try {
+      const response = await axios({
+        method: "GET",
+        url: `${this.config.peatio}/api/v2/order_book?market=${query.id}`,
+      });
+      if (!response || !response.data)
+        return new ResponseFormat({
+          message: "Something went wrong",
+          code: Codes.API_UNKNOWN_ERROR,
+        });
+      const tbBooks = response.data;
+      const asks = [];
+      const bids = [];
+      this.logger.log(`tbBooks market`, query.id);
+
+      tbBooks.asks.forEach((ask) => {
+        if (
+          ask.market === query.id &&
+          ask.ord_type === "limit" &&
+          ask.state === "wait"
+        ) {
+          let index;
+          index = asks.findIndex((_ask) =>
+            SafeMath.eq(_ask[0], ask.price.toString())
+          );
+          if (index !== -1) {
+            let updateAsk = asks[index];
+            updateAsk[1] = SafeMath.plus(updateAsk[1], ask.remaining_volume);
+            asks[index] = updateAsk;
+          } else {
+            let newAsk = [ask.price.toString(), ask.remaining_volume]; // [價格, volume]
+            asks.push(newAsk);
+          }
+        }
+      });
+      tbBooks.bids.forEach((bid) => {
+        if (
+          bid.market === query.id &&
+          bid.ord_type === "limit" &&
+          bid.state === "wait"
+        ) {
+          let index;
+          index = bids.findIndex((_bid) =>
+            SafeMath.eq(_bid[0], bid.price.toString())
+          );
+          if (index !== -1) {
+            let updateBid = bids[index];
+            updateBid[1] = SafeMath.plus(updateBid[1], bid.remaining_volume);
+            bids[index] = updateBid;
+          } else {
+            let newBid = [bid.price.toString(), bid.remaining_volume]; // [價格, volume]
+            bids.push(newBid);
+          }
+        }
+      });
+      const books = { asks, bids, ts: new Date().toISOString() };
+      return new ResponseFormat({
+        message: "getOrderBooks",
+        payload: books,
+      });
+    } catch (error) {
+      return new ResponseFormat({
+        message: "Something went wrong",
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
+  async _tbGetOrderList({ memberId, instId, state, orderType }) {
+    const market = this._findMarket(instId);
+    if (!market) {
+      throw new Error(`this.tidebitMarkets.instId ${instId} not found.`);
+    }
+    const { id: bid } = await this.database.getCurrencyByKey(market.quote_unit);
+    const { id: ask } = await this.database.getCurrencyByKey(market.base_unit);
+    if (!bid) {
+      throw new Error(`bid not found`);
+    }
+    if (!ask) {
+      throw new Error(`ask not found`);
+    }
+    let orderList;
+    if (memberId) {
+      orderList = await this.database.getOrderList({
+        quoteCcy: bid,
+        baseCcy: ask,
+        state,
+        memberId,
+      });
+    } else {
+      orderList = await this.database.getOrderList({
+        quoteCcy: bid,
+        baseCcy: ask,
+        state,
+        orderType,
+      });
+    }
+    const orders = orderList.map((order) => ({
+      cTime: new Date(order.created_at).getTime(),
+      clOrdId: order.id,
+      instId: instId,
+      ordId: order.id,
+      ordType: order.ord_type,
+      px: Utils.removeZeroEnd(order.price),
+      side: order.type === "OrderAsk" ? "sell" : "buy",
+      sz: Utils.removeZeroEnd(
+        state === this.database.ORDER_STATE.DONE
+          ? order.origin_volume
+          : order.volume
+      ),
+      filled: order.volume !== order.origin_volume,
+      uTime: new Date(order.updated_at).getTime(),
+      state:
+        state === this.database.ORDER_STATE.CANCEL
+          ? "canceled"
+          : state === this.database.ORDER_STATE.DONE
+          ? "done"
+          : "waiting",
+    }));
+    return orders;
+  }
+
+  async getOrderList({ memberId, query }) {
+    try {
+      const orders = await this._tbGetOrderList({
+        instId: query.instId,
+        memberId,
+        state: this.database.ORDER_STATE.WAIT,
+      });
+      return new ResponseFormat({
+        message: "getOrderList",
+        payload: orders.sort((a, b) => b.cTime - a.cTime),
+      });
+    } catch (error) {
+      this.logger.error(error);
+      const message = error.message;
+      return new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
+  async getOrderHistory({ memberId, query }) {
+    try {
+      const cancelOrders = await this._tbGetOrderList({
+        instId: query.instId,
+        memberId,
+        state: this.database.ORDER_STATE.CANCEL,
+      });
+      const doneOrders = await this._tbGetOrderList({
+        instId: query.instId,
+        memberId,
+        state: this.database.ORDER_STATE.DONE,
+      });
+      const vouchers = await this.database.getVouchers({
+        memberId,
+        ask: query.instId.split("-")[0],
+        bid: query.instId.split("-")[1],
+      });
+      const orders = doneOrders
+        .map((order) => {
+          if (order.ordType === "market") {
+            return {
+              ...order,
+              px: Utils.removeZeroEnd(
+                vouchers?.find((voucher) => voucher.order_id === order.ordId)
+                  ?.price
+              ),
+            };
+          } else {
+            return order;
+          }
+        })
+        .concat(cancelOrders)
+        .sort((a, b) => b.cTime - a.cTime);
+      return new ResponseFormat({
+        message: "getOrderHistory",
+        payload: orders,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      const message = error.message;
+      return new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
+  async getTrades({ query }) {
+    try {
+      const tbTradesRes = await axios.get(
+        `${this.config.peatio.domain}/api/v2/trades?market=${query.id}`
+      );
+      if (!tbTradesRes || !tbTradesRes.data) {
+        return new ResponseFormat({
+          message: "Something went wrong",
+          code: Codes.API_UNKNOWN_ERROR,
+        });
+      }
+      const tbTrades = tbTradesRes.data.sort((a, b) =>
+        query.increase ? a.at - b.at : b.at - a.at
+      );
+      return new ResponseFormat({
+        message: "getTrades",
+        payload: tbTrades,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      const message = error.message;
+      return new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
   _start(headers) {
-    this.pusher = new Pusher(this.key, {
+    this.pusher = new Pusher(this.config.pusher.key, {
       //   appId: app,
       //   key,
       //   secret,
-      encrypted: this.encrypted,
-      wsHost: this.wsHost,
-      wsPort: this.wsPort,
-      wssPort: this.wssPort,
+      encrypted: this.config.pusher.encrypted,
+      wsHost: this.config.pusher.wsHost,
+      wsPort: this.config.pusher.wsPort,
+      wssPort: this.config.pusher.wssPort,
       disableFlash: true,
       disableStats: true,
       // enabledTransports: ["ws"],
@@ -120,7 +419,7 @@ class TibeBitConnector extends ConnectorBase {
                   channel_name: channel.name,
                 });
                 axios({
-                  url: `${this.peatio}/pusher/auth`,
+                  url: `${this.config.peatio}/pusher/auth`,
                   method: "POST",
                   headers: {
                     ...headers,
@@ -503,6 +802,28 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
+  async router(
+    functionName,
+    { header, params, query, body, memberId, orderId, token }
+  ) {
+    if (!this[functionName]) {
+      return new ResponseFormat({
+        message: "API_NOT_SUPPORTED",
+        code: Codes.API_NOT_SUPPORTED,
+      });
+    }
+
+    return this[functionName]({
+      header,
+      params,
+      query,
+      body,
+      memberId,
+      orderId,
+      token,
+    });
+  }
+
   async _subscribeUser(credential) {
     this.logger.log(`++++++++++_subscribeUser++++++++++++`);
     this.logger.log(`credential`, credential);
@@ -534,8 +855,8 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _findInstId(id) {
-    return this.markets[id.toUpperCase()];
+    return this.config.markets[id.toUpperCase()];
   }
 }
 
-module.exports = TibeBitConnector;
+module.exports = TideBitConnector;

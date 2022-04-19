@@ -272,6 +272,7 @@ class OkexConnector extends ConnectorBase {
           source: SupportedExchange.OKEX,
         };
       });
+      this.tickers = payload;
       return new ResponseFormat({
         message: "getTickers",
         payload,
