@@ -39,6 +39,7 @@ class ExchangeHub extends Bot {
         i18n,
       });
       await this.tidebitConnector.init();
+      return this;
     });
   }
 
