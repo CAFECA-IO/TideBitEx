@@ -58,7 +58,8 @@ class ExchangeHub extends Bot {
 
   // account api
   async getBalance({ token }) {
-    return this.tidebitConnector.router("getBalance", { token });
+    const memberId = await this.getMemberIdFromRedis(token);
+    return this.tidebitConnector.router("getBalance", { memberId });
   }
 
   async getTicker({ params, query }) {
