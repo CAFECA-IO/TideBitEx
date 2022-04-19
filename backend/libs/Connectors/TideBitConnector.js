@@ -83,9 +83,9 @@ class TideBitConnector extends ConnectorBase {
   }
 
   // account api
-  async getBalance({ token }) {
+  async getBalance({ memberId }) {
     try {
-      const memberId = await this.getMemberIdFromRedis(token);
+      // const memberId = await this.getMemberIdFromRedis(token);
       // if (memberId === -1) throw new Error("get member_id fail");
       if (memberId === -1) {
         this.logger.error(
