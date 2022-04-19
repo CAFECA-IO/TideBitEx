@@ -181,8 +181,9 @@ class TideBitConnector extends ConnectorBase {
     try {
       const response = await axios({
         method: "GET",
-        url: `${this.config.peatio}/api/v2/order_book?market=${query.id}`,
+        url: `${this.config.peatio.domain}/api/v2/order_book?market=${query.id}`,
       });
+      this.logger.log(`getOrderBooks `)
       if (!response || !response.data)
         return new ResponseFormat({
           message: "Something went wrong",
@@ -419,7 +420,7 @@ class TideBitConnector extends ConnectorBase {
                   channel_name: channel.name,
                 });
                 axios({
-                  url: `${this.config.peatio}/pusher/auth`,
+                  url: `${this.config.peatio.domain}/pusher/auth`,
                   method: "POST",
                   headers: {
                     ...headers,
