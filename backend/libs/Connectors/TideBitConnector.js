@@ -183,7 +183,7 @@ class TideBitConnector extends ConnectorBase {
         method: "GET",
         url: `${this.config.peatio.domain}/api/v2/order_book?market=${query.id}`,
       });
-      this.logger.log(`getOrderBooks `)
+      this.logger.log(`getOrderBooks url`, `${this.config.peatio.domain}/api/v2/order_book?market=${query.id}`)
       if (!response || !response.data)
         return new ResponseFormat({
           message: "Something went wrong",

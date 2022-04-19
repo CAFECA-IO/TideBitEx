@@ -203,7 +203,7 @@ class ExchangeHub extends Bot {
         });
       case SupportedExchange.TIDEBIT:
         return this.tidebitConnector.router("getOrderBooks", {
-          query: query.id,
+          query,
         });
       default:
         return new ResponseFormat({
