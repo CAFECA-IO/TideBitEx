@@ -135,18 +135,13 @@ const StoreProvider = (props) => {
   const connect = useCallback(() => {
     const ws = new WebSocket(Config[Config.status].websocket);
     let interval;
-
     ws.addEventListener("open", () => {
       clearInterval(interval);
       const data = connection_resolvers.shift();
-      // console.log(`open data1`, data);
       if (data) ws.send(data);
-      // console.log(`open connection_resolvers1`, connection_resolvers);
       interval = setInterval(() => {
         const data = connection_resolvers.shift();
-        // console.log(`open data2`, data);
         if (data) ws.send(data);
-        // console.log(`open connection_resolvers2`, connection_resolvers);
       }, 1000);
     });
     ws.addEventListener("close", (msg) => {
@@ -299,7 +294,7 @@ const StoreProvider = (props) => {
 
   const selectTickerHandler = useCallback(
     async (ticker) => {
-      console.log(`****^^^^**** selectTickerHandler [START] ****^^^^****`);
+      // console.log(`****^^^^**** selectTickerHandler [START] ****^^^^****`);
       // console.log(`selectedTicker`, selectedTicker, !selectedTicker);
       // console.log(`ticker`, ticker, ticker.id !== selectedTicker?.id);
       if (!selectedTicker || ticker.id !== selectedTicker?.id) {
