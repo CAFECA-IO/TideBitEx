@@ -147,7 +147,7 @@ class TideBitConnector extends ConnectorBase {
         group: undefined,
       };
       this.logger.log(`formatTBTicker`, formatTBTicker);
-      this.logger.log(`****----**** getTicker [START] ****----****`);
+      this.logger.log(`****----**** getTicker [END] ****----****`);
       return new ResponseFormat({
         message: "getTicker",
         payload: formatTBTicker,
