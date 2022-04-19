@@ -857,11 +857,9 @@ class TideBitConnector extends ConnectorBase {
   _findInstId(id) {
     return this.config.markets[id.toUpperCase()];
   }
-  
+
   _findMarket(instId) {
-    return this.tidebitConnector.tidebitMarkets.find(
-      (m) => m.instId === instId
-    );
+    return this.tidebitMarkets.find((m) => m.instId === instId);
   }
 }
 
