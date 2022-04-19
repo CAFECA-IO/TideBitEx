@@ -814,13 +814,13 @@ class TideBitConnector extends ConnectorBase {
     }
 
     return this[functionName]({
-      header,
-      params,
-      query,
-      body,
-      memberId,
-      orderId,
-      token,
+      header: header,
+      params: params,
+      query: query,
+      body: body,
+      memberId: memberId,
+      orderId: orderId,
+      token: token,
     });
   }
 
