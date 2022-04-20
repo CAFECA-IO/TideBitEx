@@ -977,7 +977,8 @@ class OkexConnector extends ConnectorBase {
         this.logger.log(`_updateTickers`, this.tickers[id], !this.tickers[id]);
         this.logger.log(
           `_updateTickers`,
-          !this.tickers[id] ||
+          !this.tickers ||
+            !this.tickers[id] ||
             this.tickers[id]?.last !== data.last ||
             this.tickers[id]?.open !== data.open24h ||
             this.tickers[id]?.high !== data.high24h ||
@@ -986,6 +987,7 @@ class OkexConnector extends ConnectorBase {
         );
 
         return (
+          !this.tickers ||
           !this.tickers[id] ||
           this.tickers[id]?.last !== data.last ||
           this.tickers[id]?.open !== data.open24h ||

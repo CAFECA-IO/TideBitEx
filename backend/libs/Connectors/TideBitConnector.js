@@ -238,6 +238,7 @@ class TibeBitConnector extends ConnectorBase {
     const updateTickers = {};
     Object.keys(data).forEach((id) => {
       if (
+        !this.tickers ||
         !this.tickers[id] ||
         this.tickers[id]?.last !== data[id].last ||
         this.tickers[id]?.open !== data[id].open ||
@@ -256,7 +257,10 @@ class TibeBitConnector extends ConnectorBase {
     });
 
     if (Object.keys(updateTickers).length > 0) {
-      this.logger.log(`[${this.name}]_updateTickers updateTickers`, updateTickers);
+      this.logger.log(
+        `[${this.name}]_updateTickers updateTickers`,
+        updateTickers
+      );
       EventBus.emit(Events.tickers, updateTickers);
     }
   }
