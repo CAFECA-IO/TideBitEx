@@ -43,6 +43,7 @@ class TibeBitConnector extends ConnectorBase {
     this.markets = markets;
     this.database = database;
     this.redis = redis;
+    this.tickers = {};
     return this;
   }
 
@@ -238,7 +239,6 @@ class TibeBitConnector extends ConnectorBase {
     const updateTickers = {};
     Object.keys(data).forEach((id) => {
       if (
-        !this.tickers ||
         !this.tickers[id] ||
         this.tickers[id]?.last !== data[id].last ||
         this.tickers[id]?.open !== data[id].open ||
