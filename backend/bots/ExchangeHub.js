@@ -1115,12 +1115,10 @@ class ExchangeHub extends Bot {
     // });
 
     // tickersOnUpdate
-    EventBus.on(Events.tickers, (formatTickers) => {
+    EventBus.on(Events.tickers, (updateTickers) => {
       this.broadcastAllClient({
         type: Events.tickers,
-        data: formatTickers.filter((ticker) =>
-          this._isIncludeTideBitMarket(ticker.instId)
-        ),
+        data: Utils.tickersFilterInclude(this.tidebitMarkets, updateTickers),
       });
     });
 
