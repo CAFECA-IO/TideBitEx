@@ -972,9 +972,13 @@ class OkexConnector extends ConnectorBase {
   }
 
   _updateTickers(tickerData) {
+    this.logger.log(`========== _updateTickers ==========`);
+    this.logger.log(`tickerData`, tickerData);
+    this.logger.log(`this.tickers`, this.tickers);
     const updateTickers = tickerData
       .filter((data) => {
         const id = data.instId.replace("-", "").toLowerCase();
+        this.logger.log(`this.tickers[id]`, this.tickers[id]);
         return (
           this.tickers[id] &&
           (this.tickers[id]?.last !== data.last ||
@@ -1014,10 +1018,10 @@ class OkexConnector extends ConnectorBase {
         return prev;
       }, {});
     if (Object.keys(updateTickers).length > 0) {
-      // this.logger.log(
-      //   `[${this.name}]_updateTickers updateTickers`,
-      //   updateTickers
-      // );
+      this.logger.log(
+        `[${this.name}]_updateTickers updateTickers`,
+        updateTickers
+      );
       EventBus.emit(Events.tickers, updateTickers);
     }
   }
