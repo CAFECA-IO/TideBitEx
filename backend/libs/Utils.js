@@ -721,11 +721,11 @@ class Utils {
     return doc;
   }
 
-  static tickersFilterInclude(masks, tickers) {
+  static tickersFilterInclude(masks, tickersObj) {
     let updateTickers = {};
-    Object.keys(tickers).forEach((id) => {
+    Object.keys(tickersObj).forEach((id) => {
       const maskData = masks.find((mask) => mask.id === id);
-      if (maskData) updateTickers[id] = tickers[id];
+      if (maskData) updateTickers[id] = tickersObj[id];
     });
     return updateTickers;
   }

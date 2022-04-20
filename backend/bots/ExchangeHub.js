@@ -295,12 +295,12 @@ class ExchangeHub extends Bot {
       });
       if (okexRes.success) {
         const okexTickers = okexRes.payload;
-        const filteredTickers = Utils.tickersFilterInclude(
+        const filteredOkexTickers = Utils.tickersFilterInclude(
           this.tidebitMarkets,
           okexTickers
         );
         // this.logger.debug(`filteredTickers`, filteredTickers);
-        list.push(...Object.values(filteredTickers));
+        list.push(...Object.values(filteredOkexTickers));
         // this.logger.debug(`getTickers list[${list.length}]`, list);
       } else {
         this.logger.error(okexRes);
@@ -326,41 +326,31 @@ class ExchangeHub extends Bot {
       ); // default visible is true, so if visible is undefined still need to show on list.
       const tBTickersRes = await this.tideBitConnector.router("getTickers", {});
       const tBTickers = tBTickersRes.payload;
-      const formatTBTickers = isVisibles.map((market) => {
+      const formatTBTickers = {};
+      isVisibles.forEach((market) => {
         const tBTicker = tBTickers[market.id];
-        const change = SafeMath.minus(tBTicker.last, tBTicker.open);
-        const changePct = SafeMath.gt(tBTicker.open, "0")
-          ? SafeMath.div(change, tBTicker.open)
-          : SafeMath.eq(change, "0")
-          ? "0"
-          : "1";
-        let formatTBTicker = {
-          ...market,
-          instType: "",
-          last: "0.0",
-          sell: "0.0",
-          buy: "0.0",
-          open: "0.0",
-          high: "0.0",
-          low: "0.0",
-          volume: "0.0",
-          at: "0.0",
-          change: "0.0",
-          changePct: "0.0",
-          group: market?.tab_category || market?.group,
-        };
-        if (tBTicker) {
-          formatTBTicker = {
-            ...tBTicker,
-            ...market,
-            volume: tBTicker.vol,
-            change,
-            changePct,
+        if (tBTicker) formatTBTickers[market.id] = tBTicker;
+        else
+          formatTBTickers[market.id] = {
+            name: market.name,
+            base_unit: market.base_unit,
+            quote_unit: market.quote_unit,
+            group: market.group,
+            low: "0.0",
+            high: "0.0",
+            last: "0.0",
+            open: "0.0",
+            volume: "0.0",
+            sell: "0.0",
+            buy: "0.0",
+            at: "0.0",
+            change: "0.0",
+            changePct: "0.0",
+            instId: this._findInstId(market.id),
           };
-        }
-        return formatTBTicker;
       });
-      list.push(...formatTBTickers);
+      this.logger.log(`formatTBTickers`, formatTBTickers)
+      list.push(...Object.values(formatTBTickers));
     } catch (error) {
       this.logger.error(error);
       return new ResponseFormat({

@@ -236,6 +236,9 @@ class TibeBitConnector extends ConnectorBase {
     at: 1649742406
   },}
     */
+    if (!this.tickers || this.tickers.length === 0) {
+      this.tickers = Object.values(data);
+    }
     const formatTickers = Object.values(data)
       .filter((d) => {
         let index = this.tickers?.findIndex((ticker) => ticker.name === d.name);
