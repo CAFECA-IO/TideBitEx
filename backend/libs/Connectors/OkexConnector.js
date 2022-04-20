@@ -973,13 +973,24 @@ class OkexConnector extends ConnectorBase {
     const updateTickers = tickerData
       .filter((data) => {
         const id = data.instId.replace("-", "").toLowerCase();
+        this.logger.log(`_updateTickers`, this.tickers[id], !this.tickers[id]);
+        this.logger.log(
+          `_updateTickers`,
+          !this.tickers[id] ||
+            this.tickers[id]?.last !== data.last ||
+            this.tickers[id]?.open !== data.open24h ||
+            this.tickers[id]?.high !== data.high24h ||
+            this.tickers[id]?.low !== data.low24h ||
+            this.tickers[id]?.volume !== data.vol24h
+        );
+
         return (
           !this.tickers[id] ||
-          this.tickers[id].last !== data.last ||
-          this.tickers[id].open !== data.open24h ||
-          this.tickers[id].high !== data.high24h ||
-          this.tickers[id].low !== data.low24h ||
-          this.tickers[id].volume !== data.vol24h
+          this.tickers[id]?.last !== data.last ||
+          this.tickers[id]?.open !== data.open24h ||
+          this.tickers[id]?.high !== data.high24h ||
+          this.tickers[id]?.low !== data.low24h ||
+          this.tickers[id]?.volume !== data.vol24h
         );
       })
       .reduce((prev, data) => {

@@ -239,11 +239,11 @@ class TibeBitConnector extends ConnectorBase {
     Object.keys(data).forEach((id) => {
       if (
         !this.tickers[id] ||
-        this.tickers[id].last !== data[id].last ||
-        this.tickers[id].open !== data[id].open ||
-        this.tickers[id].high !== data[id].high ||
-        this.tickers[id].low !== data[id].low ||
-        this.tickers[id].volume !== data[id].volume
+        this.tickers[id]?.last !== data[id].last ||
+        this.tickers[id]?.open !== data[id].open ||
+        this.tickers[id]?.high !== data[id].high ||
+        this.tickers[id]?.low !== data[id].low ||
+        this.tickers[id]?.volume !== data[id].volume
       ) {
         const change = SafeMath.minus(data[id].last, data[id].open);
         const changePct = SafeMath.gt(data[id].open, "0")
