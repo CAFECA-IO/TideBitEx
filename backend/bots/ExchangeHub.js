@@ -320,9 +320,10 @@ class ExchangeHub extends Bot {
       const isVisibles = tideBitOnlyMarkets.filter(
         (m) => m.visible === true || m.visible === undefined
       ); // default visible is true, so if visible is undefined still need to show on list.
-      filteredTBTickers = await this.tideBitConnector.router("getTickers", {
+      const tBTickersRes = await this.tideBitConnector.router("getTickers", {
         optional: { mask: isVisibles },
       });
+      filteredTBTickers = tBTickersRes.payload;
       // this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
       this.logger.log(`filteredTBTickers`, filteredTBTickers);
       this.logger.debug(
