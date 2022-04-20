@@ -166,7 +166,7 @@ class TibeBitConnector extends ConnectorBase {
 
   async getTickers() {
     const tBTickersRes = await axios.get(
-      `${this.config.peatio.domain}/api/v2/tickers`
+      `${this.peatio}/api/v2/tickers`
     );
     if (!tBTickersRes || !tBTickersRes.data) {
       return new ResponseFormat({
