@@ -200,7 +200,7 @@ class OkexConnector extends ConnectorBase {
         };
       });
       return new ResponseFormat({
-        message: "getTickers",
+        message: "getTicker",
         payload,
       });
     } catch (error) {
@@ -241,7 +241,7 @@ class OkexConnector extends ConnectorBase {
         });
       }
       const defaultObj = {};
-      const payload = res.data.data.reduce((prev, data) => {
+      const tickers = res.data.data.reduce((prev, data) => {
         const change = SafeMath.minus(data.last, data.open24h);
         const changePct = SafeMath.gt(data.open24h, "0")
           ? SafeMath.div(change, data.open24h)
@@ -272,10 +272,10 @@ class OkexConnector extends ConnectorBase {
         };
         return prev;
       }, defaultObj);
+      this.tickers = tickers;
       return new ResponseFormat({
         message: "getTickers",
-        // payload: Object.values(payload),
-        payload,
+        payload: tickers,
       });
     } catch (error) {
       this.logger.error(error);
@@ -970,36 +970,54 @@ class OkexConnector extends ConnectorBase {
   }
 
   _updateTickers(tickerData) {
-    const formatTickers = tickerData.map((data) => {
-      const change = SafeMath.minus(data.last, data.open24h);
-      const changePct = SafeMath.gt(data.open24h, "0")
-        ? SafeMath.div(change, data.open24h)
-        : SafeMath.eq(change, "0")
-        ? "0"
-        : "1";
-      return {
-        id: data.instId.replace("-", "/").toLowerCase,
-        instId: data.instId,
-        name: data.instId.replace("-", "/"),
-        base_unit: data.instId.split("-")[0].toLowerCase(),
-        quote_unit: data.instId.split("-")[1].toLowerCase(),
-        group:
-          data.instId.split("-")[1].toLowerCase().includes("usd") &&
-          data.instId.split("-")[1].toLowerCase().length > 3
-            ? "usdx"
-            : data.instId.split("-")[1].toLowerCase(),
-        last: data.last,
-        change,
-        changePct,
-        open: data.open24h,
-        high: data.high24h,
-        low: data.low24h,
-        volume: data.vol24h,
-        at: parseInt(data.ts),
-        source: SupportedExchange.OKEX,
-      };
-    });
-    EventBus.emit(Events.tickers, formatTickers);
+    const updateTickers = tickerData
+      .filter((data) => {
+        const id = data.instId.replace("-", "").toLowerCase();
+        return (
+          !this.tickers[id] ||
+          this.tickers[id].last !== data.last ||
+          this.tickers[id].open !== data.open24h ||
+          this.tickers[id].high !== data.high24h ||
+          this.tickers[id].low !== data.low24h ||
+          this.tickers[id].volume !== data.vol24h
+        );
+      })
+      .reduce((prev, data) => {
+        const change = SafeMath.minus(data.last, data.open24h);
+        const changePct = SafeMath.gt(data.open24h, "0")
+          ? SafeMath.div(change, data.open24h)
+          : SafeMath.eq(change, "0")
+          ? "0"
+          : "1";
+        prev[data.instId.replace("-", "/").toLowerCase] = {
+          instId: data.instId,
+          name: data.instId.replace("-", "/"),
+          base_unit: data.instId.split("-")[0].toLowerCase(),
+          quote_unit: data.instId.split("-")[1].toLowerCase(),
+          group:
+            data.instId.split("-")[1].toLowerCase().includes("usd") &&
+            data.instId.split("-")[1].toLowerCase().length > 3
+              ? "usdx"
+              : data.instId.split("-")[1].toLowerCase(),
+          last: data.last,
+          change,
+          changePct,
+          open: data.open24h,
+          high: data.high24h,
+          low: data.low24h,
+          volume: data.vol24h,
+          at: parseInt(data.ts),
+          source: SupportedExchange.OKEX,
+        };
+        return prev;
+      }, {});
+    if (Object.keys(updateTickers).length > 0) {
+      this.logger.log(
+        `[${this.name}]_updateTickers updateTickers`,
+        updateTickers
+      );
+      EventBus.emit(Events.tickers, updateTickers);
+    }
   }
 
   _subscribeInstruments() {

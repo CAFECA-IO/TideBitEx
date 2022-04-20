@@ -362,7 +362,7 @@ class ExchangeHub extends Bot {
     }
     return new ResponseFormat({
       message: "getTickers",
-      payload: Object.values({ ...filteredOkexTickers, ...filteredTBTickers }),
+      payload: { ...filteredOkexTickers, ...filteredTBTickers },
     });
   }
 

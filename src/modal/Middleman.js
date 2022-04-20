@@ -22,7 +22,7 @@ class Middleman {
     let updateTicker,
       updateTickers = this.tickers.map((t) => ({ ...t, update: false }));
     // console.log(`updateTickers`, updateTickers);
-    tickers.forEach(async (t) => {
+    Object.values(tickers).forEach(async (t) => {
       const i = this.tickers.findIndex((ticker) => ticker.instId === t.instId);
       if (i === -1) {
         updateTickers.push({ ...t, update: true });
@@ -85,7 +85,8 @@ class Middleman {
     }
     try {
       rawTickers = await this.communicator.tickers(instType, from, limit);
-      this.tickers = rawTickers.map((t) => {
+      this.rawTickers = rawTickers;
+      this.tickers = Object.values(rawTickers).map((t) => {
         let instrument = instruments.find((i) => i.instId === t.instId);
         return { ...t, minSz: instrument?.minSz || "0.001" };
       });

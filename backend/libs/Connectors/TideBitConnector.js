@@ -209,8 +209,7 @@ class TibeBitConnector extends ConnectorBase {
       };
       return prev;
     }, {});
-    // this.tickers = formatTickers;
-    this.tickers = Object.values(formatTickers);
+    this.tickers = formatTickers;
     return new ResponseFormat({
       message: "getTickers",
       payload: formatTickers,
@@ -236,43 +235,29 @@ class TibeBitConnector extends ConnectorBase {
     at: 1649742406
   },}
     */
-    if (!this.tickers || this.tickers.length === 0) {
-      this.tickers = Object.values(data);
-    }
-    const formatTickers = Object.values(data)
-      .filter((d) => {
-        let index = this.tickers?.findIndex((ticker) => ticker.name === d.name);
-        if (
-          index === -1 ||
-          this.tickers[index].last !== d.last ||
-          this.tickers[index].open !== d.open ||
-          this.tickers[index].close !== d.close ||
-          this.tickers[index].high !== d.high ||
-          this.tickers[index].low !== d.low ||
-          this.tickers[index].volume !== d.volume
-        ) {
-          this.tickers[index] = d;
-          return true;
-        } else return false;
-      })
-      .map((d) => {
-        const change = SafeMath.minus(d.last, d.open);
-        const changePct = SafeMath.gt(d.open24h, "0")
-          ? SafeMath.div(change, d.open24h)
+    const updateTickers = {};
+    Object.keys(data).forEach((id) => {
+      if (
+        !this.tickers[id] ||
+        this.tickers[id].last !== data[id].last ||
+        this.tickers[id].open !== data[id].open ||
+        this.tickers[id].high !== data[id].high ||
+        this.tickers[id].low !== data[id].low ||
+        this.tickers[id].volume !== data[id].volume
+      ) {
+        const change = SafeMath.minus(data[id].last, data[id].open);
+        const changePct = SafeMath.gt(data[id].open, "0")
+          ? SafeMath.div(change, data[id].open)
           : SafeMath.eq(change, "0")
           ? "0"
           : "1";
-        return {
-          ...d,
-          instId: d.name.replace("/", "-"),
-          change,
-          changePct,
-          source: SupportedExchange.TIDEBIT,
-        };
-      });
-    if (formatTickers.length > 0) {
-      this.logger.log(`_updateTickers formatTickers`, formatTickers);
-      EventBus.emit(Events.tickers, formatTickers);
+        updateTickers[id] = { ...data[id], change, changePct };
+      }
+    });
+
+    if (Object.keys(updateTickers).length > 0) {
+      this.logger.log(`[${this.name}]_updateTickers updateTickers`, updateTickers);
+      EventBus.emit(Events.tickers, updateTickers);
     }
   }
 
