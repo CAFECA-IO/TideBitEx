@@ -1116,9 +1116,11 @@ class ExchangeHub extends Bot {
 
     // tickersOnUpdate
     EventBus.on(Events.tickers, (updateTickers) => {
+      const filteredTickers = Utils.tickersFilterInclude(this.tidebitMarkets, updateTickers)
+      this.logger.log(`[${this.name} Events.tickers]`, filteredTickers)
       this.broadcastAllClient({
         type: Events.tickers,
-        data: Utils.tickersFilterInclude(this.tidebitMarkets, updateTickers),
+        data: filteredTickers,
       });
     });
 
