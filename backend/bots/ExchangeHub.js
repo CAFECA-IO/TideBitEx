@@ -285,7 +285,7 @@ class ExchangeHub extends Bot {
   }
   // account api end
   // market api
-  async getTickers({ params, query }) {
+  async getTickers({ query }) {
     let filteredOkexTickers,
       filteredTBTickers = {};
     this.logger.debug(
@@ -293,15 +293,11 @@ class ExchangeHub extends Bot {
     );
     try {
       const okexRes = await this.okexConnector.router("getTickers", {
-        params,
         query,
+        optional: { mask: this.tidebitMarkets },
       });
       if (okexRes.success) {
-        const okexTickers = okexRes.payload;
-        filteredOkexTickers = Utils.tickersFilterInclude(
-          this.tidebitMarkets,
-          okexTickers
-        );
+        filteredOkexTickers = okexRes.payload;
       } else {
         this.logger.error(okexRes);
         return new ResponseFormat({
@@ -324,32 +320,11 @@ class ExchangeHub extends Bot {
       const isVisibles = tideBitOnlyMarkets.filter(
         (m) => m.visible === true || m.visible === undefined
       ); // default visible is true, so if visible is undefined still need to show on list.
-      const tBTickersRes = await this.tideBitConnector.router("getTickers", {});
-      const tBTickers = tBTickersRes.payload;
-      isVisibles.forEach((market) => {
-        const tBTicker = tBTickers[market.id];
-        if (tBTicker) filteredTBTickers[market.id] = tBTicker;
-        else
-          filteredTBTickers[market.id] = {
-            name: market.name,
-            base_unit: market.base_unit,
-            quote_unit: market.quote_unit,
-            group: market.group,
-            low: "0.0",
-            high: "0.0",
-            last: "0.0",
-            open: "0.0",
-            volume: "0.0",
-            sell: "0.0",
-            buy: "0.0",
-            at: "0.0",
-            change: "0.0",
-            changePct: "0.0",
-            instId: this._findInstId(market.id),
-          };
+      filteredTBTickers = await this.tideBitConnector.router("getTickers", {
+        optional: { mask: isVisibles },
       });
-      // this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
-      // this.logger.log(`filteredTBTickers`, filteredTBTickers);
+      this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
+      this.logger.log(`filteredTBTickers`, filteredTBTickers);
       this.logger.debug(
         `*********** [${this.name}] getTickers [END] ************`
       );
@@ -1116,11 +1091,11 @@ class ExchangeHub extends Bot {
 
     // tickersOnUpdate
     EventBus.on(Events.tickers, (updateTickers) => {
-      const filteredTickers = Utils.tickersFilterInclude(this.tidebitMarkets, updateTickers)
-      this.logger.log(`[${this.name} Events.tickers]`, filteredTickers)
+      // const filteredTickers = Utils.tickersFilterInclude(this.tidebitMarkets, updateTickers)
+      // this.logger.log(`[${this.name} Events.tickers]`, filteredTickers)
       this.broadcastAllClient({
         type: Events.tickers,
-        data: filteredTickers,
+        data: updateTickers,
       });
     });
 

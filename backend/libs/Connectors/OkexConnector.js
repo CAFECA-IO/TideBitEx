@@ -10,6 +10,7 @@ const EventBus = require("../EventBus");
 const Events = require("../../constants/Events");
 const SafeMath = require("../SafeMath");
 const SupportedExchange = require("../../constants/SupportedExchange");
+const Utils = require("../Utils");
 
 const HEART_BEAT_TIME = 25000;
 
@@ -217,7 +218,7 @@ class OkexConnector extends ConnectorBase {
   }
   // account api end
   // market api
-  async getTickers({ query }) {
+  async getTickers({ query, optional }) {
     const method = "GET";
     const path = "/api/v5/market/tickers";
     const { instType, uly } = query;
@@ -273,7 +274,7 @@ class OkexConnector extends ConnectorBase {
         };
         return prev;
       }, defaultObj);
-      this.tickers = tickers;
+      this.tickers = Utils.tickersFilterInclude(optional.mask, tickers);
       return new ResponseFormat({
         message: "getTickers",
         payload: tickers,
@@ -975,12 +976,12 @@ class OkexConnector extends ConnectorBase {
       .filter((data) => {
         const id = data.instId.replace("-", "").toLowerCase();
         return (
-          !this.tickers[id] ||
-          this.tickers[id]?.last !== data.last ||
-          this.tickers[id]?.open !== data.open24h ||
-          this.tickers[id]?.high !== data.high24h ||
-          this.tickers[id]?.low !== data.low24h ||
-          this.tickers[id]?.volume !== data.vol24h
+          this.tickers[id] &&
+          (this.tickers[id]?.last !== data.last ||
+            this.tickers[id]?.open !== data.open24h ||
+            this.tickers[id]?.high !== data.high24h ||
+            this.tickers[id]?.low !== data.low24h ||
+            this.tickers[id]?.volume !== data.vol24h)
         );
       })
       .reduce((prev, data) => {

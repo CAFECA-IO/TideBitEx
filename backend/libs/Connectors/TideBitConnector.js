@@ -165,7 +165,7 @@ class TibeBitConnector extends ConnectorBase {
     if (headers) this.isCredential = true;
   }
 
-  async getTickers() {
+  async getTickers({ optional }) {
     const tBTickersRes = await axios.get(`${this.peatio}/api/v2/tickers`);
     if (!tBTickersRes || !tBTickersRes.data) {
       return new ResponseFormat({
@@ -174,46 +174,65 @@ class TibeBitConnector extends ConnectorBase {
       });
     }
     const tBTickers = tBTickersRes.data;
-    const formatTickers = Object.keys(tBTickers).reduce((prev, currId) => {
-      const instId = this._findInstId(currId);
-      const tickerObj = tBTickers[currId];
-      const change = SafeMath.minus(
-        tickerObj.ticker.last,
-        tickerObj.ticker.open
-      );
-      const changePct = SafeMath.gt(tickerObj.ticker.open, "0")
-        ? SafeMath.div(change, tickerObj.ticker.open)
-        : SafeMath.eq(change, "0")
-        ? "0"
-        : "1";
-      prev[currId] = {
-        instId,
-        name: instId.replace("-", "/"),
-        base_unit: instId.split("-")[0].toLowerCase(),
-        quote_unit: instId.split("-")[1].toLowerCase(),
-        group:
-          instId.split("-")[1].toLowerCase().includes("usd") &&
-          instId.split("-")[1].toLowerCase().length > 3
-            ? "usdx"
-            : instId.split("-")[1].toLowerCase(),
-        buy: tickerObj.ticker.buy,
-        sell: tickerObj.ticker.sell,
-        low: tickerObj.ticker.low,
-        high: tickerObj.ticker.high,
-        last: tickerObj.ticker.last,
-        open: tickerObj.ticker.open,
-        volume: tBTickers[currId].ticker.vol,
-        change,
-        changePct,
-        at: parseInt(tickerObj.at),
-        source: SupportedExchange.TIDEBIT,
-      };
-      return prev;
-    }, {});
-    this.tickers = formatTickers;
+    const filteredTBTickers = {};
+    optional.mask.forEach((market) => {
+      const tickerObj = tBTickers[market.id];
+      if (tickerObj) {
+        const instId = this._findInstId(market.id);
+        const change = SafeMath.minus(
+          tickerObj.ticker.last,
+          tickerObj.ticker.open
+        );
+        const changePct = SafeMath.gt(tickerObj.ticker.open, "0")
+          ? SafeMath.div(change, tickerObj.ticker.open)
+          : SafeMath.eq(change, "0")
+          ? "0"
+          : "1";
+        filteredTBTickers[market.id] = {
+          instId,
+          name: instId.replace("-", "/"),
+          base_unit: instId.split("-")[0].toLowerCase(),
+          quote_unit: instId.split("-")[1].toLowerCase(),
+          group:
+            instId.split("-")[1].toLowerCase().includes("usd") &&
+            instId.split("-")[1].toLowerCase().length > 3
+              ? "usdx"
+              : instId.split("-")[1].toLowerCase(),
+          buy: tickerObj.ticker.buy,
+          sell: tickerObj.ticker.sell,
+          low: tickerObj.ticker.low,
+          high: tickerObj.ticker.high,
+          last: tickerObj.ticker.last,
+          open: tickerObj.ticker.open,
+          volume: tickerObj.ticker.vol,
+          change,
+          changePct,
+          at: parseInt(tickerObj.at),
+          source: SupportedExchange.TIDEBIT,
+        };
+      } else
+        filteredTBTickers[market.id] = {
+          name: market.name,
+          base_unit: market.base_unit,
+          quote_unit: market.quote_unit,
+          group: market.group,
+          low: "0.0",
+          high: "0.0",
+          last: "0.0",
+          open: "0.0",
+          volume: "0.0",
+          sell: "0.0",
+          buy: "0.0",
+          at: "0.0",
+          change: "0.0",
+          changePct: "0.0",
+          instId: this._findInstId(market.id),
+        };
+    });
+    this.tickers = filteredTBTickers;
     return new ResponseFormat({
       message: "getTickers",
-      payload: formatTickers,
+      payload: filteredTBTickers,
     });
   }
 
@@ -239,12 +258,12 @@ class TibeBitConnector extends ConnectorBase {
     const updateTickers = {};
     Object.keys(data).forEach((id) => {
       if (
-        !this.tickers[id] ||
-        this.tickers[id]?.last !== data[id].last ||
-        this.tickers[id]?.open !== data[id].open ||
-        this.tickers[id]?.high !== data[id].high ||
-        this.tickers[id]?.low !== data[id].low ||
-        this.tickers[id]?.volume !== data[id].volume
+        this.tickers[id] &&
+        (this.tickers[id]?.last !== data[id].last ||
+          this.tickers[id]?.open !== data[id].open ||
+          this.tickers[id]?.high !== data[id].high ||
+          this.tickers[id]?.low !== data[id].low ||
+          this.tickers[id]?.volume !== data[id].volume)
       ) {
         const change = SafeMath.minus(data[id].last, data[id].open);
         const changePct = SafeMath.gt(data[id].open, "0")
