@@ -288,9 +288,9 @@ class ExchangeHub extends Bot {
   async getTickers({ query }) {
     let filteredOkexTickers,
       filteredTBTickers = {};
-    // this.logger.debug(
-    //   `*********** [${this.name}] getTickers [START] ************`
-    // );
+    this.logger.debug(
+      `*********** [${this.name}] getTickers [START] ************`
+    );
     try {
       const okexRes = await this.okexConnector.router("getTickers", {
         query,
@@ -324,11 +324,11 @@ class ExchangeHub extends Bot {
         optional: { mask: isVisibles },
       });
       filteredTBTickers = tBTickersRes.payload;
-      // this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
-      // this.logger.log(`filteredTBTickers`, filteredTBTickers);
-      // this.logger.debug(
-      //   `*********** [${this.name}] getTickers [END] ************`
-      // );
+      this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
+      this.logger.log(`filteredTBTickers`, filteredTBTickers);
+      this.logger.debug(
+        `*********** [${this.name}] getTickers [END] ************`
+      );
     } catch (error) {
       this.logger.error(error);
       return new ResponseFormat({
