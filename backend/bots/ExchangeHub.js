@@ -312,14 +312,17 @@ class ExchangeHub extends Bot {
         code: Codes.API_UNKNOWN_ERROR,
       });
     }
+    this.logger.log(`this.tidebitMarkets`, this.tidebitMarkets);
     try {
       const tideBitOnlyMarkets = Utils.marketFilterExclude(
         Object.values(filteredOkexTickers),
         this.tidebitMarkets
       );
+      this.logger.log(`tideBitOnlyMarkets`, tideBitOnlyMarkets);
       const isVisibles = tideBitOnlyMarkets.filter(
         (m) => m.visible === true || m.visible === undefined
       ); // default visible is true, so if visible is undefined still need to show on list.
+      this.logger.log(`isVisibles`, isVisibles);
       const tBTickersRes = await this.tideBitConnector.router("getTickers", {
         optional: { mask: isVisibles },
       });
