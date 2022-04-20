@@ -222,16 +222,8 @@ class ExchangeHub extends Bot {
     const isVisibles = tideBitOnlyMarkets.filter(
       (m) => m.visible === true || m.visible === undefined
     ); // default visible is true, so if visible is undefined still need to show on list.
-    const tBTickersRes = await axios.get(
-      `${this.config.peatio.domain}/api/v2/tickers`
-    );
-    if (!tBTickersRes || !tBTickersRes.data) {
-      return new ResponseFormat({
-        message: "Something went wrong",
-        code: Codes.API_UNKNOWN_ERROR,
-      });
-    }
-    const tBTickers = tBTickersRes.data;
+    const tBTickersRes = await this.tideBitConnector.router("getTickers", {});
+    const tBTickers = tBTickersRes.payload;
     const formatTBTickers = isVisibles.map((market) => {
       const tBTicker = tBTickers[market.id];
       const change = SafeMath.minus(tBTicker.ticker.last, tBTicker.ticker.open);
@@ -360,7 +352,11 @@ class ExchangeHub extends Bot {
         list.push(...Object.values(filteredTickers));
         // this.logger.debug(`getTickers list[${list.length}]`, list);
       } else {
-        return okexRes;
+        this.logger.error(okexRes);
+        return new ResponseFormat({
+          message: "",
+          code: Codes.API_UNKNOWN_ERROR,
+        });
       }
     } catch (error) {
       this.logger.error(error);

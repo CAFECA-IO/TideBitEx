@@ -7,6 +7,8 @@ const Events = require("../../constants/Events");
 const SupportedExchange = require("../../constants/SupportedExchange");
 const Utils = require("../Utils");
 const redis = require("redis");
+const ResponseFormat = require("../ResponseFormat");
+const Codes = require("../../constants/Codes");
 
 class TibeBitConnector extends ConnectorBase {
   constructor({ logger }) {
@@ -162,8 +164,57 @@ class TibeBitConnector extends ConnectorBase {
     if (headers) this.isCredential = true;
   }
 
-  async getTickers(){
-
+  async getTickers() {
+    const tBTickersRes = await axios.get(
+      `${this.config.peatio.domain}/api/v2/tickers`
+    );
+    if (!tBTickersRes || !tBTickersRes.data) {
+      return new ResponseFormat({
+        message: "Something went wrong",
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+    const tBTickers = tBTickersRes.data;
+    const formatTickers = Object.keys(tBTickers).reduce((prev, currId) => {
+      const instId = this._findInstId(currId);
+      const tickerObj = tBTickers[currId];
+      const change = SafeMath.minus(
+        tickerObj.ticker.last,
+        tickerObj.ticker.open
+      );
+      const changePct = SafeMath.gt(tickerObj.ticker.open, "0")
+        ? SafeMath.div(change, tickerObj.ticker.open)
+        : SafeMath.eq(change, "0")
+        ? "0"
+        : "1";
+      prev[currId] = {
+        instId,
+        name: instId.replace("-", "/"),
+        base_unit: instId.split("-")[0].toLowerCase(),
+        quote_unit: instId.split("-")[1].toLowerCase(),
+        group:
+          instId.split("-")[1].toLowerCase().includes("usd") &&
+          instId.split("-")[1].toLowerCase().length > 3
+            ? "usdx"
+            : instId.split("-")[1].toLowerCase(),
+        buy: tickerObj.ticker.buy,
+        sell: tickerObj.ticker.sell,
+        low: tickerObj.ticker.low,
+        high: tickerObj.ticker.high,
+        last: tickerObj.ticker.last,
+        open: tickerObj.ticker.open,
+        volume: tBTickers[currId].ticker.vol,
+        change,
+        changePct,
+        at: parseInt(tickerObj.at),
+        source: SupportedExchange.TIDEBIT,
+      };
+      return prev;
+    }, {});
+    return new ResponseFormat({
+      message: "getTickers",
+      payload: formatTickers,
+    });
   }
 
   _updateTickers(data) {
