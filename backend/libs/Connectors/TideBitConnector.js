@@ -187,6 +187,7 @@ class TibeBitConnector extends ConnectorBase {
         ? "0"
         : "1";
       prev[currId] = {
+        id: currId,
         instId,
         name: instId.replace("-", "/"),
         base_unit: instId.split("-")[0].toLowerCase(),
@@ -211,6 +212,7 @@ class TibeBitConnector extends ConnectorBase {
       else {
         const instId = this._findInstId(market.id);
         this.tickers[market.id] = {
+          id: market.id,
           instId,
           name: market.name,
           base_unit: market.base_unit,
@@ -271,7 +273,7 @@ class TibeBitConnector extends ConnectorBase {
           : SafeMath.eq(change, "0")
           ? "0"
           : "1";
-        updateTickers[id] = { ...data[id], change, changePct };
+        updateTickers[id] = { ...data[id], change, changePct, id };
       }
     });
 
