@@ -73,36 +73,37 @@ class ExchangeHub extends Bot {
         "config/markets/markets.yml"
       );
       const markets = Utils.marketParser(p);
-      const formatMarket = markets.map((market) => {
-        const instId = market.name.split("/").join("-").toUpperCase();
-        return {
-          ...market,
-          // alias: "",
-          // baseCcy: market.base_unit.toUpperCase(),
-          // quoteCcy: market.quote_unit,
-          // category: "",
-          // ctMult: "",
-          // ctType: "",
-          // ctVal: "",
-          // ctValCcy: "",
-          // expTime: "",
-          instId,
-          instType: "",
-          // lever: "",
-          // listTime: Math.floor(Date.now() / 1000) * 1000,
-          // lotSz: "",
-          // minSz: "",
-          // optType: "",
-          // settleCcy: "",
-          state: market.visible,
-          group: market.tab_category,
-          // stk: "",
-          // tickSz: "",
-          // uly: "",
-          // at: null,
-          source: SupportedExchange.TIDEBIT,
-        };
-      });
+      const formatMarket = markets
+        .filter((market) => market.visible !== false) // default visible is true, so if visible is undefined still need to show on list.
+        .map((market) => {
+          const instId = market.name.split("/").join("-").toUpperCase();
+          return {
+            ...market,
+            // alias: "",
+            // baseCcy: market.base_unit.toUpperCase(),
+            // quoteCcy: market.quote_unit,
+            // category: "",
+            // ctMult: "",
+            // ctType: "",
+            // ctVal: "",
+            // ctValCcy: "",
+            // expTime: "",
+            instId,
+            instType: "",
+            // lever: "",
+            // listTime: Math.floor(Date.now() / 1000) * 1000,
+            // lotSz: "",
+            // minSz: "",
+            // optType: "",
+            // settleCcy: "",
+            group: market.tab_category,
+            // stk: "",
+            // tickSz: "",
+            // uly: "",
+            // at: null,
+            source: SupportedExchange.TIDEBIT,
+          };
+        });
       return formatMarket;
     } catch (error) {
       this.logger.error(error);
@@ -319,12 +320,8 @@ class ExchangeHub extends Bot {
         this.tidebitMarkets
       );
       this.logger.log(`tideBitOnlyMarkets`, tideBitOnlyMarkets);
-      const isVisibles = tideBitOnlyMarkets.filter(
-        (m) => m.visible === true || m.visible === undefined
-      ); // default visible is true, so if visible is undefined still need to show on list.
-      this.logger.log(`isVisibles`, isVisibles);
       const tBTickersRes = await this.tideBitConnector.router("getTickers", {
-        optional: { mask: isVisibles },
+        optional: { mask: tideBitOnlyMarkets },
       });
       filteredTBTickers = tBTickersRes.payload;
       // this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
