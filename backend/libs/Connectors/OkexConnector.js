@@ -279,7 +279,7 @@ class OkexConnector extends ConnectorBase {
       this.logger.log(`+++++++++ getTickers +++++++++`);
       return new ResponseFormat({
         message: "getTickers",
-        payload: tickers,
+        payload: this.tickers,
       });
     } catch (error) {
       this.logger.error(error);

@@ -324,7 +324,7 @@ class ExchangeHub extends Bot {
         optional: { mask: isVisibles },
       });
       filteredTBTickers = tBTickersRes.payload;
-      this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
+      // this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
       this.logger.log(`filteredTBTickers`, filteredTBTickers);
       this.logger.debug(
         `*********** [${this.name}] getTickers [END] ************`
