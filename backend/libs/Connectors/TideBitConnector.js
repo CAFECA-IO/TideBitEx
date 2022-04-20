@@ -165,9 +165,7 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async getTickers() {
-    const tBTickersRes = await axios.get(
-      `${this.peatio}/api/v2/tickers`
-    );
+    const tBTickersRes = await axios.get(`${this.peatio}/api/v2/tickers`);
     if (!tBTickersRes || !tBTickersRes.data) {
       return new ResponseFormat({
         message: "Something went wrong",
@@ -211,6 +209,8 @@ class TibeBitConnector extends ConnectorBase {
       };
       return prev;
     }, {});
+    // this.tickers = formatTickers;
+    this.tickers = Object.values(formatTickers);
     return new ResponseFormat({
       message: "getTickers",
       payload: formatTickers,
@@ -236,9 +236,6 @@ class TibeBitConnector extends ConnectorBase {
     at: 1649742406
   },}
     */
-    if (!this.tickers || this.tickers.length === 0) {
-      this.tickers = Object.values(data);
-    }
     const formatTickers = Object.values(data)
       .filter((d) => {
         let index = this.tickers?.findIndex((ticker) => ticker.name === d.name);

@@ -214,54 +214,6 @@ class ExchangeHub extends Bot {
     return books;
   }
 
-  async _tbGetTickers({ list }) {
-    const tideBitOnlyMarkets = Utils.marketFilterExclude(
-      list,
-      this.tidebitMarkets
-    );
-    const isVisibles = tideBitOnlyMarkets.filter(
-      (m) => m.visible === true || m.visible === undefined
-    ); // default visible is true, so if visible is undefined still need to show on list.
-    const tBTickersRes = await this.tideBitConnector.router("getTickers", {});
-    const tBTickers = tBTickersRes.payload;
-    const formatTBTickers = isVisibles.map((market) => {
-      const tBTicker = tBTickers[market.id];
-      const change = SafeMath.minus(tBTicker.last, tBTicker.open);
-      const changePct = SafeMath.gt(tBTicker.open, "0")
-        ? SafeMath.div(change, tBTicker.open)
-        : SafeMath.eq(change, "0")
-        ? "0"
-        : "1";
-      let formatTBTicker = {
-        ...market,
-        instType: "",
-        last: "0.0",
-        sell: "0.0",
-        buy: "0.0",
-        open: "0.0",
-        high: "0.0",
-        low: "0.0",
-        volume: "0.0",
-        at: "0.0",
-        change: "0.0",
-        changePct: "0.0",
-        group: market?.tab_category || market?.group,
-      };
-      if (tBTicker) {
-        formatTBTicker = {
-          ...tBTicker,
-          ...market,
-          volume: tBTicker.vol,
-          change,
-          changePct,
-        };
-      }
-      return formatTBTicker;
-    });
-    // this.logger.debug(`formatTBTickers`, formatTBTickers);
-    return formatTBTickers;
-  }
-
   async getTicker({ params, query }) {
     const instId = this._findInstId(query.id);
     this.logger.log(`****----**** getTicker [START] ****----****`);
@@ -365,7 +317,49 @@ class ExchangeHub extends Bot {
       });
     }
     try {
-      const formatTBTickers = await this._tbGetTickers({ list });
+      const tideBitOnlyMarkets = Utils.marketFilterExclude(
+        list,
+        this.tidebitMarkets
+      );
+      const isVisibles = tideBitOnlyMarkets.filter(
+        (m) => m.visible === true || m.visible === undefined
+      ); // default visible is true, so if visible is undefined still need to show on list.
+      const tBTickersRes = await this.tideBitConnector.router("getTickers", {});
+      const tBTickers = tBTickersRes.payload;
+      const formatTBTickers = isVisibles.map((market) => {
+        const tBTicker = tBTickers[market.id];
+        const change = SafeMath.minus(tBTicker.last, tBTicker.open);
+        const changePct = SafeMath.gt(tBTicker.open, "0")
+          ? SafeMath.div(change, tBTicker.open)
+          : SafeMath.eq(change, "0")
+          ? "0"
+          : "1";
+        let formatTBTicker = {
+          ...market,
+          instType: "",
+          last: "0.0",
+          sell: "0.0",
+          buy: "0.0",
+          open: "0.0",
+          high: "0.0",
+          low: "0.0",
+          volume: "0.0",
+          at: "0.0",
+          change: "0.0",
+          changePct: "0.0",
+          group: market?.tab_category || market?.group,
+        };
+        if (tBTicker) {
+          formatTBTicker = {
+            ...tBTicker,
+            ...market,
+            volume: tBTicker.vol,
+            change,
+            changePct,
+          };
+        }
+        return formatTBTicker;
+      });
       list.push(...formatTBTickers);
     } catch (error) {
       this.logger.error(error);
