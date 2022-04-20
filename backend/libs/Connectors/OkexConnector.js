@@ -45,7 +45,6 @@ class OkexConnector extends ConnectorBase {
       url: wssPrivate,
       heartBeat: HEART_BEAT_TIME,
     });
-    this.tickers = {};
     return this;
   }
 
@@ -975,9 +974,9 @@ class OkexConnector extends ConnectorBase {
   }
 
   _updateTickers(tickerData) {
+    if (!this.tickers) return;
     this.logger.log(`========== _updateTickers ==========`);
     this.logger.log(`tickerData`, tickerData);
-    this.logger.log(`this.tickers`, this.tickers);
     const updateTickers = tickerData
       .filter((data) => {
         const id = data.instId.replace("-", "").toLowerCase();
