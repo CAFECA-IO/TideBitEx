@@ -274,9 +274,9 @@ class OkexConnector extends ConnectorBase {
         return prev;
       }, defaultObj);
       this.tickers = Utils.tickersFilterInclude(optional.mask, tickers);
-      this.logger.log(`+++++++++ getTickers +++++++++`);
-      this.logger.log(` this.tickers`, this.tickers);
-      this.logger.log(`+++++++++ getTickers +++++++++`);
+      // this.logger.log(`+++++++++ getTickers +++++++++`);
+      // this.logger.log(` this.tickers`, this.tickers);
+      // this.logger.log(`+++++++++ getTickers +++++++++`);
       return new ResponseFormat({
         message: "getTickers",
         payload: this.tickers,
