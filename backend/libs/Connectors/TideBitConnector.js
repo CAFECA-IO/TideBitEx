@@ -163,6 +163,7 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _updateTickers(data) {
+    this.logger.log(`[${this.name}]_updateTickers data`, data);
     /**
    {
    btchkd: {
@@ -182,7 +183,6 @@ class TibeBitConnector extends ConnectorBase {
     */
     if (!this.tickers || this.tickers.length === 0) {
       this.tickers = Object.values(data);
-      // this.logger.log(`_updateTickers this.tickers`, this.tickers);
     }
     const formatTickers = Object.values(data)
       .filter((d) => {
@@ -217,7 +217,7 @@ class TibeBitConnector extends ConnectorBase {
       });
     if (formatTickers.length > 0) {
       this.logger.log(`_updateTickers formatTickers`, formatTickers);
-      EventBus.emit(Events.tickersOnUpdate, formatTickers);
+      EventBus.emit(Events.tickers, formatTickers);
     }
   }
 
@@ -276,7 +276,7 @@ class TibeBitConnector extends ConnectorBase {
     if (asks.length > 0 || bids.length > 0) {
       this.logger.debug(`_updateBooks formatBooks`, formatBooks);
       EventBus.emit(
-        Events.orderBooksOnUpdate,
+        Events.update,
         instId.replace("-", "").toLowerCase(),
         formatBooks
       );
@@ -300,7 +300,7 @@ class TibeBitConnector extends ConnectorBase {
     };
     this.logger.debug(`_updateTrade formatTrade`, formatTrade);
     this.logger.debug(`***********_updateTrade************`);
-    EventBus.emit(Events.tradeOnUpdate, data.market, formatTrade);
+    EventBus.emit(Events.trade, data.market, formatTrade);
   }
 
   _updateTrades(instId, data) {
@@ -336,7 +336,7 @@ class TibeBitConnector extends ConnectorBase {
     if (formatTrades.length > 0) {
       this.logger.debug(`_updateTrade formatTrades`, formatTrades);
       EventBus.emit(
-        Events.tradesOnUpdate,
+        Events.trades,
         instId.replace("-", "").toLowerCase(),
         formatTrades
       );
@@ -359,7 +359,7 @@ class TibeBitConnector extends ConnectorBase {
       uTime: Date.now(),
     };
     this.logger.debug(`_updateAccount formatAccount`, formatAccount);
-    EventBus.emit(Events.accountOnUpdate, formatAccount);
+    EventBus.emit(Events.account, formatAccount);
   }
 
   _updateOrder(data) {
@@ -400,7 +400,7 @@ class TibeBitConnector extends ConnectorBase {
           : "canceled",
     };
     this.logger.debug(`_updateOrder formatOrder`, formatOrder);
-    EventBus.emit(Events.orderOnUpdate, data.market, formatOrder);
+    EventBus.emit(Events.order, data.market, formatOrder);
   }
 
   async _registerPrivateChannel(credential) {

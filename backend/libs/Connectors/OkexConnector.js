@@ -917,7 +917,7 @@ class OkexConnector extends ConnectorBase {
         tradeId: data.tradeId,
       };
     });
-    EventBus.emit(Events.tradesOnUpdate, instId, formatTrades);
+    EventBus.emit(Events.trades, instId, formatTrades);
   }
 
   _updateBooks(instId, bookData) {
@@ -944,7 +944,7 @@ class OkexConnector extends ConnectorBase {
         ts: parseInt(data.ts),
       };
     });
-    EventBus.emit(Events.orderBooksOnUpdate, instId, formatBooks);
+    EventBus.emit(Events.update, instId, formatBooks);
   }
 
   _updateCandle1m(instId, candleData) {
@@ -998,7 +998,7 @@ class OkexConnector extends ConnectorBase {
         source: SupportedExchange.OKEX,
       };
     });
-    EventBus.emit(Events.tickersOnUpdate, formatTickers);
+    EventBus.emit(Events.tickers, formatTickers);
   }
 
   _subscribeInstruments() {

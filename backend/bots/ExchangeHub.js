@@ -1097,52 +1097,54 @@ class ExchangeHub extends Bot {
   // public api end
 
   async _eventListener() {
-    EventBus.on(Events.accountOnUpdate, (account) => {
+    EventBus.on(Events.account, (account) => {
       this.broadcastAllClient({
-        type: Events.accountOnUpdate,
+        type: Events.account,
         data: account,
       });
     });
-    EventBus.on(Events.orderOnUpdate, (market, order) => {
+    EventBus.on(Events.order, (market, order) => {
       this.broadcast(market, {
-        type: Events.orderOnUpdate,
+        type: Events.order,
         data: order,
       });
     });
 
-    EventBus.on(Events.tradeOnUpdate, (market, tradeData) => {
+    EventBus.on(Events.trade, (market, tradeData) => {
       if (this._isIncludeTideBitMarket(market)) {
         this.broadcast(market, {
-          type: Events.tradeOnUpdate,
+          type: Events.trade,
           data: tradeData,
         });
       }
     });
 
-    EventBus.on(Events.tradesOnUpdate, (market, tradesData) => {
+    EventBus.on(Events.trades, (market, tradesData) => {
       this.broadcast(market, {
-        type: Events.tradesOnUpdate,
+        type: Events.trades,
         data: tradesData,
       });
     });
 
-    EventBus.on(Events.orderBooksOnUpdate, (market, booksData) => {
+    // orderBooksOnUpdate
+    EventBus.on(Events.update, (market, booksData) => {
       this.broadcast(market, {
-        type: Events.orderBooksOnUpdate,
+        type: Events.update,
         data: booksData,
       });
     });
 
-    EventBus.on(Events.candleOnUpdate, (market, formatCandle) => {
-      this.broadcast(market, {
-        type: Events.candleOnUpdate,
-        data: formatCandle,
-      });
-    });
+    // EventBus.on(Events.candleOnUpdate, (market, formatCandle) => {
+    //   this.broadcast(market, {
+    //     type: Events.candleOnUpdate,
+    //     data: formatCandle,
+    //   });
+    // });
 
-    EventBus.on(Events.tickersOnUpdate, (formatTickers) => {
+    // tickersOnUpdate
+    EventBus.on(Events.tickers, (formatTickers) => {
       this.broadcastAllClient({
-        type: Events.tickersOnUpdate,
+        type: Events.tickers,
         data: formatTickers.filter((ticker) =>
           this._isIncludeTideBitMarket(ticker.instId)
         ),
