@@ -167,7 +167,7 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _updateTickers(data) {
-    this.logger.log(`[${this.name}]_updateTickers data`, data);
+    // this.logger.log(`[${this.name}]_updateTickers data`, data);
     /**
    {
    btchkd: {
