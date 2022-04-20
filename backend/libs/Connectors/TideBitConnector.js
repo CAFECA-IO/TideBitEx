@@ -191,11 +191,6 @@ class TibeBitConnector extends ConnectorBase {
         name: instId.replace("-", "/"),
         base_unit: instId.split("-")[0].toLowerCase(),
         quote_unit: instId.split("-")[1].toLowerCase(),
-        group:
-          instId.split("-")[1].toLowerCase().includes("usd") &&
-          instId.split("-")[1].toLowerCase().length > 3
-            ? "usdx"
-            : instId.split("-")[1].toLowerCase(),
         buy: tickerObj.ticker.buy,
         sell: tickerObj.ticker.sell,
         low: tickerObj.ticker.low,
@@ -212,7 +207,7 @@ class TibeBitConnector extends ConnectorBase {
     }, {});
     optional.mask.forEach((market) => {
       let ticker = formatTickers[market.id];
-      if (ticker) this.tickers[market.id] = ticker;
+      if (ticker) this.tickers[market.id] = { ...ticker, group: market.group };
       else {
         const instId = this._findInstId(market.id);
         this.tickers[market.id] = {
