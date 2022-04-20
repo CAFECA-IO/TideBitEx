@@ -68,7 +68,7 @@ const StoreProvider = (props) => {
           if (!!updateTicker) {
             // console.log(`Events.tickers updateTicker`, updateTicker);
             setSelectedTicker(updateTicker);
-            document.title = `${updateTicker.last} ${updateTicker.pair}`;
+            document.title = `${updateTicker.last} ${updateTicker.name}`;
           }
           if (_tickerTimestamp - +tickerTimestamp > 1000) {
             // console.log(
@@ -319,7 +319,7 @@ const StoreProvider = (props) => {
         }
         connection_resolvers.push(
           JSON.stringify({
-            op: "switchTradingPair",
+            op: "switchMarket",
             args: {
               market: ticker.id,
             },

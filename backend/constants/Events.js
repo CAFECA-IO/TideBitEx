@@ -1,5 +1,5 @@
 module.exports = {
-  // subscribe pair event
+  // subscribe ticker event
   tickerOnSibscribe: 'tickerOnSibscribe',
   tickerOnUnsubscribe: 'tickerOnUnsubscribe',
   userOnSubscribe: 'userOnSubscribe',

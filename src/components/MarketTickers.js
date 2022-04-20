@@ -69,7 +69,7 @@ const TickersHeader = (props) => {
   );
 };
 const quoteCcies = {
-  BTC: ["BTC"],
+  // BTC: ["BTC"],
   // ETH: ["ETH"],
   HKD: ["HKD"],
   USDX: ["USDC", "USDT", "USDK"],

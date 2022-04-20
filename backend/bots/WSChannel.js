@@ -81,8 +81,8 @@ class WSChannel extends Bot {
               case "userLogin":
                 this._onOpUserLogin(req.headers, ws, args);
                 break;
-              case "switchTradingPair":
-                this._onOpSwitchTradingPair(ws, args);
+              case "switchMarket":
+                this._onOpSwitchMarket(ws, args);
                 break;
               default:
                 ws.send(
@@ -183,7 +183,7 @@ class WSChannel extends Bot {
     }
   }
 
-  _onOpSwitchTradingPair(ws, args) {
+  _onOpSwitchMarket(ws, args) {
     const findClient = this._client[ws.id];
     if (!findClient.isStart) {
       findClient.channel = args.market;

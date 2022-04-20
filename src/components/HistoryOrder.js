@@ -100,7 +100,7 @@ const HistoryOrder = (props) => {
           <Tab eventKey="open-orders" title={t("open_orders")}>
             <ul className="d-flex justify-content-between market-order-item market-order__title">
               {/* <li>Time</li> */}
-              {/* <li>All pairs</li>
+              {/* <li>All Tickers</li>
               <li>All Types</li> */}
               <li>Buy/Sell</li>
               <li>{t("price")}</li>
@@ -132,7 +132,7 @@ const HistoryOrder = (props) => {
           <Tab eventKey="closed-orders" title={t("close_orders")}>
             <ul className="d-flex justify-content-between market-order-item market-order__title">
               {/* <li>Time</li> */}
-              {/* <li>All pairs</li>
+              {/* <li>All Tickers</li>
               <li>All Types</li>*/}
               <li>Buy/Sell</li>
               <li>{t("price")}</li>
@@ -158,7 +158,7 @@ const HistoryOrder = (props) => {
           {/* <Tab eventKey="order-history" title="Order history">
             <ul className="d-flex justify-content-between market-order-item">
               <li>Time</li>
-              <li>All pairs</li>
+              <li>All Tickers</li>
               <li>All Types</li>
               <li>Buy/Sell</li>
               <li>Price</li>
