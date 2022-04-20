@@ -973,6 +973,7 @@ class OkexConnector extends ConnectorBase {
     const updateTickers = tickerData
       .filter((data) => {
         const id = data.instId.replace("-", "").toLowerCase();
+        this.logger.log(`_updateTickers`, data, this.tickers);
         this.logger.log(`_updateTickers`, this.tickers[id], !this.tickers[id]);
         this.logger.log(
           `_updateTickers`,
