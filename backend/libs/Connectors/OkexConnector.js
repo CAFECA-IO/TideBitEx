@@ -240,15 +240,15 @@ class OkexConnector extends ConnectorBase {
           code: Codes.THIRD_PARTY_API_ERROR,
         });
       }
-
-      const payload = res.data.data.map((data) => {
+      const defaultObj = {};
+      const payload = res.data.data.reduce((prev, data) => {
         const change = SafeMath.minus(data.last, data.open24h);
         const changePct = SafeMath.gt(data.open24h, "0")
           ? SafeMath.div(change, data.open24h)
           : SafeMath.eq(change, "0")
           ? "0"
           : "1";
-        return {
+        prev[data.instId.replace("-", "").toLowerCase()] = {
           id: data.instId.replace("-", "").toLowerCase(),
           name: data.instId.replace("-", "/"),
           base_unit: data.instId.split("-")[0].toLowerCase(),
@@ -271,10 +271,11 @@ class OkexConnector extends ConnectorBase {
           at: parseInt(data.ts),
           source: SupportedExchange.OKEX,
         };
-      });
+        return prev;
+      }, defaultObj);
       return new ResponseFormat({
         message: "getTickers",
-        payload,
+        payload: Object.values(payload),
       });
     } catch (error) {
       this.logger.error(error);

@@ -162,6 +162,10 @@ class TibeBitConnector extends ConnectorBase {
     if (headers) this.isCredential = true;
   }
 
+  async getTickers(){
+    
+  }
+
   _updateTickers(data) {
     this.logger.log(`[${this.name}]_updateTickers data`, data);
     /**
