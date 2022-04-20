@@ -721,6 +721,15 @@ class Utils {
     return doc;
   }
 
+  static tickersFilterInclude(masks, tickers) {
+    let updateTickers = {};
+    Object.keys(tickers).forEach((id) => {
+      const maskData = masks.find((mask) => mask.id === id);
+      if (maskData) updateTickers[id] = tickers[id];
+    });
+    return updateTickers;
+  }
+
   static marketFilterInclude(marketListMask, marketList) {
     const newList = marketList.filter((market) => {
       // i don't know why every return false

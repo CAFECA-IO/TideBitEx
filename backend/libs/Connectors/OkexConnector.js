@@ -275,7 +275,8 @@ class OkexConnector extends ConnectorBase {
       }, defaultObj);
       return new ResponseFormat({
         message: "getTickers",
-        payload: Object.values(payload),
+        // payload: Object.values(payload),
+        payload,
       });
     } catch (error) {
       this.logger.error(error);

@@ -163,7 +163,7 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async getTickers(){
-    
+
   }
 
   _updateTickers(data) {
@@ -289,7 +289,7 @@ class TibeBitConnector extends ConnectorBase {
 
   _updateTrade(data) {
     this.logger.debug(`***********_updateTrade************`);
-    this.logger.debug(`_updateTrade data`, data);
+    // this.logger.debug(`_updateTrade data`, data);
     /**  {
     at: 1649675739
     id: 6

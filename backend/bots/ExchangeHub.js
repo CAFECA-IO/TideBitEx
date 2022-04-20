@@ -345,28 +345,19 @@ class ExchangeHub extends Bot {
   async getTickers({ params, query }) {
     const list = [];
     this.logger.debug(`*********** [${this.name}] getTickers ************`);
-    this.logger.debug(`this.tidebitMarkets`, this.tidebitMarkets);
     try {
       const okexRes = await this.okexConnector.router("getTickers", {
         params,
         query,
       });
       if (okexRes.success) {
-        const okexInstruments = okexRes.payload;
-        const includeTidebitMarket = Utils.marketFilterInclude(
+        const okexTickers = okexRes.payload;
+        const filteredTickers = Utils.tickersFilterInclude(
           this.tidebitMarkets,
-          okexInstruments
+          okexTickers
         );
-        includeTidebitMarket.forEach((market) => {
-          market.source = SupportedExchange.OKEX;
-          market.group =
-            market.instId.split("-")[1].toLowerCase() === "usdt" ||
-            market.instId.split("-")[1].toLowerCase() === "usdc" ||
-            market.instId.split("-")[1].toLowerCase() === "usdk"
-              ? "usdx"
-              : market.instId.split("-")[1].toLowerCase();
-        });
-        list.push(...includeTidebitMarket);
+        this.logger.debug(`filteredTickers`, filteredTickers);
+        list.push(...Object.values(filteredTickers));
         // this.logger.debug(`getTickers list[${list.length}]`, list);
       } else {
         return okexRes;
