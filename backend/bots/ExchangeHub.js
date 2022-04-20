@@ -344,6 +344,8 @@ class ExchangeHub extends Bot {
   // market api
   async getTickers({ params, query }) {
     const list = [];
+    this.logger.debug(`*********** [${this.name}] getTickers ************`);
+    this.logger.debug(`this.tidebitMarkets`, this.tidebitMarkets);
     try {
       const okexRes = await this.okexConnector.router("getTickers", {
         params,
