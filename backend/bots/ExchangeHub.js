@@ -226,9 +226,9 @@ class ExchangeHub extends Bot {
     const tBTickers = tBTickersRes.payload;
     const formatTBTickers = isVisibles.map((market) => {
       const tBTicker = tBTickers[market.id];
-      const change = SafeMath.minus(tBTicker.ticker.last, tBTicker.ticker.open);
-      const changePct = SafeMath.gt(tBTicker.ticker.open, "0")
-        ? SafeMath.div(change, tBTicker.ticker.open)
+      const change = SafeMath.minus(tBTicker.last, tBTicker.open);
+      const changePct = SafeMath.gt(tBTicker.open, "0")
+        ? SafeMath.div(change, tBTicker.open)
         : SafeMath.eq(change, "0")
         ? "0"
         : "1";
@@ -249,10 +249,9 @@ class ExchangeHub extends Bot {
       };
       if (tBTicker) {
         formatTBTicker = {
-          ...tBTicker.ticker,
+          ...tBTicker,
           ...market,
-          at: tBTicker.at,
-          volume: tBTicker.ticker.vol,
+          volume: tBTicker.vol,
           change,
           changePct,
         };
@@ -348,7 +347,7 @@ class ExchangeHub extends Bot {
           this.tidebitMarkets,
           okexTickers
         );
-        this.logger.debug(`filteredTickers`, filteredTickers);
+        // this.logger.debug(`filteredTickers`, filteredTickers);
         list.push(...Object.values(filteredTickers));
         // this.logger.debug(`getTickers list[${list.length}]`, list);
       } else {
