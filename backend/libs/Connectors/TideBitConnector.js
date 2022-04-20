@@ -202,7 +202,7 @@ class TibeBitConnector extends ConnectorBase {
         high: tickerObj.ticker.high,
         last: tickerObj.ticker.last,
         open: tickerObj.ticker.open,
-        volume: tBTickers[currId].ticker.vol,
+        volume: tickerObj.ticker.vol,
         change,
         changePct,
         at: parseInt(tickerObj.at),
@@ -210,7 +210,31 @@ class TibeBitConnector extends ConnectorBase {
       };
       return prev;
     }, {});
-    this.tickers = Utils.tickersFilterInclude(optional.mask, formatTickers);
+    optional.mask.forEach((market) => {
+      let ticker = formatTickers[market.id];
+      if (ticker) this.tickers[market.id] = ticker;
+      else {
+        const instId = this._findInstId(market.id);
+        this.tickers[market.id] = {
+          instId,
+          name: market.name,
+          base_unit: market.base_unit,
+          quote_unit: market.quote_unit,
+          group: market.group,
+          buy: "0.0",
+          sell: "0.0",
+          low: "0.0",
+          high: "0.0",
+          last: "0.0",
+          open: "0.0",
+          volume: "0.0",
+          change: "0.0",
+          changePct: "0.0",
+          at: "0.0",
+          source: SupportedExchange.TIDEBIT,
+        };
+      }
+    });
     return new ResponseFormat({
       message: "getTickers",
       payload: this.tickers,
