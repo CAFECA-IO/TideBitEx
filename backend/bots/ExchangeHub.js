@@ -123,7 +123,10 @@ class ExchangeHub extends Bot {
         this.logger.error(
           `[${this.name} getBalance] error: "get member_id fail`
         );
-        return null;
+        return new ResponseFormat({
+          message: "get member_id fail",
+          code: Codes.MEMBER_ID_NOT_FOUND,
+        });
       }
       const accounts = await this.database.getBalance(memberId);
       const details = accounts.map((account, i) => ({

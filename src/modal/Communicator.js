@@ -3,6 +3,7 @@ import { EXPIRED_ACCESS_TOKEN } from "../constant/Codes";
 import { Config } from "../constant/Config";
 import HTTPAgent from "../utils/HTTPAgent";
 
+// retry
 class Communicator {
   constructor() {
     this.httpAgent = new HTTPAgent({
@@ -198,6 +199,7 @@ class Communicator {
       }
       return Promise.reject({ message: res.message, code: res.code });
     } catch (error) {
+      console.error(`[getAccountBalance] error`, error)
       return Promise.reject({ message: error });
     }
   }

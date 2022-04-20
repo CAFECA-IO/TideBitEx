@@ -156,6 +156,9 @@ class TibeBitConnector extends ConnectorBase {
       },
     });
     this.isStarted = true;
+    this.pusher.bind_all((data) =>
+      this.logger.log(`[Pusher][bind_all] data`, data)
+    );
     if (headers) this.isCredential = true;
   }
 
