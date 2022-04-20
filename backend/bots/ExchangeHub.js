@@ -54,7 +54,6 @@ class ExchangeHub extends Bot {
       })
       .then(async () => {
         this.currencies = await this.database.getCurrencies();
-        this.tidebitMarkets = this.getTidebitMarkets();
         return this;
       });
   }
@@ -323,7 +322,7 @@ class ExchangeHub extends Bot {
       filteredTBTickers = await this.tideBitConnector.router("getTickers", {
         optional: { mask: isVisibles },
       });
-      this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
+      // this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
       this.logger.log(`filteredTBTickers`, filteredTBTickers);
       this.logger.debug(
         `*********** [${this.name}] getTickers [END] ************`
