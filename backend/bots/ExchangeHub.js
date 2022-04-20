@@ -286,8 +286,11 @@ class ExchangeHub extends Bot {
   // account api end
   // market api
   async getTickers({ params, query }) {
-    const list = [];
-    this.logger.debug(`*********** [${this.name}] getTickers ************`);
+    let filteredOkexTickers,
+      filteredTBTickers = {};
+    this.logger.debug(
+      `*********** [${this.name}] getTickers [START] ************`
+    );
     try {
       const okexRes = await this.okexConnector.router("getTickers", {
         params,
@@ -295,13 +298,10 @@ class ExchangeHub extends Bot {
       });
       if (okexRes.success) {
         const okexTickers = okexRes.payload;
-        const filteredOkexTickers = Utils.tickersFilterInclude(
+        filteredOkexTickers = Utils.tickersFilterInclude(
           this.tidebitMarkets,
           okexTickers
         );
-        // this.logger.debug(`filteredTickers`, filteredTickers);
-        list.push(...Object.values(filteredOkexTickers));
-        // this.logger.debug(`getTickers list[${list.length}]`, list);
       } else {
         this.logger.error(okexRes);
         return new ResponseFormat({
@@ -318,7 +318,7 @@ class ExchangeHub extends Bot {
     }
     try {
       const tideBitOnlyMarkets = Utils.marketFilterExclude(
-        list,
+        Object.values(filteredOkexTickers),
         this.tidebitMarkets
       );
       const isVisibles = tideBitOnlyMarkets.filter(
@@ -326,12 +326,11 @@ class ExchangeHub extends Bot {
       ); // default visible is true, so if visible is undefined still need to show on list.
       const tBTickersRes = await this.tideBitConnector.router("getTickers", {});
       const tBTickers = tBTickersRes.payload;
-      const formatTBTickers = {};
       isVisibles.forEach((market) => {
         const tBTicker = tBTickers[market.id];
-        if (tBTicker) formatTBTickers[market.id] = tBTicker;
+        if (tBTicker) filteredTBTickers[market.id] = tBTicker;
         else
-          formatTBTickers[market.id] = {
+          filteredTBTickers[market.id] = {
             name: market.name,
             base_unit: market.base_unit,
             quote_unit: market.quote_unit,
@@ -349,8 +348,11 @@ class ExchangeHub extends Bot {
             instId: this._findInstId(market.id),
           };
       });
-      this.logger.log(`formatTBTickers`, formatTBTickers)
-      list.push(...Object.values(formatTBTickers));
+      // this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
+      // this.logger.log(`filteredTBTickers`, filteredTBTickers);
+      this.logger.debug(
+        `*********** [${this.name}] getTickers [END] ************`
+      );
     } catch (error) {
       this.logger.error(error);
       return new ResponseFormat({
@@ -358,10 +360,9 @@ class ExchangeHub extends Bot {
         code: Codes.API_UNKNOWN_ERROR,
       });
     }
-
     return new ResponseFormat({
       message: "getTickers",
-      payload: list,
+      payload: Object.values({ ...filteredOkexTickers, ...filteredTBTickers }),
     });
   }
 
