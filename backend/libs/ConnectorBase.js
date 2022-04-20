@@ -16,7 +16,7 @@ class ConnectorBase {
 
   async router(
     functionName,
-    { header, params, query, body, memberId, orderId }
+    { header, params, query, body, memberId, orderId, optional }
   ) {
     if (!this[functionName]) {
       return new ResponseFormat({
@@ -32,6 +32,7 @@ class ConnectorBase {
       body,
       memberId,
       orderId,
+      optional,
     });
   }
 
