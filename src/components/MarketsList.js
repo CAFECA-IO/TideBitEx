@@ -15,7 +15,7 @@ export default function MarketsList() {
                       <table className="table star-active">
                         <thead>
                           <tr>
-                            <th>Pairs</th>
+                            <th>Tickers</th>
                             <th>Coin</th>
                             <th>Last Price</th>
                             <th>Change (24H)</th>
@@ -164,7 +164,7 @@ export default function MarketsList() {
                       <table className="table">
                         <thead>
                           <tr>
-                            <th>Pairs</th>
+                            <th>Tickers</th>
                             <th>Coin</th>
                             <th>Last Price</th>
                             <th>Change (24H)</th>
@@ -404,7 +404,7 @@ export default function MarketsList() {
                       <table className="table">
                         <thead>
                           <tr>
-                            <th>Pairs</th>
+                            <th>Tickers</th>
                             <th>Coin</th>
                             <th>Last Price</th>
                             <th>Change (24H)</th>
@@ -644,7 +644,7 @@ export default function MarketsList() {
                       <table className="table">
                         <thead>
                           <tr>
-                            <th>Pairs</th>
+                            <th>Tickers</th>
                             <th>Coin</th>
                             <th>Last Price</th>
                             <th>Change (24H)</th>
@@ -884,7 +884,7 @@ export default function MarketsList() {
                       <table className="table">
                         <thead>
                           <tr>
-                            <th>Pairs</th>
+                            <th>Tickers</th>
                             <th>Coin</th>
                             <th>Last Price</th>
                             <th>Change (24H)</th>

@@ -1,17 +1,17 @@
 module.exports = {
-  // subscribe pair event
-  pairOnSubscribe: 'pairOnSubscribe',
-  pairOnUnsubscribe: 'pairOnUnsubscribe',
+  // subscribe ticker event
+  tickerOnSibscribe: 'tickerOnSibscribe',
+  tickerOnUnsubscribe: 'tickerOnUnsubscribe',
   userOnSubscribe: 'userOnSubscribe',
   userOnUnsubscribe: 'userOnUnsubscribe',
 
   // update event
-  tickersOnUpdate: 'tickersOnUpdate',
-  tradesOnUpdate: 'tradesOnUpdate',
-  orderBooksOnUpdate: 'orderBooksOnUpdate',
+  tickers: 'tickers',
+  update: 'update',
+  trades: 'trades',
+  account: 'account',
+  order: 'order',
+  trade: 'trade',
   candleOnUpdate: 'candleOnUpdate',
   orderDetailUpdate: 'orderDetailUpdate',
-  accountOnUpdate: 'accountOnUpdate',
-  orderOnUpdate: 'orderOnUpdate',
-  tradeOnUpdate: 'tradeOnUpdate',
 }

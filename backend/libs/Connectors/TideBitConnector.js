@@ -7,6 +7,8 @@ const Events = require("../../constants/Events");
 const SupportedExchange = require("../../constants/SupportedExchange");
 const Utils = require("../Utils");
 const redis = require("redis");
+const ResponseFormat = require("../ResponseFormat");
+const Codes = require("../../constants/Codes");
 
 class TibeBitConnector extends ConnectorBase {
   constructor({ logger }) {
@@ -41,6 +43,7 @@ class TibeBitConnector extends ConnectorBase {
     this.markets = markets;
     this.database = database;
     this.redis = redis;
+    this.tickers = {};
     return this;
   }
 
@@ -156,10 +159,85 @@ class TibeBitConnector extends ConnectorBase {
       },
     });
     this.isStarted = true;
+    this.pusher.bind_global((data) =>
+      this.logger.log(`[Pusher][bind_global] data`, data)
+    );
     if (headers) this.isCredential = true;
   }
 
+  async getTickers({ optional }) {
+    const tBTickersRes = await axios.get(`${this.peatio}/api/v2/tickers`);
+    if (!tBTickersRes || !tBTickersRes.data) {
+      return new ResponseFormat({
+        message: "Something went wrong",
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+    const tBTickers = tBTickersRes.data;
+    const formatTickers = Object.keys(tBTickers).reduce((prev, currId) => {
+      const instId = this._findInstId(currId);
+      const tickerObj = tBTickers[currId];
+      const change = SafeMath.minus(
+        tickerObj.ticker.last,
+        tickerObj.ticker.open
+      );
+      const changePct = SafeMath.gt(tickerObj.ticker.open, "0")
+        ? SafeMath.div(change, tickerObj.ticker.open)
+        : SafeMath.eq(change, "0")
+        ? "0"
+        : "1";
+      prev[currId] = {
+        instId,
+        name: instId.replace("-", "/"),
+        base_unit: instId.split("-")[0].toLowerCase(),
+        quote_unit: instId.split("-")[1].toLowerCase(),
+        buy: tickerObj.ticker.buy,
+        sell: tickerObj.ticker.sell,
+        low: tickerObj.ticker.low,
+        high: tickerObj.ticker.high,
+        last: tickerObj.ticker.last,
+        open: tickerObj.ticker.open,
+        volume: tickerObj.ticker.vol,
+        change,
+        changePct,
+        at: parseInt(tickerObj.at),
+        source: SupportedExchange.TIDEBIT,
+      };
+      return prev;
+    }, {});
+    optional.mask.forEach((market) => {
+      let ticker = formatTickers[market.id];
+      if (ticker) this.tickers[market.id] = { ...ticker, group: market.group };
+      else {
+        const instId = this._findInstId(market.id);
+        this.tickers[market.id] = {
+          instId,
+          name: market.name,
+          base_unit: market.base_unit,
+          quote_unit: market.quote_unit,
+          group: market.group,
+          buy: "0.0",
+          sell: "0.0",
+          low: "0.0",
+          high: "0.0",
+          last: "0.0",
+          open: "0.0",
+          volume: "0.0",
+          change: "0.0",
+          changePct: "0.0",
+          at: "0.0",
+          source: SupportedExchange.TIDEBIT,
+        };
+      }
+    });
+    return new ResponseFormat({
+      message: "getTickers",
+      payload: this.tickers,
+    });
+  }
+
   _updateTickers(data) {
+    // this.logger.log(`[${this.name}]_updateTickers data`, data);
     /**
    {
    btchkd: {
@@ -177,44 +255,32 @@ class TibeBitConnector extends ConnectorBase {
     at: 1649742406
   },}
     */
-    if (!this.tickers || this.tickers.length === 0) {
-      this.tickers = Object.values(data);
-      // this.logger.log(`_updateTickers this.tickers`, this.tickers);
-    }
-    const formatTickers = Object.values(data)
-      .filter((d) => {
-        let index = this.tickers?.findIndex((ticker) => ticker.name === d.name);
-        if (
-          index === -1 ||
-          this.tickers[index].last !== d.last ||
-          this.tickers[index].open !== d.open ||
-          this.tickers[index].close !== d.close ||
-          this.tickers[index].high !== d.high ||
-          this.tickers[index].low !== d.low ||
-          this.tickers[index].volume !== d.volume
-        ) {
-          this.tickers[index] = d;
-          return true;
-        } else return false;
-      })
-      .map((d) => {
-        const change = SafeMath.minus(d.last, d.open);
-        const changePct = SafeMath.gt(d.open24h, "0")
-          ? SafeMath.div(change, d.open24h)
+    const updateTickers = {};
+    Object.keys(data).forEach((id) => {
+      if (
+        this.tickers[id] &&
+        (this.tickers[id]?.last !== data[id].last ||
+          this.tickers[id]?.open !== data[id].open ||
+          this.tickers[id]?.high !== data[id].high ||
+          this.tickers[id]?.low !== data[id].low ||
+          this.tickers[id]?.volume !== data[id].volume)
+      ) {
+        const change = SafeMath.minus(data[id].last, data[id].open);
+        const changePct = SafeMath.gt(data[id].open, "0")
+          ? SafeMath.div(change, data[id].open)
           : SafeMath.eq(change, "0")
           ? "0"
           : "1";
-        return {
-          ...d,
-          instId: d.name.replace("/", "-"),
-          change,
-          changePct,
-          source: SupportedExchange.TIDEBIT,
-        };
-      });
-    if (formatTickers.length > 0) {
-      this.logger.log(`_updateTickers formatTickers`, formatTickers);
-      EventBus.emit(Events.tickersOnUpdate, formatTickers);
+        updateTickers[id] = { ...data[id], change, changePct };
+      }
+    });
+
+    if (Object.keys(updateTickers).length > 0) {
+      // this.logger.log(
+      //   `[${this.name}]_updateTickers updateTickers`,
+      //   updateTickers
+      // );
+      EventBus.emit(Events.tickers, updateTickers);
     }
   }
 
@@ -273,7 +339,7 @@ class TibeBitConnector extends ConnectorBase {
     if (asks.length > 0 || bids.length > 0) {
       this.logger.debug(`_updateBooks formatBooks`, formatBooks);
       EventBus.emit(
-        Events.orderBooksOnUpdate,
+        Events.update,
         instId.replace("-", "").toLowerCase(),
         formatBooks
       );
@@ -282,7 +348,7 @@ class TibeBitConnector extends ConnectorBase {
 
   _updateTrade(data) {
     this.logger.debug(`***********_updateTrade************`);
-    this.logger.debug(`_updateTrade data`, data);
+    // this.logger.debug(`_updateTrade data`, data);
     /**  {
     at: 1649675739
     id: 6
@@ -297,7 +363,7 @@ class TibeBitConnector extends ConnectorBase {
     };
     this.logger.debug(`_updateTrade formatTrade`, formatTrade);
     this.logger.debug(`***********_updateTrade************`);
-    EventBus.emit(Events.tradeOnUpdate, data.market, formatTrade);
+    EventBus.emit(Events.trade, data.market, formatTrade);
   }
 
   _updateTrades(instId, data) {
@@ -333,7 +399,7 @@ class TibeBitConnector extends ConnectorBase {
     if (formatTrades.length > 0) {
       this.logger.debug(`_updateTrade formatTrades`, formatTrades);
       EventBus.emit(
-        Events.tradesOnUpdate,
+        Events.trades,
         instId.replace("-", "").toLowerCase(),
         formatTrades
       );
@@ -356,7 +422,7 @@ class TibeBitConnector extends ConnectorBase {
       uTime: Date.now(),
     };
     this.logger.debug(`_updateAccount formatAccount`, formatAccount);
-    EventBus.emit(Events.accountOnUpdate, formatAccount);
+    EventBus.emit(Events.account, formatAccount);
   }
 
   _updateOrder(data) {
@@ -397,7 +463,7 @@ class TibeBitConnector extends ConnectorBase {
           : "canceled",
     };
     this.logger.debug(`_updateOrder formatOrder`, formatOrder);
-    EventBus.emit(Events.orderOnUpdate, data.market, formatOrder);
+    EventBus.emit(Events.order, data.market, formatOrder);
   }
 
   async _registerPrivateChannel(credential) {

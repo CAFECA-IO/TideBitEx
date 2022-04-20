@@ -53,8 +53,8 @@ class ExchangeHub extends Bot {
         });
       })
       .then(async () => {
-        this.currencies = await this.database.getCurrencies();
         this.tidebitMarkets = this.getTidebitMarkets();
+        this.currencies = await this.database.getCurrencies();
         return this;
       });
   }
@@ -73,36 +73,37 @@ class ExchangeHub extends Bot {
         "config/markets/markets.yml"
       );
       const markets = Utils.marketParser(p);
-      const formatMarket = markets.map((market) => {
-        const instId = market.name.split("/").join("-").toUpperCase();
-        return {
-          ...market,
-          // alias: "",
-          // baseCcy: market.base_unit.toUpperCase(),
-          // quoteCcy: market.quote_unit,
-          // category: "",
-          // ctMult: "",
-          // ctType: "",
-          // ctVal: "",
-          // ctValCcy: "",
-          // expTime: "",
-          instId,
-          instType: "",
-          // lever: "",
-          // listTime: Math.floor(Date.now() / 1000) * 1000,
-          // lotSz: "",
-          // minSz: "",
-          // optType: "",
-          // settleCcy: "",
-          state: market.visible,
-          group: market.tab_category,
-          // stk: "",
-          // tickSz: "",
-          // uly: "",
-          // at: null,
-          source: SupportedExchange.TIDEBIT,
-        };
-      });
+      const formatMarket = markets
+        .filter((market) => market.visible !== false) // default visible is true, so if visible is undefined still need to show on list.
+        .map((market) => {
+          const instId = market.name.split("/").join("-").toUpperCase();
+          return {
+            ...market,
+            // alias: "",
+            // baseCcy: market.base_unit.toUpperCase(),
+            // quoteCcy: market.quote_unit,
+            // category: "",
+            // ctMult: "",
+            // ctType: "",
+            // ctVal: "",
+            // ctValCcy: "",
+            // expTime: "",
+            instId,
+            instType: "",
+            // lever: "",
+            // listTime: Math.floor(Date.now() / 1000) * 1000,
+            // lotSz: "",
+            // minSz: "",
+            // optType: "",
+            // settleCcy: "",
+            group: market.tab_category,
+            // stk: "",
+            // tickSz: "",
+            // uly: "",
+            // at: null,
+            source: SupportedExchange.TIDEBIT,
+          };
+        });
       return formatMarket;
     } catch (error) {
       this.logger.error(error);
@@ -123,7 +124,10 @@ class ExchangeHub extends Bot {
         this.logger.error(
           `[${this.name} getBalance] error: "get member_id fail`
         );
-        return null;
+        return new ResponseFormat({
+          message: "get member_id fail",
+          code: Codes.MEMBER_ID_NOT_FOUND,
+        });
       }
       const accounts = await this.database.getBalance(memberId);
       const details = accounts.map((account, i) => ({
@@ -211,63 +215,6 @@ class ExchangeHub extends Bot {
     return books;
   }
 
-  async _tbGetTickers({ list }) {
-    const tideBitOnlyMarkets = Utils.marketFilterExclude(
-      list,
-      this.tidebitMarkets
-    );
-    const isVisibles = tideBitOnlyMarkets.filter(
-      (m) => m.visible === true || m.visible === undefined
-    ); // default visible is true, so if visible is undefined still need to show on list.
-    const tBTickersRes = await axios.get(
-      `${this.config.peatio.domain}/api/v2/tickers`
-    );
-    if (!tBTickersRes || !tBTickersRes.data) {
-      return new ResponseFormat({
-        message: "Something went wrong",
-        code: Codes.API_UNKNOWN_ERROR,
-      });
-    }
-    const tBTickers = tBTickersRes.data;
-    const formatTBTickers = isVisibles.map((market) => {
-      const tBTicker = tBTickers[market.id];
-      const change = SafeMath.minus(tBTicker.ticker.last, tBTicker.ticker.open);
-      const changePct = SafeMath.gt(tBTicker.ticker.open, "0")
-        ? SafeMath.div(change, tBTicker.ticker.open)
-        : SafeMath.eq(change, "0")
-        ? "0"
-        : "1";
-      let formatTBTicker = {
-        ...market,
-        instType: "",
-        last: "0.0",
-        sell: "0.0",
-        buy: "0.0",
-        open: "0.0",
-        high: "0.0",
-        low: "0.0",
-        volume: "0.0",
-        at: "0.0",
-        change: "0.0",
-        changePct: "0.0",
-        group: market?.tab_category || market?.group,
-      };
-      if (tBTicker) {
-        formatTBTicker = {
-          ...tBTicker.ticker,
-          ...market,
-          at: tBTicker.at,
-          volume: tBTicker.ticker.vol,
-          change,
-          changePct,
-        };
-      }
-      return formatTBTicker;
-    });
-    // this.logger.debug(`formatTBTickers`, formatTBTickers);
-    return formatTBTickers;
-  }
-
   async getTicker({ params, query }) {
     const instId = this._findInstId(query.id);
     this.logger.log(`****----**** getTicker [START] ****----****`);
@@ -339,32 +286,25 @@ class ExchangeHub extends Bot {
   }
   // account api end
   // market api
-  async getTickers({ params, query }) {
-    const list = [];
+  async getTickers({ query }) {
+    let filteredOkexTickers,
+      filteredTBTickers = {};
+    this.logger.debug(
+      `*********** [${this.name}] getTickers [START] ************`
+    );
     try {
       const okexRes = await this.okexConnector.router("getTickers", {
-        params,
         query,
+        optional: { mask: this.tidebitMarkets },
       });
       if (okexRes.success) {
-        const okexInstruments = okexRes.payload;
-        const includeTidebitMarket = Utils.marketFilterInclude(
-          this.tidebitMarkets,
-          okexInstruments
-        );
-        includeTidebitMarket.forEach((market) => {
-          market.source = SupportedExchange.OKEX;
-          market.group =
-            market.instId.split("-")[1].toLowerCase() === "usdt" ||
-            market.instId.split("-")[1].toLowerCase() === "usdc" ||
-            market.instId.split("-")[1].toLowerCase() === "usdk"
-              ? "usdx"
-              : market.instId.split("-")[1].toLowerCase();
-        });
-        list.push(...includeTidebitMarket);
-        // this.logger.debug(`getTickers list[${list.length}]`, list);
+        filteredOkexTickers = okexRes.payload;
       } else {
-        return okexRes;
+        this.logger.error(okexRes);
+        return new ResponseFormat({
+          message: "",
+          code: Codes.API_UNKNOWN_ERROR,
+        });
       }
     } catch (error) {
       this.logger.error(error);
@@ -373,9 +313,22 @@ class ExchangeHub extends Bot {
         code: Codes.API_UNKNOWN_ERROR,
       });
     }
+    this.logger.log(`this.tidebitMarkets`, this.tidebitMarkets);
     try {
-      const formatTBTickers = await this._tbGetTickers({ list });
-      list.push(...formatTBTickers);
+      const tideBitOnlyMarkets = Utils.marketFilterExclude(
+        Object.values(filteredOkexTickers),
+        this.tidebitMarkets
+      );
+      this.logger.log(`tideBitOnlyMarkets`, tideBitOnlyMarkets);
+      const tBTickersRes = await this.tideBitConnector.router("getTickers", {
+        optional: { mask: tideBitOnlyMarkets },
+      });
+      filteredTBTickers = tBTickersRes.payload;
+      // this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
+      this.logger.log(`filteredTBTickers`, filteredTBTickers);
+      this.logger.debug(
+        `*********** [${this.name}] getTickers [END] ************`
+      );
     } catch (error) {
       this.logger.error(error);
       return new ResponseFormat({
@@ -383,10 +336,9 @@ class ExchangeHub extends Bot {
         code: Codes.API_UNKNOWN_ERROR,
       });
     }
-
     return new ResponseFormat({
       message: "getTickers",
-      payload: list,
+      payload: { ...filteredOkexTickers, ...filteredTBTickers },
     });
   }
 
@@ -1094,55 +1046,57 @@ class ExchangeHub extends Bot {
   // public api end
 
   async _eventListener() {
-    EventBus.on(Events.accountOnUpdate, (account) => {
+    EventBus.on(Events.account, (account) => {
       this.broadcastAllClient({
-        type: Events.accountOnUpdate,
+        type: Events.account,
         data: account,
       });
     });
-    EventBus.on(Events.orderOnUpdate, (market, order) => {
+    EventBus.on(Events.order, (market, order) => {
       this.broadcast(market, {
-        type: Events.orderOnUpdate,
+        type: Events.order,
         data: order,
       });
     });
 
-    EventBus.on(Events.tradeOnUpdate, (market, tradeData) => {
+    EventBus.on(Events.trade, (market, tradeData) => {
       if (this._isIncludeTideBitMarket(market)) {
         this.broadcast(market, {
-          type: Events.tradeOnUpdate,
+          type: Events.trade,
           data: tradeData,
         });
       }
     });
 
-    EventBus.on(Events.tradesOnUpdate, (market, tradesData) => {
+    EventBus.on(Events.trades, (market, tradesData) => {
       this.broadcast(market, {
-        type: Events.tradesOnUpdate,
+        type: Events.trades,
         data: tradesData,
       });
     });
 
-    EventBus.on(Events.orderBooksOnUpdate, (market, booksData) => {
+    // orderBooksOnUpdate
+    EventBus.on(Events.update, (market, booksData) => {
       this.broadcast(market, {
-        type: Events.orderBooksOnUpdate,
+        type: Events.update,
         data: booksData,
       });
     });
 
-    EventBus.on(Events.candleOnUpdate, (market, formatCandle) => {
-      this.broadcast(market, {
-        type: Events.candleOnUpdate,
-        data: formatCandle,
-      });
-    });
+    // EventBus.on(Events.candleOnUpdate, (market, formatCandle) => {
+    //   this.broadcast(market, {
+    //     type: Events.candleOnUpdate,
+    //     data: formatCandle,
+    //   });
+    // });
 
-    EventBus.on(Events.tickersOnUpdate, (formatTickers) => {
+    // tickersOnUpdate
+    EventBus.on(Events.tickers, (updateTickers) => {
+      // const filteredTickers = Utils.tickersFilterInclude(this.tidebitMarkets, updateTickers)
+      // this.logger.log(`[${this.name} Events.tickers]`, filteredTickers)
       this.broadcastAllClient({
-        type: Events.tickersOnUpdate,
-        data: formatTickers.filter((ticker) =>
-          this._isIncludeTideBitMarket(ticker.instId)
-        ),
+        type: Events.tickers,
+        data: updateTickers,
       });
     });
 

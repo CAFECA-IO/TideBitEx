@@ -22,7 +22,7 @@ class Middleman {
     let updateTicker,
       updateTickers = this.tickers.map((t) => ({ ...t, update: false }));
     // console.log(`updateTickers`, updateTickers);
-    tickers.forEach(async (t) => {
+    Object.values(tickers).forEach(async (t) => {
       const i = this.tickers.findIndex((ticker) => ticker.instId === t.instId);
       if (i === -1) {
         updateTickers.push({ ...t, update: true });
@@ -85,7 +85,8 @@ class Middleman {
     }
     try {
       rawTickers = await this.communicator.tickers(instType, from, limit);
-      this.tickers = rawTickers.map((t) => {
+      this.rawTickers = rawTickers;
+      this.tickers = Object.values(rawTickers).map((t) => {
         let instrument = instruments.find((i) => i.instId === t.instId);
         return { ...t, minSz: instrument?.minSz || "0.001" };
       });
@@ -150,9 +151,9 @@ class Middleman {
   }
 
   updateBooks(data) {
-    // console.log(`*^^^^^^^^orderBooksOnUpdate*^^^^^^^^*`);
+    // console.log(`^^^^^^^^ Events.update ^^^^^^^^`);
     // console.log(`data`, data);
-    // console.log(`*^^^^^^^^*orderBooksOnUpdate*^^^^^^^^*`);
+    // console.log(`^^^^^^^^ Events.update ^^^^^^^^`);
     if (data.instId !== this.selectedTicker.instId) return;
     const updateRawBooks = {
       asks: this.rawBooks?.asks
@@ -207,10 +208,10 @@ class Middleman {
   }
 
   updateTrades = (updateData, resolution) => {
-    // console.log(`***********tradesOnUpdate************`);
+    // console.log(`***********Events.trades************`);
     // console.log(`updateData`, updateData);
     // console.log(`resolution`, resolution);
-    // console.log(`***********tradesOnUpdate************`);
+    // console.log(`***********Events.trades************`);
     const _updateTrades = updateData
       .filter(
         (trade) =>
@@ -363,7 +364,7 @@ class Middleman {
   }
 
   updateOrders(data) {
-    // console.log(`*&&&&&&&&&&&*orderOnUpdate*&&&&&&&&&&&**`);
+    // console.log(`*&&&&&&&&&&&*Events.order*&&&&&&&&&&&**`);
     // console.log(`data`, data);
     // console.log(`this.selectedTicker.id`, this.selectedTicker.id);
     const updatePendingOrders =
@@ -405,7 +406,7 @@ class Middleman {
       this.pendingOrders = updatePendingOrders;
       this.closeOrders = updateCloseOrders;
     }
-    // console.log(`*&&&&&&&&&&&*orderOnUpdate*&&&&&&&&&&&**`);
+    // console.log(`*&&&&&&&&&&&*Events.order*&&&&&&&&&&&**`);
     return {
       updatePendingOrders: updatePendingOrders.sort(
         (a, b) => b.cTime - a.cTime

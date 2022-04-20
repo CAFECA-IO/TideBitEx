@@ -81,8 +81,8 @@ class WSChannel extends Bot {
               case "userLogin":
                 this._onOpUserLogin(req.headers, ws, args);
                 break;
-              case "switchTradingPair":
-                this._onOpSwitchTradingPair(ws, args);
+              case "switchMarket":
+                this._onOpSwitchMarket(ws, args);
                 break;
               default:
                 ws.send(
@@ -105,7 +105,7 @@ class WSChannel extends Bot {
                 Object.values(this._channelClients[findClient.channel])
                   .length === 0
               ) {
-                EventBus.emit(Events.pairOnUnsubscribe, findClient.channel);
+                EventBus.emit(Events.tickerOnUnsubscribe, findClient.channel);
                 EventBus.emit(Events.userOnUnsubscribe, findClient.channel);
               }
             }
@@ -183,7 +183,7 @@ class WSChannel extends Bot {
     }
   }
 
-  _onOpSwitchTradingPair(ws, args) {
+  _onOpSwitchMarket(ws, args) {
     const findClient = this._client[ws.id];
     if (!findClient.isStart) {
       findClient.channel = args.market;
@@ -194,21 +194,21 @@ class WSChannel extends Bot {
         this._channelClients[args.market] = {};
       }
       if (Object.values(this._channelClients[args.market]).length === 0) {
-        EventBus.emit(Events.pairOnSubscribe, args.market);
+        EventBus.emit(Events.tickerOnSibscribe, args.market);
       }
       this._channelClients[args.market][ws.id] = ws;
     } else {
       const oldChannel = findClient.channel;
       delete this._channelClients[oldChannel][ws.id];
       if (Object.values(this._channelClients[oldChannel]).length === 0) {
-        EventBus.emit(Events.pairOnUnsubscribe, oldChannel);
+        EventBus.emit(Events.tickerOnUnsubscribe, oldChannel);
       }
       findClient.channel = args.market;
       if (!this._channelClients[args.market]) {
         this._channelClients[args.market] = {};
       }
       if (Object.values(this._channelClients[args.market]).length === 0) {
-        EventBus.emit(Events.pairOnSubscribe, args.market);
+        EventBus.emit(Events.tickerOnSibscribe, args.market);
       }
       this._channelClients[args.market][ws.id] = ws;
     }

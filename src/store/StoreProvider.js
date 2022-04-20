@@ -6,6 +6,7 @@ import Middleman from "../modal/Middleman";
 import StoreContext from "./store-context";
 import SafeMath from "../utils/SafeMath";
 import { getToken } from "../utils/Token";
+import Events from "../constant/Events";
 
 // const wsServer = "wss://exchange.tidebit.network/ws/v1";
 // const wsServer = "ws://127.0.0.1";
@@ -59,30 +60,30 @@ const StoreProvider = (props) => {
         _accountTimestamp = 0,
         metaData = JSON.parse(msg.data);
       switch (metaData.type) {
-        case "tickersOnUpdate":
+        case Events.tickers:
           const { updateTicker, updateTickers } = middleman.updateTickers(
             metaData.data
           );
           _tickerTimestamp = new Date().getTime();
           if (!!updateTicker) {
-            // console.log(`tickersOnUpdate updateTicker`, updateTicker);
+            // console.log(`Events.tickers updateTicker`, updateTicker);
             setSelectedTicker(updateTicker);
-            document.title = `${updateTicker.last} ${updateTicker.pair}`;
+            document.title = `${updateTicker.last} ${updateTicker.name}`;
           }
           if (_tickerTimestamp - +tickerTimestamp > 1000) {
             // console.log(
-            //   `++++++++****+++++ tickersOnUpdate[START] +++++*****+++++`
+            //   `++++++++****+++++ Events.tickers[START] +++++*****+++++`
             // );
             tickerTimestamp = _tickerTimestamp;
             setTickers(updateTickers);
             // console.log(`updateTickers`, updateTickers);
             // console.log(`updateTicker`, updateTicker);
             // console.log(
-            //   `++++++++****+++++ tickersOnUpdate[END] +++++*****+++++`
+            //   `++++++++****+++++ Events.tickers[END] +++++*****+++++`
             // );
           }
           break;
-        case "tradesOnUpdate":
+        case Events.trades:
           const { trades, candles, volumes } = middleman.updateTrades(
             metaData.data,
             resolution
@@ -91,7 +92,7 @@ const StoreProvider = (props) => {
           setCandles({ candles, volumes });
           middleman.resetTrades();
           break;
-        case "orderBooksOnUpdate":
+        case Events.update:
           const updateBooks = middleman.updateBooks(metaData.data);
           _bookTimestamp = new Date().getTime();
           if (_bookTimestamp - +bookTimestamp > 1000) {
@@ -109,7 +110,7 @@ const StoreProvider = (props) => {
         //   }
         //   break;
         // // ++ TODO TideBit WS 要與 OKEX整合
-        case "accountOnUpdate":
+        case Events.account:
           const updateAccounts = middleman.updateAccounts(metaData.data);
           _accountTimestamp = new Date().getTime();
           if (_accountTimestamp - +accountTimestamp > 1000) {
@@ -117,14 +118,14 @@ const StoreProvider = (props) => {
             setAccounts(updateAccounts);
           }
           break;
-        case "orderOnUpdate":
+        case Events.order:
           const { updatePendingOrders, updateCloseOrders } =
             middleman.updateOrders(metaData.data);
           setPendingOrders(updatePendingOrders);
           setCloseOrders(updateCloseOrders);
           break;
-        // case "tradeOnUpdate":
-        //   console.info(`tradeOnUpdate trade`, metaData.data);
+        // case Events.trade:
+        //   console.info(`Events.trade`, metaData.data);
         //   break;
         default:
       }
@@ -318,7 +319,7 @@ const StoreProvider = (props) => {
         }
         connection_resolvers.push(
           JSON.stringify({
-            op: "switchTradingPair",
+            op: "switchMarket",
             args: {
               market: ticker.id,
             },
