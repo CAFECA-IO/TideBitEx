@@ -154,7 +154,7 @@ class Middleman {
     // console.log(`^^^^^^^^ Events.update ^^^^^^^^`);
     // console.log(`data`, data);
     // console.log(`^^^^^^^^ Events.update ^^^^^^^^`);
-    if (data.instId !== this.selectedTicker.instId) return;
+    if (data.market !== this.selectedTicker.market) return;
     const updateRawBooks = {
       asks: this.rawBooks?.asks
         ? this.rawBooks.asks.map((ask) => [...ask])

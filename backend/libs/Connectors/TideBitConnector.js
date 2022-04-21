@@ -368,7 +368,7 @@ class TibeBitConnector extends ConnectorBase {
           }
         }
       });
-      const books = { asks, bids };
+      const books = { asks, bids, market: query.id };
       return new ResponseFormat({
         message: "getOrderBooks",
         payload: books,
@@ -432,6 +432,7 @@ class TibeBitConnector extends ConnectorBase {
     const formatBooks = {
       asks,
       bids,
+      market: instId.replace("-", "").toLowerCase(),
     };
     if (asks.length > 0 || bids.length > 0) {
       this.logger.debug(`_updateBooks formatBooks`, formatBooks);
