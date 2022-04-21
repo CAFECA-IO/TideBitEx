@@ -84,8 +84,9 @@ const StoreProvider = (props) => {
           }
           break;
         case Events.trades:
+          console.log(`metaData.data`, metaData.data);
           const { trades, candles, volumes } = middleman.updateTrades(
-            metaData.data,
+            metaData.data.trades,
             resolution
           );
           setTrades(trades);
@@ -96,7 +97,7 @@ const StoreProvider = (props) => {
           const updateBooks = middleman.updateBooks(metaData.data);
           _bookTimestamp = new Date().getTime();
           if (_bookTimestamp - +bookTimestamp > 1000) {
-            console.log(`updateBooks`, updateBooks);
+            // console.log(`updateBooks`, updateBooks);
             bookTimestamp = _bookTimestamp;
             setBooks(updateBooks);
           }
@@ -284,9 +285,9 @@ const StoreProvider = (props) => {
   );
 
   const getTicker = useCallback(
-    async (id) => {
+    async (market) => {
       try {
-        const result = await middleman.getTicker(id);
+        const result = await middleman.getTicker(market);
         return result;
       } catch (error) {
         enqueueSnackbar(`"getTicker error: ${error?.message}"`, {
@@ -302,17 +303,17 @@ const StoreProvider = (props) => {
     async (ticker) => {
       console.log(`****^^^^**** selectTickerHandler [START] ****^^^^****`);
       // console.log(`selectedTicker`, selectedTicker, !selectedTicker);
-      // console.log(`ticker`, ticker, ticker.id !== selectedTicker?.id);
-      if (!selectedTicker || ticker.id !== selectedTicker?.id) {
+      // console.log(`ticker`, ticker, ticker.market !== selectedTicker?.market);
+      if (!selectedTicker || ticker.market !== selectedTicker?.market) {
         middleman.updateSelectedTicker(ticker);
         setSelectedTicker(ticker);
         console.log(`ticker`, ticker);
         document.title = `${ticker.last} ${ticker.name}`;
         history.push({
-          pathname: `/markets/${ticker.id}`,
+          pathname: `/markets/${ticker.market}`,
         });
-        await getBooks(ticker.id);
-        await getTrades(ticker.id);
+        await getBooks(ticker.market);
+        await getTrades(ticker.market);
         if (isLogin) {
           await getPendingOrders();
           await getCloseOrders();
@@ -321,7 +322,7 @@ const StoreProvider = (props) => {
           JSON.stringify({
             op: "switchMarket",
             args: {
-              market: ticker.id,
+              market: ticker.market,
             },
           })
         );
@@ -540,10 +541,10 @@ const StoreProvider = (props) => {
   const start = useCallback(async () => {
     // console.log(`******** start [START] ********`);
     connect();
-    const id = location.pathname.includes("/markets/")
+    const market = location.pathname.includes("/markets/")
       ? location.pathname.replace("/markets/", "")
       : null;
-    const ticker = await getTicker(id);
+    const ticker = await getTicker(market);
     await selectTickerHandler(ticker);
     await getTickers();
     await getAccounts();

@@ -19,6 +19,9 @@ class OkexConnector extends ConnectorBase {
     super({ logger });
     this.websocket = new WebSocket({ logger });
     this.websocketPrivate = new WebSocket({ logger });
+    this.tickers = {};
+    this.trades = [];
+    this.books = {};
     return this;
   }
 
@@ -145,7 +148,7 @@ class OkexConnector extends ConnectorBase {
     }
   }
 
-  async getTicker({ query }) {
+  async getTicker({ query, optional }) {
     const method = "GET";
     const path = "/api/v5/market/ticker";
     const { instId } = query;
@@ -168,41 +171,45 @@ class OkexConnector extends ConnectorBase {
           code: Codes.THIRD_PARTY_API_ERROR,
         });
       }
-
-      const [payload] = res.data.data.map((data) => {
-        const change = SafeMath.minus(data.last, data.open24h);
-        const changePct = SafeMath.gt(data.open24h, "0")
-          ? SafeMath.div(change, data.open24h)
-          : SafeMath.eq(change, "0")
-          ? "0"
-          : "1";
-        return {
-          id: data.instId.replace("-", "").toLowerCase(),
-          name: data.instId.replace("-", "/"),
-          base_unit: data.instId.split("-")[0].toLowerCase(),
-          quote_unit: data.instId.split("-")[1].toLowerCase(),
-          group:
-            data.instId.split("-")[1].toLowerCase().includes("usd") &&
-            data.instId.split("-")[1].toLowerCase().length > 3
-              ? "usdx"
-              : data.instId.split("-")[1].toLowerCase(),
-          sell: data.askPx,
+      const [data] = res.data.data;
+      const change = SafeMath.minus(data.last, data.open24h);
+      const changePct = SafeMath.gt(data.open24h, "0")
+        ? SafeMath.div(change, data.open24h)
+        : SafeMath.eq(change, "0")
+        ? "0"
+        : "1";
+      const ticker = {};
+      ticker[data.instId.replace("-", "").toLowerCase()] = {
+        market: data.instId.replace("-", "").toLowerCase(),
+        name: data.instId.replace("-", "/"),
+        base_unit: data.instId.split("-")[0].toLowerCase(),
+        quote_unit: data.instId.split("-")[1].toLowerCase(),
+        group: optional.market.group,
+        sell: data.askPx,
+        buy: data.bidPx,
+        instId: data.instId,
+        last: data.last,
+        change,
+        changePct,
+        open: data.open24h,
+        high: data.high24h,
+        low: data.low24h,
+        volume: data.vol24h,
+        at: parseInt(data.ts),
+        source: SupportedExchange.OKEX,
+        ticker: {
           buy: data.bidPx,
-          instId: data.instId,
-          last: data.last,
-          change,
-          changePct,
-          open: data.open24h,
-          high: data.high24h,
+          sell: data.askPx,
           low: data.low24h,
-          volume: data.vol24h,
-          at: parseInt(data.ts),
-          source: SupportedExchange.OKEX,
-        };
-      });
+          high: data.high24h,
+          last: data.last,
+          open: data.open24h,
+          vol: data.vol24h,
+        },
+      };
       return new ResponseFormat({
         message: "getTicker",
-        payload,
+        payload: ticker,
       });
     } catch (error) {
       this.logger.error(error);
@@ -250,6 +257,7 @@ class OkexConnector extends ConnectorBase {
           ? "0"
           : "1";
         prev[data.instId.replace("-", "").toLowerCase()] = {
+          market: data.instId.replace("-", "").toLowerCase(),
           name: data.instId.replace("-", "/"),
           base_unit: data.instId.split("-")[0].toLowerCase(),
           quote_unit: data.instId.split("-")[1].toLowerCase(),
@@ -270,6 +278,15 @@ class OkexConnector extends ConnectorBase {
           volume: data.vol24h,
           at: parseInt(data.ts),
           source: SupportedExchange.OKEX,
+          ticker: {
+            buy: data.bidPx,
+            sell: data.askPx,
+            low: data.low24h,
+            high: data.high24h,
+            last: data.last,
+            open: data.open24h,
+            vol: data.vol24h,
+          },
         };
         return prev;
       }, defaultObj);
@@ -317,28 +334,24 @@ class OkexConnector extends ConnectorBase {
           code: Codes.THIRD_PARTY_API_ERROR,
         });
       }
-      const [payload] = res.data.data.map((data) => {
-        const asks = data.asks.map((ask) => [
-          ask[0],
-          SafeMath.plus(ask[2], ask[3]),
-        ]);
-        const bids = data.bids.map((bid) => [
-          bid[0],
-          SafeMath.plus(bid[2], bid[3]),
-        ]);
-        return {
-          asks,
-          bids,
-          instId,
-          ts: parseInt(data.ts),
-        };
-      });
-      this.logger.log(`++++++++++++++`);
-      this.logger.log(payload);
-      this.logger.log(`++++++++++++++`);
+      const [data] = res.data.data;
+      const orderBooks = {};
+      orderBooks["market"] = instId.replace("-", "").toLowerCase();
+      orderBooks["asks"] = data.asks.map((ask) => [
+        ask[0],
+        SafeMath.plus(ask[2], ask[3]),
+      ]);
+      orderBooks["bids"] = data.bids.map((bid) => [
+        bid[0],
+        SafeMath.plus(bid[2], bid[3]),
+      ]);
+      this.books = orderBooks;
+      // this.logger.log(`+++++++ getOrderBooks [OkexConnector]+++++++`);
+      // this.logger.log(orderBooks);
+      // this.logger.log(`+++++++ getOrderBooks [OkexConnector]+++++++`);
       return new ResponseFormat({
         message: "getOrderBooks",
-        payload: payload,
+        payload: orderBooks,
       });
     } catch (error) {
       this.logger.error(error);
@@ -427,13 +440,15 @@ class OkexConnector extends ConnectorBase {
       const payload = res.data.data
         // .sort((a, b) => +b.ts - +a.ts)
         .map((data, i) => {
+          this.logger.log(`${[this.constructor.name]} data.ts`, data.ts)
           return {
-            instId: data.instId,
             id: data.tradeId,
             price: data.px,
             volume: data.sz,
             market: instId.replace("-", "").toLowerCase(),
             at: parseInt(SafeMath.div(data.ts, "1000")),
+            funds: SafeMath.mult(data.px, data.sz),
+            created_at: new Date(parseInt(data.ts)).toISOString(),
             side:
               i === res.data.data.length - 1
                 ? "up"
@@ -442,6 +457,7 @@ class OkexConnector extends ConnectorBase {
                 : "down",
           };
         });
+      this.trades = payload;
       return new ResponseFormat({
         message: "getTrades",
         payload,
@@ -912,44 +928,81 @@ class OkexConnector extends ConnectorBase {
     const channel = "trades";
     // this.okexWsChannels[channel][instId] = tradeData[0];
     // this.logger.debug(`[${this.constructor.name}]_updateTrades`, instId, tradeData);
-    const formatTrades = tradeData.map((data) => {
+    const market = instId.replace("-", "").toLowerCase();
+    const filteredTrades = tradeData
+      .filter(
+        (data) =>
+          SafeMath.gte(SafeMath.div(data.ts, "1000"), this.trades[0].at) &&
+          !this.trades.find((_t) => _t.id === data.tradeId)
+      )
+      .sort((a, b) => b.ts - a.ts);
+    const formatTrades = filteredTrades.map((data, i) => {
       return {
-        instId,
-        px: data.px,
-        side: data.side,
-        sz: data.sz,
-        ts: parseInt(data.ts),
-        tradeId: data.tradeId,
+        tid: data.tradeId, // [about to decrepted]
+        type: data.side, // [about to decrepted]
+        date: parseInt(SafeMath.div(data.ts, "1000")), // [about to decrepted]
+        amount: data.sz, // [about to decrepted]
+        id: data.tradeId,
+        price: data.px,
+        volume: data.sz,
+        market,
+        at: parseInt(SafeMath.div(data.ts, "1000")),
+        side:
+          i === filteredTrades.length - 1
+            ? SafeMath.gte(data.px, this.trades[0].price)
+              ? "up"
+              : "down"
+            : SafeMath.gte(data.px, filteredTrades[i + 1].price)
+            ? "up"
+            : "down",
       };
     });
-    EventBus.emit(Events.trades, instId, formatTrades);
+    EventBus.emit(Events.trades, market, { trades: formatTrades });
   }
 
   _updateBooks(instId, bookData) {
-    const channel = "books";
+    // const channel = "books";
     // this.okexWsChannels[channel][instId] = bookData;
-    this.logger.debug(
-      `[${this.constructor.name}]_updateBooks`,
-      instId,
-      bookData
-    );
-    const [formatBooks] = bookData.map((data) => {
-      const asks = data.asks.map((ask) => [
-        ask[0],
-        SafeMath.plus(ask[2], ask[3]),
-      ]);
-      const bids = data.bids.map((bid) => [
-        bid[0],
-        SafeMath.plus(bid[2], bid[3]),
-      ]);
-      return {
-        asks,
-        bids,
-        instId,
-        ts: parseInt(data.ts),
-      };
-    });
-    EventBus.emit(Events.update, instId, formatBooks);
+    // this.logger.debug(
+    //   `[${this.constructor.name}]_updateBooks`,
+    //   instId,
+    //   bookData
+    // );
+    const [books] = bookData;
+    const asks = books.asks
+      .filter((ask) => {
+        const _ask = this.books.asks.find((a) => a[0] === ask[0]);
+        return (
+          !_ask ||
+          (!!_ask && !SafeMath.eq(_ask[1], SafeMath.plus(ask[2], ask[3])))
+        );
+      })
+      .map((ask) => [ask[0], SafeMath.plus(ask[2], ask[3])]);
+    const bids = books.bids
+      .filter((bid) => {
+        const _bid = this.books.bids.find((b) => b[0] === bid[0]);
+        return (
+          !_bid ||
+          (!!_bid && !SafeMath.eq(_bid[1], SafeMath.plus(bid[2], bid[3])))
+        );
+      })
+      .map((bid) => [bid[0], SafeMath.plus(bid[2], bid[3])]);
+    const formatBooks = {
+      asks,
+      bids,
+      market: instId.replace("-", "").toLowerCase(),
+    };
+    // this.logger.debug(
+    //   `[${this.constructor.name}]_updateBooks formatBooks`,
+    //   formatBooks
+    // );
+    if (asks.length > 0 || bids.length > 0) {
+      EventBus.emit(
+        Events.update,
+        instId.replace("-", "").toLowerCase(),
+        formatBooks
+      );
+    }
   }
 
   _updateCandle1m(instId, candleData) {
@@ -998,6 +1051,7 @@ class OkexConnector extends ConnectorBase {
           ? "0"
           : "1";
         prev[data.instId.replace("-", "/").toLowerCase] = {
+          market: data.instId.replace("-", "/").toLowerCase,
           instId: data.instId,
           name: data.instId.replace("-", "/"),
           base_unit: data.instId.split("-")[0].toLowerCase(),
@@ -1020,10 +1074,10 @@ class OkexConnector extends ConnectorBase {
         return prev;
       }, {});
     if (Object.keys(updateTickers).length > 0) {
-      this.logger.log(
-        `[${this.name}]_updateTickers updateTickers`,
-        updateTickers
-      );
+      // this.logger.log(
+      //   `[${this.name}]_updateTickers updateTickers`,
+      //   updateTickers
+      // );
       EventBus.emit(Events.tickers, updateTickers);
     }
   }

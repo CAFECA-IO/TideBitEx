@@ -26,9 +26,9 @@ class Bot {
     });
     return Promise.resolve(bot);
   }
-  async broadcast(instId, { type, data }) {
+  async broadcast(market, { type, data }) {
     const ws = await this.getBot('WSChannel');
-    return ws.broadcast(instId, { type, data });
+    return ws.broadcast(market, { type, data });
   }
 
   async broadcastAllClient({ type, data }) {

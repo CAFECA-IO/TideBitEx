@@ -12,9 +12,9 @@ class Middleman {
     return this.selectedTicker;
   }
 
-  async getTicker(id) {
-    const ticker = await this.communicator.ticker(id);
-    return ticker;
+  async getTicker(market) {
+    const ticker = await this.communicator.ticker(market);
+    return ticker[market];
   }
 
   updateTickers(tickers) {
@@ -154,7 +154,7 @@ class Middleman {
     // console.log(`^^^^^^^^ Events.update ^^^^^^^^`);
     // console.log(`data`, data);
     // console.log(`^^^^^^^^ Events.update ^^^^^^^^`);
-    if (data.instId !== this.selectedTicker.instId) return;
+    if (data.market !== this.selectedTicker.market) return;
     const updateRawBooks = {
       asks: this.rawBooks?.asks
         ? this.rawBooks.asks.map((ask) => [...ask])
@@ -213,12 +213,7 @@ class Middleman {
     // console.log(`resolution`, resolution);
     // console.log(`***********Events.trades************`);
     const _updateTrades = updateData
-      .filter(
-        (trade) =>
-          !this.trades ||
-          (trade.instId === this.selectedTicker.instId &&
-            this.trades.findIndex((t) => t.id === trade.id) === -1)
-      )
+      .filter((trade) => trade.market === this.selectedTicker.market)
       .map((trade, i) => ({
         ...trade,
         side:
@@ -234,10 +229,10 @@ class Middleman {
         update: true,
       }))
       .concat(this.trades || []);
-    // console.log(
-    //   `updateTrades _updateTrades[${_updateTrades.length}]`,
-    //   _updateTrades
-    // );
+    console.log(
+      `updateTrades _updateTrades[${_updateTrades.length}]`,
+      _updateTrades
+    );
     const { candles, volumes } = this.updateCandles(_updateTrades, resolution);
     return { trades: _updateTrades, candles, volumes };
   };
@@ -366,14 +361,14 @@ class Middleman {
   updateOrders(data) {
     // console.log(`*&&&&&&&&&&&*Events.order*&&&&&&&&&&&**`);
     // console.log(`data`, data);
-    // console.log(`this.selectedTicker.id`, this.selectedTicker.id);
+    // console.log(`this.selectedTicker.market`, this.selectedTicker.market);
     const updatePendingOrders =
       this.pendingOrders?.map((order) => ({
         ...order,
       })) || [];
     const updateCloseOrders =
       this.closeOrders?.map((order) => ({ ...order })) || [];
-    if (data.market === this.selectedTicker.id) {
+    if (data.market === this.selectedTicker.market) {
       const index = updatePendingOrders.findIndex(
         (order) => order.ordId === data.ordId
       );
