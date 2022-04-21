@@ -952,6 +952,10 @@ class OkexConnector extends ConnectorBase {
         bids,
       };
     });
+    this.logger.debug(
+      `[${this.constructor.name}]_updateBooks formatBooks`,
+      formatBooks
+    );
     EventBus.emit(
       Events.update,
       instId.replace("-", "").toLowerCase(),
