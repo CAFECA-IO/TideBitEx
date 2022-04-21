@@ -1025,10 +1025,10 @@ class OkexConnector extends ConnectorBase {
         return prev;
       }, {});
     if (Object.keys(updateTickers).length > 0) {
-      this.logger.log(
-        `[${this.name}]_updateTickers updateTickers`,
-        updateTickers
-      );
+      // this.logger.log(
+      //   `[${this.name}]_updateTickers updateTickers`,
+      //   updateTickers
+      // );
       EventBus.emit(Events.tickers, updateTickers);
     }
   }
