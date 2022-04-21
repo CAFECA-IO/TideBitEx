@@ -467,16 +467,9 @@ class TibeBitConnector extends ConnectorBase {
           code: Codes.API_UNKNOWN_ERROR,
         });
       }
-      const tbTrades = tbTradesRes.data
-        .sort((a, b) => (query.increase ? a.at - b.at : b.at - a.at))
-        .map((tbTrade, i) => ({
-          id: tbTrade.id,
-          price: tbTrade.price,
-          volume: tbTrade.volume,
-          market: tbTrade.market,
-          at: tbTrade.at,
-          side: tbTrade.side,
-        }));
+      const tbTrades = tbTradesRes.data.sort((a, b) =>
+        query.increase ? a.at - b.at : b.at - a.at
+      );
       this.trades = tbTrades;
       // this.logger.debug(`+++++++++++ getTrades *+++++++++++ `);
       // this.logger.debug(` this.trades`, this.trades);
@@ -511,11 +504,7 @@ class TibeBitConnector extends ConnectorBase {
       !this.trades.find((_t) => _t.id === data.id)
     ) {
       const formatTrade = {
-        id: data.id,
-        price: data.price,
-        volume: data.volume,
-        market: data.market,
-        at: data.at,
+        ...data,
         side: SafeMath.gte(data.price, this.trades[0].price) ? "up" : "down",
       };
       this.logger.debug(`_updateTrade formatTrade`, formatTrade);
@@ -549,6 +538,7 @@ class TibeBitConnector extends ConnectorBase {
       .sort((a, b) => b.date - a.date);
     const formatTrades = filteredTrades
       .map((t, i) => ({
+        ...t,
         id: t.tid,
         price: t.price,
         volume: t.amount,
@@ -566,7 +556,7 @@ class TibeBitConnector extends ConnectorBase {
       .sort((a, b) => b.at - a.at);
     if (formatTrades.length > 0) {
       this.logger.debug(`_updateTrade formatTrades`, formatTrades);
-      EventBus.emit(Events.trades, market, formatTrades);
+      EventBus.emit(Events.trades, market, { trades: formatTrades });
     }
     this.logger.debug(`****$$*****_updateTradeS*****$$*****`);
   }

@@ -445,6 +445,8 @@ class OkexConnector extends ConnectorBase {
             volume: data.sz,
             market: instId.replace("-", "").toLowerCase(),
             at: parseInt(SafeMath.div(data.ts, "1000")),
+            funds: SafeMath.mult(data.px, data.sz),
+            created_at: new Date(data.ts).toISOString(),
             side:
               i === res.data.data.length - 1
                 ? "up"
@@ -934,6 +936,10 @@ class OkexConnector extends ConnectorBase {
       .sort((a, b) => b.ts - a.ts);
     const formatTrades = filteredTrades.map((data, i) => {
       return {
+        tid: data.tradeId, // [about to decrepted]
+        type: data.side, // [about to decrepted]
+        date: parseInt(SafeMath.div(data.ts, "1000")), // [about to decrepted]
+        amount: data.sz, // [about to decrepted]
         id: data.tradeId,
         price: data.px,
         volume: data.sz,
@@ -949,7 +955,7 @@ class OkexConnector extends ConnectorBase {
             : "down",
       };
     });
-    EventBus.emit(Events.trades, market, formatTrades);
+    EventBus.emit(Events.trades, market, { trades: formatTrades });
   }
 
   _updateBooks(instId, bookData) {
