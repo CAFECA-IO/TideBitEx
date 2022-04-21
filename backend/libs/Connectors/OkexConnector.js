@@ -440,6 +440,7 @@ class OkexConnector extends ConnectorBase {
       const payload = res.data.data
         // .sort((a, b) => +b.ts - +a.ts)
         .map((data, i) => {
+          this.logger.log(`${[this.constructor.name]} data.ts`, data.ts)
           return {
             id: data.tradeId,
             price: data.px,
@@ -447,7 +448,7 @@ class OkexConnector extends ConnectorBase {
             market: instId.replace("-", "").toLowerCase(),
             at: parseInt(SafeMath.div(data.ts, "1000")),
             funds: SafeMath.mult(data.px, data.sz),
-            created_at: new Date(data.ts).toISOString(),
+            // created_at: new Date(data.ts).toISOString(),
             side:
               i === res.data.data.length - 1
                 ? "up"
