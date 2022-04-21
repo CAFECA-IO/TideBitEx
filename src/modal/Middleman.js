@@ -12,9 +12,9 @@ class Middleman {
     return this.selectedTicker;
   }
 
-  async getTicker(id) {
-    const ticker = await this.communicator.ticker(id);
-    return ticker;
+  async getTicker(market) {
+    const ticker = await this.communicator.ticker(market);
+    return ticker[market];
   }
 
   updateTickers(tickers) {
@@ -366,14 +366,14 @@ class Middleman {
   updateOrders(data) {
     // console.log(`*&&&&&&&&&&&*Events.order*&&&&&&&&&&&**`);
     // console.log(`data`, data);
-    // console.log(`this.selectedTicker.id`, this.selectedTicker.id);
+    // console.log(`this.selectedTicker.market`, this.selectedTicker.market);
     const updatePendingOrders =
       this.pendingOrders?.map((order) => ({
         ...order,
       })) || [];
     const updateCloseOrders =
       this.closeOrders?.map((order) => ({ ...order })) || [];
-    if (data.market === this.selectedTicker.id) {
+    if (data.market === this.selectedTicker.market) {
       const index = updatePendingOrders.findIndex(
         (order) => order.ordId === data.ordId
       );

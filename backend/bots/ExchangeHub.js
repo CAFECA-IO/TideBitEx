@@ -217,71 +217,32 @@ class ExchangeHub extends Bot {
 
   async getTicker({ params, query }) {
     const instId = this._findInstId(query.id);
-    this.logger.log(`****----**** getTicker [START] ****----****`);
-    this.logger.log(`instId`, instId);
-    this.logger.log(`this._findSource(instId)`, this._findSource(instId));
-    switch (this._findSource(instId)) {
-      case SupportedExchange.OKEX:
-        return this.okexConnector.router("getTicker", {
-          params,
-          query: { ...query, instId },
-        });
-      case SupportedExchange.TIDEBIT:
-        const index = this.tidebitMarkets.findIndex(
-          (market) => instId === market.instId
-        );
-        if (index !== -1) {
-          const url = `${this.config.peatio.domain}/api/v2/tickers/${query.id}`;
-          // this.logger.debug(`getTicker url:`, url);
-          const tBTickerRes = await axios.get(url);
-          // this.logger.debug(`getTicker tBTickerRes.data:`, tBTickerRes.data);
-          if (!tBTickerRes || !tBTickerRes.data) {
-            return new ResponseFormat({
-              message: "Something went wrong",
-              code: Codes.API_UNKNOWN_ERROR,
-            });
-          }
-          const tBTicker = tBTickerRes.data;
-          const change = SafeMath.minus(
-            tBTicker.ticker.last,
-            tBTicker.ticker.open
-          );
-          const changePct = SafeMath.gt(tBTicker.ticker.open, "0")
-            ? SafeMath.div(change, tBTicker.ticker.open)
-            : SafeMath.eq(change, "0")
-            ? "0"
-            : "1";
-          const formatTBTicker = {
-            id: query.id,
-            instId,
-            name: instId.replace("-", "/"),
-            base_unit: instId.split("-")[0].toLowerCase(),
-            quote_unit: instId.split("-")[1].toLowerCase(),
-            ...tBTicker.ticker,
-            at: tBTicker.at,
-            change,
-            changePct,
-            volume: tBTicker.ticker.vol.toString(),
-            source: SupportedExchange.TIDEBIT,
-            group: undefined,
-          };
-          this.logger.log(`formatTBTicker`, formatTBTicker);
-          this.logger.log(`****----**** getTicker [START] ****----****`);
-          return new ResponseFormat({
-            message: "getTicker",
-            payload: formatTBTicker,
+    const index = this.tidebitMarkets.findIndex(
+      (market) => instId === market.instId
+    );
+    if (index !== -1) {
+      switch (this._findSource(instId)) {
+        case SupportedExchange.OKEX:
+          return this.okexConnector.router("getTicker", {
+            params,
+            query: { ...query, instId },
           });
-        } else {
+        case SupportedExchange.TIDEBIT:
+          return this.tideBitConnector.router("getTicker", {
+            params,
+            query: { ...query, instId },
+          });
+        default:
           return new ResponseFormat({
             message: "getTicker",
             payload: null,
           });
-        }
-      default:
-        return new ResponseFormat({
-          message: "getOrderBooks",
-          payload: null,
-        });
+      }
+    } else {
+      return new ResponseFormat({
+        message: "getTicker",
+        payload: null,
+      });
     }
   }
   // account api end

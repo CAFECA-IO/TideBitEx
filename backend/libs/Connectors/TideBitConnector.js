@@ -165,6 +165,50 @@ class TibeBitConnector extends ConnectorBase {
     if (headers) this.isCredential = true;
   }
 
+  async getTicker({ query }) {
+    this.logger.log(`****----**** getTicker [START] ****----****`);
+    this.logger.log(`query.id`, query.id, `query.instId`, query.instId);
+    const tBTickerRes = await axios.get(
+      `${this.peatio}/api/v2/tickers/${query.id}`
+    );
+    if (!tBTickerRes || !tBTickerRes.data) {
+      return new ResponseFormat({
+        message: "Something went wrong",
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+    const tBTicker = tBTickerRes.data;
+    const change = SafeMath.minus(tBTicker.ticker.last, tBTicker.ticker.open);
+    const changePct = SafeMath.gt(tBTicker.ticker.open, "0")
+      ? SafeMath.div(change, tBTicker.ticker.open)
+      : SafeMath.eq(change, "0")
+      ? "0"
+      : "1";
+
+    const formatTBTicker = {};
+    formatTBTicker[query.id] = {
+      market: query.id,
+      instId: query.instId,
+      name: query.instId.replace("-", "/"),
+      base_unit: query.instId.split("-")[0].toLowerCase(),
+      quote_unit: query.instId.split("-")[1].toLowerCase(),
+      ...tBTicker.ticker,
+      at: tBTicker.at,
+      change,
+      changePct,
+      volume: tBTicker.ticker.vol.toString(),
+      source: SupportedExchange.TIDEBIT,
+      group: undefined,
+    };
+    this.logger.log(`[${this.name}] formatTBTicker`, formatTBTicker);
+    this.logger.log(`****----**** getTicker [START] ****----****`);
+
+    return new ResponseFormat({
+      message: "getTicker",
+      payload: formatTBTicker,
+    });
+  }
+
   async getTickers({ optional }) {
     const tBTickersRes = await axios.get(`${this.peatio}/api/v2/tickers`);
     if (!tBTickersRes || !tBTickersRes.data) {
@@ -187,6 +231,7 @@ class TibeBitConnector extends ConnectorBase {
         ? "0"
         : "1";
       prev[currId] = {
+        market: currId,
         instId,
         name: instId.replace("-", "/"),
         base_unit: instId.split("-")[0].toLowerCase(),
@@ -207,10 +252,16 @@ class TibeBitConnector extends ConnectorBase {
     }, {});
     optional.mask.forEach((market) => {
       let ticker = formatTickers[market.id];
-      if (ticker) this.tickers[market.id] = { ...ticker, group: market.group };
+      if (ticker)
+        this.tickers[market.id] = {
+          ...ticker,
+          group: market.group,
+          market: market.id,
+        };
       else {
         const instId = this._findInstId(market.id);
         this.tickers[market.id] = {
+          market: market.id,
           instId,
           name: market.name,
           base_unit: market.base_unit,
@@ -271,7 +322,7 @@ class TibeBitConnector extends ConnectorBase {
           : SafeMath.eq(change, "0")
           ? "0"
           : "1";
-        updateTickers[id] = { ...data[id], change, changePct };
+        updateTickers[id] = { ...data[id], change, changePct, market: id };
       }
     });
 
@@ -333,8 +384,6 @@ class TibeBitConnector extends ConnectorBase {
     const formatBooks = {
       asks,
       bids,
-      instId,
-      ts: Date.now(),
     };
     if (asks.length > 0 || bids.length > 0) {
       this.logger.debug(`_updateBooks formatBooks`, formatBooks);
