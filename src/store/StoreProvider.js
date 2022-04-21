@@ -96,7 +96,7 @@ const StoreProvider = (props) => {
           const updateBooks = middleman.updateBooks(metaData.data);
           _bookTimestamp = new Date().getTime();
           if (_bookTimestamp - +bookTimestamp > 1000) {
-            console.log(`updateBooks`, updateBooks);
+            // console.log(`updateBooks`, updateBooks);
             bookTimestamp = _bookTimestamp;
             setBooks(updateBooks);
           }

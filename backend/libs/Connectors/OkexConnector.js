@@ -922,13 +922,13 @@ class OkexConnector extends ConnectorBase {
   }
 
   _updateBooks(instId, bookData) {
-    const channel = "books";
+    // const channel = "books";
     // this.okexWsChannels[channel][instId] = bookData;
-    this.logger.debug(
-      `[${this.constructor.name}]_updateBooks`,
-      instId,
-      bookData
-    );
+    // this.logger.debug(
+    //   `[${this.constructor.name}]_updateBooks`,
+    //   instId,
+    //   bookData
+    // );
     const [books] = bookData;
     const asks = books.asks
       .filter((ask) => {
@@ -953,10 +953,10 @@ class OkexConnector extends ConnectorBase {
       bids,
       market: instId.replace("-", "").toLowerCase(),
     };
-    this.logger.debug(
-      `[${this.constructor.name}]_updateBooks formatBooks`,
-      formatBooks
-    );
+    // this.logger.debug(
+    //   `[${this.constructor.name}]_updateBooks formatBooks`,
+    //   formatBooks
+    // );
     if (asks.length > 0 || bids.length > 0) {
       EventBus.emit(
         Events.update,

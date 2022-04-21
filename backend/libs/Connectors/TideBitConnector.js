@@ -435,7 +435,7 @@ class TibeBitConnector extends ConnectorBase {
       market: instId.replace("-", "").toLowerCase(),
     };
     if (asks.length > 0 || bids.length > 0) {
-      this.logger.debug(`_updateBooks formatBooks`, formatBooks);
+      // this.logger.debug(`_updateBooks formatBooks`, formatBooks);
       EventBus.emit(
         Events.update,
         instId.replace("-", "").toLowerCase(),
