@@ -438,6 +438,7 @@ class OkexConnector extends ConnectorBase {
                 : "down",
           };
         });
+      this.trades = payload;
       return new ResponseFormat({
         message: "getTrades",
         payload,
@@ -908,17 +909,33 @@ class OkexConnector extends ConnectorBase {
     const channel = "trades";
     // this.okexWsChannels[channel][instId] = tradeData[0];
     // this.logger.debug(`[${this.constructor.name}]_updateTrades`, instId, tradeData);
-    const formatTrades = tradeData.map((data) => {
+    const market = instId.replace("-", "").toLowerCase();
+    const filteredTrades = tradeData
+      .filter(
+        (data) =>
+          SafeMath.gte(SafeMath.div(data.ts, "1000"), this.trades[0].at) &&
+          !this.trades.find((_t) => _t.id === data.tradeId)
+      )
+      .sort((a, b) => b.ts - a.ts);
+    const formatTrades = filteredTrades.map((data, i) => {
       return {
         instId,
-        px: data.px,
-        side: data.side,
-        sz: data.sz,
-        ts: parseInt(data.ts),
-        tradeId: data.tradeId,
+        id: data.tradeId,
+        price: data.px,
+        volume: data.sz,
+        market,
+        ts: parseInt(SafeMath.div(data.ts, "1000")),
+        side:
+          i === filteredTrades.length - 1
+            ? SafeMath.gte(data.px, this.trades[0].price)
+              ? "up"
+              : "down"
+            : SafeMath.gte(data.px, filteredTrades[i + 1].price)
+            ? "up"
+            : "down",
       };
     });
-    EventBus.emit(Events.trades, instId, formatTrades);
+    EventBus.emit(Events.trades, market, formatTrades);
   }
 
   _updateBooks(instId, bookData) {
