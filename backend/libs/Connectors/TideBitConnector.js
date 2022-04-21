@@ -372,6 +372,7 @@ class TibeBitConnector extends ConnectorBase {
         }
       });
       const books = { asks, bids, market: query.id };
+      this.books = books;
       return new ResponseFormat({
         message: "getOrderBooks",
         payload: books,
