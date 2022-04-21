@@ -15,6 +15,7 @@ class TibeBitConnector extends ConnectorBase {
     super({ logger });
     this.isStarted = false;
     this.name = "TibeBitConnector";
+    this.tickers = {};
     this.trades = [];
     return this;
   }
