@@ -274,13 +274,13 @@ class ExchangeHub extends Bot {
         code: Codes.API_UNKNOWN_ERROR,
       });
     }
-    this.logger.log(`this.tidebitMarkets`, this.tidebitMarkets);
+    // this.logger.log(`this.tidebitMarkets`, this.tidebitMarkets);
     try {
       const tideBitOnlyMarkets = Utils.marketFilterExclude(
         Object.values(filteredOkexTickers),
         this.tidebitMarkets
       );
-      this.logger.log(`tideBitOnlyMarkets`, tideBitOnlyMarkets);
+      // this.logger.log(`tideBitOnlyMarkets`, tideBitOnlyMarkets);
       const tBTickersRes = await this.tideBitConnector.router("getTickers", {
         optional: { mask: tideBitOnlyMarkets },
       });
