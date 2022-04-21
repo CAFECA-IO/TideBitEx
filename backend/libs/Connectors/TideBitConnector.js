@@ -455,7 +455,7 @@ class TibeBitConnector extends ConnectorBase {
     */
   async getTrades({ query }) {
     const tbTradesRes = await axios.get(
-      `${this.config.peatio.domain}/api/v2/trades?market=${query.id}`
+      `${this.peatio}/api/v2/trades?market=${query.id}`
     );
     if (!tbTradesRes || !tbTradesRes.data) {
       return new ResponseFormat({
@@ -517,16 +517,15 @@ class TibeBitConnector extends ConnectorBase {
     this.logger.debug(`****$$*****_updateTradeS*****$$*****`);
     /**
     {
-      trades: [
-        amount: "0.07"
-        classes: "new"
-        date: 1649665223 (s)
-        escape: ƒ (e)
-        price: "0.2769"
-        safe: undefined
-        tid: 31841859
-        type: "buy"
-      ]
+       trades: [
+         {
+           tid: 118,
+           type: 'buy',
+           date: 1650532785,
+           price: '95.0',
+           amount: '0.1'
+         }
+       ]
     }
     */
     const filteredTrades = data.trades
