@@ -448,7 +448,7 @@ class OkexConnector extends ConnectorBase {
             market: instId.replace("-", "").toLowerCase(),
             at: parseInt(SafeMath.div(data.ts, "1000")),
             funds: SafeMath.mult(data.px, data.sz),
-            // created_at: new Date(data.ts).toISOString(),
+            created_at: new Date(parseInt(data.ts)).toISOString(),
             side:
               i === res.data.data.length - 1
                 ? "up"
@@ -946,7 +946,7 @@ class OkexConnector extends ConnectorBase {
         price: data.px,
         volume: data.sz,
         market,
-        ts: parseInt(SafeMath.div(data.ts, "1000")),
+        at: parseInt(SafeMath.div(data.ts, "1000")),
         side:
           i === filteredTrades.length - 1
             ? SafeMath.gte(data.px, this.trades[0].price)
