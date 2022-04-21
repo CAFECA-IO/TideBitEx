@@ -15,6 +15,7 @@ class TibeBitConnector extends ConnectorBase {
     super({ logger });
     this.isStarted = false;
     this.name = "TibeBitConnector";
+    this.trades = [];
     return this;
   }
   async init({
@@ -43,7 +44,6 @@ class TibeBitConnector extends ConnectorBase {
     this.markets = markets;
     this.database = database;
     this.redis = redis;
-    this.tickers = {};
     return this;
   }
 
@@ -475,6 +475,9 @@ class TibeBitConnector extends ConnectorBase {
         side: tbTrade.side,
       }));
     this.trades = tbTrades;
+    this.logger.debug(`+++++++++++ getTrades *+++++++++++ `);
+    this.logger.debug(` this.trades`, this.trades);
+    this.logger.debug(`+++++++++++ getTrades *+++++++++++ `);
     return new ResponseFormat({
       message: "getTrades",
       payload: tbTrades,
