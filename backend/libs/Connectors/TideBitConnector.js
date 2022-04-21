@@ -455,6 +455,7 @@ class TibeBitConnector extends ConnectorBase {
     ]
     */
   async getTrades({ query }) {
+    try {
     const tbTradesRes = await axios.get(
       `${this.peatio}/api/v2/trades?market=${query.id}`
     );
@@ -483,6 +484,14 @@ class TibeBitConnector extends ConnectorBase {
       message: "getTrades",
       payload: tbTrades,
     });
+  } catch (error) {
+    this.logger.error(error);
+    const message = error.message;
+    return new ResponseFormat({
+      message,
+      code: Codes.API_UNKNOWN_ERROR,
+    });
+  }
   }
 
   _updateTrade(data) {

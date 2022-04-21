@@ -269,27 +269,9 @@ class ExchangeHub extends Bot {
   //     case SupportedExchange.OKEX:
   //       return this.okexConnector.router("getCandlesticks", { params, query });
   //     case SupportedExchange.TIDEBIT:
-  //       try {
-  //         const trades = await this._tbGetTrades({
-  //           instId: query.instId,
-  //           increase: true,
-  //         });
-  //         let candles = this.tideBitConnector.transformTradesToCandle(
-  //           trades,
-  //           query.bar
-  //         );
-  //         return new ResponseFormat({
-  //           message: "getCandlesticks",
-  //           payload: Object.values(candles),
-  //         });
-  //       } catch (error) {
-  //         this.logger.error(error);
-  //         const message = error.message;
-  //         return new ResponseFormat({
-  //           message,
-  //           code: Codes.API_UNKNOWN_ERROR,
-  //         });
-  //       }
+  //       return this.tideBitConnector.router("getTrades", {
+  //         query: { ...query, increase: true },
+  //       });
   //     default:
   //       return new ResponseFormat({
   //         message: "getCandlesticks",
@@ -307,22 +289,9 @@ class ExchangeHub extends Bot {
           query: { ...query, instId },
         });
       case SupportedExchange.TIDEBIT:
-        try {
-          const trades = await this._tbGetTrades({
-            id: query.id,
-          });
-          return new ResponseFormat({
-            message: "getTrades",
-            payload: trades,
-          });
-        } catch (error) {
-          this.logger.error(error);
-          const message = error.message;
-          return new ResponseFormat({
-            message,
-            code: Codes.API_UNKNOWN_ERROR,
-          });
-        }
+        return this.tideBitConnector.router("getTrades", {
+          query,
+        });
       default:
         return new ResponseFormat({
           message: "getTrades",
@@ -479,66 +448,6 @@ class ExchangeHub extends Bot {
           code: Codes.API_NOT_SUPPORTED,
         });
     }
-  }
-  async _tbGetTrades({ id, increase }) {
-    /**
-    [
-      {
-        "id": 48,
-        "price": "110.0",
-        "volume": "54.593",
-        "funds": "6005.263",
-        "market": "ethhkd",
-        "created_at": "2022-04-01T09:40:21Z",
-        "at": 1648806021,
-        "side": "down"
-      },
-    ]
-    */
-    const tbTradesRes = await axios.get(
-      `${this.config.peatio.domain}/api/v2/trades?market=${id}`
-    );
-    if (!tbTradesRes || !tbTradesRes.data) {
-      return new ResponseFormat({
-        message: "Something went wrong",
-        code: Codes.API_UNKNOWN_ERROR,
-      });
-    }
-    const tbTrades = tbTradesRes.data.sort((a, b) =>
-      increase ? a.at - b.at : b.at - a.at
-    );
-    // .map((trade) => ({ ...trade, instId }));
-    return tbTrades;
-    // const market = this._findMarket(instId);
-    // if (!market) {
-    //   throw new Error(`this.tidebitMarkets.instId ${instId} not found.`);
-    // }
-    // const { id: quoteCcy } = await this.database.getCurrencyByKey(
-    //   market.quote_unit
-    // );
-    // const { id: baseCcy } = await this.database.getCurrencyByKey(
-    //   market.base_unit
-    // );
-    // if (!quoteCcy) {
-    //   throw new Error(`quoteCcy not found`);
-    // }
-    // if (!baseCcy) {
-    //   throw new Error(`baseCcy not found`);
-    // }
-    // let trades;
-    // trades = await this.database.getTrades(quoteCcy, baseCcy);
-    // const tradeHistory = trades
-    //   .map((trade) => ({
-    //     ordId: trade.order_id,
-    //     instId: instId,
-    //     side: "",
-    //     amount: trade.volume,
-    //     price: trade.price,
-    //     tid: trade.id,
-    //     trend: trade.trend,
-    //     date: new Date(trade.created_at).getTime(),
-    //   }))
-    //   .sort((a, b) => (increase ? a.ts - b.ts : b.ts - a.ts));
   }
 
   async _tbGetOrderList({ memberId, instId, state, orderType }) {
