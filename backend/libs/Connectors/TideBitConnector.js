@@ -47,28 +47,6 @@ class TibeBitConnector extends ConnectorBase {
     return this;
   }
 
-  async getOrderBooks({ header, instId }) {
-    if (!this.isStarted) this._start({ header });
-    // const response = await this.pusher.get({
-    //   path: `${this.peatio}/channels/market-${instId
-    //     .replace("-", "")
-    //     .toLowerCase()}-global`,
-    // });
-    const response = await axios({
-      method: "GET",
-      url: `${this.peatio}/apps/${this.app}/channels/market-${instId
-        .replace("-", "")
-        .toLowerCase()}-global`,
-      headers: header,
-    });
-    if (response.status === 200) {
-      const body = await response.json();
-      const channelsInfo = body.channels;
-      this.logger.log(`getOrderBooks response`, response);
-      this.logger.log(`getOrderBooks channelsInfo`, channelsInfo);
-    }
-  }
-
   async getMemberIdFromRedis(peatioSession) {
     const client = redis.createClient({
       url: this.redis,
@@ -332,6 +310,76 @@ class TibeBitConnector extends ConnectorBase {
       //   updateTickers
       // );
       EventBus.emit(Events.tickers, updateTickers);
+    }
+  }
+
+  async getOrderBooks({ query }) {
+    try {
+      const tbBooksRes = await axios.get(
+        `${this.peatio}/api/v2/order_book?market=${query.id}`
+      );
+      if (!tbBooksRes || !tbBooksRes.data) {
+        return new ResponseFormat({
+          message: "Something went wrong",
+          code: Codes.API_UNKNOWN_ERROR,
+        });
+      }
+      const tbBooks = tbBooksRes.data;
+      const asks = [];
+      const bids = [];
+      this.logger.log(`tbBooks query.id`, query.id);
+      tbBooks.asks.forEach((ask) => {
+        if (
+          ask.market === query.id &&
+          ask.ord_type === "limit" &&
+          ask.state === "wait"
+        ) {
+          let index;
+          index = asks.findIndex((_ask) =>
+            SafeMath.eq(_ask[0], ask.price.toString())
+          );
+          if (index !== -1) {
+            let updateAsk = asks[index];
+            updateAsk[1] = SafeMath.plus(updateAsk[1], ask.remaining_volume);
+            asks[index] = updateAsk;
+          } else {
+            let newAsk = [ask.price.toString(), ask.remaining_volume]; // [價格, volume]
+            asks.push(newAsk);
+          }
+        }
+      });
+      tbBooks.bids.forEach((bid) => {
+        if (
+          bid.market === query.id &&
+          bid.ord_type === "limit" &&
+          bid.state === "wait"
+        ) {
+          let index;
+          index = bids.findIndex((_bid) =>
+            SafeMath.eq(_bid[0], bid.price.toString())
+          );
+          if (index !== -1) {
+            let updateBid = bids[index];
+            updateBid[1] = SafeMath.plus(updateBid[1], bid.remaining_volume);
+            bids[index] = updateBid;
+          } else {
+            let newBid = [bid.price.toString(), bid.remaining_volume]; // [價格, volume]
+            bids.push(newBid);
+          }
+        }
+      });
+      const books = { asks, bids };
+      return new ResponseFormat({
+        message: "getOrderBooks",
+        payload: books,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      const message = error.message;
+      return new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
     }
   }
 

@@ -317,28 +317,23 @@ class OkexConnector extends ConnectorBase {
           code: Codes.THIRD_PARTY_API_ERROR,
         });
       }
-      const [payload] = res.data.data.map((data) => {
-        const asks = data.asks.map((ask) => [
-          ask[0],
-          SafeMath.plus(ask[2], ask[3]),
-        ]);
-        const bids = data.bids.map((bid) => [
-          bid[0],
-          SafeMath.plus(bid[2], bid[3]),
-        ]);
-        return {
-          asks,
-          bids,
-          instId,
-          ts: parseInt(data.ts),
-        };
-      });
-      this.logger.log(`++++++++++++++`);
-      this.logger.log(payload);
-      this.logger.log(`++++++++++++++`);
+      const [data] = res.data.data;
+      const orderBookds = {};
+      orderBookds["asks"] = data.asks.map((ask) => [
+        ask[0],
+        SafeMath.plus(ask[2], ask[3]),
+      ]);
+      orderBookds["bids"] = data.bids.map((bid) => [
+        bid[0],
+        SafeMath.plus(bid[2], bid[3]),
+      ]);
+      this.books = orderBookds;
+      // this.logger.log(`+++++++ getOrderBooks [OkexConnector]+++++++`);
+      // this.logger.log(orderBookds);
+      // this.logger.log(`+++++++ getOrderBooks [OkexConnector]+++++++`);
       return new ResponseFormat({
         message: "getOrderBooks",
-        payload: payload,
+        payload: orderBookds,
       });
     } catch (error) {
       this.logger.error(error);
@@ -934,19 +929,27 @@ class OkexConnector extends ConnectorBase {
       bookData
     );
     const [formatBooks] = bookData.map((data) => {
-      const asks = data.asks.map((ask) => [
-        ask[0],
-        SafeMath.plus(ask[2], ask[3]),
-      ]);
-      const bids = data.bids.map((bid) => [
-        bid[0],
-        SafeMath.plus(bid[2], bid[3]),
-      ]);
+      const asks = data.asks
+        .filter((ask) => {
+          const _ask = this.books.asks.find((a) => a[0] === ask[0]);
+          return (
+            !_ask ||
+            (!!_ask && !SafeMath.eq(_ask[1], SafeMath.plus(ask[2], ask[3])))
+          );
+        })
+        .map((ask) => [ask[0], SafeMath.plus(ask[2], ask[3])]);
+      const bids = data.bids
+        .filter((bid) => {
+          const _bid = this.books.bids.find((b) => b[0] === bid[0]);
+          return (
+            !_bid ||
+            (!!_bid && !SafeMath.eq(_bid[1], SafeMath.plus(bid[2], bid[3])))
+          );
+        })
+        .map((bid) => [bid[0], SafeMath.plus(bid[2], bid[3])]);
       return {
         asks,
         bids,
-        instId,
-        ts: parseInt(data.ts),
       };
     });
     EventBus.emit(
