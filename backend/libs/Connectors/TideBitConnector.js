@@ -456,42 +456,41 @@ class TibeBitConnector extends ConnectorBase {
     */
   async getTrades({ query }) {
     try {
-    const tbTradesRes = await axios.get(
-      `${this.peatio}/api/v2/trades?market=${query.id}`
-    );
-    if (!tbTradesRes || !tbTradesRes.data) {
+      const tbTradesRes = await axios.get(
+        `${this.peatio}/api/v2/trades?market=${query.id}`
+      );
+      if (!tbTradesRes || !tbTradesRes.data) {
+        return new ResponseFormat({
+          message: "Something went wrong",
+          code: Codes.API_UNKNOWN_ERROR,
+        });
+      }
+      const tbTrades = tbTradesRes.data
+        .sort((a, b) => (query.increase ? a.at - b.at : b.at - a.at))
+        .map((tbTrade, i) => ({
+          id: tbTrade.id,
+          price: tbTrade.price,
+          volume: tbTrade.volume,
+          market: tbTrade.market,
+          at: tbTrade.at,
+          side: tbTrade.side,
+        }));
+      this.trades = tbTrades;
+      // this.logger.debug(`+++++++++++ getTrades *+++++++++++ `);
+      // this.logger.debug(` this.trades`, this.trades);
+      // this.logger.debug(`+++++++++++ getTrades *+++++++++++ `);
       return new ResponseFormat({
-        message: "Something went wrong",
+        message: "getTrades",
+        payload: tbTrades,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      const message = error.message;
+      return new ResponseFormat({
+        message,
         code: Codes.API_UNKNOWN_ERROR,
       });
     }
-    const tbTrades = tbTradesRes.data
-      .sort((a, b) => (query.increase ? a.at - b.at : b.at - a.at))
-      .map((tbTrade, i) => ({
-        instId: this._findInstId(query.id),
-        id: tbTrade.id,
-        price: tbTrade.price,
-        volume: tbTrade.volume,
-        market: tbTrade.market,
-        at: tbTrade.at,
-        side: tbTrade.side,
-      }));
-    this.trades = tbTrades;
-    this.logger.debug(`+++++++++++ getTrades *+++++++++++ `);
-    this.logger.debug(` this.trades`, this.trades);
-    this.logger.debug(`+++++++++++ getTrades *+++++++++++ `);
-    return new ResponseFormat({
-      message: "getTrades",
-      payload: tbTrades,
-    });
-  } catch (error) {
-    this.logger.error(error);
-    const message = error.message;
-    return new ResponseFormat({
-      message,
-      code: Codes.API_UNKNOWN_ERROR,
-    });
-  }
   }
 
   _updateTrade(data) {
@@ -510,7 +509,6 @@ class TibeBitConnector extends ConnectorBase {
       !this.trades.find((_t) => _t.id === data.id)
     ) {
       const formatTrade = {
-        instId: this._findInstId(data.market),
         id: data.id,
         price: data.price,
         volume: data.volume,
@@ -527,7 +525,6 @@ class TibeBitConnector extends ConnectorBase {
   _updateTrades(market, data) {
     this.logger.debug(`****$$*****_updateTradeS*****$$*****`);
     this.logger.debug(`_updateTrade data`, data);
-    this.logger.debug(`****$$*****_updateTradeS*****$$*****`);
     /**
     {
        trades: [
@@ -550,11 +547,10 @@ class TibeBitConnector extends ConnectorBase {
       .sort((a, b) => b.date - a.date);
     const formatTrades = filteredTrades
       .map((t, i) => ({
-        market,
         id: t.tid,
         price: t.price,
         volume: t.amount,
-        type: t.type,
+        market,
         at: t.date,
         side:
           i === filteredTrades.length - 1
@@ -570,6 +566,7 @@ class TibeBitConnector extends ConnectorBase {
       this.logger.debug(`_updateTrade formatTrades`, formatTrades);
       EventBus.emit(Events.trades, market, formatTrades);
     }
+    this.logger.debug(`****$$*****_updateTradeS*****$$*****`);
   }
 
   _updateAccount(data) {

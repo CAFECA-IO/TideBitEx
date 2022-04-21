@@ -84,6 +84,7 @@ const StoreProvider = (props) => {
           }
           break;
         case Events.trades:
+          console.log(`metaData.data`, metaData.data);
           const { trades, candles, volumes } = middleman.updateTrades(
             metaData.data,
             resolution

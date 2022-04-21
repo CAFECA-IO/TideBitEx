@@ -426,7 +426,6 @@ class OkexConnector extends ConnectorBase {
         // .sort((a, b) => +b.ts - +a.ts)
         .map((data, i) => {
           return {
-            instId: data.instId,
             id: data.tradeId,
             price: data.px,
             volume: data.sz,
@@ -921,7 +920,6 @@ class OkexConnector extends ConnectorBase {
       .sort((a, b) => b.ts - a.ts);
     const formatTrades = filteredTrades.map((data, i) => {
       return {
-        instId,
         id: data.tradeId,
         price: data.px,
         volume: data.sz,
