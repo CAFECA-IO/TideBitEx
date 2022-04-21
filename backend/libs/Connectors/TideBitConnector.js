@@ -144,7 +144,7 @@ class TibeBitConnector extends ConnectorBase {
     if (headers) this.isCredential = true;
   }
 
-  async getTicker({ query }) {
+  async getTicker({ query, optional }) {
     this.logger.log(`****----**** getTicker [START] ****----****`);
     this.logger.log(`query.id`, query.id, `query.instId`, query.instId);
     const tBTickerRes = await axios.get(
@@ -177,7 +177,8 @@ class TibeBitConnector extends ConnectorBase {
       changePct,
       volume: tBTicker.ticker.vol.toString(),
       source: SupportedExchange.TIDEBIT,
-      group: undefined,
+      group: optional.market.group,
+      ticker: tBTicker.ticker,
     };
     this.logger.log(`[${this.name}] formatTBTicker`, formatTBTicker);
     this.logger.log(`****----**** getTicker [START] ****----****`);
@@ -226,6 +227,7 @@ class TibeBitConnector extends ConnectorBase {
         changePct,
         at: parseInt(tickerObj.at),
         source: SupportedExchange.TIDEBIT,
+        ticker: tickerObj.ticker,
       };
       return prev;
     }, {});

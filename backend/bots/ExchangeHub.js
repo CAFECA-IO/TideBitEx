@@ -167,11 +167,13 @@ class ExchangeHub extends Bot {
           return this.okexConnector.router("getTicker", {
             params,
             query: { ...query, instId },
+            optional: { market: this.tidebitMarkets[index] },
           });
         case SupportedExchange.TIDEBIT:
           return this.tideBitConnector.router("getTicker", {
             params,
             query: { ...query, instId },
+            optional: { market: this.tidebitMarkets[index] },
           });
         default:
           return new ResponseFormat({

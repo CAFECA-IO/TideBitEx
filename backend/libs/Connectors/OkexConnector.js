@@ -147,7 +147,7 @@ class OkexConnector extends ConnectorBase {
     }
   }
 
-  async getTicker({ query }) {
+  async getTicker({ query, optional }) {
     const method = "GET";
     const path = "/api/v5/market/ticker";
     const { instId } = query;
@@ -183,11 +183,7 @@ class OkexConnector extends ConnectorBase {
         name: data.instId.replace("-", "/"),
         base_unit: data.instId.split("-")[0].toLowerCase(),
         quote_unit: data.instId.split("-")[1].toLowerCase(),
-        group:
-          data.instId.split("-")[1].toLowerCase().includes("usd") &&
-          data.instId.split("-")[1].toLowerCase().length > 3
-            ? "usdx"
-            : data.instId.split("-")[1].toLowerCase(),
+        group: optional.market.group,
         sell: data.askPx,
         buy: data.bidPx,
         instId: data.instId,
@@ -200,6 +196,15 @@ class OkexConnector extends ConnectorBase {
         volume: data.vol24h,
         at: parseInt(data.ts),
         source: SupportedExchange.OKEX,
+        ticker: {
+          buy: data.bidPx,
+          sell: data.askPx,
+          low: data.low24h,
+          high: data.high24h,
+          last: data.last,
+          open: data.open24h,
+          vol: data.vol24h,
+        },
       };
       return new ResponseFormat({
         message: "getTicker",
@@ -272,6 +277,15 @@ class OkexConnector extends ConnectorBase {
           volume: data.vol24h,
           at: parseInt(data.ts),
           source: SupportedExchange.OKEX,
+          ticker: {
+            buy: data.bidPx,
+            sell: data.askPx,
+            low: data.low24h,
+            high: data.high24h,
+            last: data.last,
+            open: data.open24h,
+            vol: data.vol24h,
+          },
         };
         return prev;
       }, defaultObj);
