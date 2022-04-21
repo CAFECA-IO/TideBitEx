@@ -920,6 +920,10 @@ class ExchangeHub extends Bot {
 
     // orderBooksOnUpdate
     EventBus.on(Events.update, (market, booksData) => {
+      this.logger.debug(
+        `[${this.constructor.ExchangeHub}]_updateBooks booksData`,
+        booksData
+      );
       this.broadcast(market, {
         type: Events.update,
         data: booksData,
