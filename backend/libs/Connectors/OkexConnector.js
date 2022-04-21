@@ -21,6 +21,7 @@ class OkexConnector extends ConnectorBase {
     this.websocketPrivate = new WebSocket({ logger });
     this.tickers = {};
     this.trades = [];
+    this.books = {};
     return this;
   }
 

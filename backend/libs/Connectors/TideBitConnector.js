@@ -17,6 +17,7 @@ class TibeBitConnector extends ConnectorBase {
     this.name = "TibeBitConnector";
     this.tickers = {};
     this.trades = [];
+    this.books = {};
     return this;
   }
   async init({
