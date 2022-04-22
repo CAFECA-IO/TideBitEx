@@ -842,6 +842,9 @@ class OkexConnector extends ConnectorBase {
         const arg = { ...data.arg };
         const channel = arg.channel;
         delete arg.channel;
+        this.logger.log("!!! _okexWsEventListener arg", arg);
+        this.logger.log("!!! _okexWsEventListener this.okexWsChannels", this.okexWsChannels);
+        this.logger.log("!!! _okexWsEventListener this.okexWsChannels[channel]", this.okexWsChannels[channel]);
         const values = Object.values(arg);
         if (data.event === "subscribe") {
           this.okexWsChannels[channel] = this.okexWsChannels[channel] || {};
@@ -1294,7 +1297,7 @@ class OkexConnector extends ConnectorBase {
   // TideBitEx ws
   _subscribeMarket(market) {
     const instId = this._findInstId(market);
-    // if (this._findSource(instId) === SupportedExchange.OKEX) {
+    if (this._findSource(instId) === SupportedExchange.OKEX) {
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeMarket [START] ++++++`
       );
@@ -1306,12 +1309,12 @@ class OkexConnector extends ConnectorBase {
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeMarket [END] ++++++`
       );
-    // }
+    }
   }
 
   _unsubscribeMarket(market) {
     const instId = this._findInstId(market);
-    // if (this._findSource(instId) === SupportedExchange.OKEX) {
+    if (this._findSource(instId) === SupportedExchange.OKEX) {
       this.logger.log(
         `---------- [${this.constructor.name}]  _unsubscribeMarket [START] ----------`
       );
@@ -1323,7 +1326,7 @@ class OkexConnector extends ConnectorBase {
       this.logger.log(
         `---------- [${this.constructor.name}]  _unsubscribeMarket [END] ----------`
       );
-    // }
+    }
   }
 
   _subscribeGlobal() {}
