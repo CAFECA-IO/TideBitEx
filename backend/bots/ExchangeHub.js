@@ -403,7 +403,7 @@ class ExchangeHub extends Bot {
             let _updateOrder = {
               instId: body.instId,
               ordType: body.ordType,
-              id: orderId,
+              id: okexOrderRes.payload.ordId,
               clOrdId: okexOrderRes.payload.clOrdId,
               at: parseInt(SafeMath.div(Date.now(), "1000")),
               market: body.market,
