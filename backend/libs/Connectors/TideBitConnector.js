@@ -412,32 +412,39 @@ class TibeBitConnector extends ConnectorBase {
     let index,
       asks = [],
       bids = [];
-    if (this.books) {
-      this.books.asks.forEach((ask) => {
-        index = data.asks.findIndex((_ask) => _ask[0] === ask[0]);
-        if (index === -1) {
-          asks.push([ask[0], "0"]);
-        }
-      });
-      data.asks.forEach((ask) => {
-        index = this.books.asks.findIndex((_ask) => _ask[0] === ask[0]);
-        if (index === -1 || this.books.asks[index][1] !== ask[1]) {
-          asks.push(ask);
-        }
-      });
-      this.books.bids.forEach((bid) => {
-        index = data.bids.findIndex((_bid) => _bid[0] === bid[0]);
-        if (index === -1) {
-          bids.push([bid[0], "0"]);
-        }
-      });
-      data.bids.forEach((bid) => {
-        index = this.books.bids.findIndex((_bid) => _bid[0] === bid[0]);
-        if (index === -1 || this.books.bids[index][1] !== bid[1]) {
-          bids.push(bid);
-        }
-      });
-    }
+
+    this.books?.asks?.forEach((ask) => {
+      index = data.asks.findIndex((_ask) => _ask[0] === ask[0]);
+      if (index === -1) {
+        asks.push([ask[0], "0"]);
+      }
+    });
+    data.asks.forEach((ask) => {
+      index = this.books?.asks?.findIndex((_ask) => _ask[0] === ask[0]);
+      if (
+        index === -1 ||
+        index === undefined ||
+        this.books.asks[index][1] !== ask[1]
+      ) {
+        asks.push(ask);
+      }
+    });
+    this.books?.bids?.forEach((bid) => {
+      index = data.bids.findIndex((_bid) => _bid[0] === bid[0]);
+      if (index === -1) {
+        bids.push([bid[0], "0"]);
+      }
+    });
+    data.bids.forEach((bid) => {
+      index = this.books?.bids?.findIndex((_bid) => _bid[0] === bid[0]);
+      if (
+        index === -1 ||
+        index === undefined ||
+        this.books.bids[index][1] !== bid[1]
+      ) {
+        bids.push(bid);
+      }
+    });
     this.books = data;
     const formatBooks = {
       asks,
