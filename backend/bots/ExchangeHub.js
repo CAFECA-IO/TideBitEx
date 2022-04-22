@@ -395,7 +395,7 @@ class ExchangeHub extends Bot {
           } else {
             let _updateOrder = {
               id: orderId,
-              at: parseInt(SafeMath.div(new Date.now(), "1000")),
+              at: parseInt(SafeMath.div(Date.now(), "1000")),
               market: body.market,
               kind: body.kind,
               price: body.price,

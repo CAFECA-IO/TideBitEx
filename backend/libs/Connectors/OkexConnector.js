@@ -502,7 +502,7 @@ class OkexConnector extends ConnectorBase {
       ccy: body.ccy,
       clOrdId,
       tag: this.brokerId,
-      side: body.kind === 'bid' ? 'buy': 'ask',
+      side: body.kind === "bid" ? "buy" : "ask",
       posSide: body.posSide,
       ordType: body.ordType,
       sz: body.volume,
@@ -529,7 +529,7 @@ class OkexConnector extends ConnectorBase {
       this.logger.log(
         `---------- [${this.constructor.name}]  postPlaceOrder  ----------`
       );
-      this.logger.log('[RESPONSE]',res.data.data);
+      this.logger.log("[RESPONSE]", res.data.data);
       this.logger.log(
         `---------- [${this.constructor.name}]  postPlaceOrder  ----------`
       );
