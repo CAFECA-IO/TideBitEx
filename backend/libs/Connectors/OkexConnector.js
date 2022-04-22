@@ -1294,7 +1294,7 @@ class OkexConnector extends ConnectorBase {
   // TideBitEx ws
   _subscribeMarket(market) {
     const instId = this._findInstId(market);
-    if (this._findSource(instId) === SupportedExchange.OKEX) {
+    // if (this._findSource(instId) === SupportedExchange.OKEX) {
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeMarket [START] ++++++`
       );
@@ -1306,12 +1306,12 @@ class OkexConnector extends ConnectorBase {
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeMarket [END] ++++++`
       );
-    }
+    // }
   }
 
   _unsubscribeMarket(market) {
     const instId = this._findInstId(market);
-    if (this._findSource(instId) === SupportedExchange.OKEX) {
+    // if (this._findSource(instId) === SupportedExchange.OKEX) {
       this.logger.log(
         `---------- [${this.constructor.name}]  _unsubscribeMarket [START] ----------`
       );
@@ -1323,7 +1323,7 @@ class OkexConnector extends ConnectorBase {
       this.logger.log(
         `---------- [${this.constructor.name}]  _unsubscribeMarket [END] ----------`
       );
-    }
+    // }
   }
 
   _subscribeGlobal() {}
