@@ -394,7 +394,10 @@ class ExchangeHub extends Bot {
             return okexOrderRes;
           } else {
             let _updateOrder = {
+              instId: body.instId,
+              ordType: body.ordType,
               id: orderId,
+              clOrdId: okexOrderRes.clOrdId,
               at: parseInt(SafeMath.div(Date.now(), "1000")),
               market: body.market,
               kind: body.kind,
