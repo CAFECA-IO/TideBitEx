@@ -526,10 +526,11 @@ class OkexConnector extends ConnectorBase {
         headers: this.getHeaders(true, { timeString, okAccessSign }),
         data: filterBody,
       });
+      const [payload] = res.data.data;
       this.logger.log(
         `---------- [${this.constructor.name}]  postPlaceOrder  ----------`
       );
-      this.logger.log("[RESPONSE]", res.data.data);
+      this.logger.log("[RESPONSE]", payload);
       this.logger.log(
         `---------- [${this.constructor.name}]  postPlaceOrder  ----------`
       );
@@ -543,7 +544,7 @@ class OkexConnector extends ConnectorBase {
       }
       return new ResponseFormat({
         message: "postPlaceOrder",
-        payload: res.data.data,
+        payload,
       });
     } catch (error) {
       this.logger.error(error);
