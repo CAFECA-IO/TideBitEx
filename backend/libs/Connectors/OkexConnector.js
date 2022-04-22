@@ -948,10 +948,12 @@ class OkexConnector extends ConnectorBase {
   }
 
   _updateOrderDetails(instType, orderData) {
-    this.logger.log(`_updateOrderDetails`, orderData);
+    this.logger.log(`_updateOrderDetails orderData`, orderData);
+    this.logger.log(`_updateOrderDetails instType`, instType);
     const formatOrders = [];
     orderData.forEach((data) => {
       if (data.clOrdId.startsWith(this.brokerId)) {
+        this.logger.log(`data.clOrdId.startsWith(this.brokerId)`, this.brokerId);
         formatOrders.push({
           ...data,
           cTime: parseInt(data.cTime),

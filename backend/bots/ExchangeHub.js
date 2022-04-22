@@ -404,9 +404,9 @@ class ExchangeHub extends Bot {
               state_text: "Waiting",
               volume: body.volume,
             };
-            EventBus.emit(Events.order, body.market, order);
+            EventBus.emit(Events.order, body.market, _updateOrder);
             this.logger.log(
-              `[TO FRONTEND][OnEvent: ${Events.account}] _updateAcc ln:401`,
+              `[TO FRONTEND][OnEvent: ${Events.order}] _updateOrder ln:409`,
               _updateOrder
             );
             let _updateAccount = {
@@ -422,7 +422,7 @@ class ExchangeHub extends Bot {
             };
             EventBus.emit(Events.account, _updateAccount);
             this.logger.log(
-              `[TO FRONTEND][OnEvent: ${Events.account}] _updateAccount ln:401`,
+              `[TO FRONTEND][OnEvent: ${Events.account}] _updateAccount ln:425`,
               _updateAccount
             );
           }
