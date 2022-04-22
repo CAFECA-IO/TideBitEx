@@ -849,10 +849,10 @@ class OkexConnector extends ConnectorBase {
           this.okexWsChannels[channel][values[0]] =
             this.okexWsChannels[channel][values[0]] || {};
         } else if (data.event === "unsubscribe") {
-          // delete this.okexWsChannels[channel][values[0]];
-          if (!Object.keys(this.okexWsChannels[channel]).length) {
-            delete this.okexWsChannels[channel];
-          }
+          delete this.okexWsChannels[channel][values[0]];
+          // if (!Object.keys(this.okexWsChannels[channel]).length) {
+          //   delete this.okexWsChannels[channel];
+          // }
         } else if (data.event === "error") {
           this.logger.log("!!! _okexWsEventListener on event error", data);
         }
