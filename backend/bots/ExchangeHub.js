@@ -729,8 +729,37 @@ class ExchangeHub extends Bot {
 
             const created_at = new Date().toISOString();
 
+            const _updateOrder = {
+              ...body,
+              state: "canceled",
+              state_text: "Canceled",
+              at: parseInt(SafeMath.div(Date.now(), "1000")),
+            };
+            this.logger.log(
+              `[TO FRONTEND][OnEvent: ${Events.order}] updateOrder ln:1092`,
+              _updateOrder
+            );
+            EventBus.emit(Events.order, body.market, _updateOrder);
+
             await this.database.updateOrder(newOrder, { dbTransaction: t });
-            if (account)
+            if (account) {
+              let _updateAccount = {
+                balance: SafeMath.plus(account.balance, balance),
+                locked: SafeMath.plus(account.locked, locked),
+                currency: this.currencies.find(
+                  (curr) => curr.id === account.currency
+                )?.symbol,
+                total: SafeMath.plus(
+                  SafeMath.plus(account.balance, balance),
+                  SafeMath.plus(account.locked, locked)
+                ),
+              };
+              EventBus.emit(Events.account, _updateAccount);
+              this.logger.log(
+                `[TO FRONTEND][OnEvent: ${Events.account}] _updateAccount ln:425`,
+                _updateAccount
+              );
+
               await this._updateAccount(
                 account,
                 t,
@@ -742,6 +771,7 @@ class ExchangeHub extends Bot {
                 created_at,
                 this.database.FUNC.UNLOCK_FUNDS
               );
+            }
           }
           await t.commit();
           return okexCancelOrderRes;
@@ -902,7 +932,7 @@ class ExchangeHub extends Bot {
         // TODO: using message queue
         for (const formatOrder of formatOrders) {
           if (
-            // formatOrder.state !== "canceled" /* cancel order */ &&
+            formatOrder.state !== "canceled" /* cancel order */ &&
             formatOrder.accFillSz !== "0" /* create order */
           ) {
             await this._updateOrderDetail(formatOrder);
@@ -929,6 +959,8 @@ class ExchangeHub extends Bot {
     // 9. update account balance and locked
     try {
       const {
+        ordType,
+        instId,
         accFillSz,
         clOrdId,
         tradeId,
@@ -936,8 +968,10 @@ class ExchangeHub extends Bot {
         side,
         fillPx,
         fillSz,
+        sz,
         fee,
         uTime,
+        ordId,
       } = formatOrder;
       // get orderId from formatOrder.clOrdId
       const { memberId, orderId } = Utils.parseClOrdId(clOrdId);
@@ -1019,7 +1053,6 @@ class ExchangeHub extends Bot {
       const updated_at = created_at;
 
       const newOrder = {
-        ...order,
         id: orderId,
         volume: newOrderVolume,
         state: orderState,
@@ -1059,11 +1092,41 @@ class ExchangeHub extends Bot {
       );
 
       await this.database.updateOrder(newOrder, { dbTransaction: t });
+
+      const _updateOrder = {
+        id: ordId,
+        at: parseInt(SafeMath.div(uTime, "1000")),
+        market: instId.replace("-", "").toLowerCase(),
+        kind: side === "buy" ? "bid" : "ask",
+        price: null, // market prcie
+        origin_volume: sz,
+        clOrdId: clOrdId,
+        state:
+          state === "canceled"
+            ? "canceled"
+            : state === "filled"
+            ? "done"
+            : "wait",
+        state_text:
+          state === "canceled"
+            ? "Canceled"
+            : state === "filled"
+            ? "Done"
+            : "Waiting",
+        volume: SafeMath.minus(sz, fillSz),
+        instId: instId,
+        ordType: ordType,
+        filled: state === "filled",
+      };
       this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.order}] updateOrder ln:1026`,
-        newOrder
+        `[TO FRONTEND][OnEvent: ${Events.order}] updateOrder ln:1092`,
+        _updateOrder
       );
-      EventBus.emit(Events.order, `${base_unit}${quote_unit}`, newOrder);
+      EventBus.emit(
+        Events.order,
+        instId.replace("-", "").toLowerCase(),
+        _updateOrder
+      );
 
       await this._updateAccount(
         accountAsk,
