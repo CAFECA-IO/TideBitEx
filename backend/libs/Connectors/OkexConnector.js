@@ -941,8 +941,9 @@ class OkexConnector extends ConnectorBase {
   }
 
   _updateOrderDetails(instType, orderData) {
+    this.logger.log(`_updateOrderDetails`, orderData);
     const formatOrders = [];
-    orderData.map((data) => {
+    orderData.forEach((data) => {
       if (data.clOrdId.startsWith(this.brokerId)) {
         formatOrders.push({
           ...data,
@@ -957,10 +958,10 @@ class OkexConnector extends ConnectorBase {
   }
 
   _updateTrades(instId, tradeData) {
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [START] ----------`
-    //   );
-    // this.logger.log(`[FROM OKEX] tradeData`, tradeData);
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [START] ----------`
+    );
+    this.logger.log(`[FROM OKEX] tradeData`, tradeData);
     const market = instId.replace("-", "").toLowerCase();
     const filteredTrades = tradeData
       .filter(
@@ -990,18 +991,21 @@ class OkexConnector extends ConnectorBase {
             : "down",
       };
     });
-    // this.logger.log(`[TO BACK END][OnEvent: ${Events.trades}] updateTrades`, formatTrades);
+    this.logger.log(
+      `[TO BACK END][OnEvent: ${Events.trades}] updateTrades`,
+      formatTrades
+    );
     EventBus.emit(Events.trades, market, { trades: formatTrades });
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [END] ----------`
-    // );
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [END] ----------`
+    );
   }
 
   _updateBooks(instId, bookData) {
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  _updateBooks instId: ${instId} [START] ----------`
-    //   );
-    // this.logger.log(`[FROM OKEX] bookData`, bookData);
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateBooks instId: ${instId} [START] ----------`
+    );
+    this.logger.log(`[FROM OKEX] bookData`, bookData);
     const [books] = bookData;
     const asks = books.asks
       .filter((ask) => {
@@ -1026,7 +1030,10 @@ class OkexConnector extends ConnectorBase {
       bids,
       market: instId.replace("-", "").toLowerCase(),
     };
-    // this.logger.log(`[TO BACK END][OnEvent: ${Events.update}] updateBooks`, formatBooks);
+    this.logger.log(
+      `[TO BACK END][OnEvent: ${Events.update}] updateBooks`,
+      formatBooks
+    );
     if (asks.length > 0 || bids.length > 0) {
       EventBus.emit(
         Events.update,
@@ -1034,9 +1041,9 @@ class OkexConnector extends ConnectorBase {
         formatBooks
       );
     }
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}] _updateBooks instId: ${instId} [END] ----------`
-    // );
+    this.logger.log(
+      `---------- [${this.constructor.name}] _updateBooks instId: ${instId} [END] ----------`
+    );
   }
 
   _updateCandle1m(instId, candleData) {
@@ -1062,10 +1069,10 @@ class OkexConnector extends ConnectorBase {
 
   _updateTickers(tickerData) {
     if (!this.tickers) return;
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
-    //   );
-    // this.logger.log(`[FROM OKEX] tickerData`, tickerData);
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
+    );
+    this.logger.log(`[FROM OKEX] tickerData`, tickerData);
     const updateTickers = tickerData
       .filter((data) => {
         const id = data.instId.replace("-", "").toLowerCase();
@@ -1109,12 +1116,15 @@ class OkexConnector extends ConnectorBase {
         return prev;
       }, {});
     if (Object.keys(updateTickers).length > 0) {
-      // this.logger.log(`[TO BACK END][OnEvent: ${Events.tickers}] updateTickers`, updateTickers);
+      this.logger.log(
+        `[TO BACK END][OnEvent: ${Events.tickers}] updateTickers`,
+        updateTickers
+      );
       EventBus.emit(Events.tickers, updateTickers);
     }
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  _updateTickers [END] ----------`
-    //   );
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateTickers [END] ----------`
+    );
   }
 
   _subscribeInstruments() {

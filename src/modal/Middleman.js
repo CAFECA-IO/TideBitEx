@@ -415,7 +415,7 @@ class Middleman {
       updateCloseOrders: updateCloseOrders.sort((a, b) => +b.at - +a.at),
     };
   }
-  
+
   async getOrderList(options) {
     if (this.isLogin) {
       const orders = await this.communicator.getOrderList({
@@ -441,7 +441,7 @@ class Middleman {
   updateAccounts(data) {
     const updateAccounts = this.accounts.map((account) => ({ ...account }));
     const index = updateAccounts.findIndex(
-      (account) => account.ccy === data.ccy
+      (account) => account.currency === data.currency
     );
     if (index !== -1) {
       updateAccounts[index] = data;

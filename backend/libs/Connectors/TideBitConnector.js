@@ -270,10 +270,10 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _updateTickers(data) {
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
-    //   );
-    // this.logger.log(`[FROM TideBit] tickerData`, data);
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
+      );
+    this.logger.log(`[FROM TideBit] tickerData`, data);
     /**
    {
    btchkd: {
@@ -312,12 +312,12 @@ class TibeBitConnector extends ConnectorBase {
     });
 
     if (Object.keys(updateTickers).length > 0) {
-      // this.logger.log(`[TO BACK END][OnEvent: ${Events.tickers}] updateTickers`, updateTickers);
+      this.logger.log(`[TO BACK END][OnEvent: ${Events.tickers}] updateTickers`, updateTickers);
       EventBus.emit(Events.tickers, updateTickers);
     }
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  _updateTickers [END] ----------`
-    //   );
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateTickers [END] ----------`
+      );
   }
 
   async getOrderBooks({ query }) {
@@ -522,10 +522,10 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _updateTrade(data) {
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  _updateTrade [START] ----------`
-    //   );
-    // this.logger.log(`[FROM TideBit] tradeData`, data);
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateTrade [START] ----------`
+      );
+    this.logger.log(`[FROM TideBit] tradeData`, data);
     /**  {
     at: 1649675739
     id: 6
@@ -542,19 +542,19 @@ class TibeBitConnector extends ConnectorBase {
         ...data,
         side: SafeMath.gte(data.price, this.trades[0].price) ? "up" : "down",
       };
-      // this.logger.log(`[TO BACK END][OnEvent: ${Events.trade}] updateTrade`, formatTrade);
+      this.logger.log(`[TO BACK END][OnEvent: ${Events.trade}] updateTrade`, formatTrade);
       EventBus.emit(Events.trade, data.market, formatTrade);
     }
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  _updateTrade [END] ----------`
-    // );
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateTrade [END] ----------`
+    );
   }
 
   _updateTrades(market, data) {
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  _updateTrades market: ${market} [START] ----------`
-    //   );
-    // this.logger.log(`[FROM TideBit] tradesData`, data);
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateTrades market: ${market} [START] ----------`
+      );
+    this.logger.log(`[FROM TideBit] tradesData`, data);
     /**
     {
        trades: [
@@ -594,12 +594,12 @@ class TibeBitConnector extends ConnectorBase {
       }))
       .sort((a, b) => b.at - a.at);
     if (formatTrades.length > 0) {
-      // this.logger.log(`[TO BACK END][OnEvent: ${Events.trades}] updateTrades`, formatTrades);
+      this.logger.log(`[TO BACK END][OnEvent: ${Events.trades}] updateTrades`, formatTrades);
       EventBus.emit(Events.trades, market, { trades: formatTrades });
     }
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [END] ----------`
-    // );
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateTrades market: ${market} [END] ----------`
+    );
   }
 
   _updateAccount(data) {
@@ -610,6 +610,10 @@ class TibeBitConnector extends ConnectorBase {
         currency: 'hkd'
     }
     */
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateAccount [START] ----------`
+    );
+    this.logger.log(`[FROM TideBit] accountData`, data);
     const formatAccount = {
       ...data,
       currency: data.currency.toUpperCase(),
@@ -618,8 +622,14 @@ class TibeBitConnector extends ConnectorBase {
       // frozenBal: data.locked,
       // uTime: Date.now(),
     };
-    this.logger.debug(`_updateAccount formatAccount`, formatAccount);
+    this.logger.log(
+      `[TO BACK END][OnEvent: ${Events.account}] updateAccount`,
+      formatAccount
+    );
     EventBus.emit(Events.account, formatAccount);
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateAccount [END] ----------`
+    );
   }
 
   _updateOrder(data) {
@@ -640,6 +650,11 @@ class TibeBitConnector extends ConnectorBase {
     */
     // ++ TODO
     // formatOrder
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateOrder this.market: ${this.market} [START] ----------`
+    );
+    this.logger.log(` this.market: ${this.market}`);
+    this.logger.log(`[FROM TideBit] orderData`, data);
     if (data.market === this.market) {
       const formatOrder = {
         ...data,
@@ -660,8 +675,14 @@ class TibeBitConnector extends ConnectorBase {
         //     ? "done"
         //     : "canceled",
       };
-      this.logger.debug(`_updateOrder formatOrder`, formatOrder);
+      this.logger.log(
+        `[TO BACK END][OnEvent: ${Events.order}] updateOrder`,
+        formatOrder
+      );
       EventBus.emit(Events.order, data.market, formatOrder);
+      this.logger.log(
+        `---------- [${this.constructor.name}]  _updateOrder market: ${data.market} [END] ----------`
+      );
     }
   }
 

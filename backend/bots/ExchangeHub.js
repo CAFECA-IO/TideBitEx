@@ -385,6 +385,22 @@ class ExchangeHub extends Bot {
             created_at,
             this.database.FUNC.LOCK_FUNDS
           );
+          let _updateAcc = {
+            balance: SafeMath.plus(account.balance, balance),
+            locked: SafeMath.plus(account.balance, locked),
+            currency: this.currencies.find(
+              (curr) => curr.id === account.currency
+            )?.symbol,
+            total: SafeMath.plus(
+              SafeMath.plus(account.balance, balance),
+              SafeMath.plus(account.balance, locked)
+            ),
+          };
+          EventBus.emit(Events.account, _updateAcc);
+          this.logger.log(
+            `[TO BACK END][OnEvent: ${Events.account}] _updateAcc ln:401`,
+            _updateAcc
+          );
 
           const okexOrderRes = await this.okexConnector.router(
             "postPlaceOrder",
@@ -876,6 +892,9 @@ class ExchangeHub extends Bot {
   }
 
   async _updateOrderDetail(formatOrder) {
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateOrderDetail [START] ----------`
+    );
     const t = await this.database.transaction();
     /* !!! HIGH RISK (start) !!! */
     // 1. get orderId from body
@@ -979,6 +998,7 @@ class ExchangeHub extends Bot {
       const updated_at = created_at;
 
       const newOrder = {
+        ...order,
         id: orderId,
         volume: newOrderVolume,
         state: orderState,
@@ -990,14 +1010,23 @@ class ExchangeHub extends Bot {
       // TODO: ++ 6. add trade
       // -- CAUTION!!! skip now, tradeId use okex tradeId,
       // because it need columns 'ask_member_id' and 'bid_member_id' with foreign key
-
+      const base_unit = this.currencies.find(
+        (curr) => curr.id === order.ask
+      )?.key;
+      const quote_unit = this.currencies.find(
+        (curr) => curr.id === order.bid
+      )?.key;
+      if (!base_unit || !quote_unit)
+        throw Error(
+          `order base_unit[order.ask: ${order.ask}] or quote_unit[order.bid: ${order.bid}] not found`
+        );
       await this.database.insertVouchers(
         memberId,
         orderId,
         tradeId, // ++ TODO reference step6 trade.id
         null,
-        "eth", // -- need change
-        "usdt", // -- need change
+        base_unit, // -- need change
+        quote_unit, // -- need change
         fillPx,
         fillSz,
         value,
@@ -1009,6 +1038,11 @@ class ExchangeHub extends Bot {
       );
 
       await this.database.updateOrder(newOrder, { dbTransaction: t });
+      this.logger.log(
+        `[TO BACK END][OnEvent: ${Events.order}] updateOrder ln:1026`,
+        newOrder
+      );
+      EventBus.emit(Events.order, `${base_unit}${quote_unit}`, newOrder);
 
       await this._updateAccount(
         accountAsk,
@@ -1023,6 +1057,22 @@ class ExchangeHub extends Bot {
           ? this.database.FUNC.UNLOCK_AND_SUB_FUNDS
           : this.database.FUNC.PLUS_FUNDS
       );
+      let _updateAcc = {
+        balance: SafeMath.plus(accountAsk.balance, balanceA),
+        locked: SafeMath.plus(accountAsk.balance, lockedA),
+        currency: this.currencies.find(
+          (curr) => curr.id === accountAsk.currency
+        )?.symbol,
+        total: SafeMath.plus(
+          SafeMath.plus(accountAsk.balance, balanceA),
+          SafeMath.plus(accountAsk.balance, lockedA)
+        ),
+      };
+      EventBus.emit(Events.account, _updateAcc);
+      this.logger.log(
+        `[TO BACK END][OnEvent: ${Events.account}] _updateAcc ln:1057`,
+        _updateAcc
+      );
       await this._updateAccount(
         accountBid,
         t,
@@ -1036,7 +1086,22 @@ class ExchangeHub extends Bot {
           ? this.database.FUNC.PLUS_FUNDS
           : this.database.FUNC.UNLOCK_AND_SUB_FUNDS
       );
-
+      _updateAcc = {
+        balance: SafeMath.plus(accountBid.balance, balanceB),
+        locked: SafeMath.plus(accountBid.balance, lockedB),
+        currency: this.currencies.find(
+          (curr) => curr.id === accountBid.currency
+        )?.symbol,
+        total: SafeMath.plus(
+          SafeMath.plus(accountBid.balance, balanceB),
+          SafeMath.plus(accountBid.balance, lockedB)
+        ),
+      };
+      EventBus.emit(Events.account, _updateAcc);
+      this.logger.log(
+        `[TO BACK END][OnEvent: ${Events.account}] _updateAcc ln:1086`,
+        _updateAcc
+      );
       // order 完成，解鎖剩餘沒用完的
       if (
         orderState === this.database.ORDER_STATE.DONE &&
@@ -1055,6 +1120,22 @@ class ExchangeHub extends Bot {
             created_at,
             this.database.FUNC.UNLOCK_FUNDS
           );
+          _updateAcc = {
+            balance: SafeMath.plus(accountAsk.balance, changeLocked),
+            locked: SafeMath.plus(accountAsk.balance, changeBalance),
+            currency: this.currencies.find(
+              (curr) => curr.id === accountAsk.currency
+            )?.symbol,
+            total: SafeMath.plus(
+              SafeMath.plus(accountAsk.balance, changeLocked),
+              SafeMath.plus(accountAsk.balance, changeBalance)
+            ),
+          };
+          EventBus.emit(Events.account, _updateAcc);
+          this.logger.log(
+            `[TO BACK END][OnEvent: ${Events.account}] _updateAcc ln:1120`,
+            _updateAcc
+          );
         } else if (order.type === this.database.TYPE.ORDER_BID) {
           // ++ TODO reference step6 trade.id
           await this._updateAccount(
@@ -1067,6 +1148,22 @@ class ExchangeHub extends Bot {
             tradeId,
             created_at,
             this.database.FUNC.UNLOCK_FUNDS
+          );
+          _updateAcc = {
+            balance: SafeMath.plus(accountBid.balance, changeLocked),
+            locked: SafeMath.plus(accountBid.balance, changeBalance),
+            currency: this.currencies.find(
+              (curr) => curr.id === accountBid.currency
+            )?.symbol,
+            total: SafeMath.plus(
+              SafeMath.plus(accountBid.balance, changeLocked),
+              SafeMath.plus(accountBid.balance, changeBalance)
+            ),
+          };
+          EventBus.emit(Events.account, _updateAcc);
+          this.logger.log(
+            `[TO BACK END][OnEvent: ${Events.account}] _updateAcc ln:1149`,
+            _updateAcc
           );
         }
       }
