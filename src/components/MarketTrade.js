@@ -175,6 +175,7 @@ const TradePannel = (props) => {
   const { t } = useTranslation();
 
   const limitBuyPxHandler = (value) => {
+    console.trace(`limitBuyPxHandler`, value);
     let _value = +value < 0 ? "0" : value;
     setLimitBuyPx(_value);
   };
@@ -363,18 +364,22 @@ const TradePannel = (props) => {
     if (kind === "bid") {
       if (props.orderType === "market") {
         setMarketBuySz("0");
+        setSelectedMarketBuyPct(null);
       } else {
+        setSelectedLimitBuyPct(null);
         setLimitBuySz("0");
       }
-      buyPctHandler(props.orderType, "0.25", selectedTicker.last);
+      // buyPctHandler(props.orderType, "0.25", selectedTicker.last);
     } else {
       if (props.orderType === "market") {
         setMarketSellSz("0");
+        setSelectedMarketSellPct(null);
       } else {
         setLimitSellSz("0");
+        setSelectedLimitSellPct(null);
       }
 
-      sellPctHandler(props.orderType, "0.25", selectedTicker.last);
+      // sellPctHandler(props.orderType, "0.25", selectedTicker.last);
     }
   };
 
@@ -384,6 +389,7 @@ const TradePannel = (props) => {
       storeCtx.orderbook?.price &&
       storeCtx.orderbook?.amount
     ) {
+      console.log(`TradePannel useEffect orderbook`, storeCtx.orderbook);
       limitBuyPxHandler(storeCtx.orderbook.price);
       limitSellPxHandler(storeCtx.orderbook.price);
       buySzHandler("market", storeCtx.orderbook.amount);
@@ -410,18 +416,6 @@ const TradePannel = (props) => {
 
       if (quoteCcyAccount) {
         setQuoteCcyAvailable(quoteCcyAccount?.balance);
-        buyPctHandler(
-          "market",
-          selectedMarketBuyPct ?? "0.25",
-          storeCtx.selectedTicker.last,
-          quoteCcyAccount?.balance
-        );
-        buyPctHandler(
-          "limit",
-          selectedLimitBuyPct ?? "0.25",
-          storeCtx.selectedTicker.last,
-          quoteCcyAccount?.balance
-        );
       }
       let baseCcyAccount = storeCtx.accounts?.find(
         (account) =>
@@ -429,29 +423,17 @@ const TradePannel = (props) => {
       );
       if (baseCcyAccount) {
         setBaseCcyAvailable(baseCcyAccount?.balance);
-        sellPctHandler(
-          "market",
-          selectedMarketSellPct ?? "0.25",
-          baseCcyAccount?.balance
-        );
-        sellPctHandler(
-          "limit",
-          selectedLimitSellPct ?? "0.25",
-          baseCcyAccount?.balance
-        );
       }
       setSelectedTicker(storeCtx.selectedTicker);
-      limitBuyPxHandler(storeCtx.selectedTicker.last);
-      limitSellPxHandler(storeCtx.selectedTicker.last);
+      // limitBuyPxHandler(storeCtx.selectedTicker.last);
+      // limitSellPxHandler(storeCtx.selectedTicker.last);
     }
   }, [
     storeCtx.selectedTicker,
     storeCtx.accounts,
     selectedTicker,
-    buyPctHandler,
     selectedMarketBuyPct,
     selectedLimitBuyPct,
-    sellPctHandler,
     selectedMarketSellPct,
     selectedLimitSellPct,
     refresh,
