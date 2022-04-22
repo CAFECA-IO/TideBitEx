@@ -324,6 +324,7 @@ class TibeBitConnector extends ConnectorBase {
     this.logger.log(
       `---------- [${this.constructor.name}]  getOrderBooks market: ${query.id} [START] ----------`
     );
+    this.market = query.id;
     try {
       const tbBooksRes = await axios.get(
         `${this.peatio}/api/v2/order_book?market=${query.id}`
@@ -411,8 +412,12 @@ class TibeBitConnector extends ConnectorBase {
         ]
     }
     */
-    if (this.books["market"] !== market) this.books = {};
-    if (data.asks.length === 0 || data.bids.length === 0) return;
+    if (
+      this.market !== market ||
+      data.asks.length === 0 ||
+      data.bids.length === 0
+    )
+      return;
     this.logger.log(
       `---------- [${this.constructor.name}]  _updateBooks market: ${market} [START] ----------`
     );
