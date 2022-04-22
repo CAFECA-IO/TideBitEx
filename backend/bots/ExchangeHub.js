@@ -411,13 +411,13 @@ class ExchangeHub extends Bot {
             );
             let _updateAccount = {
               balance: SafeMath.plus(account.balance, balance),
-              locked: SafeMath.plus(account.balance, locked),
+              locked: SafeMath.plus(account.locked, locked),
               currency: this.currencies.find(
                 (curr) => curr.id === account.currency
               )?.symbol,
               total: SafeMath.plus(
                 SafeMath.plus(account.balance, balance),
-                SafeMath.plus(account.balance, locked)
+                SafeMath.plus(account.locked, locked)
               ),
             };
             EventBus.emit(Events.account, _updateAccount);
