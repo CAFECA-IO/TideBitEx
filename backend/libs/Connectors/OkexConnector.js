@@ -502,14 +502,15 @@ class OkexConnector extends ConnectorBase {
       ccy: body.ccy,
       clOrdId,
       tag: this.brokerId,
-      side: body.side,
+      side: body.kind === 'bid' ? 'buy': 'ask',
       posSide: body.posSide,
       ordType: body.ordType,
-      sz: body.sz,
-      px: body.px,
+      sz: body.volume,
+      px: body.price,
       reduceOnly: body.reduceOnly,
       tgtCcy: body.tgtCcy,
     };
+    this.logger.log("filterBody:", filterBody);
 
     const okAccessSign = await this.okAccessSign({
       timeString,

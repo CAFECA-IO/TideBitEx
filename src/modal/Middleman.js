@@ -151,9 +151,9 @@ class Middleman {
   }
 
   updateBooks(data) {
-    console.log(`^^^^^^^^ Events.update ^^^^^^^^`);
-    console.log(`data`, data);
-    console.log(`^^^^^^^^ Events.update ^^^^^^^^`);
+    // console.log(`^^^^^^^^ Events.update ^^^^^^^^`);
+    // console.log(`data`, data);
+    // console.log(`^^^^^^^^ Events.update ^^^^^^^^`);
     if (data.market !== this.selectedTicker.market) return;
     const updateRawBooks = {
       asks: this.rawBooks?.asks
