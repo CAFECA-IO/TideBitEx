@@ -842,9 +842,7 @@ class OkexConnector extends ConnectorBase {
         const arg = { ...data.arg };
         const channel = arg.channel;
         delete arg.channel;
-        this.logger.log("!!! _okexWsEventListener arg", arg);
-        this.logger.log("!!! _okexWsEventListener this.okexWsChannels", this.okexWsChannels);
-        this.logger.log("!!! _okexWsEventListener this.okexWsChannels[channel]", this.okexWsChannels[channel]);
+        this.logger.log(`!!! _okexWsEventListener this.okexWsChannels[channel: ${channel}]`, this.okexWsChannels[channel]);
         const values = Object.values(arg);
         if (data.event === "subscribe") {
           this.okexWsChannels[channel] = this.okexWsChannels[channel] || {};
