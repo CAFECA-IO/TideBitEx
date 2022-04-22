@@ -63,6 +63,7 @@ class WSChannel extends Bot {
             : "unknown";
 
           this.logger.debug("HI", ip);
+          EventBus.emit(Events.globalOnSubscribe, {ip});
           ws.on("message", (message) => {
             this.logger.debug("received: %s", message);
             const { op, args } = JSON.parse(message);
@@ -99,6 +100,7 @@ class WSChannel extends Bot {
           ws.on("close", () => {
             this.logger.debug("disconnected");
             const findClient = this._client[ws.id];
+            EventBus.emit(Events.globalOnUnsubscribe, {ip});
             if (findClient.isStart) {
               delete this._channelClients[findClient.channel][ws.id];
               if (

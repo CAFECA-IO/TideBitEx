@@ -676,35 +676,90 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _registerMarketChannel(market) {
-    if (!this.isStarted) this._start();
-    try {
-      this.market_channel = this.pusher.subscribe(`market-${market}-global`);
-      this.global_channel = this.pusher.subscribe("market-global");
-      this.market_channel.bind("update", (data) =>
-        this._updateBooks(market, data)
+    if (
+      this._findSource(this._findInstId(market)) === SupportedExchange.TIDEBIT
+    ) {
+      this.logger.log(
+        `++++++++ [${this.constructor.name}]  _subscribeMarket [START] ++++++`
       );
-      this.market_channel.bind("trades", (data) => {
-        this._updateTrades(market, data);
-      });
-      this.global_channel.bind("tickers", (data) => this._updateTickers(data));
-    } catch (error) {
-      this.logger.error(`_registerMarketChannel error`, error);
-      throw error;
+      this.logger.log(`market`, market);
+      if (!this.isStarted) this._start();
+      try {
+        this.market_channel = this.pusher.subscribe(`market-${market}-global`);
+        this.market_channel.bind("update", (data) =>
+          this._updateBooks(market, data)
+        );
+        this.market_channel.bind("trades", (data) => {
+          this._updateTrades(market, data);
+        });
+      } catch (error) {
+        this.logger.error(`_registerMarketChannel error`, error);
+        throw error;
+      }
+      this.logger.log(
+        `++++++++ [${this.constructor.name}]  _subscribeMarket [END] ++++++`
+      );
     }
   }
 
   _unregisterMarketChannel(market) {
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _unsubscribeMarket [START] ----------`
+    );
+    this.logger.log(`market`, market);
     try {
       this.market_channel?.unbind();
-      this.global_channel?.unbind();
       this.pusher?.unsubscribe(`market-${market}-global`);
-      this.pusher?.unsubscribe("market-global");
       this.market_channel = null;
-      this.global_channel = null;
     } catch (error) {
       this.logger.error(`_unregisterMarketChannel error`, error);
       throw error;
     }
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _unsubscribeMarket [END] ----------`
+    );
+  }
+
+  _registerGlobalChannel() {
+    if (!this.isStarted) this._start();
+    try {
+      this.global_channel = this.pusher.subscribe("market-global");
+      this.global_channel.bind("tickers", (data) => this._updateTickers(data));
+    } catch (error) {
+      this.logger.error(`_registerGlobalChannel error`, error);
+      throw error;
+    }
+  }
+
+  _unregisterGlobalChannel() {
+    try {
+      this.global_channel?.unbind();
+      this.pusher?.unsubscribe("market-global");
+      this.global_channel = null;
+    } catch (error) {
+      this.logger.error(`_unregisterGlobalChannel error`, error);
+      throw error;
+    }
+  }
+
+  _subscribeGlobal() {
+    this.logger.log(
+      `++++++++ [${this.constructor.name}]  _subscribeGlobal [START] ++++++`
+    );
+    this._registerGlobalChannel();
+    this.logger.log(
+      `++++++++ [${this.constructor.name}]  _subscribeGlobal [END] ++++++`
+    );
+  }
+
+  _unsubscribeGlobal() {
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _unsubscribeGlobal [START] ----------`
+    );
+    this._unregisterGlobalChannel();
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _unsubscribeGlobal [END] ----------`
+    );
   }
 
   async _subscribeUser(credential) {
@@ -715,7 +770,7 @@ class TibeBitConnector extends ConnectorBase {
     await this._registerPrivateChannel(credential);
     this._registerMarketChannel(credential.market);
     this.logger.log(
-      `++++++++ [${this.constructor.name}]  _subscribeMarket [END] ++++++`
+      `++++++++ [${this.constructor.name}]  _subscribeUser [END] ++++++`
     );
   }
 
@@ -723,38 +778,28 @@ class TibeBitConnector extends ConnectorBase {
     this.logger.log(
       `---------- [${this.constructor.name}]  _unsubscribeUser [START] ----------`
     );
-    this.logger.log(`market`);
-    this._unregisterPrivateChannel(market);
+    this.logger.log(`market`, market);
+    await this._unregisterPrivateChannel(market);
     this._unregisterMarketChannel(market);
     this.logger.log(
-      `---------- [${this.constructor.name}]  _subscribeMarket [END] ----------`
+      `---------- [${this.constructor.name}]  _unsubscribeUser [END] ----------`
     );
   }
 
   _subscribeMarket(market) {
-    this.logger.log(
-      `++++++++ [${this.constructor.name}]  _subscribeMarket [START] ++++++`
-    );
-    this.logger.log(`market`, market);
     this._registerMarketChannel(market);
-    this.logger.log(
-      `++++++++ [${this.constructor.name}]  _subscribeMarket [END] ++++++`
-    );
   }
 
   async _unsubscribeMarket(market) {
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _unsubscribeMarket [START] ----------`
-    );
-    this.logger.log(`market`, market);
     this._unregisterMarketChannel(market);
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _unsubscribeMarket [END] ----------`
-    );
   }
 
   _findInstId(id) {
     return this.markets[id.toUpperCase()];
+  }
+
+  _findSource(instId) {
+    return this.markets[`tb${instId}`];
   }
 }
 

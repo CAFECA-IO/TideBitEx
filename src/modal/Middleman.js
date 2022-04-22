@@ -229,10 +229,10 @@ class Middleman {
         update: true,
       }))
       .concat(this.trades || []);
-    console.log(
-      `updateTrades _updateTrades[${_updateTrades.length}]`,
-      _updateTrades
-    );
+    // console.log(
+    //   `updateTrades _updateTrades[${_updateTrades.length}]`,
+    //   _updateTrades
+    // );
     const { candles, volumes } = this.updateCandles(_updateTrades, resolution);
     return { trades: _updateTrades, candles, volumes };
   };

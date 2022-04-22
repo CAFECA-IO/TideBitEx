@@ -1258,34 +1258,43 @@ class OkexConnector extends ConnectorBase {
 
   // TideBitEx ws
   _subscribeMarket(market) {
-    this.logger.log(
-      `++++++++ [${this.constructor.name}]  _subscribeMarket [START] ++++++`
-    );
-    this.logger.log(`_subscribeMarket market`, market);
     const instId = this._findInstId(market);
-    this.logger.log(`_subscribeMarket instId`, instId);
-    this._subscribeTrades(instId);
-    this._subscribeBook(instId);
-    this._subscribeCandle1m(instId);
-    this.logger.log(
-      `++++++++ [${this.constructor.name}]  _subscribeMarket [END] ++++++`
-    );
+    if (this._findSource(instId) === SupportedExchange.OKEX) {
+      this.logger.log(
+        `++++++++ [${this.constructor.name}]  _subscribeMarket [START] ++++++`
+      );
+      this.logger.log(`_subscribeMarket instId`, instId);
+      this.logger.log(`_subscribeMarket market`, market);
+      this._subscribeTrades(instId);
+      this._subscribeBook(instId);
+      this._subscribeCandle1m(instId);
+      this.logger.log(
+        `++++++++ [${this.constructor.name}]  _subscribeMarket [END] ++++++`
+      );
+    }
   }
 
   _unsubscribeMarket(market) {
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _unsubscribeMarket [START] ----------`
-    );
-    this.logger.log(`_unsubscribeMarket market`, market);
     const instId = this._findInstId(market);
-    this.logger.log(`_unsubscribeMarket instId`, instId);
-    this._unsubscribeTrades(instId);
-    this._unsubscribeBook(instId);
-    this._unsubscribeCandle1m(instId);
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _unsubscribeMarket [END] ----------`
-    );
+    if (this._findSource(instId) === SupportedExchange.OKEX) {
+      this.logger.log(
+        `---------- [${this.constructor.name}]  _unsubscribeMarket [START] ----------`
+      );
+      this.logger.log(`_unsubscribeMarket market`, market);
+      this.logger.log(`_unsubscribeMarket instId`, instId);
+      this._unsubscribeTrades(instId);
+      this._unsubscribeBook(instId);
+      this._unsubscribeCandle1m(instId);
+      this.logger.log(
+        `---------- [${this.constructor.name}]  _unsubscribeMarket [END] ----------`
+      );
+    }
   }
+
+  _subscribeGlobal() {}
+
+  _unsubscribeGlobal() {}
+
   _subscribeUser() {}
 
   _unsubscribeUser() {}
@@ -1293,6 +1302,10 @@ class OkexConnector extends ConnectorBase {
 
   _findInstId(id) {
     return this.markets[id.toUpperCase()];
+  }
+
+  _findSource(instId) {
+    return this.markets[`tb${instId}`];
   }
 }
 module.exports = OkexConnector;
