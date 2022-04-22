@@ -842,14 +842,14 @@ class OkexConnector extends ConnectorBase {
         const arg = { ...data.arg };
         const channel = arg.channel;
         delete arg.channel;
-        this.logger.log(`!!! _okexWsEventListener this.okexWsChannels[channel: ${channel}]`, this.okexWsChannels[channel]);
+        this.logger.log(`!!! _okexWsEventListener this.okexWsChannels[${channel}]`, this.okexWsChannels[channel]);
         const values = Object.values(arg);
         if (data.event === "subscribe") {
           this.okexWsChannels[channel] = this.okexWsChannels[channel] || {};
           this.okexWsChannels[channel][values[0]] =
             this.okexWsChannels[channel][values[0]] || {};
         } else if (data.event === "unsubscribe") {
-          delete this.okexWsChannels[channel][values[0]];
+          // delete this.okexWsChannels[channel][values[0]];
           if (!Object.keys(this.okexWsChannels[channel]).length) {
             delete this.okexWsChannels[channel];
           }
@@ -959,6 +959,8 @@ class OkexConnector extends ConnectorBase {
   }
 
   _updateTrades(instId, tradeData) {
+    const channel = "trades";
+    // this.okexWsChannels[channel][instId] = tradeData[0];
     this.logger.log(
       `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [START] ----------`
     );
@@ -1003,6 +1005,8 @@ class OkexConnector extends ConnectorBase {
   }
 
   _updateBooks(instId, bookData) {
+    // const channel = "books";
+    // this.okexWsChannels[channel][instId] = bookData;
     const [books] = bookData;
     const asks = books.asks
       .filter((ask) => {
