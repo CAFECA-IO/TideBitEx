@@ -854,12 +854,9 @@ class OkexConnector extends ConnectorBase {
         } else if (data.event === "unsubscribe") {
           delete this.okexWsChannels[channel][values[0]];
           // ++ TODO ws onClose clean channel
-          if (
-            !!this.okexWsChannels[channel] &&
-            !Object.keys(this.okexWsChannels[channel]).length
-          ) {
-            delete this.okexWsChannels[channel];
-          }
+          // if (!Object.keys(this.okexWsChannels[channel]).length) {
+          //   delete this.okexWsChannels[channel];
+          // }
         } else if (data.event === "error") {
           this.logger.log("!!! _okexWsEventListener on event error", data);
         }
