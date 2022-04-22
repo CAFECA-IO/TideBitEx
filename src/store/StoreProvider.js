@@ -369,7 +369,7 @@ const StoreProvider = (props) => {
           if (id) {
             connection_resolvers.push(
               JSON.stringify({
-                op: "userLogin",
+                op: "userStatusUpdate",
                 args: {
                   token,
                   market: id,
