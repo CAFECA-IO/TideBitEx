@@ -272,7 +272,7 @@ class TibeBitConnector extends ConnectorBase {
   _updateTickers(data) {
     this.logger.log(
       `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
-      );
+    );
     this.logger.log(`[FROM TideBit] tickerData`, data);
     /**
    {
@@ -295,11 +295,11 @@ class TibeBitConnector extends ConnectorBase {
     Object.keys(data).forEach((id) => {
       if (
         this.tickers[id] &&
-        (this.tickers[id]?.last !== data[id].last ||
-          this.tickers[id]?.open !== data[id].open ||
-          this.tickers[id]?.high !== data[id].high ||
-          this.tickers[id]?.low !== data[id].low ||
-          this.tickers[id]?.volume !== data[id].volume)
+        (!SafeMath.eq(this.tickers[id]?.last, data[id].last) ||
+          !SafeMath.eq(this.tickers[id]?.open, data[id].open) ||
+          !SafeMath.eq(this.tickers[id]?.high, data[id].high) ||
+          !SafeMath.eq(this.tickers[id]?.low, data[id].low) ||
+          !SafeMath.eq(this.tickers[id]?.volume, data[id].volume))
       ) {
         const change = SafeMath.minus(data[id].last, data[id].open);
         const changePct = SafeMath.gt(data[id].open, "0")
@@ -312,12 +312,15 @@ class TibeBitConnector extends ConnectorBase {
     });
 
     if (Object.keys(updateTickers).length > 0) {
-      this.logger.log(`[TO BACK END][OnEvent: ${Events.tickers}] updateTickers`, updateTickers);
+      this.logger.log(
+        `[TO BACK END][OnEvent: ${Events.tickers}] updateTickers`,
+        updateTickers
+      );
       EventBus.emit(Events.tickers, updateTickers);
     }
     this.logger.log(
       `---------- [${this.constructor.name}]  _updateTickers [END] ----------`
-      );
+    );
   }
 
   async getOrderBooks({ query }) {
@@ -427,33 +430,37 @@ class TibeBitConnector extends ConnectorBase {
       bids = [];
 
     this.books?.asks?.forEach((ask) => {
-      index = data.asks.findIndex((_ask) => _ask[0] === ask[0]);
+      index = data.asks.findIndex((_ask) => SafeMath.eq(_ask[0], ask[0]));
       if (index === -1) {
         asks.push([ask[0], "0"]);
       }
     });
     data.asks.forEach((ask) => {
-      index = this.books?.asks?.findIndex((_ask) => _ask[0] === ask[0]);
+      index = this.books?.asks?.findIndex((_ask) =>
+        SafeMath.eq(_ask[0], ask[0])
+      );
       if (
         index === -1 ||
         index === undefined ||
-        this.books.asks[index][1] !== ask[1]
+        !SafeMath.eq(this.books.asks[index][1], ask[1])
       ) {
         asks.push(ask);
       }
     });
     this.books?.bids?.forEach((bid) => {
-      index = data.bids.findIndex((_bid) => _bid[0] === bid[0]);
+      index = data.bids.findIndex((_bid) => SafeMath.eq(_bid[0], bid[0]));
       if (index === -1) {
         bids.push([bid[0], "0"]);
       }
     });
     data.bids.forEach((bid) => {
-      index = this.books?.bids?.findIndex((_bid) => _bid[0] === bid[0]);
+      index = this.books?.bids?.findIndex((_bid) =>
+        SafeMath.eq(_bid[0], bid[0])
+      );
       if (
         index === -1 ||
         index === undefined ||
-        this.books.bids[index][1] !== bid[1]
+        !SafeMath.eq(this.books.bids[index][1], bid[1])
       ) {
         bids.push(bid);
       }
@@ -524,7 +531,7 @@ class TibeBitConnector extends ConnectorBase {
   _updateTrade(data) {
     this.logger.log(
       `---------- [${this.constructor.name}]  _updateTrade [START] ----------`
-      );
+    );
     this.logger.log(`[FROM TideBit] tradeData`, data);
     /**  {
     at: 1649675739
@@ -542,7 +549,10 @@ class TibeBitConnector extends ConnectorBase {
         ...data,
         side: SafeMath.gte(data.price, this.trades[0].price) ? "up" : "down",
       };
-      this.logger.log(`[TO BACK END][OnEvent: ${Events.trade}] updateTrade`, formatTrade);
+      this.logger.log(
+        `[TO BACK END][OnEvent: ${Events.trade}] updateTrade`,
+        formatTrade
+      );
       EventBus.emit(Events.trade, data.market, formatTrade);
     }
     this.logger.log(
@@ -553,7 +563,7 @@ class TibeBitConnector extends ConnectorBase {
   _updateTrades(market, data) {
     this.logger.log(
       `---------- [${this.constructor.name}]  _updateTrades market: ${market} [START] ----------`
-      );
+    );
     this.logger.log(`[FROM TideBit] tradesData`, data);
     /**
     {
@@ -594,7 +604,10 @@ class TibeBitConnector extends ConnectorBase {
       }))
       .sort((a, b) => b.at - a.at);
     if (formatTrades.length > 0) {
-      this.logger.log(`[TO BACK END][OnEvent: ${Events.trades}] updateTrades`, formatTrades);
+      this.logger.log(
+        `[TO BACK END][OnEvent: ${Events.trades}] updateTrades`,
+        formatTrades
+      );
       EventBus.emit(Events.trades, market, { trades: formatTrades });
     }
     this.logger.log(

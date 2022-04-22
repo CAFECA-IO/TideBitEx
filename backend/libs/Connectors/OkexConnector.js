@@ -1009,7 +1009,7 @@ class OkexConnector extends ConnectorBase {
     const [books] = bookData;
     const asks = books.asks
       .filter((ask) => {
-        const _ask = this.books.asks.find((a) => a[0] === ask[0]);
+        const _ask = this.books.asks.find((a) => SafeMath.eq(a[0], ask[0]));
         return (
           !_ask ||
           (!!_ask && !SafeMath.eq(_ask[1], SafeMath.plus(ask[2], ask[3])))
@@ -1018,7 +1018,7 @@ class OkexConnector extends ConnectorBase {
       .map((ask) => [ask[0], SafeMath.plus(ask[2], ask[3])]);
     const bids = books.bids
       .filter((bid) => {
-        const _bid = this.books.bids.find((b) => b[0] === bid[0]);
+        const _bid = this.books.bids.find((b) => SafeMath.eq(b[0], bid[0]));
         return (
           !_bid ||
           (!!_bid && !SafeMath.eq(_bid[1], SafeMath.plus(bid[2], bid[3])))
@@ -1078,11 +1078,11 @@ class OkexConnector extends ConnectorBase {
         const id = data.instId.replace("-", "").toLowerCase();
         return (
           this.tickers[id] &&
-          (this.tickers[id]?.last !== data.last ||
-            this.tickers[id]?.open !== data.open24h ||
-            this.tickers[id]?.high !== data.high24h ||
-            this.tickers[id]?.low !== data.low24h ||
-            this.tickers[id]?.volume !== data.vol24h)
+          (!SafeMath.eq(this.tickers[id]?.last, data.last) ||
+            !SafeMath.eq(this.tickers[id]?.open, data.open24h) ||
+            !SafeMath.eq(this.tickers[id]?.high, data.high24h) ||
+            !SafeMath.eq(this.tickers[id]?.low, data.low24h) ||
+            !SafeMath.eq(this.tickers[id]?.volume, data.vol24h))
         );
       })
       .reduce((prev, data) => {
