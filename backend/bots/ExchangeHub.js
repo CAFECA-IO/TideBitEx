@@ -687,13 +687,13 @@ class ExchangeHub extends Bot {
           const order = await this.database.getOrder(orderId, {
             dbTransaction: t,
           });
-          if (order.state !== this.database.ORDER_STATE.WAIT) {
-            await t.rollback();
-            return new ResponseFormat({
-              code: Codes.ORDER_HAS_BEEN_CLOSED,
-              message: "order has been close",
-            });
-          }
+          // if (order.state !== this.database.ORDER_STATE.WAIT) {
+          //   await t.rollback();
+          //   return new ResponseFormat({
+          //     code: Codes.ORDER_HAS_BEEN_CLOSED,
+          //     message: "order has been close",
+          //   });
+          // }
           const currencyId =
             order.type === this.database.TYPE.ORDER_ASK ? order.ask : order.bid;
           const account = await this.database.getAccountByMemberIdCurrency(
@@ -702,41 +702,44 @@ class ExchangeHub extends Bot {
             { dbTransaction: t }
           );
 
-          /*******************************************
-           * body.clOrdId: custom orderId for okex
-           * locked: value from order.locked, used for unlock balance, negative in account_version
-           * balance: order.locked
-           *******************************************/
-          const newOrder = {
-            id: orderId,
-            state: this.database.ORDER_STATE.CANCEL,
-          };
-          const locked = SafeMath.mult(order.locked, "-1");
-          const balance = order.locked;
-          const fee = "0";
-
-          const created_at = new Date().toISOString();
-
-          await this.database.updateOrder(newOrder, { dbTransaction: t });
-
-          await this._updateAccount(
-            account,
-            t,
-            balance,
-            locked,
-            fee,
-            this.database.MODIFIABLE_TYPE.ORDER,
-            orderId,
-            created_at,
-            this.database.FUNC.UNLOCK_FUNDS
-          );
           const okexCancelOrderRes = await this.okexConnector.router(
             "postCancelOrder",
             { params, query, body }
           );
+          this.logger.log(`postCancelOrder`, body)
+          this.logger.log(`okexCancelOrderRes`, okexCancelOrderRes)
           if (!okexCancelOrderRes.success) {
             await t.rollback();
             return okexCancelOrderRes;
+          } else {
+            /*******************************************
+             * body.clOrdId: custom orderId for okex
+             * locked: value from order.locked, used for unlock balance, negative in account_version
+             * balance: order.locked
+             *******************************************/
+            const newOrder = {
+              id: orderId,
+              state: this.database.ORDER_STATE.CANCEL,
+            };
+            const locked = SafeMath.mult(order.locked, "-1");
+            const balance = order.locked;
+            const fee = "0";
+
+            const created_at = new Date().toISOString();
+
+            await this.database.updateOrder(newOrder, { dbTransaction: t });
+
+            await this._updateAccount(
+              account,
+              t,
+              balance,
+              locked,
+              fee,
+              this.database.MODIFIABLE_TYPE.ORDER,
+              orderId,
+              created_at,
+              this.database.FUNC.UNLOCK_FUNDS
+            );
           }
           await t.commit();
           return okexCancelOrderRes;
