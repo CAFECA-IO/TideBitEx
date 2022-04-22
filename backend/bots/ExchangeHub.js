@@ -460,10 +460,10 @@ class ExchangeHub extends Bot {
     const { id: bid } = await this.database.getCurrencyByKey(market.quote_unit);
     const { id: ask } = await this.database.getCurrencyByKey(market.base_unit);
     if (!bid) {
-      throw new Error(`bid not found`);
+      throw new Error(`bid not found${market.quote_unit}`);
     }
     if (!ask) {
-      throw new Error(`ask not found`);
+      throw new Error(`ask not found${market.quote_unit}`);
     }
     let orderList;
     if (memberId) {

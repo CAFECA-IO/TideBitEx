@@ -395,6 +395,7 @@ const StoreProvider = (props) => {
 
   const getAccounts = useCallback(async () => {
     await middleman.getAccounts();
+    console.log(`getAccounts accounts`, middleman.accounts)
     setAccounts(middleman.accounts);
     if (middleman.isLogin) await getCSRFToken();
   }, [getCSRFToken, middleman]);
