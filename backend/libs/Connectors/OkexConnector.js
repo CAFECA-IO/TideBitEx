@@ -951,14 +951,14 @@ class OkexConnector extends ConnectorBase {
     this.logger.log(`_updateOrderDetails`, orderData);
     const formatOrders = [];
     orderData.forEach((data) => {
-      if (data.clOrdId.startsWith(this.brokerId)) {
+      // if (data.clOrdId.startsWith(this.brokerId)) {
         formatOrders.push({
           ...data,
           cTime: parseInt(data.cTime),
           fillTime: parseInt(data.fillTime),
           uTime: parseInt(data.uTime),
         });
-      }
+      // }
     });
 
     EventBus.emit(Events.orderDetailUpdate, instType, formatOrders);
