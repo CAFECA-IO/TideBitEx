@@ -116,33 +116,33 @@ class ExchangeHub extends Bot {
   }
 
   // account api
-  async getBalance({ token, params, query }) {
+  async getAccounts({ token, params, query }) {
     try {
       const memberId = await this.getMemberIdFromRedis(token);
       // if (memberId === -1) throw new Error("get member_id fail");
       if (memberId === -1) {
         this.logger.error(
-          `[${this.name} getBalance] error: "get member_id fail`
+          `[${this.name} getAccounts] error: "get member_id fail`
         );
         return new ResponseFormat({
           message: "get member_id fail",
           code: Codes.MEMBER_ID_NOT_FOUND,
         });
       }
-      const accounts = await this.database.getBalance(memberId);
+      const accounts = await this.database.getAccounts(memberId);
       const details = accounts.map((account, i) => ({
-        ccy: this.currencies.find((curr) => curr.id === account.currency)
+        currency: this.currencies.find((curr) => curr.id === account.currency)
           .symbol,
-        availBal: Utils.removeZeroEnd(account.balance),
-        totalBal: SafeMath.plus(account.balance, account.locked),
-        frozenBal: Utils.removeZeroEnd(account.locked),
-        uTime: new Date(account.updated_at).getTime(),
+        balance: Utils.removeZeroEnd(account.balance),
+        total: SafeMath.plus(account.balance, account.locked),
+        locked: Utils.removeZeroEnd(account.locked),
+        // uTime: new Date(account.updated_at).getTime(),
       }));
 
       const payload = details;
 
       return new ResponseFormat({
-        message: "getBalance",
+        message: "getAccounts",
         payload,
       });
     } catch (error) {
@@ -325,12 +325,12 @@ class ExchangeHub extends Bot {
       case SupportedExchange.OKEX:
         try {
           /*******************************************
-           * body.side: order is 'buy' or 'sell'
-           * orderData.price: body.px, price value
-           * orderData.volume: body.sz, volume value
+           * body.kind: order is 'bid' or 'ask'
+           * orderData.price: body.price, price value
+           * orderData.volume: body.volume, volume value
            * orderData.locked:
-           *   if body.side === 'buy', locked = body.px * body.sz
-           *   if body.side === 'sell', locked = body.sz
+           *   if body.kind === 'bid', locked = body.price * body.volume
+           *   if body.kind === 'ask', locked = body.volume
            *
            * orderData.balance: locked value * -1
            *******************************************/
@@ -409,7 +409,7 @@ class ExchangeHub extends Bot {
         try {
           const market = this._findMarket(body.instId);
           const url =
-            body.side === "buy"
+            body.kind === "bid"
               ? `${this.config.peatio.domain}/markets/${market.id}/order_bids`
               : `${this.config.peatio.domain}/markets/${market.id}/order_asks`;
           this.logger.debug("postPlaceOrder", url);
@@ -430,8 +430,8 @@ class ExchangeHub extends Bot {
             message: "postPlaceOrder",
             payload: [
               {
+                id: "",
                 clOrdId: "",
-                ordId: "",
                 sCode: "",
                 sMsg: "",
                 tag: "",
@@ -482,26 +482,29 @@ class ExchangeHub extends Bot {
       });
     }
     const orders = orderList.map((order) => ({
-      cTime: new Date(order.created_at).getTime(),
-      clOrdId: order.id,
-      instId: instId,
-      ordId: order.id,
-      ordType: order.ord_type,
-      px: Utils.removeZeroEnd(order.price),
-      side: order.type === "OrderAsk" ? "sell" : "buy",
-      sz: Utils.removeZeroEnd(
-        state === this.database.ORDER_STATE.DONE
-          ? order.origin_volume
-          : order.volume
-      ),
-      filled: order.volume !== order.origin_volume,
-      uTime: new Date(order.updated_at).getTime(),
+      id: order.id,
+      at: parseInt(SafeMath.div(new Date(order.updated_at).getTime(), "1000")),
+      market: instId.replace("-", "").toLowerCase(),
+      kind: order.type === "OrderAsk" ? "ask" : "bid",
+      price: Utils.removeZeroEnd(order.price),
+      origin_volume: Utils.removeZeroEnd(order.origin_volume),
+      volume: Utils.removeZeroEnd(order.volume),
       state:
         state === this.database.ORDER_STATE.CANCEL
           ? "canceled"
           : state === this.database.ORDER_STATE.DONE
           ? "done"
-          : "waiting",
+          : "wait",
+      state_text:
+        state === this.database.ORDER_STATE.CANCEL
+          ? "Canceled"
+          : state === this.database.ORDER_STATE.DONE
+          ? "Done"
+          : "Waiting",
+      clOrdId: order.id,
+      instId: instId,
+      ordType: order.ord_type,
+      filled: order.volume !== order.origin_volume,
     }));
     return orders;
   }
@@ -537,7 +540,7 @@ class ExchangeHub extends Bot {
           });
           return new ResponseFormat({
             message: "getOrderList",
-            payload: orders.sort((a, b) => b.cTime - a.cTime),
+            payload: orders.sort((a, b) => b.at - a.at),
           });
         } catch (error) {
           this.logger.error(error);
@@ -598,10 +601,9 @@ class ExchangeHub extends Bot {
               if (order.ordType === "market") {
                 return {
                   ...order,
-                  px: Utils.removeZeroEnd(
-                    vouchers?.find(
-                      (voucher) => voucher.order_id === order.ordId
-                    )?.price
+                  price: Utils.removeZeroEnd(
+                    vouchers?.find((voucher) => voucher.order_id === order.id)
+                      ?.price
                   ),
                 };
               } else {
@@ -609,7 +611,7 @@ class ExchangeHub extends Bot {
               }
             })
             .concat(cancelOrders)
-            .sort((a, b) => b.cTime - a.cTime);
+            .sort((a, b) => b.at - a.at);
           return new ResponseFormat({
             message: "getOrderHistory",
             payload: orders,
@@ -647,7 +649,7 @@ class ExchangeHub extends Bot {
       let { orderId } =
         source === SupportedExchange.OKEX
           ? Utils.parseClOrdId(body.clOrdId)
-          : { orderId: body.ordId };
+          : { orderId: body.id };
       switch (source) {
         case SupportedExchange.OKEX:
           const order = await this.database.getOrder(orderId, {
@@ -1092,23 +1094,25 @@ class ExchangeHub extends Bot {
     }
     const currency = market.code;
     const locked =
-      body.side === "buy" ? SafeMath.mult(body.px, body.sz) : body.sz;
+      body.kind === "bid"
+        ? SafeMath.mult(body.price, body.volume)
+        : body.volume;
     const balance = SafeMath.mult(locked, "-1");
 
     const orderData = {
       bid,
       ask,
       currency,
-      price: body.px || null,
-      volume: body.sz,
+      price: body.price || null,
+      volume: body.volume,
       type:
-        body.side === "buy"
+        body.kind === "bid"
           ? this.database.TYPE.ORDER_BID
           : this.database.TYPE.ORDER_ASK,
       ordType: body.ordType,
       locked,
       balance,
-      currencyId: body.side === "buy" ? bid : ask,
+      currencyId: body.kind === "bid" ? bid : ask,
     };
     return orderData;
   }

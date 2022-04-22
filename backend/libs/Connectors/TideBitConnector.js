@@ -612,11 +612,11 @@ class TibeBitConnector extends ConnectorBase {
     */
     const formatAccount = {
       ...data,
-      ccy: data.currency.toUpperCase(),
-      totalBal: SafeMath.plus(data.balance, data.locked),
-      availBal: data.balance,
-      frozenBal: data.locked,
-      uTime: Date.now(),
+      currency: data.currency.toUpperCase(),
+      total: SafeMath.plus(data.balance, data.locked),
+      // availBal: data.balance,
+      // frozenBal: data.locked,
+      // uTime: Date.now(),
     };
     this.logger.debug(`_updateAccount formatAccount`, formatAccount);
     EventBus.emit(Events.account, formatAccount);
@@ -642,23 +642,23 @@ class TibeBitConnector extends ConnectorBase {
     // formatOrder
     if (data.market === this.market) {
       const formatOrder = {
-        ordId: data.id,
+        ...data,
+        // ordId: data.id,
         clOrdId: data.id,
         instId: this._findInstId(data.market),
-        market: data.market,
         ordType: data.price === undefined ? "market" : "limit",
-        px: data.price,
-        side: data.kind === "bid" ? "buy" : "sell",
-        sz: Utils.removeZeroEnd(
-          SafeMath.eq(data.volume, "0") ? data.origin_volume : data.volume
-        ),
+        // px: data.price,
+        // side: data.kind === "bid" ? "buy" : "sell",
+        // sz: Utils.removeZeroEnd(
+        //   SafeMath.eq(data.volume, "0") ? data.origin_volume : data.volume
+        // ),
         filled: data.volume !== data.origin_volume,
-        state:
-          data.state === "wait"
-            ? "waiting"
-            : SafeMath.eq(data.volume, "0")
-            ? "done"
-            : "canceled",
+        // state:
+        //   data.state === "wait"
+        //     ? "wait"
+        //     : SafeMath.eq(data.volume, "0")
+        //     ? "done"
+        //     : "canceled",
       };
       this.logger.debug(`_updateOrder formatOrder`, formatOrder);
       EventBus.emit(Events.order, data.market, formatOrder);

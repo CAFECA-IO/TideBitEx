@@ -42,7 +42,7 @@ class mysql {
     return this.db.transaction();
   }
 
-  async getBalance(memberId, options) {
+  async getAccounts(memberId, options) {
     const query = "SELECT * FROM `accounts` WHERE `accounts`.member_id = ?;";
     const values = [memberId];
     try {

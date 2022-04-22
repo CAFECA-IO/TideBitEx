@@ -146,7 +146,8 @@ class Communicator {
     }
   }
   // Trade
-  async ordersPending(options) {
+
+  async getOrderList(options) {
     try {
       const url = `/trade/orders-pending?${
         options?.instId ? `&instId=${options.instId}` : ""
@@ -168,7 +169,7 @@ class Communicator {
   }
 
   // Trade
-  async closeOrders(options) {
+  async getOrderHistory(options) {
     try {
       const url = `/trade/orders-history?${
         options?.instId ? `&instId=${options.instId}` : ""
@@ -190,7 +191,7 @@ class Communicator {
   }
 
   // Account
-  async getAccountBalance(ccy) {
+  async getAccounts(ccy) {
     try {
       const url = `/account/balance?${ccy ? `&ccy=${ccy}` : ""}`;
       const res = await this._get(url);
@@ -199,7 +200,7 @@ class Communicator {
       }
       return Promise.reject({ message: res.message, code: res.code });
     } catch (error) {
-      console.error(`[getAccountBalance] error`, error)
+      console.error(`[getAccounts] error`, error);
       return Promise.reject({ message: error });
     }
   }

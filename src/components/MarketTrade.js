@@ -11,22 +11,22 @@ const TradeForm = (props) => {
   return (
     <form
       onSubmit={(e) => {
-        props.onSubmit(e, props.side);
+        props.onSubmit(e, props.kind);
       }}
       className={`market-trade__form ${
-        props.side === "buy" ? "market-trade--buy" : "market-trade--sell"
+        props.kind === "bid" ? "market-trade--buy" : "market-trade--sell"
       }`}
     >
       <p className="market-trade__text">
         {t("available")}:
         <span>
           {formateDecimal(
-            props.side === "buy"
+            props.kind === "bid"
               ? props.quoteCcyAvailable
               : props.baseCcyAvailable,
             8
           )}
-          {props.side === "buy"
+          {props.kind === "bid"
             ? props.selectedTicker?.quote_unit.toUpperCase() || "--"
             : props.selectedTicker?.base_unit.toUpperCase() || "--"}
           {/* = 0 USD */}
@@ -40,7 +40,7 @@ const TradeForm = (props) => {
             type={props.readyOnly ? "text" : "number"}
             className="market-trade__input form-control"
             // placeholder={t("price")}
-            value={props.readyOnly ? t("market") : props.px}
+            value={props.readyOnly ? t("market") : props.price}
             onInput={(e) => props.onPxInput(e.target.value)}
             required={!props.readyOnly}
             disabled={!!props.readyOnly}
@@ -63,7 +63,7 @@ const TradeForm = (props) => {
             type="number"
             className="market-trade__input form-control"
             // placeholder={t("trade_amount")}
-            value={props.sz}
+            value={props.volume}
             onInput={(e) => props.onSzInput(e.target.value)}
             required
             step="any"
@@ -83,7 +83,7 @@ const TradeForm = (props) => {
             type="number"
             className="market-trade__input  form-control"
             // placeholder={t("trade_total")}
-            value={SafeMath.mult(props.px, props.sz)}
+            value={SafeMath.mult(props.price, props.volume)}
             readOnly
           />
           <div className="market-trade__input-group--append input-group-append">
@@ -97,7 +97,7 @@ const TradeForm = (props) => {
         {props.errorMessage && (
           <p
             className={`market-trade__error-message ${
-              SafeMath.lt(props.sz, props.selectedTicker?.minSz) ? "show" : ""
+              SafeMath.lt(props.volume, props.selectedTicker?.minSz) ? "show" : ""
             }`}
           >
             {props.errorMessage}
@@ -106,22 +106,22 @@ const TradeForm = (props) => {
       </div>
       <ul className="market-trade__amount-controller">
         <li className={`${props.selectedPct === "0.25" ? "active" : ""}`}>
-          <span onClick={() => props.percentageHandler("0.25", props.px)}>
+          <span onClick={() => props.percentageHandler("0.25", props.price)}>
             25%
           </span>
         </li>
         <li className={`${props.selectedPct === "0.5" ? "active" : ""}`}>
-          <span onClick={() => props.percentageHandler("0.5", props.px)}>
+          <span onClick={() => props.percentageHandler("0.5", props.price)}>
             50%
           </span>
         </li>
         <li className={`${props.selectedPct === "0.75" ? "active" : ""}`}>
-          <span onClick={() => props.percentageHandler("0.75", props.px)}>
+          <span onClick={() => props.percentageHandler("0.75", props.price)}>
             75%
           </span>
         </li>
         <li className={`${props.selectedPct === "1.0" ? "active" : ""}`}>
-          <span onClick={() => props.percentageHandler("1.0", props.px)}>
+          <span onClick={() => props.percentageHandler("1.0", props.price)}>
             100%
           </span>
         </li>
@@ -133,16 +133,16 @@ const TradeForm = (props) => {
         disabled={
           !props.selectedTicker ||
           SafeMath.gt(
-            props.sz,
-            props.side === "buy"
-              ? SafeMath.div(props.quoteCcyAvailable, props.px)
+            props.volume,
+            props.kind === "bid"
+              ? SafeMath.div(props.quoteCcyAvailable, props.price)
               : props.baseCcyAvailable
           ) ||
-          SafeMath.lte(props.sz, "0") ||
-          SafeMath.lt(props.sz, props.selectedTicker?.minSz)
+          SafeMath.lte(props.volume, "0") ||
+          SafeMath.lt(props.volume, props.selectedTicker?.minSz)
         }
       >
-        {props.side === "buy" ? t("buy") : t("sell")}
+        {props.kind === "bid" ? t("buy") : t("sell")}
         {` ${props.selectedTicker?.base_unit.toUpperCase() ?? ""}`}
       </button>
     </form>
@@ -312,50 +312,50 @@ const TradePannel = (props) => {
     [baseCcyAvailable]
   );
 
-  const onSubmit = async (event, side) => {
+  const onSubmit = async (event, kind) => {
     event.preventDefault();
     if (!storeCtx.selectedTicker) return;
     const order =
       props.orderType === "limit"
-        ? side === "buy"
+        ? kind === "bid"
           ? {
               instId: storeCtx.selectedTicker.instId,
               tdMode,
-              side,
+              kind,
               ordType: props.orderType,
-              px: limitBuyPx,
-              sz: limitBuySz,
+              price: limitBuyPx,
+              volume: limitBuySz,
             }
           : {
               instId: storeCtx.selectedTicker.instId,
               tdMode,
-              side,
+              kind,
               ordType: props.orderType,
-              px: limitSellPx,
-              sz: limitSellSz,
+              price: limitSellPx,
+              volume: limitSellSz,
             }
         : {
             instId: storeCtx.selectedTicker.instId,
             tdMode,
-            side,
+            kind,
             ordType: props.orderType,
-            px: storeCtx.selectedTicker?.last,
-            sz: side === "buy" ? marketBuySz : marketSellSz,
+            price: storeCtx.selectedTicker?.last,
+            volume: kind === "bid" ? marketBuySz : marketSellSz,
           };
     const confirm = window.confirm(`You are going to
-          ${order.side} ${order.sz} ${order.instId.split("-")[0]}
-          ${order.side === "buy" ? "with" : "for"} ${SafeMath.mult(
-      props.orderType === "market" ? selectedTicker.last : order.px,
-      order.sz
+          ${order.kind} ${order.volume} ${order.instId.split("-")[0]}
+          ${order.kind === "bid" ? "with" : "for"} ${SafeMath.mult(
+      props.orderType === "market" ? selectedTicker.last : order.price,
+      order.volume
     )} ${order.instId.split("-")[1]}
           with price ${
-            props.orderType === "market" ? selectedTicker.last : order.px
+            props.orderType === "market" ? selectedTicker.last : order.price
           } ${order.instId.split("-")[1]} per ${order.instId.split("-")[0]}`);
     if (confirm) {
       await storeCtx.postOrder(order);
       setRefresh(true);
     }
-    if (side === "buy") {
+    if (kind === "bid") {
       if (props.orderType === "market") {
         setMarketBuySz("0");
       } else {
@@ -396,42 +396,42 @@ const TradePannel = (props) => {
             storeCtx.selectedTicker.instId !== selectedTicker?.instId))) ||
       refresh
     ) {
-      let quoteCcyBalance = storeCtx.accounts?.find((balance) => {
+      let quoteCcyAccount = storeCtx.accounts?.find((account) => {
         return (
-          balance.ccy === storeCtx.selectedTicker?.quote_unit.toUpperCase()
+          account.currency === storeCtx.selectedTicker?.quote_unit.toUpperCase()
         );
       });
 
-      if (quoteCcyBalance) {
-        setQuoteCcyAvailable(quoteCcyBalance?.availBal);
+      if (quoteCcyAccount) {
+        setQuoteCcyAvailable(quoteCcyAccount?.balance);
         buyPctHandler(
           "market",
           selectedMarketBuyPct ?? "0.25",
           storeCtx.selectedTicker.last,
-          quoteCcyBalance?.availBal
+          quoteCcyAccount?.balance
         );
         buyPctHandler(
           "limit",
           selectedLimitBuyPct ?? "0.25",
           storeCtx.selectedTicker.last,
-          quoteCcyBalance?.availBal
+          quoteCcyAccount?.balance
         );
       }
-      let baseCcyBalance = storeCtx.accounts?.find(
-        (balance) =>
-          balance.ccy === storeCtx.selectedTicker?.base_unit.toUpperCase()
+      let baseCcyAccount = storeCtx.accounts?.find(
+        (account) =>
+          account.currency === storeCtx.selectedTicker?.base_unit.toUpperCase()
       );
-      if (baseCcyBalance) {
-        setBaseCcyAvailable(baseCcyBalance?.availBal);
+      if (baseCcyAccount) {
+        setBaseCcyAvailable(baseCcyAccount?.balance);
         sellPctHandler(
           "market",
           selectedMarketSellPct ?? "0.25",
-          baseCcyBalance?.availBal
+          baseCcyAccount?.balance
         );
         sellPctHandler(
           "limit",
           selectedLimitSellPct ?? "0.25",
-          baseCcyBalance?.availBal
+          baseCcyAccount?.balance
         );
       }
       setSelectedTicker(storeCtx.selectedTicker);
@@ -457,12 +457,12 @@ const TradePannel = (props) => {
         <Tabs defaultActiveKey="buy">
           <Tab eventKey="buy" title={t("buy")}>
             <TradeForm
-              px={
+              price={
                 props.orderType === "market"
                   ? storeCtx.selectedTicker?.last
                   : limitBuyPx
               }
-              sz={props.orderType === "market" ? marketBuySz : limitBuySz}
+              volume={props.orderType === "market" ? marketBuySz : limitBuySz}
               selectedTicker={selectedTicker}
               quoteCcyAvailable={quoteCcyAvailable}
               baseCcyAvailable={baseCcyAvailable}
@@ -477,19 +477,19 @@ const TradePannel = (props) => {
                 buyPctHandler(props.orderType, pct, buyPx)
               }
               onSubmit={onSubmit}
-              side="buy"
+              kind="bid"
               readyOnly={!!props.readyOnly}
               errorMessage={buyErrorMessage}
             />
           </Tab>
           <Tab eventKey="sell" title={t("sell")}>
             <TradeForm
-              px={
+              price={
                 props.orderType === "market"
                   ? storeCtx.selectedTicker?.last
                   : limitSellPx
               }
-              sz={props.orderType === "market" ? marketSellSz : limitSellSz}
+              volume={props.orderType === "market" ? marketSellSz : limitSellSz}
               quoteCcyAvailable={quoteCcyAvailable}
               baseCcyAvailable={baseCcyAvailable}
               selectedTicker={selectedTicker}
@@ -504,7 +504,7 @@ const TradePannel = (props) => {
                 sellPctHandler(props.orderType, pct, buyPx)
               }
               onSubmit={onSubmit}
-              side="sell"
+              kind="ask"
               readyOnly={!!props.readyOnly}
               errorMessage={sellErrorMessage}
             />
@@ -513,12 +513,12 @@ const TradePannel = (props) => {
       ) : (
         <>
           <TradeForm
-            px={
+            price={
               props.orderType === "market"
                 ? storeCtx.selectedTicker?.last
                 : limitBuyPx
             }
-            sz={props.orderType === "market" ? marketBuySz : limitBuySz}
+            volume={props.orderType === "market" ? marketBuySz : limitBuySz}
             quoteCcyAvailable={quoteCcyAvailable}
             baseCcyAvailable={baseCcyAvailable}
             selectedTicker={selectedTicker}
@@ -533,17 +533,17 @@ const TradePannel = (props) => {
               buyPctHandler(props.orderType, pct, buyPx)
             }
             onSubmit={onSubmit}
-            side="buy"
+            kind="bid"
             readyOnly={!!props.readyOnly}
             errorMessage={buyErrorMessage}
           />
           <TradeForm
-            px={
+            price={
               props.orderType === "market"
                 ? storeCtx.selectedTicker?.last
                 : limitSellPx
             }
-            sz={props.orderType === "market" ? marketSellSz : limitSellSz}
+            volume={props.orderType === "market" ? marketSellSz : limitSellSz}
             quoteCcyAvailable={quoteCcyAvailable}
             baseCcyAvailable={baseCcyAvailable}
             selectedTicker={selectedTicker}
@@ -556,7 +556,7 @@ const TradePannel = (props) => {
             onSzInput={(value) => sellSzHandler(props.orderType, value)}
             percentageHandler={(pct) => sellPctHandler(props.orderType, pct)}
             onSubmit={onSubmit}
-            side="sell"
+            kind="ask"
             readyOnly={!!props.readyOnly}
             errorMessage={sellErrorMessage}
           />

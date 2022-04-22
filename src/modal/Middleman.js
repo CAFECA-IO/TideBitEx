@@ -370,30 +370,38 @@ class Middleman {
       this.closeOrders?.map((order) => ({ ...order })) || [];
     if (data.market === this.selectedTicker.market) {
       const index = updatePendingOrders.findIndex(
-        (order) => order.ordId === data.ordId
+        (order) => order.id === data.id
       );
       if (index !== -1) {
-        if (data.state !== "waiting") {
+        if (data.state !== "wait") {
           updatePendingOrders.splice(index, 1);
-          updateCloseOrders.push({ ...data, uTime: Date.now() });
-          // console.log(`updateCloseOrders.push`, { ...data, uTime: Date.now() });
+          updateCloseOrders.push({
+            ...data,
+            at: SafeMath.div(Date.now(), "1000"),
+          });
+          // console.log(`updateCloseOrders.push`, { ...data, at: SafeMath.div(Date.now(), "1000") });
         } else {
           const updateOrder = updatePendingOrders[index];
           updatePendingOrders[index] = {
             ...updateOrder,
-            sz: data.sz,
-            filled: data.filled,
+            ...data,
           };
           // console.log(` updatePendingOrders[${index}]`, {
-          //   ...updateOrder,
-          //   sz: data.sz,
-          //   filled: data.filled,
+          // ...updateOrder,
+          // ...data,
           // });
         }
       } else {
-        if (data.state === "waiting")
-          updatePendingOrders.push({ ...data, cTime: Date.now() });
-        else updateCloseOrders.push({ ...data, uTime: Date.now() });
+        if (data.state === "wait")
+          updatePendingOrders.push({
+            ...data,
+            at: SafeMath.div(Date.now(), "1000"),
+          });
+        else
+          updateCloseOrders.push({
+            ...data,
+            at: SafeMath.div(Date.now(), "1000"),
+          });
         // console.log(` updatePendingOrders[${index}]`, {
         //   ...data,
         // });
@@ -403,38 +411,28 @@ class Middleman {
     }
     // console.log(`*&&&&&&&&&&&*Events.order*&&&&&&&&&&&**`);
     return {
-      updatePendingOrders: updatePendingOrders.sort(
-        (a, b) => b.cTime - a.cTime
-      ),
-      updateCloseOrders: updateCloseOrders.sort((a, b) => +b.uTime - +a.uTime),
+      updatePendingOrders: updatePendingOrders.sort((a, b) => b.at - a.at),
+      updateCloseOrders: updateCloseOrders.sort((a, b) => +b.at - +a.at),
     };
   }
-
-  async getPendingOrders(options) {
+  
+  async getOrderList(options) {
     if (this.isLogin) {
-      const orders = await this.communicator.ordersPending({
+      const orders = await this.communicator.getOrderList({
         ...options,
         instId: this.selectedTicker?.instId,
       });
-      // ++ WORKAROUND
-      // this.pendingOrders = orders.filter(
-      //   (order) => order.px !== "NaN" || !order.px
-      // );
       this.pendingOrders = orders;
       return this.pendingOrders;
     }
   }
 
-  async getCloseOrders(options) {
+  async getOrderHistory(options) {
     if (this.isLogin) {
-      const orders = await this.communicator.closeOrders({
+      const orders = await this.communicator.getOrderHistory({
         ...options,
         instId: this.selectedTicker?.instId,
       });
-      // ++ WORKAROUND
-      // this.closeOrders = orders.filter(
-      //   (order) => order.px !== "NaN" || !order.px
-      // );
       this.closeOrders = orders;
       return this.closeOrders;
     }
@@ -455,7 +453,7 @@ class Middleman {
 
   async getAccounts() {
     try {
-      const result = await this.communicator.getAccountBalance(
+      const result = await this.communicator.getAccounts(
         this.selectedTicker?.instId?.replace("-", ",")
       );
       this.accounts = result;

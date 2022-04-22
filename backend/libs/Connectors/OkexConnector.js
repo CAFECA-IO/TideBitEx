@@ -595,22 +595,28 @@ class OkexConnector extends ConnectorBase {
       const payload = res.data.data.map((data) => {
         return {
           instId,
-          clOrdId: data.id,
-          ordId: data.id,
+          market: instId.replace("-", "").toLowerCase(),
+          clOrdId: data.clOrdId,
+          id: data.ordId,
           ordType: data.ordType,
-          px: data.px,
-          side: data.side,
-          sz: data.sz,
+          price: data.px,
+          kind: data.side === "buy" ? "bid" : "ask",
+          volume: SafeMath.minus(data.sz, data.fillSz),
+          origin_volume: data.sz,
           filled: data.state === "filled",
           state:
             data.state === "canceled"
               ? "canceled"
               : state === "filled"
               ? "done"
-              : "waiting",
-
-          cTime: parseInt(data.cTime),
-          uTime: parseInt(data.uTime),
+              : "wait",
+          state_text:
+            data.state === "canceled"
+              ? "Canceled"
+              : state === "filled"
+              ? "Done"
+              : "Waiting",
+          at: parseInt(SafeMath.div(data.uTime, "1000")),
         };
       });
       return new ResponseFormat({
@@ -683,10 +689,29 @@ class OkexConnector extends ConnectorBase {
 
       const payload = res.data.data.map((data) => {
         return {
-          ...data,
-          cTime: parseInt(data.cTime),
-          fillTime: parseInt(data.fillTime),
-          uTime: parseInt(data.uTime),
+          instId,
+          market: instId.replace("-", "").toLowerCase(),
+          clOrdId: data.clOrdId,
+          id: data.ordId,
+          ordType: data.ordType,
+          price: data.px,
+          kind: data.side === "buy" ? "bid" : "ask",
+          volume: SafeMath.minus(data.sz, data.fillSz),
+          origin_volume: data.sz,
+          filled: data.state === "filled",
+          state:
+            data.state === "canceled"
+              ? "canceled"
+              : state === "filled"
+              ? "done"
+              : "wait",
+          state_text:
+            data.state === "canceled"
+              ? "Canceled"
+              : state === "filled"
+              ? "Done"
+              : "Waiting",
+          at: parseInt(SafeMath.div(data.uTime, "1000")),
         };
       });
       return new ResponseFormat({
@@ -713,7 +738,7 @@ class OkexConnector extends ConnectorBase {
 
     const filterBody = {
       instId: body.instId,
-      ordId: body.ordId,
+      ordId: body.id,
       clOrdId: body.clOrdId,
     };
 

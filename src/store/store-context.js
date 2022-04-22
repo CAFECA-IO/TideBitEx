@@ -94,7 +94,7 @@ const StoreContext = React.createContext({
    * @param {String} limit The maximum is 300. The default is 100.
    * @returns {Promise<Array<Array<String>>>}
    */
-   resolutionHandler: async (resolution) => {},
+  resolutionHandler: async (resolution) => {},
   /**
    * @typedef {Object} PendingOrder
    * @property {string} accFillSz
@@ -150,7 +150,7 @@ const StoreContext = React.createContext({
    * @param {OrderRequestOptions} options
    * @returns {Promise<Array<PendingOrder>>}
    */
-  getPendingOrders: async (options) => {},
+  getOrderList: async (options) => {},
   getCloseOrders: async (options) => {},
   /**
    * @typedef {Object} BalanceDetail
@@ -197,7 +197,7 @@ const StoreContext = React.createContext({
    * @param {String} ccy ex: "BTC,ETH"
    * @returns {Promise<Balance>}
    */
-  getBalance: async (ccy) => {},
+   getAccounts: async (ccy) => {},
   /**
    * @typedef {Object} Order
    * @property {string} instId 產品Id

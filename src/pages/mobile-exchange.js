@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import HistoryOrder, { BalanceTile } from "../components/HistoryOrder";
+import HistoryOrder, { AccountTile } from "../components/HistoryOrder";
 import MarketHistory from "../components/MarketHistory";
 import MarketTrade from "../components/MarketTrade";
 import OrderBook from "../components/OrderBook";
@@ -67,11 +67,11 @@ const MobileExchange = (props) => {
               {!!storeCtx.accounts?.length &&
                 storeCtx.accounts
                   .filter(
-                    (balance) =>
-                      storeCtx.selectedTicker?.base_unit.toUpperCase() === balance.ccy ||
-                      storeCtx.selectedTicker?.quote_unit.toUpperCase() === balance.ccy
+                    (account) =>
+                      storeCtx.selectedTicker?.base_unit.toUpperCase() === account.currency ||
+                      storeCtx.selectedTicker?.quote_unit.toUpperCase() === account.currency
                   )
-                  .map((balance) => <BalanceTile balance={balance} />)}
+                  .map((account) => <AccountTile account={account} />)}
             </ul>
           </div>
         )}

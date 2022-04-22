@@ -11,7 +11,7 @@ const OrderTile = (props) => {
     <ul
       className="d-flex justify-content-between market-order-item"
       onClick={(_) =>
-        props.type === "pending" ? props.cancelOrder(props.order) : {}
+        props.order.state === "wait" ? props.cancelOrder(props.order) : {}
       }
     >
       {/* <li>{dateFormatter(parseInt(props.order.cTime)).text}</li>
@@ -20,14 +20,14 @@ const OrderTile = (props) => {
       <li className={`order-tile__label-box`}>
         <div
           className={`order-tile__label ${
-            props.order.side === "buy"
+            props.order.kind === "bid"
               ? "order-tile__label--green"
               : "order-tile__label--red"
           }`}
         >
-          {props.order.side === "buy" ? "Bid" : "Ask"}
+          {props.order.kind === "bid" ? "Bid" : "Ask"}
         </div>
-        {props.order.state === "waiting" && (
+        {props.order.state === "wait" && (
           <div
             className={`order-tile__label ${
               props.order.filled
@@ -39,36 +39,46 @@ const OrderTile = (props) => {
           </div>
         )}
       </li>
-      <li>{formateDecimal(props.order.px, 8)}</li>
-      <li>{formateDecimal(props.order.sz, 8)}</li>
+      <li>{formateDecimal(props.order.price, 8)}</li>
       <li>
-        {formateDecimal(SafeMath.mult(props.order.px, props.order.sz), 8)}
+        {formateDecimal(
+          props.order.state === "wait"
+            ? props.order.volume
+            : props.order.origin_volume,
+          8
+        )}
+      </li>
+      <li>
+        {formateDecimal(
+          SafeMath.mult(props.order.price, props.order.volume),
+          8
+        )}
       </li>
       {/* <li>{props.order.fillSz}</li> */}
-      {/* <li>{SafeMath.minus(props.order.sz, props.order.fillSz)}</li> */}
-      {props.type === "pending" ? (
+      {/* <li>{SafeMath.minus(props.order.volume, props.order.fillSz)}</li> */}
+      {props.order.state === "wait" ? (
         <li>
           <FaTrashAlt />
         </li>
       ) : (
-        <li>{props.order.state}</li>
+        <li>{props.order.state_text}</li>
       )}
     </ul>
   );
 };
 
-export const BalanceTile = (props) => {
+export const AccountTile = (props) => {
   return (
     <ul className="d-flex justify-content-between market-order-item market-balance">
-      {/* <li>{dateFormatter(parseInt(props.balance.uTime)).text}</li> */}
-      <li>{props.balance.ccy || "--"}</li>
-      {/* <li>{props.balance.eq || "--"}</li>
-      <li>{props.balance.cashBal || "--"}</li>*/}
-      <li>{formateDecimal(props.balance.totalBal)}</li>
-      <li>{formateDecimal(props.balance.availBal)}</li>
-      <li>{formateDecimal(props.balance.frozenBal)}</li>
+      {/* <li>{dateFormatter(parseInt(props.account.uTime)).text}</li> */}
+      <li>{props.account.currency || "--"}</li>
+      {/* <li>{props.account.eq || "--"}</li>
+      <li>{props.account.cashBal || "--"}</li>*/}
+      <li>{formateDecimal(props.account.total)}</li>
+      <li>{formateDecimal(props.account.balance)}</li>
+      <li>{formateDecimal(props.account.locked)}</li>
       {/* -- TODO: check api return object */}
-      {/* <li>{props.balance.interest || "--"}</li> */}
+      {/* <li>{props.account.interest || "--"}</li> */}
     </ul>
   );
 };
@@ -76,15 +86,13 @@ export const BalanceTile = (props) => {
 const HistoryOrder = (props) => {
   const storeCtx = useContext(StoreContext);
   const cancelOrder = (order) => {
-    const confirm = window.confirm(`You are going to cancel order: ${
-      order.ordId
-    }
-    ${order.side} ${order.sz} ${order.instId.split("-")[0]}
-    ${order.side === "buy" ? "with" : "for"} ${SafeMath.mult(
-      order.px,
-      order.sz
-    )} ${order.sz} ${order.instId.split("-")[1]}
-    with price ${order.px} ${order.instId.split("-")[1]} per ${
+    const confirm = window.confirm(`You are going to cancel order: ${order.id}
+    ${order.kind} ${order.volume} ${order.instId.split("-")[0]}
+    ${order.kind === "bid" ? "with" : "for"} ${SafeMath.mult(
+      order.price,
+      order.volume
+    )} ${order.volume} ${order.instId.split("-")[1]}
+    with price ${order.price} ${order.instId.split("-")[1]} per ${
       order.instId.split("-")[0]
     }`);
     if (confirm) {
@@ -119,13 +127,9 @@ const HistoryOrder = (props) => {
             <ul className="order-list">
               {!!storeCtx.pendingOrders?.length &&
                 storeCtx.pendingOrders
-                  .filter((order) => !(order.px === "NaN" || !order.px)) // ++ WORKAROUND
+                  .filter((order) => !(order.price === "NaN" || !order.price)) // ++ WORKAROUND
                   .map((order) => (
-                    <OrderTile
-                      order={order}
-                      type="pending"
-                      cancelOrder={cancelOrder}
-                    />
+                    <OrderTile order={order} cancelOrder={cancelOrder} />
                   ))}
             </ul>
           </Tab>
@@ -151,7 +155,7 @@ const HistoryOrder = (props) => {
             <ul className="order-list">
               {!!storeCtx.closeOrders?.length &&
                 storeCtx.closeOrders
-                  .filter((order) => !(order.px === "NaN" || !order.px)) // ++ WORKAROUND
+                  .filter((order) => !(order.price === "NaN" || !order.price)) // ++ WORKAROUND
                   .map((order) => <OrderTile order={order} />)}
             </ul>
           </Tab>
@@ -200,13 +204,13 @@ const HistoryOrder = (props) => {
               {!!storeCtx.accounts?.length &&
                 storeCtx.accounts
                   .filter(
-                    (balance) =>
+                    (account) =>
                       storeCtx.selectedTicker?.base_unit.toUpperCase() ===
-                        balance.ccy ||
+                        account.currency ||
                       storeCtx.selectedTicker?.quote_unit.toUpperCase() ===
-                        balance.ccy
+                        account.currency
                   )
-                  .map((balance) => <BalanceTile balance={balance} />)}
+                  .map((account) => <AccountTile account={account} />)}
             </ul>
           </Tab>
         </Tabs>
