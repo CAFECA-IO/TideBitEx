@@ -684,9 +684,6 @@ class ExchangeHub extends Bot {
           : { orderId: body.id };
       switch (source) {
         case SupportedExchange.OKEX:
-          const order = await this.database.getOrder(orderId, {
-            dbTransaction: t,
-          });
           // if (order.state !== this.database.ORDER_STATE.WAIT) {
           //   await t.rollback();
           //   return new ResponseFormat({
@@ -694,20 +691,13 @@ class ExchangeHub extends Bot {
           //     message: "order has been close",
           //   });
           // }
-          const currencyId =
-            order.type === this.database.TYPE.ORDER_ASK ? order.ask : order.bid;
-          const account = await this.database.getAccountByMemberIdCurrency(
-            memberId,
-            currencyId,
-            { dbTransaction: t }
-          );
 
           const okexCancelOrderRes = await this.okexConnector.router(
             "postCancelOrder",
             { params, query, body }
           );
-          this.logger.log(`postCancelOrder`, body)
-          this.logger.log(`okexCancelOrderRes`, okexCancelOrderRes)
+          this.logger.log(`postCancelOrder`, body);
+          this.logger.log(`okexCancelOrderRes`, okexCancelOrderRes);
           if (!okexCancelOrderRes.success) {
             await t.rollback();
             return okexCancelOrderRes;
@@ -717,6 +707,18 @@ class ExchangeHub extends Bot {
              * locked: value from order.locked, used for unlock balance, negative in account_version
              * balance: order.locked
              *******************************************/
+            const order = await this.database.getOrder(orderId, {
+              dbTransaction: t,
+            });
+            const currencyId =
+              order.type === this.database.TYPE.ORDER_ASK
+                ? order.ask
+                : order.bid;
+            const account = await this.database.getAccountByMemberIdCurrency(
+              memberId,
+              currencyId,
+              { dbTransaction: t }
+            );
             const newOrder = {
               id: orderId,
               state: this.database.ORDER_STATE.CANCEL,
