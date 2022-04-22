@@ -11,19 +11,19 @@ class TideBitLegacyAdapter {
 
   static peatioOrderBody({ header, body }) {
     let obj = {};
-    if (body.side === "buy") {
+    if (body.kind === "bid") {
       obj["order_bid[ord_type]"] = body.ordType;
-      obj["order_bid[origin_volume]"] = body.sz;
+      obj["order_bid[origin_volume]"] = body.volume;
       if (body.ordType === "limit") {
-        obj["order_bid[price]"] = body.px;
-        obj["order_bid[total]"] = SafeMath.mult(body.px, body.sz);
+        obj["order_bid[price]"] = body.price;
+        obj["order_bid[total]"] = SafeMath.mult(body.price, body.volume);
       }
-    } else if (body.side === "sell") {
+    } else if (body.kind === "ask") {
       obj["order_ask[ord_type]"] = body.ordType;
-      obj["order_ask[origin_volume]"] = body.sz;
+      obj["order_ask[origin_volume]"] = body.volume;
       if (body.ordType === "limit") {
-        obj["order_ask[price]"] = body.px;
-        obj["order_ask[total]"] = SafeMath.mult(body.px, body.sz);
+        obj["order_ask[price]"] = body.price;
+        obj["order_ask[total]"] = SafeMath.mult(body.price, body.volume);
       }
     }
     const data = Object.keys(obj)

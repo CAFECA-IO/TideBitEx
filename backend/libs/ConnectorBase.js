@@ -51,6 +51,14 @@ class ConnectorBase {
     });
   }
 
+  _subscribeGlobal() {
+    throw new Error("need override _subscribeGlobal");
+  }
+
+  _unsubscribeGlobal() {
+    throw new Error("need override _unsubscribeGlobal");
+  }
+
   _subscribeUser() {
     throw new Error("need override _subscribeUser");
   }

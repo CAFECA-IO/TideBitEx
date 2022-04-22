@@ -63,6 +63,7 @@ class WSChannel extends Bot {
             : "unknown";
 
           this.logger.debug("HI", ip);
+          EventBus.emit(Events.globalOnSubscribe);
           ws.on("message", (message) => {
             this.logger.debug("received: %s", message);
             const { op, args } = JSON.parse(message);
@@ -78,8 +79,8 @@ class WSChannel extends Bot {
               return;
             }
             switch (op) {
-              case "userLogin":
-                this._onOpUserLogin(req.headers, ws, args);
+              case "userStatusUpdate":
+                this._onOpStatusUpdate(req.headers, ws, args);
                 break;
               case "switchMarket":
                 this._onOpSwitchMarket(ws, args);
@@ -99,6 +100,7 @@ class WSChannel extends Bot {
           ws.on("close", () => {
             this.logger.debug("disconnected");
             const findClient = this._client[ws.id];
+            EventBus.emit(Events.globalOnUnsubscribe);
             if (findClient.isStart) {
               delete this._channelClients[findClient.channel][ws.id];
               if (
@@ -118,7 +120,7 @@ class WSChannel extends Bot {
 
   // TODO SPA LOGIN
   // ++ CURRENT_USER UNSAVED
-  _onOpUserLogin(headers, ws, args) {
+  _onOpStatusUpdate(headers, ws, args) {
     const findClient = this._client[ws.id];
     const token = Utils.peatioToken(headers);
     if (!findClient.isStart) {
@@ -130,54 +132,47 @@ class WSChannel extends Bot {
         this._channelClients[args.market] = {};
       }
       if (Object.values(this._channelClients[args.market]).length === 0) {
-        this.logger.log(
-          `++++++++++ EventBus.emit(Events.userOnSubscribe)1[args.market:${args.market}]++++++++++++`
-        );
-        EventBus.emit(Events.userOnSubscribe, {
-          headers: {
-            cookie: headers.cookie,
-            "content-type": "application/json",
-            "x-csrf-token": args.token,
-          },
-          market: args.market,
-          token,
-        });
+        if (args.token) {
+          this.logger.log(
+            `++++++++++ EventBus.emit(Events.userOnSubscribe)1[args.market:${args.market}]++++++++++++`
+          );
+          EventBus.emit(Events.userOnSubscribe, {
+            headers: {
+              cookie: headers.cookie,
+              "content-type": "application/json",
+              "x-csrf-token": args.token,
+            },
+            market: args.market,
+            token,
+          });
+        } else EventBus.emit(Events.userOnSubscribe);
       }
       this._channelClients[args.market][ws.id] = ws;
     } else {
       const oldChannel = findClient.channel;
       delete this._channelClients[oldChannel][ws.id];
       if (Object.values(this._channelClients[oldChannel]).length === 0) {
-        this.logger.log(
-          `++++++++++ EventBus.emit(Events.userOnUnsubscribe)2[oldChannel:${oldChannel}]++++++++++++`
-        );
-        EventBus.emit(Events.userOnUnsubscribe, {
-          headers: {
-            cookie: headers.cookie,
-            "content-type": "application/json",
-            "x-csrf-token": args.token,
-          },
-          market: oldChannel,
-          token,
-        });
+        EventBus.emit(Events.tickerOnUnsubscribe, oldChannel);
       }
       findClient.channel = args.market;
       if (!this._channelClients[args.market]) {
         this._channelClients[args.market] = {};
       }
       if (Object.values(this._channelClients[args.market]).length === 0) {
-        this.logger.log(
-          `++++++++++ EventBus.emit(Events.userOnSubscribe)3[args.market:${args.market}]++++++++++++`
-        );
-        EventBus.emit(Events.userOnSubscribe, {
-          headers: {
-            cookie: headers.cookie,
-            "content-type": "application/json",
-            "x-csrf-token": args.token,
-          },
-          market: args.market,
-          token,
-        });
+        if (args.token) {
+          this.logger.log(
+            `++++++++++ EventBus.emit(Events.userOnSubscribe)1[args.market:${args.market}]++++++++++++`
+          );
+          EventBus.emit(Events.userOnSubscribe, {
+            headers: {
+              cookie: headers.cookie,
+              "content-type": "application/json",
+              "x-csrf-token": args.token,
+            },
+            market: args.market,
+            token,
+          });
+        } else EventBus.emit(Events.userOnSubscribe);
       }
       this._channelClients[args.market][ws.id] = ws;
     }

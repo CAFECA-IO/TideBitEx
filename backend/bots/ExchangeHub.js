@@ -116,33 +116,33 @@ class ExchangeHub extends Bot {
   }
 
   // account api
-  async getBalance({ token, params, query }) {
+  async getAccounts({ token, params, query }) {
     try {
       const memberId = await this.getMemberIdFromRedis(token);
       // if (memberId === -1) throw new Error("get member_id fail");
       if (memberId === -1) {
         this.logger.error(
-          `[${this.name} getBalance] error: "get member_id fail`
+          `[${this.name} getAccounts] error: "get member_id fail`
         );
         return new ResponseFormat({
           message: "get member_id fail",
           code: Codes.MEMBER_ID_NOT_FOUND,
         });
       }
-      const accounts = await this.database.getBalance(memberId);
+      const accounts = await this.database.getAccounts(memberId);
       const details = accounts.map((account, i) => ({
-        ccy: this.currencies.find((curr) => curr.id === account.currency)
+        currency: this.currencies.find((curr) => curr.id === account.currency)
           .symbol,
-        availBal: Utils.removeZeroEnd(account.balance),
-        totalBal: SafeMath.plus(account.balance, account.locked),
-        frozenBal: Utils.removeZeroEnd(account.locked),
-        uTime: new Date(account.updated_at).getTime(),
+        balance: Utils.removeZeroEnd(account.balance),
+        total: SafeMath.plus(account.balance, account.locked),
+        locked: Utils.removeZeroEnd(account.locked),
+        // uTime: new Date(account.updated_at).getTime(),
       }));
 
       const payload = details;
 
       return new ResponseFormat({
-        message: "getBalance",
+        message: "getAccounts",
         payload,
       });
     } catch (error) {
@@ -325,12 +325,12 @@ class ExchangeHub extends Bot {
       case SupportedExchange.OKEX:
         try {
           /*******************************************
-           * body.side: order is 'buy' or 'sell'
-           * orderData.price: body.px, price value
-           * orderData.volume: body.sz, volume value
+           * body.kind: order is 'bid' or 'ask'
+           * orderData.price: body.price, price value
+           * orderData.volume: body.volume, volume value
            * orderData.locked:
-           *   if body.side === 'buy', locked = body.px * body.sz
-           *   if body.side === 'sell', locked = body.sz
+           *   if body.kind === 'bid', locked = body.price * body.volume
+           *   if body.kind === 'ask', locked = body.volume
            *
            * orderData.balance: locked value * -1
            *******************************************/
@@ -385,14 +385,56 @@ class ExchangeHub extends Bot {
             created_at,
             this.database.FUNC.LOCK_FUNDS
           );
-
           const okexOrderRes = await this.okexConnector.router(
             "postPlaceOrder",
             { memberId, orderId, params, query, body }
           );
+          this.logger.log(
+            `---------- [${this.constructor.name}]  postPlaceOrder  ----------`
+          );
+          this.logger.log("[RESPONSE]", okexOrderRes);
+          this.logger.log(
+            `---------- [${this.constructor.name}]  postPlaceOrder  ----------`
+          );
           if (!okexOrderRes.success) {
             await t.rollback();
             return okexOrderRes;
+          } else {
+            let _updateOrder = {
+              instId: body.instId,
+              ordType: body.ordType,
+              id: okexOrderRes.payload.ordId,
+              clOrdId: okexOrderRes.payload.clOrdId,
+              at: parseInt(SafeMath.div(Date.now(), "1000")),
+              market: body.market,
+              kind: body.kind,
+              price: body.price,
+              origin_volume: body.volume,
+              state: "wait",
+              state_text: "Waiting",
+              volume: body.volume,
+            };
+            EventBus.emit(Events.order, body.market, _updateOrder);
+            this.logger.log(
+              `[TO FRONTEND][OnEvent: ${Events.order}] _updateOrder ln:409`,
+              _updateOrder
+            );
+            let _updateAccount = {
+              balance: SafeMath.plus(account.balance, balance),
+              locked: SafeMath.plus(account.locked, locked),
+              currency: this.currencies.find(
+                (curr) => curr.id === account.currency
+              )?.symbol,
+              total: SafeMath.plus(
+                SafeMath.plus(account.balance, balance),
+                SafeMath.plus(account.locked, locked)
+              ),
+            };
+            EventBus.emit(Events.account, _updateAccount);
+            this.logger.log(
+              `[TO FRONTEND][OnEvent: ${Events.account}] _updateAccount ln:425`,
+              _updateAccount
+            );
           }
           await t.commit();
           return okexOrderRes;
@@ -409,7 +451,7 @@ class ExchangeHub extends Bot {
         try {
           const market = this._findMarket(body.instId);
           const url =
-            body.side === "buy"
+            body.kind === "bid"
               ? `${this.config.peatio.domain}/markets/${market.id}/order_bids`
               : `${this.config.peatio.domain}/markets/${market.id}/order_asks`;
           this.logger.debug("postPlaceOrder", url);
@@ -430,8 +472,8 @@ class ExchangeHub extends Bot {
             message: "postPlaceOrder",
             payload: [
               {
+                id: "",
                 clOrdId: "",
-                ordId: "",
                 sCode: "",
                 sMsg: "",
                 tag: "",
@@ -460,10 +502,10 @@ class ExchangeHub extends Bot {
     const { id: bid } = await this.database.getCurrencyByKey(market.quote_unit);
     const { id: ask } = await this.database.getCurrencyByKey(market.base_unit);
     if (!bid) {
-      throw new Error(`bid not found`);
+      throw new Error(`bid not found${market.quote_unit}`);
     }
     if (!ask) {
-      throw new Error(`ask not found`);
+      throw new Error(`ask not found${market.base_unit}`);
     }
     let orderList;
     if (memberId) {
@@ -482,26 +524,29 @@ class ExchangeHub extends Bot {
       });
     }
     const orders = orderList.map((order) => ({
-      cTime: new Date(order.created_at).getTime(),
-      clOrdId: order.id,
-      instId: instId,
-      ordId: order.id,
-      ordType: order.ord_type,
-      px: Utils.removeZeroEnd(order.price),
-      side: order.type === "OrderAsk" ? "sell" : "buy",
-      sz: Utils.removeZeroEnd(
-        state === this.database.ORDER_STATE.DONE
-          ? order.origin_volume
-          : order.volume
-      ),
-      filled: order.volume !== order.origin_volume,
-      uTime: new Date(order.updated_at).getTime(),
+      id: order.id,
+      at: parseInt(SafeMath.div(new Date(order.updated_at).getTime(), "1000")),
+      market: instId.replace("-", "").toLowerCase(),
+      kind: order.type === "OrderAsk" ? "ask" : "bid",
+      price: Utils.removeZeroEnd(order.price),
+      origin_volume: Utils.removeZeroEnd(order.origin_volume),
+      volume: Utils.removeZeroEnd(order.volume),
       state:
         state === this.database.ORDER_STATE.CANCEL
           ? "canceled"
           : state === this.database.ORDER_STATE.DONE
           ? "done"
-          : "waiting",
+          : "wait",
+      state_text:
+        state === this.database.ORDER_STATE.CANCEL
+          ? "Canceled"
+          : state === this.database.ORDER_STATE.DONE
+          ? "Done"
+          : "Waiting",
+      clOrdId: order.id,
+      instId: instId,
+      ordType: order.ord_type,
+      filled: order.volume !== order.origin_volume,
     }));
     return orders;
   }
@@ -537,7 +582,7 @@ class ExchangeHub extends Bot {
           });
           return new ResponseFormat({
             message: "getOrderList",
-            payload: orders.sort((a, b) => b.cTime - a.cTime),
+            payload: orders.sort((a, b) => b.at - a.at),
           });
         } catch (error) {
           this.logger.error(error);
@@ -598,10 +643,9 @@ class ExchangeHub extends Bot {
               if (order.ordType === "market") {
                 return {
                   ...order,
-                  px: Utils.removeZeroEnd(
-                    vouchers?.find(
-                      (voucher) => voucher.order_id === order.ordId
-                    )?.price
+                  price: Utils.removeZeroEnd(
+                    vouchers?.find((voucher) => voucher.order_id === order.id)
+                      ?.price
                   ),
                 };
               } else {
@@ -609,7 +653,7 @@ class ExchangeHub extends Bot {
               }
             })
             .concat(cancelOrders)
-            .sort((a, b) => b.cTime - a.cTime);
+            .sort((a, b) => b.at - a.at);
           return new ResponseFormat({
             message: "getOrderHistory",
             payload: orders,
@@ -647,62 +691,97 @@ class ExchangeHub extends Bot {
       let { orderId } =
         source === SupportedExchange.OKEX
           ? Utils.parseClOrdId(body.clOrdId)
-          : { orderId: body.ordId };
+          : { orderId: body.id };
       switch (source) {
         case SupportedExchange.OKEX:
-          const order = await this.database.getOrder(orderId, {
-            dbTransaction: t,
-          });
-          if (order.state !== this.database.ORDER_STATE.WAIT) {
-            await t.rollback();
-            return new ResponseFormat({
-              code: Codes.ORDER_HAS_BEEN_CLOSED,
-              message: "order has been close",
-            });
-          }
-          const currencyId =
-            order.type === this.database.TYPE.ORDER_ASK ? order.ask : order.bid;
-          const account = await this.database.getAccountByMemberIdCurrency(
-            memberId,
-            currencyId,
-            { dbTransaction: t }
-          );
+          // if (order.state !== this.database.ORDER_STATE.WAIT) {
+          //   await t.rollback();
+          //   return new ResponseFormat({
+          //     code: Codes.ORDER_HAS_BEEN_CLOSED,
+          //     message: "order has been close",
+          //   });
+          // }
 
-          /*******************************************
-           * body.clOrdId: custom orderId for okex
-           * locked: value from order.locked, used for unlock balance, negative in account_version
-           * balance: order.locked
-           *******************************************/
-          const newOrder = {
-            id: orderId,
-            state: this.database.ORDER_STATE.CANCEL,
-          };
-          const locked = SafeMath.mult(order.locked, "-1");
-          const balance = order.locked;
-          const fee = "0";
-
-          const created_at = new Date().toISOString();
-
-          await this.database.updateOrder(newOrder, { dbTransaction: t });
-
-          await this._updateAccount(
-            account,
-            t,
-            balance,
-            locked,
-            fee,
-            this.database.MODIFIABLE_TYPE.ORDER,
-            orderId,
-            created_at,
-            this.database.FUNC.UNLOCK_FUNDS
-          );
           const okexCancelOrderRes = await this.okexConnector.router(
             "postCancelOrder",
             { params, query, body }
           );
+          this.logger.log(`postCancelOrder`, body);
+          this.logger.log(`okexCancelOrderRes`, okexCancelOrderRes);
           if (!okexCancelOrderRes.success) {
             await t.rollback();
             return okexCancelOrderRes;
+          } else {
+            /*******************************************
+             * body.clOrdId: custom orderId for okex
+             * locked: value from order.locked, used for unlock balance, negative in account_version
+             * balance: order.locked
+             *******************************************/
+            const order = await this.database.getOrder(orderId, {
+              dbTransaction: t,
+            });
+            const currencyId =
+              order?.type === this.database.TYPE.ORDER_ASK
+                ? order?.ask
+                : order?.bid;
+            const account = await this.database.getAccountByMemberIdCurrency(
+              memberId,
+              currencyId,
+              { dbTransaction: t }
+            );
+            const newOrder = {
+              id: orderId,
+              state: this.database.ORDER_STATE.CANCEL,
+            };
+            const locked = SafeMath.mult(order.locked, "-1");
+            const balance = order.locked;
+            const fee = "0";
+
+            const created_at = new Date().toISOString();
+
+            const _updateOrder = {
+              ...body,
+              state: "canceled",
+              state_text: "Canceled",
+              at: parseInt(SafeMath.div(Date.now(), "1000")),
+            };
+            this.logger.log(
+              `[TO FRONTEND][OnEvent: ${Events.order}] updateOrder ln:1092`,
+              _updateOrder
+            );
+            EventBus.emit(Events.order, body.market, _updateOrder);
+
+            await this.database.updateOrder(newOrder, { dbTransaction: t });
+            if (account) {
+              let _updateAccount = {
+                balance: SafeMath.plus(account.balance, balance),
+                locked: SafeMath.plus(account.locked, locked),
+                currency: this.currencies.find(
+                  (curr) => curr.id === account.currency
+                )?.symbol,
+                total: SafeMath.plus(
+                  SafeMath.plus(account.balance, balance),
+                  SafeMath.plus(account.locked, locked)
+                ),
+              };
+              EventBus.emit(Events.account, _updateAccount);
+              this.logger.log(
+                `[TO FRONTEND][OnEvent: ${Events.account}] _updateAccount ln:425`,
+                _updateAccount
+              );
+
+              await this._updateAccount(
+                account,
+                t,
+                balance,
+                locked,
+                fee,
+                this.database.MODIFIABLE_TYPE.ORDER,
+                orderId,
+                created_at,
+                this.database.FUNC.UNLOCK_FUNDS
+              );
+            }
           }
           await t.commit();
           return okexCancelOrderRes;
@@ -831,10 +910,10 @@ class ExchangeHub extends Bot {
 
     // orderBooksOnUpdate
     EventBus.on(Events.update, (market, booksData) => {
-      this.logger.debug(
-        `[${this.constructor.ExchangeHub}]_updateBooks booksData`,
-        booksData
-      );
+      // this.logger.debug(
+      //   `[${this.name}]_updateBooks booksData`,
+      //   booksData
+      // );
       this.broadcast(market, {
         type: Events.update,
         data: booksData,
@@ -874,6 +953,9 @@ class ExchangeHub extends Bot {
   }
 
   async _updateOrderDetail(formatOrder) {
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateOrderDetail [START] ----------`
+    );
     const t = await this.database.transaction();
     /* !!! HIGH RISK (start) !!! */
     // 1. get orderId from body
@@ -887,6 +969,8 @@ class ExchangeHub extends Bot {
     // 9. update account balance and locked
     try {
       const {
+        ordType,
+        instId,
         accFillSz,
         clOrdId,
         tradeId,
@@ -894,8 +978,10 @@ class ExchangeHub extends Bot {
         side,
         fillPx,
         fillSz,
+        sz,
         fee,
         uTime,
+        ordId,
       } = formatOrder;
       // get orderId from formatOrder.clOrdId
       const { memberId, orderId } = Utils.parseClOrdId(clOrdId);
@@ -988,14 +1074,23 @@ class ExchangeHub extends Bot {
       // TODO: ++ 6. add trade
       // -- CAUTION!!! skip now, tradeId use okex tradeId,
       // because it need columns 'ask_member_id' and 'bid_member_id' with foreign key
-
+      const base_unit = this.currencies.find(
+        (curr) => curr.id === order.ask
+      )?.key;
+      const quote_unit = this.currencies.find(
+        (curr) => curr.id === order.bid
+      )?.key;
+      if (!base_unit || !quote_unit)
+        throw Error(
+          `order base_unit[order.ask: ${order.ask}] or quote_unit[order.bid: ${order.bid}] not found`
+        );
       await this.database.insertVouchers(
         memberId,
         orderId,
         tradeId, // ++ TODO reference step6 trade.id
         null,
-        "eth", // -- need change
-        "usdt", // -- need change
+        base_unit, // -- need change
+        quote_unit, // -- need change
         fillPx,
         fillSz,
         value,
@@ -1007,6 +1102,41 @@ class ExchangeHub extends Bot {
       );
 
       await this.database.updateOrder(newOrder, { dbTransaction: t });
+
+      const _updateOrder = {
+        id: ordId,
+        at: parseInt(SafeMath.div(uTime, "1000")),
+        market: instId.replace("-", "").toLowerCase(),
+        kind: side === "buy" ? "bid" : "ask",
+        price: null, // market prcie
+        origin_volume: sz,
+        clOrdId: clOrdId,
+        state:
+          state === "canceled"
+            ? "canceled"
+            : state === "filled"
+            ? "done"
+            : "wait",
+        state_text:
+          state === "canceled"
+            ? "Canceled"
+            : state === "filled"
+            ? "Done"
+            : "Waiting",
+        volume: SafeMath.minus(sz, fillSz),
+        instId: instId,
+        ordType: ordType,
+        filled: state === "filled",
+      };
+      this.logger.log(
+        `[TO FRONTEND][OnEvent: ${Events.order}] updateOrder ln:1092`,
+        _updateOrder
+      );
+      EventBus.emit(
+        Events.order,
+        instId.replace("-", "").toLowerCase(),
+        _updateOrder
+      );
 
       await this._updateAccount(
         accountAsk,
@@ -1021,6 +1151,22 @@ class ExchangeHub extends Bot {
           ? this.database.FUNC.UNLOCK_AND_SUB_FUNDS
           : this.database.FUNC.PLUS_FUNDS
       );
+      let _updateAcc = {
+        balance: SafeMath.plus(accountAsk.balance, balanceA),
+        locked: SafeMath.plus(accountAsk.balance, lockedA),
+        currency: this.currencies.find(
+          (curr) => curr.id === accountAsk.currency
+        )?.symbol,
+        total: SafeMath.plus(
+          SafeMath.plus(accountAsk.balance, balanceA),
+          SafeMath.plus(accountAsk.balance, lockedA)
+        ),
+      };
+      EventBus.emit(Events.account, _updateAcc);
+      this.logger.log(
+        `[TO FRONTEND][OnEvent: ${Events.account}] _updateAcc ln:1057`,
+        _updateAcc
+      );
       await this._updateAccount(
         accountBid,
         t,
@@ -1034,7 +1180,22 @@ class ExchangeHub extends Bot {
           ? this.database.FUNC.PLUS_FUNDS
           : this.database.FUNC.UNLOCK_AND_SUB_FUNDS
       );
-
+      _updateAcc = {
+        balance: SafeMath.plus(accountBid.balance, balanceB),
+        locked: SafeMath.plus(accountBid.balance, lockedB),
+        currency: this.currencies.find(
+          (curr) => curr.id === accountBid.currency
+        )?.symbol,
+        total: SafeMath.plus(
+          SafeMath.plus(accountBid.balance, balanceB),
+          SafeMath.plus(accountBid.balance, lockedB)
+        ),
+      };
+      EventBus.emit(Events.account, _updateAcc);
+      this.logger.log(
+        `[TO FRONTEND][OnEvent: ${Events.account}] _updateAcc ln:1086`,
+        _updateAcc
+      );
       // order 完成，解鎖剩餘沒用完的
       if (
         orderState === this.database.ORDER_STATE.DONE &&
@@ -1053,6 +1214,22 @@ class ExchangeHub extends Bot {
             created_at,
             this.database.FUNC.UNLOCK_FUNDS
           );
+          _updateAcc = {
+            balance: SafeMath.plus(accountAsk.balance, changeLocked),
+            locked: SafeMath.plus(accountAsk.balance, changeBalance),
+            currency: this.currencies.find(
+              (curr) => curr.id === accountAsk.currency
+            )?.symbol,
+            total: SafeMath.plus(
+              SafeMath.plus(accountAsk.balance, changeLocked),
+              SafeMath.plus(accountAsk.balance, changeBalance)
+            ),
+          };
+          EventBus.emit(Events.account, _updateAcc);
+          this.logger.log(
+            `[TO FRONTEND][OnEvent: ${Events.account}] _updateAcc ln:1120`,
+            _updateAcc
+          );
         } else if (order.type === this.database.TYPE.ORDER_BID) {
           // ++ TODO reference step6 trade.id
           await this._updateAccount(
@@ -1065,6 +1242,22 @@ class ExchangeHub extends Bot {
             tradeId,
             created_at,
             this.database.FUNC.UNLOCK_FUNDS
+          );
+          _updateAcc = {
+            balance: SafeMath.plus(accountBid.balance, changeLocked),
+            locked: SafeMath.plus(accountBid.balance, changeBalance),
+            currency: this.currencies.find(
+              (curr) => curr.id === accountBid.currency
+            )?.symbol,
+            total: SafeMath.plus(
+              SafeMath.plus(accountBid.balance, changeLocked),
+              SafeMath.plus(accountBid.balance, changeBalance)
+            ),
+          };
+          EventBus.emit(Events.account, _updateAcc);
+          this.logger.log(
+            `[TO FRONTEND][OnEvent: ${Events.account}] _updateAcc ln:1149`,
+            _updateAcc
           );
         }
       }
@@ -1092,23 +1285,25 @@ class ExchangeHub extends Bot {
     }
     const currency = market.code;
     const locked =
-      body.side === "buy" ? SafeMath.mult(body.px, body.sz) : body.sz;
+      body.kind === "bid"
+        ? SafeMath.mult(body.price, body.volume)
+        : body.volume;
     const balance = SafeMath.mult(locked, "-1");
 
     const orderData = {
       bid,
       ask,
       currency,
-      price: body.px || null,
-      volume: body.sz,
+      price: body.price || null,
+      volume: body.volume,
       type:
-        body.side === "buy"
+        body.kind === "bid"
           ? this.database.TYPE.ORDER_BID
           : this.database.TYPE.ORDER_ASK,
       ordType: body.ordType,
       locked,
       balance,
-      currencyId: body.side === "buy" ? bid : ask,
+      currencyId: body.kind === "bid" ? bid : ask,
     };
     return orderData;
   }

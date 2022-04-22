@@ -84,7 +84,6 @@ const StoreProvider = (props) => {
           }
           break;
         case Events.trades:
-          console.log(`metaData.data`, metaData.data);
           const { trades, candles, volumes } = middleman.updateTrades(
             metaData.data.trades,
             resolution
@@ -137,18 +136,13 @@ const StoreProvider = (props) => {
   const connect = useCallback(() => {
     const ws = new WebSocket(Config[Config.status].websocket);
     let interval;
-
     ws.addEventListener("open", () => {
       clearInterval(interval);
       const data = connection_resolvers.shift();
-      // console.log(`open data1`, data);
       if (data) ws.send(data);
-      // console.log(`open connection_resolvers1`, connection_resolvers);
       interval = setInterval(() => {
         const data = connection_resolvers.shift();
-        // console.log(`open data2`, data);
         if (data) ws.send(data);
-        // console.log(`open connection_resolvers2`, connection_resolvers);
       }, 1000);
     });
     ws.addEventListener("close", (msg) => {
@@ -250,15 +244,15 @@ const StoreProvider = (props) => {
     [middleman]
   );
 
-  const getPendingOrders = useCallback(
+  const getOrderList = useCallback(
     async (options) => {
       try {
-        const result = await middleman.getPendingOrders(options);
+        const result = await middleman.getOrderList(options);
         // if (!options) setPendingOrders(result);
         setPendingOrders(result);
         return result;
       } catch (error) {
-        enqueueSnackbar(`"getPendingOrders error: ${error?.message}"`, {
+        enqueueSnackbar(`"getOrderList error: ${error?.message}"`, {
           variant: "error",
           action,
         });
@@ -267,15 +261,15 @@ const StoreProvider = (props) => {
     [action, enqueueSnackbar, middleman]
   );
 
-  const getCloseOrders = useCallback(
+  const getOrderHistory = useCallback(
     async (options) => {
       try {
-        const result = await middleman.getCloseOrders(options);
+        const result = await middleman.getOrderHistory(options);
         // if (!options) setCloseOrders(result);
         setCloseOrders(result);
         return result;
       } catch (error) {
-        enqueueSnackbar(`"getCloseOrders error: ${error?.message}"`, {
+        enqueueSnackbar(`"getOrderHistory error: ${error?.message}"`, {
           variant: "error",
           action,
         });
@@ -301,7 +295,6 @@ const StoreProvider = (props) => {
 
   const selectTickerHandler = useCallback(
     async (ticker) => {
-      console.log(`****^^^^**** selectTickerHandler [START] ****^^^^****`);
       // console.log(`selectedTicker`, selectedTicker, !selectedTicker);
       // console.log(`ticker`, ticker, ticker.market !== selectedTicker?.market);
       if (!selectedTicker || ticker.market !== selectedTicker?.market) {
@@ -315,8 +308,8 @@ const StoreProvider = (props) => {
         await getBooks(ticker.market);
         await getTrades(ticker.market);
         if (isLogin) {
-          await getPendingOrders();
-          await getCloseOrders();
+          await getOrderList();
+          await getOrderHistory();
         }
         connection_resolvers.push(
           JSON.stringify({
@@ -336,8 +329,8 @@ const StoreProvider = (props) => {
       middleman,
       getBooks,
       getTrades,
-      getPendingOrders,
-      getCloseOrders,
+      getOrderList,
+      getOrderHistory,
     ]
   );
 
@@ -368,15 +361,15 @@ const StoreProvider = (props) => {
         if (token) {
           setToken(token);
           setIsLogin(true);
-          await getPendingOrders();
-          await getCloseOrders();
+          await getOrderList();
+          await getOrderHistory();
           const id = location.pathname.includes("/markets/")
             ? location.pathname.replace("/markets/", "")
             : null;
           if (id) {
             connection_resolvers.push(
               JSON.stringify({
-                op: "userLogin",
+                op: "userStatusUpdate",
                 args: {
                   token,
                   market: id,
@@ -395,13 +388,14 @@ const StoreProvider = (props) => {
   }, [
     action,
     enqueueSnackbar,
-    getCloseOrders,
-    getPendingOrders,
+    getOrderHistory,
+    getOrderList,
     location.pathname,
   ]);
 
   const getAccounts = useCallback(async () => {
     await middleman.getAccounts();
+    // console.log(`getAccounts accounts`, middleman.accounts)
     setAccounts(middleman.accounts);
     if (middleman.isLogin) await getCSRFToken();
   }, [getCSRFToken, middleman]);
@@ -415,7 +409,7 @@ const StoreProvider = (props) => {
       try {
         const result = await middleman.postOrder(_order);
         let index, updateQuoteAccount, updateBaseAccount;
-        if (order.side === "buy") {
+        if (order.kind === "bid") {
           index = accounts.findIndex(
             (account) => account.ccy === selectedTicker?.quote_unit
           );
@@ -423,11 +417,11 @@ const StoreProvider = (props) => {
             updateQuoteAccount = accounts[index];
             updateQuoteAccount.availBal = SafeMath.minus(
               accounts[index].availBal,
-              SafeMath.mult(order.px, order.sz)
+              SafeMath.mult(order.price, order.volume)
             );
             updateQuoteAccount.frozenBal = SafeMath.plus(
               accounts[index].frozenBal,
-              SafeMath.mult(order.px, order.sz)
+              SafeMath.mult(order.price, order.volume)
             );
             const updateAccounts = accounts.map((account) => ({ ...account }));
             updateAccounts[index] = updateQuoteAccount;
@@ -442,11 +436,11 @@ const StoreProvider = (props) => {
             updateBaseAccount = accounts[index];
             updateBaseAccount.availBal = SafeMath.minus(
               accounts[index].availBal,
-              order.sz
+              order.volume
             );
             updateBaseAccount.frozenBal = SafeMath.plus(
               accounts[index].frozenBal,
-              order.sz
+              order.volume
             );
             const updateAccounts = accounts.map((account) => ({ ...account }));
             updateAccounts[index] = updateBaseAccount;
@@ -455,11 +449,11 @@ const StoreProvider = (props) => {
           }
         }
         enqueueSnackbar(
-          `${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
+          `${order.kind === "bid" ? "Bid" : "Ask"} ${order.volume} ${
             order.instId.split("-")[0]
-          } with ${order.side === "buy" ? "with" : "for"} ${SafeMath.mult(
-            order.px,
-            order.sz
+          } with ${order.kind === "bid" ? "with" : "for"} ${SafeMath.mult(
+            order.price,
+            order.volume
           )} ${order.instId.split("-")[1]}`,
           { variant: "success" }
         );
@@ -467,11 +461,11 @@ const StoreProvider = (props) => {
       } catch (error) {
         enqueueSnackbar(
           `${error?.message}. Failed to post order:
-           ${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
+           ${order.kind === "buy" ? "Bid" : "Ask"} ${order.volume} ${
             order.instId.split("-")[0]
-          } with ${order.side === "buy" ? "with" : "for"} ${SafeMath.mult(
-            order.px,
-            order.sz
+          } with ${order.kind === "buy" ? "with" : "for"} ${SafeMath.mult(
+            order.price,
+            order.volume
           )} ${order.instId.split("-")[1]}
           `,
           {
@@ -500,28 +494,28 @@ const StoreProvider = (props) => {
       };
       try {
         const result = await middleman.cancelOrder(_order);
-        // await getCloseOrders();
-        // await getPendingOrders();
+        // await getOrderHistory();
+        // await getOrderList();
         // await getAccounts();
         // await getBooks(order.instId);
         enqueueSnackbar(
-          `You have canceled ordId(${order.ordId}): ${
-            order.side === "buy" ? "Bid" : "Ask"
-          } ${order.sz} ${order.instId.split("-")[0]} with ${
-            order.side === "buy" ? "with" : "for"
-          } ${SafeMath.mult(order.px, order.sz)} ${order.instId.split("-")[1]}`,
+          `You have canceled order id(${order.id}): ${
+            order.kind === "bid" ? "Bid" : "Ask"
+          } ${order.volume} ${order.instId.split("-")[0]} with ${
+            order.kind === "bid" ? "with" : "for"
+          } ${SafeMath.mult(order.price, order.volume)} ${order.instId.split("-")[1]}`,
           { variant: "success" }
         );
         return result;
       } catch (error) {
         enqueueSnackbar(
           `${error?.message || "Some went wrong"}. Failed to cancel order(${
-            order.ordId
-          }): ${order.side === "buy" ? "Bid" : "Ask"} ${order.sz} ${
+            order.id
+          }): ${order.kind === "bid" ? "Bid" : "Ask"} ${order.volume} ${
             order.instId.split("-")[0]
-          } with ${order.side === "buy" ? "with" : "for"} ${SafeMath.mult(
-            order.px,
-            order.sz
+          } with ${order.kind === "bid" ? "with" : "for"} ${SafeMath.mult(
+            order.price,
+            order.volume
           )} ${order.instId.split("-")[1]}`,
           {
             variant: "error",
@@ -589,8 +583,8 @@ const StoreProvider = (props) => {
         getTrades,
         // getCandles,
         resolutionHandler,
-        getPendingOrders,
-        getCloseOrders,
+        getOrderList,
+        getOrderHistory,
         getAccounts,
         postOrder,
         cancelOrder,

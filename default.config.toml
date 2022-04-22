@@ -46,7 +46,7 @@ pathname = [
   "get | /lacale, /lacale/:language | Static.Utils.getLocaleData",
 
   # exchange - account
-  "get | /api/v1/account/balance | Bot.ExchangeHub.getBalance",
+  "get | /api/v1/account/balance | Bot.ExchangeHub.getAccounts",
 
   # exchange - market
   "get | /api/v1/market/ticker | Bot.ExchangeHub.getTicker",
