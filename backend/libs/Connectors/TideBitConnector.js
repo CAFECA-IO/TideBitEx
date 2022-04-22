@@ -321,6 +321,9 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async getOrderBooks({ query }) {
+    this.logger.log(
+      `---------- [${this.constructor.name}]  getOrderBooks market: ${query.id} [START] ----------`
+    );
     try {
       const tbBooksRes = await axios.get(
         `${this.peatio}/api/v2/order_book?market=${query.id}`
@@ -377,6 +380,10 @@ class TibeBitConnector extends ConnectorBase {
       });
       const books = { asks, bids, market: query.id };
       this.books = books;
+      this.logger.log(`[FROM TideBit] Response books`, books);
+      this.logger.log(
+        `---------- [${this.constructor.name}]  getOrderBooks market: ${query.id} [END] ----------`
+      );
       return new ResponseFormat({
         message: "getOrderBooks",
         payload: books,
@@ -454,7 +461,7 @@ class TibeBitConnector extends ConnectorBase {
       bids,
       market,
     };
-    
+
     if (asks.length > 0 || bids.length > 0) {
       this.logger.log(
         `[TO BACK END][OnEvent: ${Events.update}] updateBooks`,
