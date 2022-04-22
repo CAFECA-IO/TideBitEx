@@ -398,7 +398,7 @@ class ExchangeHub extends Bot {
           };
           EventBus.emit(Events.account, _updateAcc);
           this.logger.log(
-            `[TO BACK END][OnEvent: ${Events.account}] _updateAcc ln:401`,
+            `[TO FRONTEND][OnEvent: ${Events.account}] _updateAcc ln:401`,
             _updateAcc
           );
 
@@ -1039,7 +1039,7 @@ class ExchangeHub extends Bot {
 
       await this.database.updateOrder(newOrder, { dbTransaction: t });
       this.logger.log(
-        `[TO BACK END][OnEvent: ${Events.order}] updateOrder ln:1026`,
+        `[TO FRONTEND][OnEvent: ${Events.order}] updateOrder ln:1026`,
         newOrder
       );
       EventBus.emit(Events.order, `${base_unit}${quote_unit}`, newOrder);
@@ -1070,7 +1070,7 @@ class ExchangeHub extends Bot {
       };
       EventBus.emit(Events.account, _updateAcc);
       this.logger.log(
-        `[TO BACK END][OnEvent: ${Events.account}] _updateAcc ln:1057`,
+        `[TO FRONTEND][OnEvent: ${Events.account}] _updateAcc ln:1057`,
         _updateAcc
       );
       await this._updateAccount(
@@ -1099,7 +1099,7 @@ class ExchangeHub extends Bot {
       };
       EventBus.emit(Events.account, _updateAcc);
       this.logger.log(
-        `[TO BACK END][OnEvent: ${Events.account}] _updateAcc ln:1086`,
+        `[TO FRONTEND][OnEvent: ${Events.account}] _updateAcc ln:1086`,
         _updateAcc
       );
       // order 完成，解鎖剩餘沒用完的
@@ -1133,7 +1133,7 @@ class ExchangeHub extends Bot {
           };
           EventBus.emit(Events.account, _updateAcc);
           this.logger.log(
-            `[TO BACK END][OnEvent: ${Events.account}] _updateAcc ln:1120`,
+            `[TO FRONTEND][OnEvent: ${Events.account}] _updateAcc ln:1120`,
             _updateAcc
           );
         } else if (order.type === this.database.TYPE.ORDER_BID) {
@@ -1162,7 +1162,7 @@ class ExchangeHub extends Bot {
           };
           EventBus.emit(Events.account, _updateAcc);
           this.logger.log(
-            `[TO BACK END][OnEvent: ${Events.account}] _updateAcc ln:1149`,
+            `[TO FRONTEND][OnEvent: ${Events.account}] _updateAcc ln:1149`,
             _updateAcc
           );
         }

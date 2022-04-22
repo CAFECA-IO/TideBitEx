@@ -169,7 +169,7 @@ class Middleman {
       updateAsk.push(true);
       index = updateRawBooks.asks.findIndex((d) => SafeMath.eq(d[0], ask[0]));
       if (index === -1) {
-        updateRawBooks.asks.push(updateAsk);
+        if (SafeMath.gt(ask[1], "0")) updateRawBooks.asks.push(updateAsk);
       } else {
         if (SafeMath.gt(ask[1], "0")) {
           updateRawBooks.asks[index] = updateAsk;
@@ -182,7 +182,7 @@ class Middleman {
       updateBid.push(true);
       index = updateRawBooks.bids.findIndex((d) => SafeMath.eq(d[0], bid[0]));
       if (index === -1) {
-        updateRawBooks.bids.push(updateBid);
+        if (SafeMath.gt(bid[1], "0")) updateRawBooks.bids.push(updateBid);
       } else {
         if (SafeMath.gt(bid[1], "0")) {
           updateRawBooks.bids[index] = updateBid;
