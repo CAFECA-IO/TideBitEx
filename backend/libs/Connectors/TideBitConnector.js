@@ -404,11 +404,12 @@ class TibeBitConnector extends ConnectorBase {
         ]
     }
     */
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  _updateBooks market: ${market} [START] ----------`
-    //   );
-    // this.logger.log(`[FROM TideBit] bookData`, data);
+    if (this.books["market"] !== market) this.books = {};
     if (data.asks.length === 0 || data.bids.length === 0) return;
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateBooks market: ${market} [START] ----------`
+    );
+    this.logger.log(`[FROM TideBit] bookData`, data);
     let index,
       asks = [],
       bids = [];
@@ -445,19 +446,25 @@ class TibeBitConnector extends ConnectorBase {
         bids.push(bid);
       }
     });
-    this.books = data;
+
+    if (!this.books[market]) this.books = { ...data, market };
+
     const formatBooks = {
       asks,
       bids,
       market,
     };
+    
     if (asks.length > 0 || bids.length > 0) {
-      // this.logger.log(`[TO BACK END][OnEvent: ${Events.update}] updateBooks`, formatBooks);
+      this.logger.log(
+        `[TO BACK END][OnEvent: ${Events.update}] updateBooks`,
+        formatBooks
+      );
       EventBus.emit(Events.update, market, formatBooks);
     }
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  _updateBooks market: ${market} [END] ----------`
-    //   );
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateBooks market: ${market} [END] ----------`
+    );
   }
   /**
     [
