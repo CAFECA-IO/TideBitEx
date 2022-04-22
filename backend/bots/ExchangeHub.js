@@ -711,9 +711,9 @@ class ExchangeHub extends Bot {
               dbTransaction: t,
             });
             const currencyId =
-              order.type === this.database.TYPE.ORDER_ASK
-                ? order.ask
-                : order.bid;
+              order?.type === this.database.TYPE.ORDER_ASK
+                ? order?.ask
+                : order?.bid;
             const account = await this.database.getAccountByMemberIdCurrency(
               memberId,
               currencyId,
@@ -730,18 +730,18 @@ class ExchangeHub extends Bot {
             const created_at = new Date().toISOString();
 
             await this.database.updateOrder(newOrder, { dbTransaction: t });
-
-            await this._updateAccount(
-              account,
-              t,
-              balance,
-              locked,
-              fee,
-              this.database.MODIFIABLE_TYPE.ORDER,
-              orderId,
-              created_at,
-              this.database.FUNC.UNLOCK_FUNDS
-            );
+            if (account)
+              await this._updateAccount(
+                account,
+                t,
+                balance,
+                locked,
+                fee,
+                this.database.MODIFIABLE_TYPE.ORDER,
+                orderId,
+                created_at,
+                this.database.FUNC.UNLOCK_FUNDS
+              );
           }
           await t.commit();
           return okexCancelOrderRes;
