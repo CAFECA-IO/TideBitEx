@@ -902,7 +902,7 @@ class ExchangeHub extends Bot {
         // TODO: using message queue
         for (const formatOrder of formatOrders) {
           if (
-            formatOrder.state !== "canceled" /* cancel order */ &&
+            // formatOrder.state !== "canceled" /* cancel order */ &&
             formatOrder.accFillSz !== "0" /* create order */
           ) {
             await this._updateOrderDetail(formatOrder);
