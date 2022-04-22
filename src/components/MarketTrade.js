@@ -97,7 +97,9 @@ const TradeForm = (props) => {
         {props.errorMessage && (
           <p
             className={`market-trade__error-message ${
-              SafeMath.lt(props.volume, props.selectedTicker?.minSz) ? "show" : ""
+              SafeMath.lt(props.volume, props.selectedTicker?.minSz)
+                ? "show"
+                : ""
             }`}
           >
             {props.errorMessage}
@@ -325,6 +327,7 @@ const TradePannel = (props) => {
               ordType: props.orderType,
               price: limitBuyPx,
               volume: limitBuySz,
+              market: storeCtx.selectedTicker.market,
             }
           : {
               instId: storeCtx.selectedTicker.instId,
@@ -333,6 +336,7 @@ const TradePannel = (props) => {
               ordType: props.orderType,
               price: limitSellPx,
               volume: limitSellSz,
+              market: storeCtx.selectedTicker.market,
             }
         : {
             instId: storeCtx.selectedTicker.instId,
@@ -341,6 +345,7 @@ const TradePannel = (props) => {
             ordType: props.orderType,
             price: storeCtx.selectedTicker?.last,
             volume: kind === "bid" ? marketBuySz : marketSellSz,
+            market: storeCtx.selectedTicker.market,
           };
     const confirm = window.confirm(`You are going to
           ${order.kind} ${order.volume} ${order.instId.split("-")[0]}

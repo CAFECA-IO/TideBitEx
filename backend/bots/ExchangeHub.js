@@ -385,23 +385,6 @@ class ExchangeHub extends Bot {
             created_at,
             this.database.FUNC.LOCK_FUNDS
           );
-          let _updateAcc = {
-            balance: SafeMath.plus(account.balance, balance),
-            locked: SafeMath.plus(account.balance, locked),
-            currency: this.currencies.find(
-              (curr) => curr.id === account.currency
-            )?.symbol,
-            total: SafeMath.plus(
-              SafeMath.plus(account.balance, balance),
-              SafeMath.plus(account.balance, locked)
-            ),
-          };
-          EventBus.emit(Events.account, _updateAcc);
-          this.logger.log(
-            `[TO FRONTEND][OnEvent: ${Events.account}] _updateAcc ln:401`,
-            _updateAcc
-          );
-
           const okexOrderRes = await this.okexConnector.router(
             "postPlaceOrder",
             { memberId, orderId, params, query, body }
@@ -409,6 +392,39 @@ class ExchangeHub extends Bot {
           if (!okexOrderRes.success) {
             await t.rollback();
             return okexOrderRes;
+          } else {
+            let _updateOrder = {
+              id: orderId,
+              at: parseInt(SafeMath.div(new Date.now(), "1000")),
+              market: body.market,
+              kind: body.kind,
+              price: body.price,
+              origin_volume: body.volume,
+              state: "wait",
+              state_text: "Waiting",
+              volume: body.volume,
+            };
+            EventBus.emit(Events.order, body.market, order);
+            this.logger.log(
+              `[TO FRONTEND][OnEvent: ${Events.account}] _updateAcc ln:401`,
+              _updateOrder
+            );
+            let _updateAccount = {
+              balance: SafeMath.plus(account.balance, balance),
+              locked: SafeMath.plus(account.balance, locked),
+              currency: this.currencies.find(
+                (curr) => curr.id === account.currency
+              )?.symbol,
+              total: SafeMath.plus(
+                SafeMath.plus(account.balance, balance),
+                SafeMath.plus(account.balance, locked)
+              ),
+            };
+            EventBus.emit(Events.account, _updateAccount);
+            this.logger.log(
+              `[TO FRONTEND][OnEvent: ${Events.account}] _updateAccount ln:401`,
+              _updateAccount
+            );
           }
           await t.commit();
           return okexOrderRes;
