@@ -389,6 +389,13 @@ class ExchangeHub extends Bot {
             "postPlaceOrder",
             { memberId, orderId, params, query, body }
           );
+          this.logger.log(
+            `---------- [${this.constructor.name}]  postPlaceOrder  ----------`
+          );
+          this.logger.log("[RESPONSE]", okexOrderRes);
+          this.logger.log(
+            `---------- [${this.constructor.name}]  postPlaceOrder  ----------`
+          );
           if (!okexOrderRes.success) {
             await t.rollback();
             return okexOrderRes;
@@ -397,7 +404,7 @@ class ExchangeHub extends Bot {
               instId: body.instId,
               ordType: body.ordType,
               id: orderId,
-              clOrdId: okexOrderRes.clOrdId,
+              clOrdId: okexOrderRes.payload.clOrdId,
               at: parseInt(SafeMath.div(Date.now(), "1000")),
               market: body.market,
               kind: body.kind,

@@ -390,8 +390,9 @@ const TradePannel = (props) => {
       sellSzHandler("market", storeCtx.orderbook.amount);
       buySzHandler("limit", storeCtx.orderbook.amount);
       sellSzHandler("limit", storeCtx.orderbook.amount);
+      storeCtx.orderBookHandler(null);
     }
-  }, [buySzHandler, sellSzHandler, storeCtx.orderbook]);
+  }, [buySzHandler, sellSzHandler, storeCtx]);
 
   useEffect(() => {
     if (

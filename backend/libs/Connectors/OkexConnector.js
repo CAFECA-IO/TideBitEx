@@ -527,13 +527,6 @@ class OkexConnector extends ConnectorBase {
         data: filterBody,
       });
       const [payload] = res.data.data;
-      this.logger.log(
-        `---------- [${this.constructor.name}]  postPlaceOrder  ----------`
-      );
-      this.logger.log("[RESPONSE]", payload);
-      this.logger.log(
-        `---------- [${this.constructor.name}]  postPlaceOrder  ----------`
-      );
       if (res.data && res.data.code !== "0") {
         const message = JSON.stringify(res.data);
         this.logger.trace(message);
