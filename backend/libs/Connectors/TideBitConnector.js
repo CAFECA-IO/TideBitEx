@@ -709,13 +709,17 @@ class TibeBitConnector extends ConnectorBase {
     try {
       this.market_channel?.unbind();
       this.global_channel?.unbind();
-      this.logger.log(`++++++++++_unregisterMarketChannel++++++++++++`);
-      this.logger.log(`THIS IS CALLED market`, market);
-      this.logger.log(`++++++++++_unregisterMarketChannel++++++++++++`);
+      this.logger.log(
+        `++++++++[${this.constructor.name}]  _unsubscribeMarket [START] ++++++`
+      );
+      this.logger.log(`_unsubscribeMarket market`, market);
       this.pusher?.unsubscribe(`market-${market}-global`);
       this.pusher?.unsubscribe("market-global");
       this.market_channel = null;
       this.global_channel = null;
+      this.logger.log(
+        `++++++++[${this.constructor.name}]  _unsubscribeMarket [END] ++++++`
+      );
     } catch (error) {
       this.logger.error(`_unregisterMarketChannel error`, error);
       throw error;

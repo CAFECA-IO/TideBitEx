@@ -440,7 +440,7 @@ class OkexConnector extends ConnectorBase {
       const payload = res.data.data
         // .sort((a, b) => +b.ts - +a.ts)
         .map((data, i) => {
-          this.logger.log(`${[this.constructor.name]} data.ts`, data.ts)
+          this.logger.log(`${[this.constructor.name]} data.ts`, data.ts);
           return {
             id: data.tradeId,
             price: data.px,
@@ -1255,10 +1255,18 @@ class OkexConnector extends ConnectorBase {
   }
 
   _unsubscribeMarket(market) {
+    this.logger.log(
+      `++++++++[${this.constructor.name}]  _unsubscribeMarket [START] ++++++`
+    );
+    this.logger.log(`_unsubscribeMarket market`, market);
     const instId = this._findInstId(market);
+    this.logger.log(`_unsubscribeMarket instId`, instId);
     this._unsubscribeTrades(instId);
     this._unsubscribeBook(instId);
     this._unsubscribeCandle1m(instId);
+    this.logger.log(
+      `++++++++[${this.constructor.name}]  _unsubscribeMarket [END] ++++++`
+    );
   }
   // TideBitEx ws end
   _subscribeUser() {}
