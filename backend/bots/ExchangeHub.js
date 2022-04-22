@@ -463,7 +463,7 @@ class ExchangeHub extends Bot {
       throw new Error(`bid not found${market.quote_unit}`);
     }
     if (!ask) {
-      throw new Error(`ask not found${market.quote_unit}`);
+      throw new Error(`ask not found${market.base_unit}`);
     }
     let orderList;
     if (memberId) {
