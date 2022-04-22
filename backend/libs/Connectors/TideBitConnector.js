@@ -646,7 +646,7 @@ class TibeBitConnector extends ConnectorBase {
       if (memberId !== -1) {
         this.token = credential["token"];
         const member = await this.database.getMemberById(memberId);
-        if (!this.user && member.sn !== this.user) {
+        if (this.user && member.sn !== this.user) {
           this._unregisterPrivateChannel();
         }
         this.user = member.sn;
