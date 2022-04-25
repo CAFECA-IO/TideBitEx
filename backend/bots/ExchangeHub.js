@@ -442,7 +442,7 @@ class ExchangeHub extends Bot {
         }
       /* !!! HIGH RISK (end) !!! */
       case SupportedExchange.TIDEBIT: // ++ TODO 待驗證
-        return this.tideBitConnector.router("", {
+        return this.tideBitConnector.router("postPlaceOrder", {
           header,
           body: { ...body, market: this._findMarket(body.instId) },
         });
