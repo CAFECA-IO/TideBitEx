@@ -455,7 +455,7 @@ const StoreProvider = (props) => {
             order.price,
             order.volume
           )} ${order.instId.split("-")[1]}`,
-          { variant: "success" }
+          { variant: "success", action }
         );
         return result;
       } catch (error) {
@@ -503,8 +503,10 @@ const StoreProvider = (props) => {
             order.kind === "bid" ? "Bid" : "Ask"
           } ${order.volume} ${order.instId.split("-")[0]} with ${
             order.kind === "bid" ? "with" : "for"
-          } ${SafeMath.mult(order.price, order.volume)} ${order.instId.split("-")[1]}`,
-          { variant: "success" }
+          } ${SafeMath.mult(order.price, order.volume)} ${
+            order.instId.split("-")[1]
+          }`,
+          { variant: "success", action }
         );
         return result;
       } catch (error) {

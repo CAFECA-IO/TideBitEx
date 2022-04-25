@@ -51,7 +51,7 @@ class ExchangeHub extends Bot {
       })
       .then(async () => {
         this.tidebitMarkets = this.getTidebitMarkets();
-        this.currencies = await this.database.getCurrencies();
+        this.currencies = await this.tideBitConnector.currencies;
         return this;
       });
   }
@@ -113,41 +113,15 @@ class ExchangeHub extends Bot {
   }
 
   // account api
-  async getAccounts({ token, params, query }) {
-    try {
-      const memberId = await this.getMemberIdFromRedis(token);
-      // if (memberId === -1) throw new Error("get member_id fail");
-      if (memberId === -1) {
-        return new ResponseFormat({
-          message: "getAccounts",
-          payload: null,
-        });
-      }
-      const accounts = await this.database.getAccounts(memberId);
-      const details = accounts.map((account, i) => ({
-        currency: this.currencies.find((curr) => curr.id === account.currency)
-          .symbol,
-        balance: Utils.removeZeroEnd(account.balance),
-        total: SafeMath.plus(account.balance, account.locked),
-        locked: Utils.removeZeroEnd(account.locked),
-        // uTime: new Date(account.updated_at).getTime(),
-      }));
-
-      const payload = details;
-
+  async getAccounts({ token }) {
+    const memberId = await this.getMemberIdFromRedis(token);
+    if (memberId === -1) {
       return new ResponseFormat({
         message: "getAccounts",
-        payload,
-      });
-    } catch (error) {
-      this.logger.error(error);
-      const message = error.message;
-      return new ResponseFormat({
-        message,
-        code: Codes.API_UNKNOWN_ERROR,
+        payload: null,
       });
     }
-    // return this.okexConnector.router('getBalance', { memberId: null, params, query });
+    return this.tideBitConnector.router("getAccounts", { memberId });
   }
 
   async getTicker({ params, query }) {

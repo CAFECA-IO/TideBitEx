@@ -57,6 +57,7 @@ class TibeBitConnector extends ConnectorBase {
     this.markets = markets;
     this.database = database;
     this.redis = redis;
+    this.currencies = await this.database.getCurrencies();
     return this;
   }
 
@@ -561,6 +562,32 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
+  async getAccounts({ memberId }) {
+    try {
+      const _accounts = await this.database.getAccounts(memberId);
+      const accounts = _accounts.map((account) => ({
+        currency: this.currencies.find((curr) => curr.id === account.currency)
+          .symbol,
+        balance: Utils.removeZeroEnd(account.balance),
+        total: SafeMath.plus(account.balance, account.locked),
+        locked: Utils.removeZeroEnd(account.locked),
+      }));
+
+      this.accounts = accounts;
+      return new ResponseFormat({
+        message: "getAccounts",
+        payload: accounts,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      const message = error.message;
+      return new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
   _updateAccount(data) {
     /**
     {
@@ -569,18 +596,24 @@ class TibeBitConnector extends ConnectorBase {
         currency: 'hkd'
     }
     */
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _updateAccount [START] ----------`
+    const account = this.accounts.find(
+      (account) => data.currency.toUpperCase() === account.currency
     );
-    this.logger.log(`[FROM TideBit] accountData`, data);
+    if (
+      !account ||
+      (SafeMath.eq(account.balance, data.balance) &&
+        SafeMath.eq(account.locked, data.locked))
+    )
+      return;
     const formatAccount = {
       ...data,
       currency: data.currency.toUpperCase(),
       total: SafeMath.plus(data.balance, data.locked),
-      // availBal: data.balance,
-      // frozenBal: data.locked,
-      // uTime: Date.now(),
     };
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateAccount [START] ----------`
+    );
+    this.logger.log(`[FROM TideBit] accountData`, data);
     this.logger.log(
       `[TO FRONTEND][OnEvent: ${Events.account}] updateAccount`,
       formatAccount
@@ -812,8 +845,8 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
-  async postCancelOrder({header, body}){
-    try{
+  async postCancelOrder({ header, body }) {
+    try {
       const url = `${this.peatio}/markets/${body.market.id}/orders/${body.orderId}`;
       this.logger.debug("postCancelOrder", url);
       const headers = {
@@ -831,7 +864,7 @@ class TibeBitConnector extends ConnectorBase {
         message: "postCancelOrder",
         code: Codes.SUCCESS,
       });
-    }catch(error){
+    } catch (error) {
       this.logger.error(error);
       // debug for postman so return error
       return new ResponseFormat({
