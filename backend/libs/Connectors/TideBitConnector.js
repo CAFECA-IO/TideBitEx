@@ -983,6 +983,9 @@ class TibeBitConnector extends ConnectorBase {
     });
     this.isStart = true;
     this._registerGlobalChannel();
+    this.pusher.bind_global((data) =>
+      this.logger.log(`[_startPusher][bind_global] data`, data)
+    );
   }
 
   _startPusherWithLoginToken(headers) {
@@ -1037,6 +1040,10 @@ class TibeBitConnector extends ConnectorBase {
     this.isStart = true;
     this.isCredential = true;
     this._registerGlobalChannel();
+    this._registerGlobalChannel();
+    this.pusher.bind_global((data) =>
+      this.logger.log(`[_startPusherWithLoginToken][bind_global] data`, data)
+    );
   }
 
   _stopPusher() {
