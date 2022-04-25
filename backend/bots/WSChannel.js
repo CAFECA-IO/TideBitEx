@@ -63,7 +63,6 @@ class WSChannel extends Bot {
             : "unknown";
 
           this.logger.debug("HI", ip);
-          EventBus.emit(Events.globalOnSubscribe);
           ws.on("message", (message) => {
             this.logger.debug("received: %s", message);
             const { op, args } = JSON.parse(message);
@@ -95,12 +94,22 @@ class WSChannel extends Bot {
                   )
                 );
             }
-            this.logger.debug("!!!!this._channelClients", this._channelClients);
+            this.logger.debug(
+              `*********findClient.channl [channel: ${
+                this._client[ws.id].channel
+              },isStart: ${this._client[ws.id].isStart}]*************`
+            );
+            this.logger.debug("this._channelClients", this._channelClients);
           });
           ws.on("close", () => {
             this.logger.debug("disconnected");
+            this.logger.debug(
+              `*********findClient.channl [channel: ${
+                this._client[ws.id].channel
+              },isStart: ${this._client[ws.id].isStart}]*************`
+            );
+            this.logger.debug("this._channelClients", this._channelClients);
             const findClient = this._client[ws.id];
-            EventBus.emit(Events.globalOnUnsubscribe);
             if (findClient.isStart) {
               delete this._channelClients[findClient.channel][ws.id];
               if (
@@ -112,7 +121,6 @@ class WSChannel extends Bot {
               }
             }
             delete this._client[ws.id];
-            this.logger.debug("this._channelClients", this._channelClients);
           });
         });
       });
@@ -133,9 +141,6 @@ class WSChannel extends Bot {
       }
       if (Object.values(this._channelClients[args.market]).length === 0) {
         if (args.token) {
-          this.logger.log(
-            `++++++++++ EventBus.emit(Events.userOnSubscribe)1[args.market:${args.market}]++++++++++++`
-          );
           EventBus.emit(Events.userOnSubscribe, {
             headers: {
               cookie: headers.cookie,
@@ -145,24 +150,18 @@ class WSChannel extends Bot {
             market: args.market,
             token,
           });
-        } else EventBus.emit(Events.userOnSubscribe);
+        } else EventBus.emit(Events.userOnUnsubscribe);
       }
       this._channelClients[args.market][ws.id] = ws;
     } else {
       const oldChannel = findClient.channel;
       delete this._channelClients[oldChannel][ws.id];
-      if (Object.values(this._channelClients[oldChannel]).length === 0) {
-        EventBus.emit(Events.tickerOnUnsubscribe, oldChannel);
-      }
       findClient.channel = args.market;
       if (!this._channelClients[args.market]) {
         this._channelClients[args.market] = {};
       }
       if (Object.values(this._channelClients[args.market]).length === 0) {
         if (args.token) {
-          this.logger.log(
-            `++++++++++ EventBus.emit(Events.userOnSubscribe)1[args.market:${args.market}]++++++++++++`
-          );
           EventBus.emit(Events.userOnSubscribe, {
             headers: {
               cookie: headers.cookie,
@@ -172,7 +171,7 @@ class WSChannel extends Bot {
             market: args.market,
             token,
           });
-        } else EventBus.emit(Events.userOnSubscribe);
+        } else EventBus.emit(Events.userOnUnsubscribe);
       }
       this._channelClients[args.market][ws.id] = ws;
     }
@@ -215,7 +214,7 @@ class WSChannel extends Bot {
     const channel = this._channelClients[market];
     if (channel) {
       const clients = Object.values(channel);
-      clients.map((ws) => {
+      clients.forEach((ws) => {
         ws.send(msg);
       });
     }

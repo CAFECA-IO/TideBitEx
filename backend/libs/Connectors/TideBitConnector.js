@@ -9,11 +9,12 @@ const Utils = require("../Utils");
 const redis = require("redis");
 const ResponseFormat = require("../ResponseFormat");
 const Codes = require("../../constants/Codes");
+const TideBitLegacyAdapter = require("../TideBitLegacyAdapter");
 
 class TibeBitConnector extends ConnectorBase {
   constructor({ logger }) {
     super({ logger });
-    this.isStarted = false;
+    this.isStart = false;
     this.isCredential = false;
 
     this.pusher = null;
@@ -56,6 +57,7 @@ class TibeBitConnector extends ConnectorBase {
     this.markets = markets;
     this.database = database;
     this.redis = redis;
+    this.currencies = await this.database.getCurrencies();
     return this;
   }
 
@@ -77,77 +79,22 @@ class TibeBitConnector extends ConnectorBase {
       const split1 = value
         .toString("latin1")
         .split("member_id\x06:\x06EFi\x02");
-      const memberIdLatin1 = split1[1].split('I"')[0];
-      const memberIdString = Buffer.from(memberIdLatin1, "latin1")
-        .reverse()
-        .toString("hex");
-      const memberId = parseInt(memberIdString, 16);
-      return memberId;
+      if (split1) {
+        const memberIdLatin1 = split1[1].split('I"')[0];
+        const memberIdString = Buffer.from(memberIdLatin1, "latin1")
+          .reverse()
+          .toString("hex");
+        const memberId = parseInt(memberIdString, 16);
+        return memberId;
+      } else return -1;
     } catch (error) {
+      this.logger.error(
+        `[${this.name} getAccounts] error: "get member_id fail`
+      );
       this.logger.error(error);
       await client.quit();
       return -1;
     }
-  }
-
-  _start(headers) {
-    this.pusher = new Pusher(this.key, {
-      //   appId: app,
-      //   key,
-      //   secret,
-      encrypted: this.encrypted,
-      wsHost: this.wsHost,
-      wsPort: this.wsPort,
-      wssPort: this.wssPort,
-      disableFlash: true,
-      disableStats: true,
-      // enabledTransports: ["ws"],
-      disabledTransports: ["flash", "sockjs"],
-      forceTLS: false,
-      authorizer: (channel, options) => {
-        return {
-          authorize: headers
-            ? (socketId, callback) => {
-                const data = JSON.stringify({
-                  socket_id: socketId,
-                  channel_name: channel.name,
-                });
-                axios({
-                  url: `${this.peatio}/pusher/auth`,
-                  method: "POST",
-                  headers: {
-                    ...headers,
-                    "Content-Length": Buffer.from(data, "utf-8").length,
-                  },
-                  data,
-                })
-                  .then((res) => {
-                    if (res.status !== 200) {
-                      throw new Error(
-                        `Received ${res.statusCode} from /pusher/auth`
-                      );
-                    }
-                    return res.data;
-                  })
-                  .then((data) => {
-                    callback(null, data);
-                  })
-                  .catch((err) => {
-                    this.logger.error(`authorize err`, err);
-                    callback(new Error(`Error calling auth endpoint: ${err}`), {
-                      auth: "",
-                    });
-                  });
-              }
-            : null,
-        };
-      },
-    });
-    this.isStarted = true;
-    // this.pusher.bind_global((data) =>
-    //   this.logger.log(`[Pusher][bind_global] data`, data)
-    // );
-    if (headers) this.isCredential = true;
   }
 
   async getTicker({ query, optional }) {
@@ -308,25 +255,25 @@ class TibeBitConnector extends ConnectorBase {
     });
 
     if (Object.keys(updateTickers).length > 0) {
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
-      );
-      this.logger.log(`[FROM TideBit] tickerData`, data);
-      this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
-        updateTickers
-      );
+      // this.logger.log(
+      //   `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
+      // );
+      // this.logger.log(`[FROM TideBit] tickerData`, data);
+      // this.logger.log(
+      //   `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
+      //   updateTickers
+      // );
       EventBus.emit(Events.tickers, updateTickers);
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _updateTickers [END] ----------`
-      );
+      // this.logger.log(
+      //   `---------- [${this.constructor.name}]  _updateTickers [END] ----------`
+      // );
     }
   }
 
   async getOrderBooks({ query }) {
-    this.logger.log(
-      `---------- [${this.constructor.name}]  getOrderBooks market: ${query.id} [START] ----------`
-    );
+    // this.logger.log(
+    //   `---------- [${this.constructor.name}]  getOrderBooks market: ${query.id} [START] ----------`
+    // );
     this.market = query.id;
     try {
       const tbBooksRes = await axios.get(
@@ -341,7 +288,7 @@ class TibeBitConnector extends ConnectorBase {
       const tbBooks = tbBooksRes.data;
       const asks = [];
       const bids = [];
-      this.logger.log(`tbBooks query.id`, query.id);
+      // this.logger.log(`tbBooks query.id`, query.id);
       tbBooks.asks.forEach((ask) => {
         if (
           ask.market === query.id &&
@@ -384,10 +331,10 @@ class TibeBitConnector extends ConnectorBase {
       });
       const books = { asks, bids, market: query.id };
       this.books = books;
-      this.logger.log(`[FROM TideBit] Response books`, books);
-      this.logger.log(
-        `---------- [${this.constructor.name}]  getOrderBooks market: ${query.id} [END] ----------`
-      );
+      // this.logger.log(`[FROM TideBit] Response books`, books);
+      // this.logger.log(
+      //   `---------- [${this.constructor.name}]  getOrderBooks market: ${query.id} [END] ----------`
+      // );
       return new ResponseFormat({
         message: "getOrderBooks",
         payload: books,
@@ -421,7 +368,6 @@ class TibeBitConnector extends ConnectorBase {
       data.bids.length === 0
     )
       return;
-    this.logger.log(`[FROM TideBit] bookData`, data);
     let index,
       asks = [],
       bids = [];
@@ -472,17 +418,18 @@ class TibeBitConnector extends ConnectorBase {
     };
 
     if (asks.length > 0 || bids.length > 0) {
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _updateBooks market: ${market} [START] ----------`
-      );
-      this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.update}] updateBooks`,
-        formatBooks
-      );
+      // this.logger.log(
+      //   `---------- [${this.constructor.name}]  _updateBooks market: ${market} [START] ----------`
+      // );
+      // this.logger.log(`[FROM TideBit] bookData`, data);
+      // this.logger.log(
+      //   `[TO FRONTEND][OnEvent: ${Events.update}] updateBooks`,
+      //   formatBooks
+      // );
       EventBus.emit(Events.update, market, formatBooks);
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _updateBooks market: ${market} [END] ----------`
-      );
+      // this.logger.log(
+      //   `---------- [${this.constructor.name}]  _updateBooks market: ${market} [END] ----------`
+      // );
     }
   }
   /**
@@ -615,6 +562,32 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
+  async getAccounts({ memberId }) {
+    try {
+      const _accounts = await this.database.getAccounts(memberId);
+      const accounts = _accounts.map((account) => ({
+        currency: this.currencies.find((curr) => curr.id === account.currency)
+          .symbol,
+        balance: Utils.removeZeroEnd(account.balance),
+        total: SafeMath.plus(account.balance, account.locked),
+        locked: Utils.removeZeroEnd(account.locked),
+      }));
+
+      this.accounts = accounts;
+      return new ResponseFormat({
+        message: "getAccounts",
+        payload: accounts,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      const message = error.message;
+      return new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
   _updateAccount(data) {
     /**
     {
@@ -623,18 +596,24 @@ class TibeBitConnector extends ConnectorBase {
         currency: 'hkd'
     }
     */
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _updateAccount [START] ----------`
+    const account = this.accounts.find(
+      (account) => data.currency.toUpperCase() === account.currency
     );
-    this.logger.log(`[FROM TideBit] accountData`, data);
+    if (
+      !account ||
+      (SafeMath.eq(account.balance, data.balance) ||
+        SafeMath.eq(account.locked, data.locked))
+    )
+      return;
     const formatAccount = {
       ...data,
       currency: data.currency.toUpperCase(),
       total: SafeMath.plus(data.balance, data.locked),
-      // availBal: data.balance,
-      // frozenBal: data.locked,
-      // uTime: Date.now(),
     };
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateAccount [START] ----------`
+    );
+    this.logger.log(`[FROM TideBit] accountData`, data);
     this.logger.log(
       `[TO FRONTEND][OnEvent: ${Events.account}] updateAccount`,
       formatAccount
@@ -643,6 +622,130 @@ class TibeBitConnector extends ConnectorBase {
     this.logger.log(
       `---------- [${this.constructor.name}]  _updateAccount [END] ----------`
     );
+  }
+
+  async _tbGetOrderList(query) {
+    if (!query.market) {
+      throw new Error(`this.tidebitMarkets.instId ${query.instId} not found.`);
+    }
+    const { id: bid } = await this.database.getCurrencyByKey(
+      query.market.quote_unit
+    );
+    const { id: ask } = await this.database.getCurrencyByKey(
+      query.market.base_unit
+    );
+    if (!bid) {
+      throw new Error(`bid not found${query.market.quote_unit}`);
+    }
+    if (!ask) {
+      throw new Error(`ask not found${query.market.base_unit}`);
+    }
+    let orderList;
+    if (query.memberId) {
+      orderList = await this.database.getOrderList({
+        quoteCcy: bid,
+        baseCcy: ask,
+        state: query.state,
+        memberId: query.memberId,
+      });
+    } else {
+      orderList = await this.database.getOrderList({
+        quoteCcy: bid,
+        baseCcy: ask,
+        state: query.state,
+      });
+    }
+    const orders = orderList.map((order) => ({
+      id: order.id,
+      at: parseInt(SafeMath.div(new Date(order.updated_at).getTime(), "1000")),
+      market: query.instId.replace("-", "").toLowerCase(),
+      kind: order.type === "OrderAsk" ? "ask" : "bid",
+      price: Utils.removeZeroEnd(order.price),
+      origin_volume: Utils.removeZeroEnd(order.origin_volume),
+      volume: Utils.removeZeroEnd(order.volume),
+      state:
+        query.state === this.database.ORDER_STATE.CANCEL
+          ? "canceled"
+          : query.state === this.database.ORDER_STATE.DONE
+          ? "done"
+          : "wait",
+      state_text:
+        query.state === this.database.ORDER_STATE.CANCEL
+          ? "Canceled"
+          : query.state === this.database.ORDER_STATE.DONE
+          ? "Done"
+          : "Waiting",
+      clOrdId: order.id,
+      instId: query.instId,
+      ordType: order.ord_type,
+      filled: order.volume !== order.origin_volume,
+    }));
+    return orders;
+  }
+
+  async getOrderList({ query }) {
+    try {
+      const orders = await this._tbGetOrderList({
+        ...query,
+        state: this.database.ORDER_STATE.WAIT,
+      });
+      return new ResponseFormat({
+        message: "getOrderList",
+        payload: orders.sort((a, b) => b.at - a.at),
+      });
+    } catch (error) {
+      this.logger.error(error);
+      const message = error.message;
+      return new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
+  async getOrderHistory({ query }) {
+    try {
+      const cancelOrders = await this._tbGetOrderList({
+        ...query,
+        state: this.database.ORDER_STATE.CANCEL,
+      });
+      const doneOrders = await this._tbGetOrderList({
+        ...query,
+        state: this.database.ORDER_STATE.DONE,
+      });
+      const vouchers = await this.database.getVouchers({
+        memberId: query.memberId,
+        ask: query.market.base_unit,
+        bid: query.market.quote_unit,
+      });
+      const orders = doneOrders
+        .map((order) => {
+          if (order.ordType === "market") {
+            return {
+              ...order,
+              price: Utils.removeZeroEnd(
+                vouchers?.find((voucher) => voucher.order_id === order.id)
+                  ?.price
+              ),
+            };
+          } else {
+            return order;
+          }
+        })
+        .concat(cancelOrders)
+        .sort((a, b) => b.at - a.at);
+      return new ResponseFormat({
+        message: "getOrderHistory",
+        payload: orders,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      const message = error.message;
+      return new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
   }
 
   _updateOrder(data) {
@@ -699,12 +802,84 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
-  async _registerPrivateChannel(credential) {
-    if (!this.isStarted || !this.isCredential) this._start(credential.headers);
+  async postPlaceOrder({ header, body }) {
     try {
-      const memberId = await this.getMemberIdFromRedis(credential["token"]);
+      const url =
+        body.kind === "bid"
+          ? `${this.peatio}/markets/${body.market.id}/order_bids`
+          : `${this.peatio}/markets/${body.market.id}/order_asks`;
+      this.logger.debug("postPlaceOrder", url);
+
+      const headers = {
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrf-token": body["X-CSRF-Token"],
+        cookie: header.cookie,
+      };
+      const formbody = TideBitLegacyAdapter.peatioOrderBody({
+        header,
+        body,
+      });
+      const tbOrdersRes = await axios.post(url, formbody, {
+        headers,
+      }); // TODO: payload
+      return new ResponseFormat({
+        message: "postPlaceOrder",
+        payload: [
+          {
+            id: "",
+            clOrdId: "",
+            sCode: "",
+            sMsg: "",
+            tag: "",
+            data: tbOrdersRes.data,
+          },
+        ],
+      });
+    } catch (error) {
+      this.logger.error(error);
+      // debug for postman so return error
+      return new ResponseFormat({
+        message: "postPlaceOrder error",
+        code: Codes.UNKNOWN_ERROR,
+      });
+    }
+  }
+
+  async postCancelOrder({ header, body }) {
+    try {
+      const url = `${this.peatio}/markets/${body.market.id}/orders/${body.orderId}`;
+      this.logger.debug("postCancelOrder", url);
+      const headers = {
+        Accept: "*/*",
+        "x-csrf-token": body["X-CSRF-Token"],
+        cookie: header.cookie,
+      };
+      const tbCancelOrderRes = await axios({
+        method: "DELETE",
+        url,
+        headers,
+      });
+      this.logger.debug(tbCancelOrderRes);
+      return new ResponseFormat({
+        message: "postCancelOrder",
+        code: Codes.SUCCESS,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      // debug for postman so return error
+      return new ResponseFormat({
+        message: "postCancelOrder error",
+        code: Codes.UNKNOWN_ERROR,
+      });
+    }
+  }
+
+  async _registerPrivateChannel(token) {
+    try {
+      this.logger.log(`_registerPrivateChannel token`, token);
+      const memberId = await this.getMemberIdFromRedis(token);
       if (memberId !== -1) {
-        this.token = credential["token"];
+        this.token = token;
         const member = await this.database.getMemberById(memberId);
         if (this.user && member.sn !== this.user) {
           this._unregisterPrivateChannel();
@@ -725,11 +900,14 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
-  _unregisterPrivateChannel() {
-    if (!this.isCredential || !this.user || !this.isStarted) return;
+  _unregisterPrivateChannel(user) {
+    if (!this.isCredential || !this.isStart) return;
     try {
       this.private_channel?.unbind();
-      this.private_channel = this.pusher.unsubscribe(`private-${this.user}`);
+      if (user)
+        this.private_channel = this.pusher.unsubscribe(`private-${user}`);
+      if (this.user)
+        this.private_channel = this.pusher.unsubscribe(`private-${this.user}`);
       this.private_channel = null;
       this.isCredential = false;
       this.user = null;
@@ -740,55 +918,37 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _registerMarketChannel(market) {
-    if (
-      this._findSource(this._findInstId(market)) === SupportedExchange.TIDEBIT
-    ) {
-      this.logger.log(
-        `++++++++ [${this.constructor.name}]  _subscribeMarket [START] ++++++`
-      );
-      this.logger.log(`market`, market);
+    try {
+      this.logger.log(`_registerMarketChannel market`, market);
       this.market = market;
-      if (!this.isStarted) this._start();
-      try {
-        this.market_channel = this.pusher.subscribe(`market-${market}-global`);
-        this.market_channel.bind("update", (data) =>
-          this._updateBooks(market, data)
-        );
-        this.market_channel.bind("trades", (data) => {
-          this._updateTrades(market, data);
-        });
-      } catch (error) {
-        this.logger.error(`_registerMarketChannel error`, error);
-        throw error;
-      }
-      this.logger.log(
-        `++++++++ [${this.constructor.name}]  _subscribeMarket [END] ++++++`
+      this.market_channel = this.pusher.subscribe(`market-${market}-global`);
+      this.market_channel.bind("update", (data) =>
+        this._updateBooks(market, data)
       );
+      this.market_channel.bind("trades", (data) => {
+        this._updateTrades(market, data);
+      });
+    } catch (error) {
+      this.logger.error(`_registerMarketChannel error`, error);
+      throw error;
     }
   }
 
   _unregisterMarketChannel(market) {
-    if (!this.isStarted) return;
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _unsubscribeMarket [START] ----------`
-    );
-    this.logger.log(`market`, market);
+    if (!this.isStart) return;
     try {
       this.market_channel?.unbind();
-      this.pusher?.unsubscribe(`market-${market}-global`);
+      if (market) this.pusher?.unsubscribe(`market-${market}-global`);
+      if (this.market) this.pusher?.unsubscribe(`market-${this.market}-global`);
       this.market_channel = null;
       this.market = null;
     } catch (error) {
       this.logger.error(`_unregisterMarketChannel error`, error);
       throw error;
     }
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _unsubscribeMarket [END] ----------`
-    );
   }
 
   _registerGlobalChannel() {
-    if (!this.isStarted) this._start();
     try {
       this.global_channel = this.pusher.subscribe("market-global");
       this.global_channel.bind("tickers", (data) => this._updateTickers(data));
@@ -799,7 +959,7 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _unregisterGlobalChannel() {
-    if (!this.isStarted) return;
+    if (!this.isStart) return;
     try {
       this.global_channel?.unbind();
       this.pusher?.unsubscribe("market-global");
@@ -810,38 +970,105 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
-  _subscribeGlobal() {
-    this.logger.log(
-      `++++++++ [${this.constructor.name}]  _subscribeGlobal [START] ++++++`
-    );
+  _startPusher() {
+    this.pusher = new Pusher(this.key, {
+      encrypted: this.encrypted,
+      wsHost: this.wsHost,
+      wsPort: this.wsPort,
+      wssPort: this.wssPort,
+      disableFlash: true,
+      disableStats: true,
+      disabledTransports: ["flash", "sockjs"],
+      forceTLS: false,
+    });
+    this.isStart = true;
     this._registerGlobalChannel();
-    this.logger.log(
-      `++++++++ [${this.constructor.name}]  _subscribeGlobal [END] ++++++`
-    );
+    // this.pusher.bind_global((data) =>
+    //   this.logger.log(`[_startPusher][bind_global] data`, data)
+    // );
   }
 
-  _unsubscribeGlobal() {
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _unsubscribeGlobal [START] ----------`
-    );
+  _startPusherWithLoginToken(headers) {
+    this.pusher = new Pusher(this.key, {
+      encrypted: this.encrypted,
+      wsHost: this.wsHost,
+      wsPort: this.wsPort,
+      wssPort: this.wssPort,
+      disableFlash: true,
+      disableStats: true,
+      disabledTransports: ["flash", "sockjs"],
+      forceTLS: false,
+      authorizer: (channel, options) => {
+        return {
+          authorize: headers
+            ? (socketId, callback) => {
+                const data = JSON.stringify({
+                  socket_id: socketId,
+                  channel_name: channel.name,
+                });
+                axios({
+                  url: `${this.peatio}/pusher/auth`,
+                  method: "POST",
+                  headers: {
+                    ...headers,
+                    "Content-Length": Buffer.from(data, "utf-8").length,
+                  },
+                  data,
+                })
+                  .then((res) => {
+                    if (res.status !== 200) {
+                      throw new Error(
+                        `Received ${res.statusCode} from /pusher/auth`
+                      );
+                    }
+                    return res.data;
+                  })
+                  .then((data) => {
+                    callback(null, data);
+                  })
+                  .catch((err) => {
+                    this.logger.error(`authorize err`, err);
+                    callback(new Error(`Error calling auth endpoint: ${err}`), {
+                      auth: "",
+                    });
+                  });
+              }
+            : null,
+        };
+      },
+    });
+    this.isStart = true;
+    this.isCredential = true;
+    this._registerGlobalChannel();
+    this._registerGlobalChannel();
+    // this.pusher.bind_global((data) =>
+    //   this.logger.log(`[_startPusherWithLoginToken][bind_global] data`, data)
+    // );
+  }
+
+  _stopPusher() {
     this._unregisterGlobalChannel();
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _unsubscribeGlobal [END] ----------`
-    );
+    this._unregisterMarketChannel();
+    this._unregisterPrivateChannel();
+    this.isStart = false;
+    this.isCredential = false;
+  }
+
+  _restartPusherWithLoginToken(credential) {
+    this._stopPusher();
+    this._startPusherWithLoginToken(credential.headers);
+    if (credential.market) {
+      this.logger.log(`credential.market`, credential.market);
+      this._registerMarketChannel(credential.market);
+    }
   }
 
   async _subscribeUser(credential) {
     this.logger.log(
       `++++++++ [${this.constructor.name}]  _subscribeUser [START] ++++++`
     );
-    this.logger.log(`credential`, credential);
-    await this._registerPrivateChannel(credential);
-    if (!this.market) this._registerMarketChannel(credential.market);
-    else if (credential.market !== this.market) {
-      this._unregisterMarketChannel(this.market);
-      this._registerMarketChannel(credential.market);
-    }
-
+    this._restartPusherWithLoginToken(credential);
+    await this._registerPrivateChannel(credential.token);
     this.logger.log(
       `++++++++ [${this.constructor.name}]  _subscribeUser [END] ++++++`
     );
@@ -851,19 +1078,40 @@ class TibeBitConnector extends ConnectorBase {
     this.logger.log(
       `---------- [${this.constructor.name}]  _unsubscribeUser [START] ----------`
     );
-    this.logger.log(`this.market`, this.market);
-    this._unregisterPrivateChannel();
+    this._stopPusher();
     this.logger.log(
       `---------- [${this.constructor.name}]  _unsubscribeUser [END] ----------`
     );
   }
 
   _subscribeMarket(market) {
-    this._registerMarketChannel(market);
+    if (
+      this._findSource(this._findInstId(market)) === SupportedExchange.TIDEBIT
+    ) {
+      this.logger.log(
+        `++++++++ [${this.constructor.name}]  _subscribeMarket [START] ++++++`
+      );
+      if (!this.isStart) this._startPusher();
+      this._registerMarketChannel(market);
+      this.logger.log(
+        `++++++++ [${this.constructor.name}]  _subscribeMarket [END] ++++++`
+      );
+    }
   }
 
   _unsubscribeMarket(market) {
-    this._unregisterMarketChannel(market);
+    if (
+      this._findSource(this._findInstId(market)) === SupportedExchange.TIDEBIT
+    ) {
+      this.logger.log(
+        `---------- [${this.constructor.name}]  _unsubscribeMarket [START] ----------`
+      );
+      this.logger.log(`market`, market);
+      this._unregisterMarketChannel(market);
+    }
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _unsubscribeMarket [END] ----------`
+    );
   }
 
   _findInstId(id) {

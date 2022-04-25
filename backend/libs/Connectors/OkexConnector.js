@@ -842,10 +842,10 @@ class OkexConnector extends ConnectorBase {
         const arg = { ...data.arg };
         const channel = arg.channel;
         delete arg.channel;
-        this.logger.log(
-          `!!! _okexWsEventListener this.okexWsChannels[${channel}]`,
-          this.okexWsChannels[channel]
-        );
+        // this.logger.log(
+        //   `!!! _okexWsEventListener this.okexWsChannels[${channel}]`,
+        //   this.okexWsChannels[channel]
+        // );
         const values = Object.values(arg);
         if (data.event === "subscribe") {
           this.okexWsChannels[channel] = this.okexWsChannels[channel] || {};
@@ -965,10 +965,10 @@ class OkexConnector extends ConnectorBase {
   _updateTrades(instId, tradeData) {
     const channel = "trades";
     // this.okexWsChannels[channel][instId] = tradeData[0];
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [START] ----------`
-    );
-    this.logger.log(`[FROM OKEX] tradeData`, tradeData);
+    // this.logger.log(
+    //   `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [START] ----------`
+    // );
+    // this.logger.log(`[FROM OKEX] tradeData`, tradeData);
     const market = instId.replace("-", "").toLowerCase();
     const filteredTrades = tradeData
       .filter(
@@ -998,14 +998,14 @@ class OkexConnector extends ConnectorBase {
             : "down",
       };
     });
-    this.logger.log(
-      `[TO FRONTEND][OnEvent: ${Events.trades}] updateTrades`,
-      formatTrades
-    );
+    // this.logger.log(
+    //   `[TO FRONTEND][OnEvent: ${Events.trades}] updateTrades`,
+    //   formatTrades
+    // );
     EventBus.emit(Events.trades, market, { trades: formatTrades });
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [END] ----------`
-    );
+    // this.logger.log(
+    //   `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [END] ----------`
+    // );
   }
 
   _updateBooks(instId, bookData) {
@@ -1036,22 +1036,22 @@ class OkexConnector extends ConnectorBase {
       market: instId.replace("-", "").toLowerCase(),
     };
     if (asks.length > 0 || bids.length > 0) {
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _updateBooks instId: ${instId} [START] ----------`
-      );
-      this.logger.log(`[FROM OKEX] bookData`, bookData);
-      this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.update}] updateBooks`,
-        formatBooks
-      );
+      // this.logger.log(
+      //   `---------- [${this.constructor.name}]  _updateBooks instId: ${instId} [START] ----------`
+      // );
+      // this.logger.log(`[FROM OKEX] bookData`, bookData);
+      // this.logger.log(
+      //   `[TO FRONTEND][OnEvent: ${Events.update}] updateBooks`,
+      //   formatBooks
+      // );
       EventBus.emit(
         Events.update,
         instId.replace("-", "").toLowerCase(),
         formatBooks
       );
-      this.logger.log(
-        `---------- [${this.constructor.name}] _updateBooks instId: ${instId} [END] ----------`
-      );
+      // this.logger.log(
+      //   `---------- [${this.constructor.name}] _updateBooks instId: ${instId} [END] ----------`
+      // );
     }
   }
 
@@ -1121,18 +1121,18 @@ class OkexConnector extends ConnectorBase {
         return prev;
       }, {});
     if (Object.keys(updateTickers).length > 0) {
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
-      );
-      this.logger.log(`[FROM OKEX] tickerData`, tickerData);
-      this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
-        updateTickers
-      );
+      // this.logger.log(
+      //   `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
+      // );
+      // this.logger.log(`[FROM OKEX] tickerData`, tickerData);
+      // this.logger.log(
+      //   `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
+      //   updateTickers
+      // );
       EventBus.emit(Events.tickers, updateTickers);
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _updateTickers [END] ----------`
-      );
+      // this.logger.log(
+      //   `---------- [${this.constructor.name}]  _updateTickers [END] ----------`
+      // );
     }
   }
 
@@ -1334,10 +1334,6 @@ class OkexConnector extends ConnectorBase {
       );
     }
   }
-
-  _subscribeGlobal() {}
-
-  _unsubscribeGlobal() {}
 
   _subscribeUser() {}
 

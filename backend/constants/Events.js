@@ -1,7 +1,5 @@
 module.exports = {
   // subscribe ticker event
-  globalOnSubscribe: "globalOnSubscribe",
-  globalOnUnsubscribe: "globalOnUnsubscribe",
   tickerOnSibscribe: "tickerOnSibscribe",
   tickerOnUnsubscribe: "tickerOnUnsubscribe",
   userOnSubscribe: "userOnSubscribe",

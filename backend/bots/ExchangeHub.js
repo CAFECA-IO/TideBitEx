@@ -1,7 +1,5 @@
 const path = require("path");
-const redis = require("redis");
 const { default: axios } = require("axios");
-const URL = require("url");
 
 const Bot = require(path.resolve(__dirname, "Bot.js"));
 const OkexConnector = require("../libs/Connectors/OkexConnector");
@@ -13,7 +11,6 @@ const Events = require("../constants/Events");
 const SafeMath = require("../libs/SafeMath");
 const Utils = require("../libs/Utils");
 const SupportedExchange = require("../constants/SupportedExchange");
-const TideBitLegacyAdapter = require("../libs/TideBitLegacyAdapter");
 
 class ExchangeHub extends Bot {
   constructor() {
@@ -54,7 +51,7 @@ class ExchangeHub extends Bot {
       })
       .then(async () => {
         this.tidebitMarkets = this.getTidebitMarkets();
-        this.currencies = await this.database.getCurrencies();
+        this.currencies = await this.tideBitConnector.currencies;
         return this;
       });
   }
@@ -116,44 +113,15 @@ class ExchangeHub extends Bot {
   }
 
   // account api
-  async getAccounts({ token, params, query }) {
-    try {
-      const memberId = await this.getMemberIdFromRedis(token);
-      // if (memberId === -1) throw new Error("get member_id fail");
-      if (memberId === -1) {
-        this.logger.error(
-          `[${this.name} getAccounts] error: "get member_id fail`
-        );
-        return new ResponseFormat({
-          message: "get member_id fail",
-          code: Codes.MEMBER_ID_NOT_FOUND,
-        });
-      }
-      const accounts = await this.database.getAccounts(memberId);
-      const details = accounts.map((account, i) => ({
-        currency: this.currencies.find((curr) => curr.id === account.currency)
-          .symbol,
-        balance: Utils.removeZeroEnd(account.balance),
-        total: SafeMath.plus(account.balance, account.locked),
-        locked: Utils.removeZeroEnd(account.locked),
-        // uTime: new Date(account.updated_at).getTime(),
-      }));
-
-      const payload = details;
-
+  async getAccounts({ token }) {
+    const memberId = await this.getMemberIdFromRedis(token);
+    if (memberId === -1) {
       return new ResponseFormat({
         message: "getAccounts",
-        payload,
-      });
-    } catch (error) {
-      this.logger.error(error);
-      const message = error.message;
-      return new ResponseFormat({
-        message,
-        code: Codes.API_UNKNOWN_ERROR,
+        payload: null,
       });
     }
-    // return this.okexConnector.router('getBalance', { memberId: null, params, query });
+    return this.tideBitConnector.router("getAccounts", { memberId });
   }
 
   async getTicker({ params, query }) {
@@ -416,7 +384,7 @@ class ExchangeHub extends Bot {
             };
             EventBus.emit(Events.order, body.market, _updateOrder);
             this.logger.log(
-              `[TO FRONTEND][OnEvent: ${Events.order}] _updateOrder ln:409`,
+              `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] _updateOrder ln:409`,
               _updateOrder
             );
             let _updateAccount = {
@@ -432,7 +400,7 @@ class ExchangeHub extends Bot {
             };
             EventBus.emit(Events.account, _updateAccount);
             this.logger.log(
-              `[TO FRONTEND][OnEvent: ${Events.account}] _updateAccount ln:425`,
+              `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:425`,
               _updateAccount
             );
           }
@@ -448,107 +416,16 @@ class ExchangeHub extends Bot {
         }
       /* !!! HIGH RISK (end) !!! */
       case SupportedExchange.TIDEBIT: // ++ TODO 待驗證
-        try {
-          const market = this._findMarket(body.instId);
-          const url =
-            body.kind === "bid"
-              ? `${this.config.peatio.domain}/markets/${market.id}/order_bids`
-              : `${this.config.peatio.domain}/markets/${market.id}/order_asks`;
-          this.logger.debug("postPlaceOrder", url);
-
-          const headers = {
-            "content-type": "application/x-www-form-urlencoded",
-            "x-csrf-token": body["X-CSRF-Token"],
-            cookie: header.cookie,
-          };
-          const formbody = TideBitLegacyAdapter.peatioOrderBody({
-            header,
-            body,
-          });
-          const tbOrdersRes = await axios.post(url, formbody, {
-            headers,
-          }); // TODO: payload
-          return new ResponseFormat({
-            message: "postPlaceOrder",
-            payload: [
-              {
-                id: "",
-                clOrdId: "",
-                sCode: "",
-                sMsg: "",
-                tag: "",
-                data: tbOrdersRes.data,
-              },
-            ],
-          });
-        } catch (error) {
-          this.logger.error(error.stack);
-          // debug for postman so return error
-          return error;
-        }
+        return this.tideBitConnector.router("postPlaceOrder", {
+          header,
+          body: { ...body, market: this._findMarket(body.instId) },
+        });
       default:
         return new ResponseFormat({
           message: "instId not Support now",
           code: Codes.API_NOT_SUPPORTED,
         });
     }
-  }
-
-  async _tbGetOrderList({ memberId, instId, state, orderType }) {
-    const market = this._findMarket(instId);
-    if (!market) {
-      throw new Error(`this.tidebitMarkets.instId ${instId} not found.`);
-    }
-    const { id: bid } = await this.database.getCurrencyByKey(market.quote_unit);
-    const { id: ask } = await this.database.getCurrencyByKey(market.base_unit);
-    if (!bid) {
-      throw new Error(`bid not found${market.quote_unit}`);
-    }
-    if (!ask) {
-      throw new Error(`ask not found${market.base_unit}`);
-    }
-    let orderList;
-    if (memberId) {
-      orderList = await this.database.getOrderList({
-        quoteCcy: bid,
-        baseCcy: ask,
-        state,
-        memberId,
-      });
-    } else {
-      orderList = await this.database.getOrderList({
-        quoteCcy: bid,
-        baseCcy: ask,
-        state,
-        orderType,
-      });
-    }
-    const orders = orderList.map((order) => ({
-      id: order.id,
-      at: parseInt(SafeMath.div(new Date(order.updated_at).getTime(), "1000")),
-      market: instId.replace("-", "").toLowerCase(),
-      kind: order.type === "OrderAsk" ? "ask" : "bid",
-      price: Utils.removeZeroEnd(order.price),
-      origin_volume: Utils.removeZeroEnd(order.origin_volume),
-      volume: Utils.removeZeroEnd(order.volume),
-      state:
-        state === this.database.ORDER_STATE.CANCEL
-          ? "canceled"
-          : state === this.database.ORDER_STATE.DONE
-          ? "done"
-          : "wait",
-      state_text:
-        state === this.database.ORDER_STATE.CANCEL
-          ? "Canceled"
-          : state === this.database.ORDER_STATE.DONE
-          ? "Done"
-          : "Waiting",
-      clOrdId: order.id,
-      instId: instId,
-      ordType: order.ord_type,
-      filled: order.volume !== order.origin_volume,
-    }));
-    return orders;
   }
 
   async getOrderList({ params, query, token }) {
@@ -574,24 +451,13 @@ class ExchangeHub extends Bot {
         }
         return res;
       case SupportedExchange.TIDEBIT:
-        try {
-          const orders = await this._tbGetOrderList({
-            instId: query.instId,
+        return await this.tideBitConnector.router("getOrderList", {
+          query: {
+            ...query,
+            market: this._findMarket(query.instId),
             memberId,
-            state: this.database.ORDER_STATE.WAIT,
-          });
-          return new ResponseFormat({
-            message: "getOrderList",
-            payload: orders.sort((a, b) => b.at - a.at),
-          });
-        } catch (error) {
-          this.logger.error(error);
-          const message = error.message;
-          return new ResponseFormat({
-            message,
-            code: Codes.API_UNKNOWN_ERROR,
-          });
-        }
+          },
+        });
       default:
         return new ResponseFormat({
           message: "getOrderList",
@@ -599,6 +465,7 @@ class ExchangeHub extends Bot {
         });
     }
   }
+
   async getOrderHistory({ params, query, token }) {
     const memberId = await this.getMemberIdFromRedis(token);
     if (memberId === -1) {
@@ -622,50 +489,13 @@ class ExchangeHub extends Bot {
         }
         return res;
       case SupportedExchange.TIDEBIT:
-        try {
-          const cancelOrders = await this._tbGetOrderList({
-            instId: query.instId,
+        return await this.tideBitConnector.router("getOrderHistory", {
+          query: {
+            ...query,
+            market: this._findMarket(query.instId),
             memberId,
-            state: this.database.ORDER_STATE.CANCEL,
-          });
-          const doneOrders = await this._tbGetOrderList({
-            instId: query.instId,
-            memberId,
-            state: this.database.ORDER_STATE.DONE,
-          });
-          const vouchers = await this.database.getVouchers({
-            memberId,
-            ask: query.instId.split("-")[0],
-            bid: query.instId.split("-")[1],
-          });
-          const orders = doneOrders
-            .map((order) => {
-              if (order.ordType === "market") {
-                return {
-                  ...order,
-                  price: Utils.removeZeroEnd(
-                    vouchers?.find((voucher) => voucher.order_id === order.id)
-                      ?.price
-                  ),
-                };
-              } else {
-                return order;
-              }
-            })
-            .concat(cancelOrders)
-            .sort((a, b) => b.at - a.at);
-          return new ResponseFormat({
-            message: "getOrderHistory",
-            payload: orders,
-          });
-        } catch (error) {
-          this.logger.error(error);
-          const message = error.message;
-          return new ResponseFormat({
-            message,
-            code: Codes.API_UNKNOWN_ERROR,
-          });
-        }
+          },
+        });
       default:
         return new ResponseFormat({
           message: "getOrderHistory",
@@ -746,7 +576,7 @@ class ExchangeHub extends Bot {
               at: parseInt(SafeMath.div(Date.now(), "1000")),
             };
             this.logger.log(
-              `[TO FRONTEND][OnEvent: ${Events.order}] updateOrder ln:1092`,
+              `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] updateOrder ln:1092`,
               _updateOrder
             );
             EventBus.emit(Events.order, body.market, _updateOrder);
@@ -766,7 +596,7 @@ class ExchangeHub extends Bot {
               };
               EventBus.emit(Events.account, _updateAccount);
               this.logger.log(
-                `[TO FRONTEND][OnEvent: ${Events.account}] _updateAccount ln:425`,
+                `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:425`,
                 _updateAccount
               );
 
@@ -788,23 +618,9 @@ class ExchangeHub extends Bot {
 
         /* !!! HIGH RISK (end) !!! */
         case SupportedExchange.TIDEBIT:
-          const market = this._findMarket(body.instId);
-          const url = `${this.config.peatio.domain}/markets/${market.id}/orders/${orderId}`;
-          this.logger.debug("postCancelOrder", url);
-          const headers = {
-            Accept: "*/*",
-            "x-csrf-token": body["X-CSRF-Token"],
-            cookie: header.cookie,
-          };
-          const tbCancelOrderRes = await axios({
-            method: "DELETE",
-            url,
-            headers,
-          });
-          this.logger.debug(tbCancelOrderRes);
-          return new ResponseFormat({
-            message: "postCancelOrder",
-            code: Codes.SUCCESS,
+          return this.tideBitConnector.router(`postCancelOrder`, {
+            header,
+            body: { ...body, orderId, market: this._findMarket(body.instId) },
           });
 
         default:
@@ -1129,7 +945,7 @@ class ExchangeHub extends Bot {
         filled: state === "filled",
       };
       this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.order}] updateOrder ln:1092`,
+        `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] updateOrder ln:1092`,
         _updateOrder
       );
       EventBus.emit(
@@ -1164,7 +980,7 @@ class ExchangeHub extends Bot {
       };
       EventBus.emit(Events.account, _updateAcc);
       this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.account}] _updateAcc ln:1057`,
+        `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAcc ln:1057`,
         _updateAcc
       );
       await this._updateAccount(
@@ -1193,7 +1009,7 @@ class ExchangeHub extends Bot {
       };
       EventBus.emit(Events.account, _updateAcc);
       this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.account}] _updateAcc ln:1086`,
+        `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAcc ln:1086`,
         _updateAcc
       );
       // order 完成，解鎖剩餘沒用完的
@@ -1227,7 +1043,7 @@ class ExchangeHub extends Bot {
           };
           EventBus.emit(Events.account, _updateAcc);
           this.logger.log(
-            `[TO FRONTEND][OnEvent: ${Events.account}] _updateAcc ln:1120`,
+            `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAcc ln:1120`,
             _updateAcc
           );
         } else if (order.type === this.database.TYPE.ORDER_BID) {
@@ -1256,7 +1072,7 @@ class ExchangeHub extends Bot {
           };
           EventBus.emit(Events.account, _updateAcc);
           this.logger.log(
-            `[TO FRONTEND][OnEvent: ${Events.account}] _updateAcc ln:1149`,
+            `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAcc ln:1149`,
             _updateAcc
           );
         }
