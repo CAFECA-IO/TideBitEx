@@ -814,8 +814,7 @@ class TibeBitConnector extends ConnectorBase {
 
   async postCancelOrder({header, body}){
     try{
-      const market = this._findMarket(body.instId);
-      const url = `${this.peatio}/markets/${market.id}/orders/${body.orderId}`;
+      const url = `${this.peatio}/markets/${body.market.id}/orders/${body.orderId}`;
       this.logger.debug("postCancelOrder", url);
       const headers = {
         Accept: "*/*",
