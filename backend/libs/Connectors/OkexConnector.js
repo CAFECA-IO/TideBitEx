@@ -965,10 +965,10 @@ class OkexConnector extends ConnectorBase {
   _updateTrades(instId, tradeData) {
     const channel = "trades";
     // this.okexWsChannels[channel][instId] = tradeData[0];
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [START] ----------`
-    );
-    this.logger.log(`[FROM OKEX] tradeData`, tradeData);
+    // this.logger.log(
+    //   `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [START] ----------`
+    // );
+    // this.logger.log(`[FROM OKEX] tradeData`, tradeData);
     const market = instId.replace("-", "").toLowerCase();
     const filteredTrades = tradeData
       .filter(
@@ -998,14 +998,14 @@ class OkexConnector extends ConnectorBase {
             : "down",
       };
     });
-    this.logger.log(
-      `[TO FRONTEND][OnEvent: ${Events.trades}] updateTrades`,
-      formatTrades
-    );
+    // this.logger.log(
+    //   `[TO FRONTEND][OnEvent: ${Events.trades}] updateTrades`,
+    //   formatTrades
+    // );
     EventBus.emit(Events.trades, market, { trades: formatTrades });
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [END] ----------`
-    );
+    // this.logger.log(
+    //   `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [END] ----------`
+    // );
   }
 
   _updateBooks(instId, bookData) {

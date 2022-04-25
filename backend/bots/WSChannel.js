@@ -95,7 +95,7 @@ class WSChannel extends Bot {
                   )
                 );
             }
-            this.logger.debug("*********this._client*************", this._client);
+            // this.logger.debug("*********this._client*************", this._client);
             this.logger.debug("^^^^^^^^^this._channelClients^^^^^", this._channelClients);
           });
           ws.on("close", () => {
