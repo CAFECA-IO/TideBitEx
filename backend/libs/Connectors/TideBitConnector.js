@@ -9,6 +9,7 @@ const Utils = require("../Utils");
 const redis = require("redis");
 const ResponseFormat = require("../ResponseFormat");
 const Codes = require("../../constants/Codes");
+const TideBitLegacyAdapter = require("../TideBitLegacyAdapter");
 
 class TibeBitConnector extends ConnectorBase {
   constructor({ logger }) {
@@ -594,8 +595,12 @@ class TibeBitConnector extends ConnectorBase {
     if (!query.market) {
       throw new Error(`this.tidebitMarkets.instId ${query.instId} not found.`);
     }
-    const { id: bid } = await this.database.getCurrencyByKey(query.market.quote_unit);
-    const { id: ask } = await this.database.getCurrencyByKey(query.market.base_unit);
+    const { id: bid } = await this.database.getCurrencyByKey(
+      query.market.quote_unit
+    );
+    const { id: ask } = await this.database.getCurrencyByKey(
+      query.market.base_unit
+    );
     if (!bid) {
       throw new Error(`bid not found${query.market.quote_unit}`);
     }
@@ -645,8 +650,7 @@ class TibeBitConnector extends ConnectorBase {
     return orders;
   }
 
-  async getOrderList({query}) {
-    this.logger.log(`getOrderList query`, query)
+  async getOrderList({ query }) {
     try {
       const orders = await this._tbGetOrderList({
         ...query,
@@ -666,7 +670,7 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
-  async getOrderHistory({query}) {
+  async getOrderHistory({ query }) {
     try {
       const cancelOrders = await this._tbGetOrderList({
         ...query,
@@ -762,6 +766,79 @@ class TibeBitConnector extends ConnectorBase {
       this.logger.log(
         `---------- [${this.constructor.name}]  _updateOrder market: ${data.market} [END] ----------`
       );
+    }
+  }
+
+  async postPlaceOrder({ header, body }) {
+    try {
+      const url =
+        body.kind === "bid"
+          ? `${this.peatio}/markets/${body.market.id}/order_bids`
+          : `${this.peatio}/markets/${body.market.id}/order_asks`;
+      this.logger.debug("postPlaceOrder", url);
+
+      const headers = {
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrf-token": body["X-CSRF-Token"],
+        cookie: header.cookie,
+      };
+      const formbody = TideBitLegacyAdapter.peatioOrderBody({
+        header,
+        body,
+      });
+      const tbOrdersRes = await axios.post(url, formbody, {
+        headers,
+      }); // TODO: payload
+      return new ResponseFormat({
+        message: "postPlaceOrder",
+        payload: [
+          {
+            id: "",
+            clOrdId: "",
+            sCode: "",
+            sMsg: "",
+            tag: "",
+            data: tbOrdersRes.data,
+          },
+        ],
+      });
+    } catch (error) {
+      this.logger.error(error);
+      // debug for postman so return error
+      return new ResponseFormat({
+        message: "postPlaceOrder error",
+        code: Codes.UNKNOWN_ERROR,
+      });
+    }
+  }
+
+  async postCancelOrder({header, body}){
+    try{
+      const market = this._findMarket(body.instId);
+      const url = `${this.peatio}/markets/${market.id}/orders/${body.orderId}`;
+      this.logger.debug("postCancelOrder", url);
+      const headers = {
+        Accept: "*/*",
+        "x-csrf-token": body["X-CSRF-Token"],
+        cookie: header.cookie,
+      };
+      const tbCancelOrderRes = await axios({
+        method: "DELETE",
+        url,
+        headers,
+      });
+      this.logger.debug(tbCancelOrderRes);
+      return new ResponseFormat({
+        message: "postCancelOrder",
+        code: Codes.SUCCESS,
+      });
+    }catch(error){
+      this.logger.error(error);
+      // debug for postman so return error
+      return new ResponseFormat({
+        message: "postCancelOrder error",
+        code: Codes.UNKNOWN_ERROR,
+      });
     }
   }
 

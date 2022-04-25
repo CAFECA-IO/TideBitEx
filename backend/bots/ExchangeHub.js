@@ -1,7 +1,5 @@
 const path = require("path");
-const redis = require("redis");
 const { default: axios } = require("axios");
-const URL = require("url");
 
 const Bot = require(path.resolve(__dirname, "Bot.js"));
 const OkexConnector = require("../libs/Connectors/OkexConnector");
@@ -13,7 +11,6 @@ const Events = require("../constants/Events");
 const SafeMath = require("../libs/SafeMath");
 const Utils = require("../libs/Utils");
 const SupportedExchange = require("../constants/SupportedExchange");
-const TideBitLegacyAdapter = require("../libs/TideBitLegacyAdapter");
 
 class ExchangeHub extends Bot {
   constructor() {
@@ -445,44 +442,10 @@ class ExchangeHub extends Bot {
         }
       /* !!! HIGH RISK (end) !!! */
       case SupportedExchange.TIDEBIT: // ++ TODO 待驗證
-        try {
-          const market = this._findMarket(body.instId);
-          const url =
-            body.kind === "bid"
-              ? `${this.config.peatio.domain}/markets/${market.id}/order_bids`
-              : `${this.config.peatio.domain}/markets/${market.id}/order_asks`;
-          this.logger.debug("postPlaceOrder", url);
-
-          const headers = {
-            "content-type": "application/x-www-form-urlencoded",
-            "x-csrf-token": body["X-CSRF-Token"],
-            cookie: header.cookie,
-          };
-          const formbody = TideBitLegacyAdapter.peatioOrderBody({
-            header,
-            body,
-          });
-          const tbOrdersRes = await axios.post(url, formbody, {
-            headers,
-          }); // TODO: payload
-          return new ResponseFormat({
-            message: "postPlaceOrder",
-            payload: [
-              {
-                id: "",
-                clOrdId: "",
-                sCode: "",
-                sMsg: "",
-                tag: "",
-                data: tbOrdersRes.data,
-              },
-            ],
-          });
-        } catch (error) {
-          this.logger.error(error.stack);
-          // debug for postman so return error
-          return error;
-        }
+        return this.tideBitConnector.router("", {
+          header,
+          body: { ...body, market: this._findMarket(body.instId) },
+        });
       default:
         return new ResponseFormat({
           message: "instId not Support now",
@@ -528,7 +491,7 @@ class ExchangeHub extends Bot {
         });
     }
   }
-  
+
   async getOrderHistory({ params, query, token }) {
     const memberId = await this.getMemberIdFromRedis(token);
     if (memberId === -1) {
@@ -681,23 +644,9 @@ class ExchangeHub extends Bot {
 
         /* !!! HIGH RISK (end) !!! */
         case SupportedExchange.TIDEBIT:
-          const market = this._findMarket(body.instId);
-          const url = `${this.config.peatio.domain}/markets/${market.id}/orders/${orderId}`;
-          this.logger.debug("postCancelOrder", url);
-          const headers = {
-            Accept: "*/*",
-            "x-csrf-token": body["X-CSRF-Token"],
-            cookie: header.cookie,
-          };
-          const tbCancelOrderRes = await axios({
-            method: "DELETE",
-            url,
-            headers,
-          });
-          this.logger.debug(tbCancelOrderRes);
-          return new ResponseFormat({
-            message: "postCancelOrder",
-            code: Codes.SUCCESS,
+          return this.tideBitConnector.router(`postCancelOrder`, {
+            header,
+            body: { ...body, orderId },
           });
 
         default:
