@@ -590,56 +590,55 @@ class TibeBitConnector extends ConnectorBase {
     );
   }
 
-  async _tbGetOrderList({ market, memberId, instId, state, orderType }) {
-    if (!market) {
-      throw new Error(`this.tidebitMarkets.instId ${instId} not found.`);
+  async _tbGetOrderList(query) {
+    if (!query.market) {
+      throw new Error(`this.tidebitMarkets.instId ${query.instId} not found.`);
     }
-    const { id: bid } = await this.database.getCurrencyByKey(market.quote_unit);
-    const { id: ask } = await this.database.getCurrencyByKey(market.base_unit);
+    const { id: bid } = await this.database.getCurrencyByKey(query.market.quote_unit);
+    const { id: ask } = await this.database.getCurrencyByKey(query.market.base_unit);
     if (!bid) {
-      throw new Error(`bid not found${market.quote_unit}`);
+      throw new Error(`bid not found${query.market.quote_unit}`);
     }
     if (!ask) {
-      throw new Error(`ask not found${market.base_unit}`);
+      throw new Error(`ask not found${query.market.base_unit}`);
     }
     let orderList;
-    if (memberId) {
+    if (query.memberId) {
       orderList = await this.database.getOrderList({
         quoteCcy: bid,
         baseCcy: ask,
-        state,
-        memberId,
+        state: query.state,
+        memberId: query.memberId,
       });
     } else {
       orderList = await this.database.getOrderList({
         quoteCcy: bid,
         baseCcy: ask,
-        state,
-        orderType,
+        state: query.state,
       });
     }
     const orders = orderList.map((order) => ({
       id: order.id,
       at: parseInt(SafeMath.div(new Date(order.updated_at).getTime(), "1000")),
-      market: instId.replace("-", "").toLowerCase(),
+      market: query.instId.replace("-", "").toLowerCase(),
       kind: order.type === "OrderAsk" ? "ask" : "bid",
       price: Utils.removeZeroEnd(order.price),
       origin_volume: Utils.removeZeroEnd(order.origin_volume),
       volume: Utils.removeZeroEnd(order.volume),
       state:
-        state === this.database.ORDER_STATE.CANCEL
+        query.state === this.database.ORDER_STATE.CANCEL
           ? "canceled"
-          : state === this.database.ORDER_STATE.DONE
+          : query.state === this.database.ORDER_STATE.DONE
           ? "done"
           : "wait",
       state_text:
-        state === this.database.ORDER_STATE.CANCEL
+        query.state === this.database.ORDER_STATE.CANCEL
           ? "Canceled"
-          : state === this.database.ORDER_STATE.DONE
+          : query.state === this.database.ORDER_STATE.DONE
           ? "Done"
           : "Waiting",
       clOrdId: order.id,
-      instId: instId,
+      instId: query.instId,
       ordType: order.ord_type,
       filled: order.volume !== order.origin_volume,
     }));
