@@ -834,7 +834,8 @@ class TibeBitConnector extends ConnectorBase {
     this.logger.log(
       `++++++++ [${this.constructor.name}]  _subscribeUser [START] ++++++`
     );
-    this.logger.log(`credential`, credential);
+    this.logger.log(`credential.market`, credential.market);
+    this.logger.log(`credential.token`, credential.token);
     await this._registerPrivateChannel(credential);
     if (!this.market) this._registerMarketChannel(credential.market);
     else if (credential.market !== this.market) {

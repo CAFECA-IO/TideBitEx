@@ -35,7 +35,7 @@ class WebSocket {
   heartbeat() {
     clearTimeout(this.pingTimeout);
     this.pingTimeout = setTimeout(() => {
-      this.logger.debug('heartbeat');
+      // this.logger.debug('heartbeat');
       this.ws.ping();
     }, this.heartBeatTime);
   }

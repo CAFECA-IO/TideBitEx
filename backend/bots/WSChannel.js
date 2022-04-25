@@ -95,7 +95,8 @@ class WSChannel extends Bot {
                   )
                 );
             }
-            this.logger.debug("!!!!this._channelClients", this._channelClients);
+            this.logger.debug("*********this._client*************", this._client);
+            this.logger.debug("^^^^^^^^^this._channelClients^^^^^", this._channelClients);
           });
           ws.on("close", () => {
             this.logger.debug("disconnected");
@@ -133,9 +134,6 @@ class WSChannel extends Bot {
       }
       if (Object.values(this._channelClients[args.market]).length === 0) {
         if (args.token) {
-          this.logger.log(
-            `++++++++++ EventBus.emit(Events.userOnSubscribe)1[args.market:${args.market}]++++++++++++`
-          );
           EventBus.emit(Events.userOnSubscribe, {
             headers: {
               cookie: headers.cookie,
