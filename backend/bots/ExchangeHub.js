@@ -646,7 +646,7 @@ class ExchangeHub extends Bot {
         case SupportedExchange.TIDEBIT:
           return this.tideBitConnector.router(`postCancelOrder`, {
             header,
-            body: { ...body, orderId },
+            body: { ...body, orderId, market: this._findMarket(body.instId) },
           });
 
         default:
