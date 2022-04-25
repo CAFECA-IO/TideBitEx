@@ -886,6 +886,8 @@ class TibeBitConnector extends ConnectorBase {
 
   _registerMarketChannel(market) {
     try {
+      this.logger.log(`_registerMarketChannel market`, market);
+      this.market = market;
       this.market_channel = this.pusher.subscribe(`market-${market}-global`);
       this.market_channel.bind("update", (data) =>
         this._updateBooks(market, data)
@@ -1049,8 +1051,6 @@ class TibeBitConnector extends ConnectorBase {
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeMarket [START] ++++++`
       );
-      this.logger.log(`market`, market);
-      this.market = market;
       if (!this.isStart) this._startPusher();
       this._registerMarketChannel(market);
       this.logger.log(
