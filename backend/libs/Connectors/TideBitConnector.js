@@ -308,18 +308,18 @@ class TibeBitConnector extends ConnectorBase {
     });
 
     if (Object.keys(updateTickers).length > 0) {
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
-      );
-      this.logger.log(`[FROM TideBit] tickerData`, data);
-      this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
-        updateTickers
-      );
+      // this.logger.log(
+      //   `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
+      // );
+      // this.logger.log(`[FROM TideBit] tickerData`, data);
+      // this.logger.log(
+      //   `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
+      //   updateTickers
+      // );
       EventBus.emit(Events.tickers, updateTickers);
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _updateTickers [END] ----------`
-      );
+      // this.logger.log(
+      //   `---------- [${this.constructor.name}]  _updateTickers [END] ----------`
+      // );
     }
   }
 
@@ -421,7 +421,6 @@ class TibeBitConnector extends ConnectorBase {
       data.bids.length === 0
     )
       return;
-    this.logger.log(`[FROM TideBit] bookData`, data);
     let index,
       asks = [],
       bids = [];
@@ -472,17 +471,18 @@ class TibeBitConnector extends ConnectorBase {
     };
 
     if (asks.length > 0 || bids.length > 0) {
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _updateBooks market: ${market} [START] ----------`
-      );
-      this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.update}] updateBooks`,
-        formatBooks
-      );
+      // this.logger.log(
+      //   `---------- [${this.constructor.name}]  _updateBooks market: ${market} [START] ----------`
+      // );
+      // this.logger.log(`[FROM TideBit] bookData`, data);
+      // this.logger.log(
+      //   `[TO FRONTEND][OnEvent: ${Events.update}] updateBooks`,
+      //   formatBooks
+      // );
       EventBus.emit(Events.update, market, formatBooks);
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _updateBooks market: ${market} [END] ----------`
-      );
+      // this.logger.log(
+      //   `---------- [${this.constructor.name}]  _updateBooks market: ${market} [END] ----------`
+      // );
     }
   }
   /**
