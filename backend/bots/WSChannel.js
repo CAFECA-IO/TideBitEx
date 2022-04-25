@@ -95,29 +95,20 @@ class WSChannel extends Bot {
                 );
             }
             this.logger.debug(
-              `*********findClient.channl [isStart: ${
-                this._client[ws.id].isStart
-              }]*************`,
-              this._client[ws.id].channel
+              `*********findClient.channl [channel: ${
+                this._client[ws.id].channel
+              },isStart: ${this._client[ws.id].isStart}]*************`
             );
-            this.logger.debug(
-              "^^^^^^^^^this._channelClients^^^^^",
-              this._channelClients
-            );
+            this.logger.debug("this._channelClients", this._channelClients);
           });
           ws.on("close", () => {
             this.logger.debug("disconnected");
             this.logger.debug(
-              `*********findClient.channl [isStart: ${
-                this._client[ws.id].isStart
-              }]*************`,
-              this._client[ws.id].channel
+              `*********findClient.channl [channel: ${
+                this._client[ws.id].channel
+              },isStart: ${this._client[ws.id].isStart}]*************`
             );
-            this.logger.debug(
-              "^^^^^^^^^this._channelClients^^^^^",
-              this._channelClients
-            );
-            this.logger.debug("disconnected");
+            this.logger.debug("this._channelClients", this._channelClients);
             const findClient = this._client[ws.id];
             if (findClient.isStart) {
               delete this._channelClients[findClient.channel][ws.id];

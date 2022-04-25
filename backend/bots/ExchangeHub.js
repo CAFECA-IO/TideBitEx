@@ -491,63 +491,6 @@ class ExchangeHub extends Bot {
     }
   }
 
-  async _tbGetOrderList({ memberId, instId, state, orderType }) {
-    const market = this._findMarket(instId);
-    if (!market) {
-      throw new Error(`this.tidebitMarkets.instId ${instId} not found.`);
-    }
-    const { id: bid } = await this.database.getCurrencyByKey(market.quote_unit);
-    const { id: ask } = await this.database.getCurrencyByKey(market.base_unit);
-    if (!bid) {
-      throw new Error(`bid not found${market.quote_unit}`);
-    }
-    if (!ask) {
-      throw new Error(`ask not found${market.base_unit}`);
-    }
-    let orderList;
-    if (memberId) {
-      orderList = await this.database.getOrderList({
-        quoteCcy: bid,
-        baseCcy: ask,
-        state,
-        memberId,
-      });
-    } else {
-      orderList = await this.database.getOrderList({
-        quoteCcy: bid,
-        baseCcy: ask,
-        state,
-        orderType,
-      });
-    }
-    const orders = orderList.map((order) => ({
-      id: order.id,
-      at: parseInt(SafeMath.div(new Date(order.updated_at).getTime(), "1000")),
-      market: instId.replace("-", "").toLowerCase(),
-      kind: order.type === "OrderAsk" ? "ask" : "bid",
-      price: Utils.removeZeroEnd(order.price),
-      origin_volume: Utils.removeZeroEnd(order.origin_volume),
-      volume: Utils.removeZeroEnd(order.volume),
-      state:
-        state === this.database.ORDER_STATE.CANCEL
-          ? "canceled"
-          : state === this.database.ORDER_STATE.DONE
-          ? "done"
-          : "wait",
-      state_text:
-        state === this.database.ORDER_STATE.CANCEL
-          ? "Canceled"
-          : state === this.database.ORDER_STATE.DONE
-          ? "Done"
-          : "Waiting",
-      clOrdId: order.id,
-      instId: instId,
-      ordType: order.ord_type,
-      filled: order.volume !== order.origin_volume,
-    }));
-    return orders;
-  }
-
   async getOrderList({ params, query, token }) {
     const memberId = await this.getMemberIdFromRedis(token);
     if (memberId === -1) {
@@ -571,24 +514,13 @@ class ExchangeHub extends Bot {
         }
         return res;
       case SupportedExchange.TIDEBIT:
-        try {
-          const orders = await this._tbGetOrderList({
-            instId: query.instId,
+        return await this.tideBitConnector.router("getOrderList", {
+          query: {
+            ...query,
+            market: this._findMarket(query.instId),
             memberId,
-            state: this.database.ORDER_STATE.WAIT,
-          });
-          return new ResponseFormat({
-            message: "getOrderList",
-            payload: orders.sort((a, b) => b.at - a.at),
-          });
-        } catch (error) {
-          this.logger.error(error);
-          const message = error.message;
-          return new ResponseFormat({
-            message,
-            code: Codes.API_UNKNOWN_ERROR,
-          });
-        }
+          },
+        });
       default:
         return new ResponseFormat({
           message: "getOrderList",
@@ -596,6 +528,7 @@ class ExchangeHub extends Bot {
         });
     }
   }
+  
   async getOrderHistory({ params, query, token }) {
     const memberId = await this.getMemberIdFromRedis(token);
     if (memberId === -1) {
@@ -619,50 +552,13 @@ class ExchangeHub extends Bot {
         }
         return res;
       case SupportedExchange.TIDEBIT:
-        try {
-          const cancelOrders = await this._tbGetOrderList({
-            instId: query.instId,
+        return await this.tideBitConnector.router("getOrderHistory", {
+          query: {
+            ...query,
+            market: this._findMarket(query.instId),
             memberId,
-            state: this.database.ORDER_STATE.CANCEL,
-          });
-          const doneOrders = await this._tbGetOrderList({
-            instId: query.instId,
-            memberId,
-            state: this.database.ORDER_STATE.DONE,
-          });
-          const vouchers = await this.database.getVouchers({
-            memberId,
-            ask: query.instId.split("-")[0],
-            bid: query.instId.split("-")[1],
-          });
-          const orders = doneOrders
-            .map((order) => {
-              if (order.ordType === "market") {
-                return {
-                  ...order,
-                  price: Utils.removeZeroEnd(
-                    vouchers?.find((voucher) => voucher.order_id === order.id)
-                      ?.price
-                  ),
-                };
-              } else {
-                return order;
-              }
-            })
-            .concat(cancelOrders)
-            .sort((a, b) => b.at - a.at);
-          return new ResponseFormat({
-            message: "getOrderHistory",
-            payload: orders,
-          });
-        } catch (error) {
-          this.logger.error(error);
-          const message = error.message;
-          return new ResponseFormat({
-            message,
-            code: Codes.API_UNKNOWN_ERROR,
-          });
-        }
+          },
+        });
       default:
         return new ResponseFormat({
           message: "getOrderHistory",

@@ -244,20 +244,24 @@ class Middleman {
   async getTrades(id, limit, resolution) {
     try {
       const trades = await this.communicator.trades(id, limit);
-      this.trades = trades.reduce(
-        (prev, curr, i) => [
-          ...prev,
-          i === 0
-            ? { ...curr, trend: 1 }
-            : {
-                ...curr,
-                trend: SafeMath.gte(curr.px, prev[prev.length - 1].px) ? 1 : 0,
-              },
-        ],
-        []
-      );
-      const { candles, volumes } = this.updateCandles(trades, resolution);
-      return { trades, candles, volumes };
+      if (trades) {
+        this.trades = trades.reduce(
+          (prev, curr, i) => [
+            ...prev,
+            i === 0
+              ? { ...curr, trend: 1 }
+              : {
+                  ...curr,
+                  trend: SafeMath.gte(curr.px, prev[prev.length - 1].px)
+                    ? 1
+                    : 0,
+                },
+          ],
+          []
+        );
+        const { candles, volumes } = this.updateCandles(trades, resolution);
+        return { trades, candles, volumes };
+      }
     } catch (error) {
       throw error;
     }
