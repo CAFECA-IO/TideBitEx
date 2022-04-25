@@ -416,7 +416,7 @@ class ExchangeHub extends Bot {
             };
             EventBus.emit(Events.order, body.market, _updateOrder);
             this.logger.log(
-              `[TO FRONTEND][OnEvent: ${Events.order}] _updateOrder ln:409`,
+              `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] _updateOrder ln:409`,
               _updateOrder
             );
             let _updateAccount = {
@@ -432,7 +432,7 @@ class ExchangeHub extends Bot {
             };
             EventBus.emit(Events.account, _updateAccount);
             this.logger.log(
-              `[TO FRONTEND][OnEvent: ${Events.account}] _updateAccount ln:425`,
+              `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:425`,
               _updateAccount
             );
           }
@@ -746,7 +746,7 @@ class ExchangeHub extends Bot {
               at: parseInt(SafeMath.div(Date.now(), "1000")),
             };
             this.logger.log(
-              `[TO FRONTEND][OnEvent: ${Events.order}] updateOrder ln:1092`,
+              `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] updateOrder ln:1092`,
               _updateOrder
             );
             EventBus.emit(Events.order, body.market, _updateOrder);
@@ -766,7 +766,7 @@ class ExchangeHub extends Bot {
               };
               EventBus.emit(Events.account, _updateAccount);
               this.logger.log(
-                `[TO FRONTEND][OnEvent: ${Events.account}] _updateAccount ln:425`,
+                `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:425`,
                 _updateAccount
               );
 
@@ -1129,7 +1129,7 @@ class ExchangeHub extends Bot {
         filled: state === "filled",
       };
       this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.order}] updateOrder ln:1092`,
+        `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] updateOrder ln:1092`,
         _updateOrder
       );
       EventBus.emit(
@@ -1164,7 +1164,7 @@ class ExchangeHub extends Bot {
       };
       EventBus.emit(Events.account, _updateAcc);
       this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.account}] _updateAcc ln:1057`,
+        `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAcc ln:1057`,
         _updateAcc
       );
       await this._updateAccount(
@@ -1193,7 +1193,7 @@ class ExchangeHub extends Bot {
       };
       EventBus.emit(Events.account, _updateAcc);
       this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.account}] _updateAcc ln:1086`,
+        `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAcc ln:1086`,
         _updateAcc
       );
       // order 完成，解鎖剩餘沒用完的
@@ -1227,7 +1227,7 @@ class ExchangeHub extends Bot {
           };
           EventBus.emit(Events.account, _updateAcc);
           this.logger.log(
-            `[TO FRONTEND][OnEvent: ${Events.account}] _updateAcc ln:1120`,
+            `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAcc ln:1120`,
             _updateAcc
           );
         } else if (order.type === this.database.TYPE.ORDER_BID) {
@@ -1256,7 +1256,7 @@ class ExchangeHub extends Bot {
           };
           EventBus.emit(Events.account, _updateAcc);
           this.logger.log(
-            `[TO FRONTEND][OnEvent: ${Events.account}] _updateAcc ln:1149`,
+            `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAcc ln:1149`,
             _updateAcc
           );
         }

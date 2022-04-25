@@ -1335,10 +1335,6 @@ class OkexConnector extends ConnectorBase {
     }
   }
 
-  _subscribeGlobal() {}
-
-  _unsubscribeGlobal() {}
-
   _subscribeUser() {}
 
   _unsubscribeUser() {}
