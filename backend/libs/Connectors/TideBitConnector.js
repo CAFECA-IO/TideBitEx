@@ -601,7 +601,7 @@ class TibeBitConnector extends ConnectorBase {
     );
     if (
       !account ||
-      (SafeMath.eq(account.balance, data.balance) &&
+      (SafeMath.eq(account.balance, data.balance) ||
         SafeMath.eq(account.locked, data.locked))
     )
       return;
