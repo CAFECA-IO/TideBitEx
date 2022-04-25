@@ -121,12 +121,9 @@ class ExchangeHub extends Bot {
       const memberId = await this.getMemberIdFromRedis(token);
       // if (memberId === -1) throw new Error("get member_id fail");
       if (memberId === -1) {
-        this.logger.error(
-          `[${this.name} getAccounts] error: "get member_id fail`
-        );
         return new ResponseFormat({
-          message: "get member_id fail",
-          code: Codes.MEMBER_ID_NOT_FOUND,
+          message: "getAccounts",
+          payload: null,
         });
       }
       const accounts = await this.database.getAccounts(memberId);

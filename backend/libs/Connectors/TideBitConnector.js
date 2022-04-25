@@ -77,13 +77,18 @@ class TibeBitConnector extends ConnectorBase {
       const split1 = value
         .toString("latin1")
         .split("member_id\x06:\x06EFi\x02");
-      const memberIdLatin1 = split1[1].split('I"')[0];
-      const memberIdString = Buffer.from(memberIdLatin1, "latin1")
-        .reverse()
-        .toString("hex");
-      const memberId = parseInt(memberIdString, 16);
-      return memberId;
+      if (split1) {
+        const memberIdLatin1 = split1[1].split('I"')[0];
+        const memberIdString = Buffer.from(memberIdLatin1, "latin1")
+          .reverse()
+          .toString("hex");
+        const memberId = parseInt(memberIdString, 16);
+        return memberId;
+      } else return -1;
     } catch (error) {
+      this.logger.error(
+        `[${this.name} getAccounts] error: "get member_id fail`
+      );
       this.logger.error(error);
       await client.quit();
       return -1;
