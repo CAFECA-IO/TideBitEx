@@ -95,8 +95,14 @@ class WSChannel extends Bot {
                   )
                 );
             }
-            // this.logger.debug("*********this._client*************", this._client);
-            this.logger.debug("^^^^^^^^^this._channelClients^^^^^", this._channelClients);
+            this.logger.debug(
+              "*********this._client[ws.id]*************",
+              this._client[ws.id]
+            );
+            this.logger.debug(
+              "^^^^^^^^^this._channelClients^^^^^",
+              this._channelClients
+            );
           });
           ws.on("close", () => {
             this.logger.debug("disconnected");
@@ -113,7 +119,14 @@ class WSChannel extends Bot {
               }
             }
             delete this._client[ws.id];
-            this.logger.debug("this._channelClients", this._channelClients);
+            this.logger.debug(
+              "*********this._client[ws.id]*************",
+              this._client[ws.id]
+            );
+            this.logger.debug(
+              "^^^^^^^^^this._channelClients^^^^^",
+              this._channelClients
+            );
           });
         });
       });
@@ -143,24 +156,18 @@ class WSChannel extends Bot {
             market: args.market,
             token,
           });
-        } else EventBus.emit(Events.userOnSubscribe);
+        } else EventBus.emit(Events.userOnUnsubscribe);
       }
       this._channelClients[args.market][ws.id] = ws;
     } else {
       const oldChannel = findClient.channel;
       delete this._channelClients[oldChannel][ws.id];
-      if (Object.values(this._channelClients[oldChannel]).length === 0) {
-        EventBus.emit(Events.tickerOnUnsubscribe, oldChannel);
-      }
       findClient.channel = args.market;
       if (!this._channelClients[args.market]) {
         this._channelClients[args.market] = {};
       }
       if (Object.values(this._channelClients[args.market]).length === 0) {
         if (args.token) {
-          this.logger.log(
-            `++++++++++ EventBus.emit(Events.userOnSubscribe)1[args.market:${args.market}]++++++++++++`
-          );
           EventBus.emit(Events.userOnSubscribe, {
             headers: {
               cookie: headers.cookie,
@@ -170,7 +177,7 @@ class WSChannel extends Bot {
             market: args.market,
             token,
           });
-        } else EventBus.emit(Events.userOnSubscribe);
+        } else EventBus.emit(Events.userOnUnsubscribe);
       }
       this._channelClients[args.market][ws.id] = ws;
     }
