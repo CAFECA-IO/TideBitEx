@@ -646,6 +646,7 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async getOrderList(query) {
+    this.logger.log(`getOrderList query`, query)
     try {
       const orders = await this._tbGetOrderList({
         ...query,
