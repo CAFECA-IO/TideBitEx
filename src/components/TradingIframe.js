@@ -1,7 +1,7 @@
 const TradingIframe = () => {
   return (
     <iframe
-      src={`${window.location.host}/tradingview/index.html`}
+      src={`/tradingview/index.html`}
       title="tradingview"
     ></iframe>
   );
