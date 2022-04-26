@@ -158,8 +158,12 @@
           console.log("=====getBars running");
           // console.log('function args',arguments)
           // console.log(`Requesting bars between ${new Date(from * 1000).toISOString()} and ${new Date(to * 1000).toISOString()}`)
-          fetch(`https://legacy2.tidebit.network/api/v2/trades?market=${window.location.pathname.replace('/markets/')}`)
-          // fetch(`https://legacy2.tidebit.network/api/v2/trades?market=${'ethhkd'}`)
+          fetch(
+            `https://legacy2.tidebit.network/api/v2/trades?market=${window.location.pathname.replace(
+              "/markets/"
+            )}`
+          )
+            // fetch(`https://legacy2.tidebit.network/api/v2/trades?market=${'ethhkd'}`)
             .then((response) => response.json())
             .then((data) => {
               // console.log(resolution);
@@ -239,7 +243,7 @@
         var widget = (window.tvWidget = new TradingView.widget({
           // debug: true, // uncomment this line to see Library errors and warnings in the console
           fullscreen: true,
-          symbol: "Tidebit:ETH/HKD",
+          symbol: window.location.pathname.replace("/markets/"),
           interval: "1",
           container_id: "tv_chart_container",
 
