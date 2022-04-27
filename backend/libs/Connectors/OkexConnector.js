@@ -185,6 +185,7 @@ class OkexConnector extends ConnectorBase {
         base_unit: data.instId.split("-")[0].toLowerCase(),
         quote_unit: data.instId.split("-")[1].toLowerCase(),
         group: optional.market.group,
+        pricescale: optional.market.price_group_fixed,
         sell: data.askPx,
         buy: data.bidPx,
         instId: data.instId,

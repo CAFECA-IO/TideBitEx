@@ -725,7 +725,11 @@ class Utils {
     let updateTickers = {};
     Object.keys(tickersObj).forEach((id) => {
       const maskData = masks.find((mask) => mask.id === id);
-      if (maskData) updateTickers[id] = tickersObj[id];
+      if (maskData)
+        updateTickers[id] = {
+          ...tickersObj[id],
+          pricescale: maskData["price_group_fixed"],
+        };
     });
     return updateTickers;
   }
