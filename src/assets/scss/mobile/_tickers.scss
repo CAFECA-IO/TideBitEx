@@ -31,9 +31,7 @@
     width: 20px;
     display: flex;
   }
-  & .caret {
-    transform: rotate(90deg);
-  }
+
   &__container {
     position: fixed;
     height: 100vh;
@@ -57,14 +55,15 @@
   }
   &__close-btn {
   }
-  & > &__container > .nav {
+  & .nav {
     background-color: #f8f8f8;
     border-color: #e7e7e7;
   }
-  & > &__container > .nav-link {
+  & .nav-tabs .nav-link {
     transition: background-color 0.5s;
+    border-radius: 0px;
   }
-  & > &__container > .nav-link.active {
+  & .nav-link.active {
     color: #00b5ad;
     background-color: #e7e7e7;
     border-color: #00b5ad;
@@ -80,6 +79,7 @@
     padding: 10px 15px;
     display: flex;
     align-items: center;
+    gap: 10px;
   }
   &__icon {
     width: 40px;

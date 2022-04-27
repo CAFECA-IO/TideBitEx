@@ -4,6 +4,9 @@ import StoreContext from "../store/store-context";
 import SafeMath from "../utils/SafeMath";
 import { useTranslation } from "react-i18next";
 import { formateDecimal } from "../utils/Utils";
+import { ImCross } from "react-icons/im";
+import { IoMdArrowDropdown } from "react-icons/io";
+
 
 const TickerTile = (props) => {
   const storeCtx = useContext(StoreContext);
@@ -20,7 +23,7 @@ const TickerTile = (props) => {
     >
       <div className="mobile-tickers__icon">
         <img
-          src={`public/icons/${props.ticker.base_unit}.png`}
+          src={`/icons/${props.ticker.base_unit}.png`}
           alt={props.ticker?.base_unit}
         />
       </div>
@@ -38,11 +41,11 @@ const TickerTile = (props) => {
           {SafeMath.gte(props.ticker.change, "0")
             ? `+${formateDecimal(
                 SafeMath.mult(props.ticker?.changePct, "100"),
-                3
+                5
               )}%`
             : `${formateDecimal(
                 SafeMath.mult(props.ticker?.changePct, "100"),
-                3
+                5
               )}%`}
         </div>
       </div>
@@ -108,7 +111,7 @@ const TickerDropdown = (props) => {
         </div>
         <div>
           <span>{selectedTicker?.name || "--"}</span>
-          <span className="caret">&#8227;</span>
+          <IoMdArrowDropdown />
         </div>
       </div>
       {openDialog && (
@@ -121,7 +124,7 @@ const TickerDropdown = (props) => {
               className="mobile-tickers__close-btn"
               onClick={() => setOpenDialog(false)}
             >
-              x
+              <ImCross />
             </div>
           </div>
           <Tabs defaultActiveKey={defaultActiveKey}>

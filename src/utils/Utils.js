@@ -229,7 +229,7 @@ export const numberWithCommas = (x) => {
 
 export const formateDecimal = (amount, maxLength = 18, decimalLength = 2) => {
   if (isNaN(amount) || (!SafeMath.eq(amount, "0") && !amount)) return "--";
-  if (SafeMath.eq(amount, "0")) return "0";
+  if (SafeMath.eq(amount, "0")) return "0.00";
   const splitChunck = amount.toString().split(".");
   if (SafeMath.gte(splitChunck[0].length, maxLength))
     return formateNumber(amount, decimalLength);
