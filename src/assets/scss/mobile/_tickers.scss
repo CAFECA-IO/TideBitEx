@@ -62,11 +62,13 @@
   & .nav-tabs .nav-link {
     transition: background-color 0.5s;
     border-radius: 0px;
+    color: #777777;
   }
   & .nav-link.active {
     color: #00b5ad;
     background-color: #e7e7e7;
-    border-color: #00b5ad;
+    border: none;
+    border-bottom: 2px solid #00b5ad;
   }
   &__list {
     display: flex;
