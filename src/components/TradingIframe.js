@@ -1,17 +1,25 @@
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import StoreContext from "../store/store-context";
 
 const TradingIframe = (props) => {
   const storeCtx = useContext(StoreContext);
-  
+  const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    const { name, pricescale } = storeCtx.selectedTicker;
+    const arr = [];
+    if (name) arr.push(`symbol=${name}`);
+    if (pricescale) arr.push(`pricescale=${pricescale}`);
+    const qs = !!arr.length ? `?${arr.join("&")}` : "";
+    setQuery(qs);
+  }, [storeCtx.selectedTicker]);
+
   return (
     <iframe
-      src={`/tradingview/index.html?symbol=${storeCtx.selectedTicker?.name}`}
+      id="tradingview"
+      className="main-chart__chart"
+      src={`/tradingview/index.html${query}`}
       title="tradingview"
-      style={{
-        width: "100%",
-        height: "100%",
-      }}
     ></iframe>
   );
 };

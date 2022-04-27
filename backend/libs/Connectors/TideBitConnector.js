@@ -129,6 +129,7 @@ class TibeBitConnector extends ConnectorBase {
       volume: tBTicker.ticker.vol.toString(),
       source: SupportedExchange.TIDEBIT,
       group: optional.market.group,
+      pricescale: optional.market.price_group_fixed,
       ticker: tBTicker.ticker,
     };
     return new ResponseFormat({
@@ -186,6 +187,7 @@ class TibeBitConnector extends ConnectorBase {
           ...ticker,
           group: market.group,
           market: market.id,
+          pricescale: market.price_group_fixed,
         };
       else {
         const instId = this._findInstId(market.id);
@@ -196,6 +198,7 @@ class TibeBitConnector extends ConnectorBase {
           base_unit: market.base_unit,
           quote_unit: market.quote_unit,
           group: market.group,
+          pricescale: market.price_group_fixed,
           buy: "0.0",
           sell: "0.0",
           low: "0.0",

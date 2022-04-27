@@ -9,15 +9,18 @@ import { ThemeConsumer } from "../context/ThemeContext";
 import StoreContext from "../store/store-context";
 import { Tabs, Tab } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
+import MobileTickers from "../components/MobileTickers";
+import MobileTicker from "../components/MobileTicker";
 
 const MobileExchange = (props) => {
   const storeCtx = useContext(StoreContext);
   const { t } = useTranslation();
   return (
     <main className="main">
+      <MobileTickers />
       {(storeCtx.activePage === "chart" ||
         storeCtx.activePage === "market" ||
-        storeCtx.activePage === "trade") && <SelectedTicker />}
+        storeCtx.activePage === "trade") && <MobileTicker />}
       <section
         className={`section${
           storeCtx.activePage === "assets" ? " section--assets" : ""

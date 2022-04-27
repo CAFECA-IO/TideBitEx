@@ -3,6 +3,7 @@
   min-height: 400px;
   border: 1px solid #333;
   &__chart {
+    width: 100%;
     height: calc(100% - 40px);
   }
   &__header {
