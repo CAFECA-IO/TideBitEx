@@ -119,9 +119,9 @@ class TibeBitConnector extends ConnectorBase {
     formatTBTicker[query.id] = {
       market: query.id,
       instId: query.instId,
-      name: query.instId.replace("-", "/"),
-      base_unit: query.instId.split("-")[0].toLowerCase(),
-      quote_unit: query.instId.split("-")[1].toLowerCase(),
+      name: optional.market.name,
+      base_unit: optional.market.base_unit,
+      quote_unit: optional.market.quote_unit,
       ...tBTicker.ticker,
       at: tBTicker.at,
       change,
@@ -162,9 +162,6 @@ class TibeBitConnector extends ConnectorBase {
       prev[currId] = {
         market: currId,
         instId,
-        name: instId.replace("-", "/"),
-        base_unit: instId.split("-")[0].toLowerCase(),
-        quote_unit: instId.split("-")[1].toLowerCase(),
         buy: tickerObj.ticker.buy,
         sell: tickerObj.ticker.sell,
         low: tickerObj.ticker.low,
@@ -188,6 +185,9 @@ class TibeBitConnector extends ConnectorBase {
           group: market.group,
           market: market.id,
           pricescale: market.price_group_fixed,
+          name: market.name,
+          base_unit: market.base_unit,
+          quote_unit: market.quote_unit,
         };
       else {
         const instId = this._findInstId(market.id);
@@ -604,8 +604,8 @@ class TibeBitConnector extends ConnectorBase {
     );
     if (
       !account ||
-      (SafeMath.eq(account.balance, data.balance) ||
-        SafeMath.eq(account.locked, data.locked))
+      SafeMath.eq(account.balance, data.balance) ||
+      SafeMath.eq(account.locked, data.locked)
     )
       return;
     const formatAccount = {

@@ -14,7 +14,7 @@ const MobileTicker = (props) => {
           {formateDecimal(storeCtx.selectedTicker?.last, 8)}
         </div>
         <div
-          className={`ticker__change ${
+          className={`mobile-ticker__change ${
             !storeCtx.selectedTicker
               ? ""
               : storeCtx.selectedTicker?.change?.includes("-")

@@ -19,14 +19,10 @@ const TickerTile = (props) => {
       } ${props.ticker.update ? "update" : ""}`}
     >
       <div className="mobile-tickers__icon">
-        {props.ticker.source === "TideBit" && (
-          <img
-            src={require("../assets/icons/" +
-              `${props.ticker.base_unit}` +
-              ".png")}
-            alt={props.ticker?.base_unit}
-          />
-        )}
+        <img
+          src={`public/icons/${props.ticker.base_unit}.png`}
+          alt={props.ticker?.base_unit}
+        />
       </div>
       <div className="mobile-tickers__detail">
         <div className="mobile-tickers__name">{props.ticker.name}</div>
@@ -102,10 +98,12 @@ const TickerDropdown = (props) => {
         className="mobile-tickers__open-btn"
         onClick={() => setOpenDialog(true)}
       >
-        <div className="left-label">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-            <path d="M345.6 128l51.3 51.3-109.3 109.4-89.6-89.6L32 365.4 63.6 397 198 262.5l89.6 89.7 141.1-141 51.3 51.3V128H345.6z"></path>
-          </svg>
+        <div>
+          <div className="left-label">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+              <path d="M345.6 128l51.3 51.3-109.3 109.4-89.6-89.6L32 365.4 63.6 397 198 262.5l89.6 89.7 141.1-141 51.3 51.3V128H345.6z"></path>
+            </svg>
+          </div>
           {t("market")}
         </div>
         <div>

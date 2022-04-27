@@ -16,6 +16,13 @@
     //   0 1px 5px 0 rgb(0, 0, 0, 12%);
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14);
     margin: 10px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  &__open-btn > *:last-child{
+    display: flex;
+    gap: 5px;
+    font-size: 14px;
   }
   & .left-label {
     color: grey;
