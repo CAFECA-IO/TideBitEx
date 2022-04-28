@@ -81,6 +81,10 @@ class TibeBitConnector extends ConnectorBase {
         // ++ TODO: 下面補error handle
         this.logger.log(
           `[${this.constructor.name} getAccounts] value:`,
+          value
+        );
+        this.logger.log(
+          `[${this.constructor.name} getAccounts] value.toString("latin1"):`,
           value.toString("latin1")
         );
         const split1 = value
