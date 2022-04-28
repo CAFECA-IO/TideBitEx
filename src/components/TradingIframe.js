@@ -10,9 +10,10 @@ const TradingIframe = (props) => {
     const arr = [];
     if (name) arr.push(`symbol=${name}`);
     if (pricescale) arr.push(`pricescale=${pricescale}`);
+    if (props.isMobile) arr.push(`mobile=${1}`);
     const qs = !!arr.length ? `?${arr.join("&")}` : "";
     setQuery(qs);
-  }, [storeCtx.selectedTicker]);
+  }, [storeCtx.selectedTicker, props.isMobile]);
 
   return (
     <iframe

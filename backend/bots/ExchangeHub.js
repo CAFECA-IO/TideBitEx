@@ -109,7 +109,8 @@ class ExchangeHub extends Bot {
   }
 
   async getMemberIdFromRedis(peatioSession) {
-    return this.tideBitConnector.getMemberIdFromRedis(peatioSession);
+    if (this.tideBitConnector.memberId) return this.tideBitConnector.memberId;
+    else return this.tideBitConnector.getMemberIdFromRedis(peatioSession);
   }
 
   // account api

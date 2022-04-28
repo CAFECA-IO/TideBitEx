@@ -80,7 +80,7 @@
   &__input-group {
     display: flex;
     flex-direction: column;
-    & > label{
+    & > label {
       margin-bottom: 0;
       font-size: 13px;
       color: #4a4a4a;
@@ -183,9 +183,34 @@
       flex-direction: column;
       // gap: 2px;
     }
-    // &__form:last-child {
-    //   border-left: none;
-    //   border-top: 1px solid #e0e3eb;
-    // }
+    & > &__container > nav.nav-tabs > a.nav-link {
+      flex: 1;
+      color: #00b5ad;
+      text-align: center;
+    }
+    & > &__container > nav.nav-tabs > a.nav-link.active {
+      color: #00b5ad;
+      border: none;
+      border-bottom: 2px solid #00b5ad;
+    }
+    & > &__container > .tab-content &__panel > nav.nav-tabs {
+      border: none;
+    }
+    & > &__container > .tab-content &__panel > nav.nav-tabs > a.nav-link {
+      margin: 6px 10px;
+      border: 2px solid #f0b90b;
+      flex: 1;
+      color: #f0b90b;
+      text-align: center;
+    }
+    &
+      > &__container
+      > .tab-content
+      &__panel
+      > nav.nav-tabs
+      > a.nav-link.active {
+      background-color: #f0b90b;
+      color: white;
+    }
   }
 }

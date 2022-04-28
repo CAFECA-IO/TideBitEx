@@ -55,7 +55,7 @@ const OrderBook = (props) => {
   return (
     <section className="order-book">
       <div className="order-book__table order-book__bids">
-        <ul className="order-book__header flex-row">
+        <ul className="order-book__header flex-row table__header">
           <li>{t("amount")}</li>
           <li>{t("volume")}</li>
           <li>{t("bid")}</li>
@@ -82,7 +82,7 @@ const OrderBook = (props) => {
         </ul>
       </div>
       <div className="order-book__table order-book__asks">
-        <ul className="order-book__header flex-row">
+        <ul className="order-book__header flex-row table__header">
           <li>{t("ask")}</li>
           <li>{t("volume")}</li>
           <li>{t("amount")}</li>

@@ -41,7 +41,7 @@ const MarketHistory = (props) => {
   return (
     <div className="market-history">
       <div className="market-history__header">{t("trades")}</div>
-      <ul className="market-history__title flex-row">
+      <ul className="market-history__title flex-row table__header">
         <li>{t("time")}</li>
         <li>{`${t("price")}(${
           storeCtx?.selectedTicker?.quote_unit.toUpperCase() || "--"

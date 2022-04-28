@@ -26,6 +26,14 @@
       flex: 1;
     }
   }
+  &__block {
+    min-height: 56px;
+  }
+  &__container--mobile .nav-tabs .nav-link.active {
+    color: #007bff;
+    border: none;
+    border-bottom: 2px solid #007bff;
+  }
 }
 @media only screen and (max-width: 1120px) {
   // If [device width] is less than or equal to 600px, then do
@@ -45,6 +53,7 @@
   // If [device width] is less than or equal to 600px, then do
   .section {
     flex: auto;
+    // overflow: hidden;
     &__container {
       flex: 1;
       flex-direction: column;
@@ -62,10 +71,15 @@
   // If [device width] is less than or equal to 600px, then do
   .section {
     gap: 8px;
-    height: calc(100% - 94px);
-    flex: none;
+    // height: calc(100% - 94px);
+    // height: calc(100% - 209px);
+    flex: auto;
+    &--market {
+      overflow: hidden;
+    }
     &__container {
-      border: 1px solid #333;
+      border: 1px solid #ddd;
+      margin: 0 10px;
     }
     &__container {
       gap: 0;

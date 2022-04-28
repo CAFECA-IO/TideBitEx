@@ -16,6 +16,7 @@ class TibeBitConnector extends ConnectorBase {
     super({ logger });
     this.isStart = false;
     this.isCredential = false;
+    this.memberId = null;
 
     this.pusher = null;
 
@@ -62,38 +63,55 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async getMemberIdFromRedis(peatioSession) {
-    const client = redis.createClient({
-      url: this.redis,
-    });
+    if (this.memberId) return this.memberId;
+    else {
+      const client = redis.createClient({
+        url: this.redis,
+      });
 
-    client.on("error", (err) => this.logger.error("Redis Client Error", err));
+      client.on("error", (err) => this.logger.error("Redis Client Error", err));
 
-    try {
-      await client.connect(); // 會因為連線不到卡住
-      const value = await client.get(
-        redis.commandOptions({ returnBuffers: true }),
-        peatioSession
-      );
-      await client.quit();
-      // ++ TODO: 下面補error handle
-      const split1 = value
-        .toString("latin1")
-        .split("member_id\x06:\x06EFi\x02");
-      if (split1) {
-        const memberIdLatin1 = split1[1].split('I"')[0];
-        const memberIdString = Buffer.from(memberIdLatin1, "latin1")
-          .reverse()
-          .toString("hex");
-        const memberId = parseInt(memberIdString, 16);
-        return memberId;
-      } else return -1;
-    } catch (error) {
-      this.logger.error(
-        `[${this.name} getAccounts] error: "get member_id fail`
-      );
-      this.logger.error(error);
-      await client.quit();
-      return -1;
+      try {
+        await client.connect(); // 會因為連線不到卡住
+        const value = await client.get(
+          redis.commandOptions({ returnBuffers: true }),
+          peatioSession
+        );
+        await client.quit();
+        // ++ TODO: 下面補error handle
+        this.logger.log(
+          `[${this.constructor.name} getAccounts] value:`,
+          value
+        );
+        this.logger.log(
+          `[${this.constructor.name} getAccounts] value.toString("latin1"):`,
+          value.toString("latin1")
+        );
+        const split1 = value
+          .toString("latin1")
+          .split("member_id\x06:\x06EFi\x02");
+        this.logger.log(
+          `[${this.constructor.name} getAccounts] split1:`,
+          split1
+        );
+        if (split1.length > 0) {
+          const memberIdLatin1 = split1[1].split('I"')[0];
+          const memberIdString = Buffer.from(memberIdLatin1, "latin1")
+            .reverse()
+            .toString("hex");
+          const memberId = parseInt(memberIdString, 16);
+          this.memberId = memberId;
+          return memberId;
+        } else return -1;
+      } catch (error) {
+        this.logger.error(
+          `[${this.constructor.name} getAccounts] error: "get member_id fail`,
+          error
+        );
+        this.logger.error(error);
+        await client.quit();
+        return -1;
+      }
     }
   }
 

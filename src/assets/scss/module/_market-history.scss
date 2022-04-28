@@ -99,5 +99,13 @@
       font-size: 14px;
       padding: 8px 5px;
     }
+    &__title > li:nth-child(1),
+    &__tile > div:nth-child(1) {
+      flex: 5;
+    }
+    &__tile--time {
+      flex-direction: row;
+      font-size: 12px;
+    }
   }
 }

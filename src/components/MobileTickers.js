@@ -7,7 +7,6 @@ import { formateDecimal } from "../utils/Utils";
 import { ImCross } from "react-icons/im";
 import { IoMdArrowDropdown } from "react-icons/io";
 
-
 const TickerTile = (props) => {
   const storeCtx = useContext(StoreContext);
   const { t } = useTranslation();
@@ -61,6 +60,7 @@ const TickerList = (props) => {
           ticker={ticker}
           index={index}
           key={`${ticker.instId}-${ticker.instType}-${index}-star`}
+          closeDialogHandler={props.closeDialogHandler}
         />
       ))}
     </ul>
@@ -135,6 +135,7 @@ const TickerDropdown = (props) => {
                 key={`mobile-tickers-tab-${quoteCcy.toLowerCase()}`}
               >
                 <TickerList
+                  closeDialogHandler={() => setOpenDialog(false)}
                   tickers={storeCtx.tickers.filter(
                     (ticker) => ticker.group === quoteCcy.toLowerCase()
                   )}
