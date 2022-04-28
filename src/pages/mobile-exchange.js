@@ -29,7 +29,7 @@ const MobileExchange = (props) => {
       <section
         className={`section${
           storeCtx.activePage === "assets" ? " section--assets" : ""
-        }`}
+        }${storeCtx.activePage === "market" ? " section--market" : ""}`}
       >
         {storeCtx.activePage === "chart" && (
           <>

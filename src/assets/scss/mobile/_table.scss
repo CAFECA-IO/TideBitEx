@@ -1,8 +1,10 @@
-.table {
-  &__header {
-    background-color: white;
-    color: #333;
-    border-top: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
+@media only screen and (max-width: 414px) {
+  .table {
+    &__header {
+      background-color: white;
+      color: #333;
+      border-top: 1px solid #ddd;
+      border-bottom: 1px solid #ddd;
+    }
   }
 }

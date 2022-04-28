@@ -80,12 +80,11 @@
   // If [device width] is less than or equal to 600px, then do
   .order-book {
     border: 1px solid #ddd;
-    overflow: auto;
-    flex: auto;
 
     &--mobile {
       margin: 0 10px 10px;
       flex: auto;
+      overflow: auto;
     }
     .tab-content & {
       border: none;
