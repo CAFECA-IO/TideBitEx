@@ -6,14 +6,16 @@
     overflow: auto;
   }
   &__tile {
-    margin: 6px 12px;
+    margin: 10px 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    border-bottom: 1px solid #ddd;
   }
   &__leading {
     display: flex;
     gap: 10px;
+    align-items: center;
   }
   &__icon {
     width: 40px;
@@ -27,6 +29,10 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end;
+    font-size: 16px;
+  }
+  &__balance {
+    color: #c7254e;
   }
   &__locked {
     display: flex;

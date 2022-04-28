@@ -98,10 +98,12 @@ export const AccountMobileTile = (props) => {
         <div>{props.account.currency}</div>
       </div>
       <div className="mobile-account__subtitle">
-        <div className="mobile-account__balance">{props.account?.balance}</div>
+        <div className="mobile-account__balance">
+          {formateDecimal(props.account?.balance, 8)}
+        </div>
         <div className="mobile-account__locked">
           <BiLock />
-          {props.account?.locked}
+          {formateDecimal(props.account?.locked, 8)}
         </div>
       </div>
     </li>

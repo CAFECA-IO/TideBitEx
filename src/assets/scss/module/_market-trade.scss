@@ -193,17 +193,22 @@
       border: none;
       border-bottom: 2px solid #00b5ad;
     }
-    & &__pannel > nav.nav-tabs {
+    & > &__container > .tab-content &__panel > nav.nav-tabs {
       border: none;
     }
-    & &__pannel > nav.nav-tabs > a.nav-link {
+    & > &__container > .tab-content &__panel > nav.nav-tabs > a.nav-link {
       margin: 6px 10px;
       border: 2px solid #f0b90b;
       flex: 1;
       color: #f0b90b;
       text-align: center;
     }
-    & &__pannel > nav.nav-tabs > a.nav-link.active {
+    &
+      > &__container
+      > .tab-content
+      &__panel
+      > nav.nav-tabs
+      > a.nav-link.active {
       background-color: #f0b90b;
       color: white;
     }
