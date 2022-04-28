@@ -83,7 +83,7 @@ class TibeBitConnector extends ConnectorBase {
       const split1 = value
         .toString("latin1")
         .split("member_id\x06:\x06EFi\x02");
-      // this.logger.log(`[${this.constructor.name} getAccounts] split1:`, split1);
+      this.logger.log(`[${this.constructor.name} getAccounts] split1:`, split1);
       if (split1.length > 0) {
         const memberIdLatin1 = split1[1].split('I"')[0];
         const memberIdString = Buffer.from(memberIdLatin1, "latin1")
