@@ -16,7 +16,7 @@ class TibeBitConnector extends ConnectorBase {
     super({ logger });
     this.isStart = false;
     this.isCredential = false;
-    this.memberId = '1';
+    this.memberId = null;
 
     this.pusher = null;
 

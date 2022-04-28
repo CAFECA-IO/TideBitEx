@@ -6,7 +6,7 @@ import { formateDecimal } from "../utils/Utils";
 import { FaTrashAlt } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 
-const OrderTile = (props) => {
+export const OrderTile = (props) => {
   return (
     <ul
       className="d-flex justify-content-between market-order-item"
@@ -83,7 +83,40 @@ export const AccountTile = (props) => {
   );
 };
 
-const HistoryOrder = (props) => {
+export const AccountList = (props) => {
+  const storeCtx = useContext(StoreContext);
+  const { t } = useTranslation();
+  return (
+    <div className="account-list">
+      <ul className="d-flex justify-content-between market-order-item market-order__title market-balance">
+        <li>{t("currency")}</li>
+        <li>{t("totalBal")}</li>
+        <li>{t("availBal")}</li>
+        <li>{t("frozenBal")}</li>
+      </ul>
+      {/* {!storeCtx.accounts?.length && (
+              <span className="no-data">
+                <i className="icon ion-md-document"></i>
+                No data
+              </span>
+            )} */}
+      <ul className="order-list">
+        {!!storeCtx.accounts?.length &&
+          storeCtx.accounts
+            .filter(
+              (account) =>
+                storeCtx.selectedTicker?.base_unit.toUpperCase() ===
+                  account.currency ||
+                storeCtx.selectedTicker?.quote_unit.toUpperCase() ===
+                  account.currency
+            )
+            .map((account) => <AccountTile account={account} />)}
+      </ul>
+    </div>
+  );
+};
+
+export const PendingOrders = (props) => {
   const storeCtx = useContext(StoreContext);
   const cancelOrder = (order) => {
     const confirm = window.confirm(`You are going to cancel order: ${order.id}
@@ -101,117 +134,76 @@ const HistoryOrder = (props) => {
   };
   const { t } = useTranslation();
   return (
+    <div className="pending-orders">
+      <ul className="d-flex justify-content-between market-order-item market-order__title">
+        <li>Buy/Sell</li>
+        <li>{t("price")}</li>
+        <li>{t("volume")}</li>
+        <li>{t("amount")}</li>
+        <li>{t("cancel")}</li>
+      </ul>
+      {/* {!storeCtx.pendingOrders.length && (
+              <span className="no-data">
+                <i className="icon ion-md-document"></i>
+                No data
+              </span>
+            )} */}
+      <ul className="order-list">
+        {!!storeCtx.pendingOrders?.length &&
+          storeCtx.pendingOrders
+            .filter((order) => !(order.price === "NaN" || !order.price)) // ++ WORKAROUND
+            .map((order) => (
+              <OrderTile order={order} cancelOrder={cancelOrder} />
+            ))}
+      </ul>
+    </div>
+  );
+};
+
+export const ClosedOrders = (props) => {
+  const storeCtx = useContext(StoreContext);
+
+  const { t } = useTranslation();
+  return (
+    <div className="closed-orders">
+      <ul className="d-flex justify-content-between market-order-item market-order__title">
+        <li>Buy/Sell</li>
+        <li>{t("price")}</li>
+        <li>{t("volume")}</li>
+        <li>{t("amount")}</li>
+        <li>{t("status")}</li>
+      </ul>
+      {/* {!storeCtx.closeOrders.length && (
+              <span className="no-data">
+                <i className="icon ion-md-document"></i>
+                No data
+              </span>
+            )} */}
+      <ul className="order-list">
+        {!!storeCtx.closeOrders?.length &&
+          storeCtx.closeOrders
+            .filter((order) => !(order.price === "NaN" || !order.price)) // ++ WORKAROUND
+            .map((order) => <OrderTile order={order} />)}
+      </ul>
+    </div>
+  );
+};
+
+const HistoryOrder = () => {
+  const { t } = useTranslation();
+  return (
     <>
       <div className="market-order">
         <div className="market-order__header">{t("my_orders")}</div>
         <Tabs defaultActiveKey="open-orders">
           <Tab eventKey="open-orders" title={t("open_orders")}>
-            <ul className="d-flex justify-content-between market-order-item market-order__title">
-              {/* <li>Time</li> */}
-              {/* <li>All Tickers</li>
-              <li>All Types</li> */}
-              <li>Buy/Sell</li>
-              <li>{t("price")}</li>
-              <li>{t("volume")}</li>
-              <li>{t("amount")}</li>
-              {/* <li>Executed</li>
-              <li>Unexecuted</li> */}
-              <li>{t("cancel")}</li>
-            </ul>
-            {/* {!storeCtx.pendingOrders.length && (
-              <span className="no-data">
-                <i className="icon ion-md-document"></i>
-                No data
-              </span>
-            )} */}
-            <ul className="order-list">
-              {!!storeCtx.pendingOrders?.length &&
-                storeCtx.pendingOrders
-                  .filter((order) => !(order.price === "NaN" || !order.price)) // ++ WORKAROUND
-                  .map((order) => (
-                    <OrderTile order={order} cancelOrder={cancelOrder} />
-                  ))}
-            </ul>
+            <PendingOrders />
           </Tab>
           <Tab eventKey="closed-orders" title={t("close_orders")}>
-            <ul className="d-flex justify-content-between market-order-item market-order__title">
-              {/* <li>Time</li> */}
-              {/* <li>All Tickers</li>
-              <li>All Types</li>*/}
-              <li>Buy/Sell</li>
-              <li>{t("price")}</li>
-              <li>{t("volume")}</li>
-              <li>{t("amount")}</li>
-              {/* <li>Executed</li>
-              <li>Unexecuted</li> */}
-              <li>{t("status")}</li>
-            </ul>
-            {/* {!storeCtx.closeOrders.length && (
-              <span className="no-data">
-                <i className="icon ion-md-document"></i>
-                No data
-              </span>
-            )} */}
-            <ul className="order-list">
-              {!!storeCtx.closeOrders?.length &&
-                storeCtx.closeOrders
-                  .filter((order) => !(order.price === "NaN" || !order.price)) // ++ WORKAROUND
-                  .map((order) => <OrderTile order={order} />)}
-            </ul>
+            <ClosedOrders />
           </Tab>
-          {/* <Tab eventKey="order-history" title="Order history">
-            <ul className="d-flex justify-content-between market-order-item">
-              <li>Time</li>
-              <li>All Tickers</li>
-              <li>All Types</li>
-              <li>Buy/Sell</li>
-              <li>Price</li>
-              <li>Volume</li>
-              <li>Amount</li>
-              <li>Executed</li>
-              <li>Unexecuted</li>
-            </ul>
-            {!storeCtx.orderHistories.length && (
-              <span className="no-data">
-                <i className="icon ion-md-document"></i>
-                No data
-              </span>
-            )}
-            {!!storeCtx.orderHistories.length &&
-              storeCtx.orderHistories.map((order) => (
-                <OrderTile order={order} />
-              ))}
-          </Tab> */}
           <Tab eventKey="balance" title={t("balance")}>
-            <ul className="d-flex justify-content-between market-order-item market-order__title market-balance">
-              {/* <li>Update time</li> */}
-              <li>{t("currency")}</li>
-              {/* <li>Currency Equity</li>
-              <li>Cash balance</li>
-              <li>Available Equity</li> */}
-              <li>{t("totalBal")}</li>
-              <li>{t("availBal")}</li>
-              <li>{t("frozenBal")}</li>
-              {/* <li>Interest</li> */}
-            </ul>
-            {/* {!storeCtx.accounts?.length && (
-              <span className="no-data">
-                <i className="icon ion-md-document"></i>
-                No data
-              </span>
-            )} */}
-            <ul className="order-list">
-              {!!storeCtx.accounts?.length &&
-                storeCtx.accounts
-                  .filter(
-                    (account) =>
-                      storeCtx.selectedTicker?.base_unit.toUpperCase() ===
-                        account.currency ||
-                      storeCtx.selectedTicker?.quote_unit.toUpperCase() ===
-                        account.currency
-                  )
-                  .map((account) => <AccountTile account={account} />)}
-            </ul>
+            <AccountList />
           </Tab>
         </Tabs>
       </div>
