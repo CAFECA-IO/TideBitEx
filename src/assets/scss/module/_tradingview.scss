@@ -14,6 +14,12 @@
     font-size: 14px;
     padding: 8px 5px;
   }
+  &--mobile {
+    margin: 0 10px;
+  }
+  &--mobile > &__header {
+    display: none;
+  }
 }
 .tool-bar {
   display: flex;
@@ -31,5 +37,6 @@
   .main-chart {
     height: 100%;
     flex: auto;
+    border: none;
   }
 }

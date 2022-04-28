@@ -1,5 +1,9 @@
 import React, { useContext } from "react";
-import { AccountList, PendingOrders } from "../components/HistoryOrder";
+import {
+  AccountList,
+  AccountMobileTile,
+  PendingOrders,
+} from "../components/HistoryOrder";
 import MarketHistory from "../components/MarketHistory";
 import MarketTrade from "../components/MarketTrade";
 import OrderBook from "../components/OrderBook";
@@ -37,7 +41,9 @@ const MobileExchange = (props) => {
         {storeCtx.activePage === "market" && (
           <>
             <DepthChart />
-            <OrderBook />
+            <div className="order-book--mobile">
+              <OrderBook />
+            </div>
           </>
         )}
         {storeCtx.activePage === "trade" && (
@@ -45,7 +51,7 @@ const MobileExchange = (props) => {
             <div className="section__container">
               <MarketTrade />
             </div>
-            <div className="section__container">
+            <div className="section__container section__container--mobile">
               <Tabs defaultActiveKey="market">
                 <Tab eventKey="market" title={t("market")}>
                   <OrderBook />
@@ -63,10 +69,13 @@ const MobileExchange = (props) => {
           </>
         )}
         {storeCtx.activePage === "assets" && (
-          <div className="section__container">
-            <AccountList />
+          <div className="mobole-account__list">
+            {storeCtx.accounts.map((account) => (
+              <AccountMobileTile account={account} />
+            ))}
           </div>
         )}
+        <div className="section__block"></div>
       </section>
     </main>
   );

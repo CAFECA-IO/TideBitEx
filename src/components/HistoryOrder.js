@@ -5,6 +5,8 @@ import SafeMath from "../utils/SafeMath";
 import { formateDecimal } from "../utils/Utils";
 import { FaTrashAlt } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
+import { useViewport } from "../store/ViewportProvider";
+import { BiLock } from "react-icons/bi";
 
 export const OrderTile = (props) => {
   return (
@@ -67,7 +69,7 @@ export const OrderTile = (props) => {
   );
 };
 
-export const AccountTile = (props) => {
+const AccountTile = (props) => {
   return (
     <ul className="d-flex justify-content-between market-order-item market-balance">
       {/* <li>{dateFormatter(parseInt(props.account.uTime)).text}</li> */}
@@ -83,6 +85,29 @@ export const AccountTile = (props) => {
   );
 };
 
+export const AccountMobileTile = (props) => {
+  return (
+    <li className="mobile-account__tile">
+      <div className="mobile-account__leading">
+        <div className="mobile-account__icon">
+          <img
+            src={`/icons/${props.account.currency.toLowerCase()}.png`}
+            alt={props.account?.currency.toLowerCase()}
+          />
+        </div>
+        <div>{props.account.currency}</div>
+      </div>
+      <div className="mobile-account__subtitle">
+        <div className="mobile-account__balance">{props.account?.balance}</div>
+        <div className="mobile-account__locked">
+          <BiLock />
+          {props.account?.locked}
+        </div>
+      </div>
+    </li>
+  );
+};
+
 export const AccountList = (props) => {
   const storeCtx = useContext(StoreContext);
   const { t } = useTranslation();
@@ -94,6 +119,7 @@ export const AccountList = (props) => {
         <li>{t("availBal")}</li>
         <li>{t("frozenBal")}</li>
       </ul>
+
       {/* {!storeCtx.accounts?.length && (
               <span className="no-data">
                 <i className="icon ion-md-document"></i>
@@ -135,7 +161,7 @@ export const PendingOrders = (props) => {
   const { t } = useTranslation();
   return (
     <div className="pending-orders">
-      <ul className="d-flex justify-content-between market-order-item market-order__title">
+      <ul className="d-flex justify-content-between market-order-item market-order__title table__header">
         <li>Buy/Sell</li>
         <li>{t("price")}</li>
         <li>{t("volume")}</li>
