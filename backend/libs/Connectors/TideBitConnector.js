@@ -77,12 +77,13 @@ class TibeBitConnector extends ConnectorBase {
       await client.quit();
       // ++ TODO: 下面補error handle
       this.logger.log(
-        `[${this.constructor.name} getAccounts] value: "get member_id`,
+        `[${this.constructor.name} getAccounts] value:`,
         value.toString("latin1")
       );
       const split1 = value
         .toString("latin1")
         .split("member_id\x06:\x06EFi\x02");
+      this.logger.log(`[${this.constructor.name} getAccounts] split1:`, split1);
       if (split1) {
         const memberIdLatin1 = split1[1].split('I"')[0];
         const memberIdString = Buffer.from(memberIdLatin1, "latin1")
