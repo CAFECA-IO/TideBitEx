@@ -76,6 +76,10 @@ class TibeBitConnector extends ConnectorBase {
       );
       await client.quit();
       // ++ TODO: 下面補error handle
+      this.logger.error(
+        `[${this.constructor.name} getAccounts] value: "get member_id`,
+        value
+      );
       const split1 = value
         .toString("latin1")
         .split("member_id\x06:\x06EFi\x02");
@@ -89,7 +93,8 @@ class TibeBitConnector extends ConnectorBase {
       } else return -1;
     } catch (error) {
       this.logger.error(
-        `[${this.name} getAccounts] error: "get member_id fail`
+        `[${this.constructor.name} getAccounts] error: "get member_id fail`,
+        error
       );
       this.logger.error(error);
       await client.quit();
