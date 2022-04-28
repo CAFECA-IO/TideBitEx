@@ -27,7 +27,7 @@
     }
   }
   &__block {
-    height: 56px;
+    min-height: 56px;
   }
   &__container--mobile .nav-tabs .nav-link.active {
     color: #007bff;
@@ -38,6 +38,7 @@
 @media only screen and (max-width: 1120px) {
   // If [device width] is less than or equal to 600px, then do
   .section {
+    overflow: hidden;
     &__container {
       &--right > *:first-child {
         flex: 4;

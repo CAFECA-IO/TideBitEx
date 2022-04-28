@@ -56,10 +56,13 @@ const DepthChart = (props) => {
             toolbar: {
               show: false,
             },
+            animations: {
+              enabled: false,
+            },
           },
           xaxis: {
             type: "numeric",
-            tickAmount: 6,
+            tickAmount: 4,
           },
           colors: ["#03a66d", "#cf304a"],
           dataLabels: {
