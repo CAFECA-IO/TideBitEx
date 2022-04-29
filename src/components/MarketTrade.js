@@ -17,7 +17,145 @@ const TradeForm = (props) => {
         props.kind === "bid" ? "market-trade--buy" : "market-trade--sell"
       }`}
     >
+      <p className="market-trade__text">
+        {t("available")}:
+        <span>
+          {props.quoteCcyAvailable || props.baseCcyAvailable
+            ? formateDecimal(
+                props.kind === "bid"
+                  ? props.quoteCcyAvailable
+                  : props.baseCcyAvailable,
+                8
+              )
+            : "--"}
+          {props.kind === "bid"
+            ? props.selectedTicker?.quote_unit.toUpperCase() || "--"
+            : props.selectedTicker?.base_unit.toUpperCase() || "--"}
+          {/* = 0 USD */}
+        </span>
+      </p>
+      <div className="market-trade__input-group input-group">
+        <label htmlFor="price">{t("price")}:</label>
+        <div className="market-trade__input-group--box">
+          <input
+            name="price"
+            type={props.readyOnly ? "text" : "number"}
+            className="market-trade__input form-control"
+            // placeholder={t("price")}
+            value={props.readyOnly ? t("market") : props.price}
+            onInput={(e) => props.onPxInput(e.target.value)}
+            required={!props.readyOnly}
+            disabled={!!props.readyOnly}
+            step="any"
+          />
+          {!props.readyOnly && (
+            <div className="market-trade__input-group--append input-group-append">
+              <span className="input-group-text">
+                {props.selectedTicker?.quote_unit.toUpperCase() || "--"}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="market-trade__input-group input-group">
+        <label htmlFor="trade_amount">{t("trade_amount")}:</label>
+        <div className="market-trade__input-group--box">
+          <input
+            name="trade_amount"
+            type="number"
+            className="market-trade__input form-control"
+            // placeholder={t("trade_amount")}
+            value={props.volume}
+            onInput={(e) => props.onSzInput(e.target.value)}
+            required
+            step="any"
+          />
+          <div className="market-trade__input-group--append input-group-append">
+            <span className="input-group-text">
+              {props.selectedTicker?.base_unit.toUpperCase() || "--"}
+            </span>
+          </div>
+        </div>
+      </div>
 
+      <div className="market-trade__input-group input-group">
+        <label htmlFor="trade_amount">{t("trade_total")}:</label>
+        <div className="market-trade__input-group--box">
+          <input
+            name="trade_total"
+            type="number"
+            className="market-trade__input  form-control"
+            // placeholder={t("trade_total")}
+            value={
+              props.price && props.volume
+                ? SafeMath.mult(props.price, props.volume)
+                : null
+            }
+            readOnly
+          />
+          <div className="market-trade__input-group--append input-group-append">
+            <span className="input-group-text">
+              {props.selectedTicker?.quote_unit.toUpperCase() || "--"}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div className="market-trade__error-message--container">
+        {props.errorMessage && (
+          <p
+            className={`market-trade__error-message ${
+              SafeMath.lt(props.volume, props.selectedTicker?.minSz)
+                ? "show"
+                : ""
+            }`}
+          >
+            {props.errorMessage}
+          </p>
+        )}
+      </div>
+      <ul className="market-trade__amount-controller">
+        <li className={`${props.selectedPct === "0.25" ? "active" : ""}`}>
+          <span onClick={() => props.percentageHandler("0.25", props.price)}>
+            25%
+          </span>
+        </li>
+        <li className={`${props.selectedPct === "0.5" ? "active" : ""}`}>
+          <span onClick={() => props.percentageHandler("0.5", props.price)}>
+            50%
+          </span>
+        </li>
+        <li className={`${props.selectedPct === "0.75" ? "active" : ""}`}>
+          <span onClick={() => props.percentageHandler("0.75", props.price)}>
+            75%
+          </span>
+        </li>
+        <li className={`${props.selectedPct === "1.0" ? "active" : ""}`}>
+          <span onClick={() => props.percentageHandler("1.0", props.price)}>
+            100%
+          </span>
+        </li>
+      </ul>
+      <div style={{ flex: "auto" }}></div>
+      <button
+        type="submit"
+        className="btn market-trade__button"
+        disabled={
+          !props.quoteCcyAvailable ||
+          !props.baseCcyAvailable ||
+          !props.selectedTicker ||
+          SafeMath.gt(
+            props.volume,
+            props.kind === "bid"
+              ? SafeMath.div(props.quoteCcyAvailable, props.price)
+              : props.baseCcyAvailable
+          ) ||
+          SafeMath.lte(props.volume, "0") ||
+          SafeMath.lt(props.volume, props.selectedTicker?.minSz)
+        }
+      >
+        {props.kind === "bid" ? t("buy") : t("sell")}
+        {` ${props.selectedTicker?.base_unit.toUpperCase() ?? ""}`}
+      </button>
     </form>
   );
 };
