@@ -65,7 +65,16 @@ class WSChannel extends Bot {
           this.logger.debug("HI", ip);
           ws.on("message", (message) => {
             this.logger.debug("received: %s", message);
-            const { op, args } = JSON.parse(message);
+            let op, args;
+            
+            try {
+              const parsed = JSON.parse(message);
+              op = parsed?.op;
+              args = parsed?.args;
+            } catch (error) {
+              this.logger.error(error);
+            }
+
             if (!op || !args || !args.market) {
               ws.send(
                 JSON.stringify(
@@ -188,7 +197,7 @@ class WSChannel extends Bot {
         this._channelClients[args.market] = {};
       }
       if (Object.values(this._channelClients[args.market]).length === 0) {
-        EventBus.emit(Events.tickerOnSibscribe, args.market);
+        EventBus.emit(Events.tickerOnSibscribe, args.market, args.resolution);
       }
       this._channelClients[args.market][ws.id] = ws;
     } else {
@@ -202,7 +211,7 @@ class WSChannel extends Bot {
         this._channelClients[args.market] = {};
       }
       if (Object.values(this._channelClients[args.market]).length === 0) {
-        EventBus.emit(Events.tickerOnSibscribe, args.market);
+        EventBus.emit(Events.tickerOnSibscribe, args.market, args.resolution);
       }
       this._channelClients[args.market][ws.id] = ws;
     }

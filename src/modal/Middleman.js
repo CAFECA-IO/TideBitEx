@@ -229,6 +229,7 @@ class Middleman {
         update: true,
       }))
       .concat(this.trades || []);
+    this.trades = _updateTrades;
     // console.log(
     //   `updateTrades _updateTrades[${_updateTrades.length}]`,
     //   _updateTrades

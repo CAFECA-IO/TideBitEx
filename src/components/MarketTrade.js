@@ -8,6 +8,7 @@ import { useViewport } from "../store/ViewportProvider";
 
 const TradeForm = (props) => {
   const { t } = useTranslation();
+  const storeCtx = useContext(StoreContext);
   return (
     <form
       onSubmit={(e) => {
@@ -20,15 +21,17 @@ const TradeForm = (props) => {
       <p className="market-trade__text">
         {t("available")}:
         <span>
-          {formateDecimal(
-            props.kind === "bid"
-              ? props.quoteCcyAvailable
-              : props.baseCcyAvailable,
-            8
-          )}
+          {props.quoteCcyAvailable || props.baseCcyAvailable
+            ? formateDecimal(
+                props.kind === "bid"
+                  ? props.quoteCcyAvailable
+                  : props.baseCcyAvailable,
+                8
+              )
+            : "--"}
           {props.kind === "bid"
-            ? props.selectedTicker?.quote_unit.toUpperCase() || "--"
-            : props.selectedTicker?.base_unit.toUpperCase() || "--"}
+            ? storeCtx.selectedTicker?.quote_unit?.toUpperCase() || "--"
+            : storeCtx.selectedTicker?.base_unit?.toUpperCase() || "--"}
           {/* = 0 USD */}
         </span>
       </p>
@@ -49,7 +52,7 @@ const TradeForm = (props) => {
           {!props.readyOnly && (
             <div className="market-trade__input-group--append input-group-append">
               <span className="input-group-text">
-                {props.selectedTicker?.quote_unit.toUpperCase() || "--"}
+                {storeCtx.selectedTicker?.quote_unit?.toUpperCase() || "--"}
               </span>
             </div>
           )}
@@ -70,11 +73,12 @@ const TradeForm = (props) => {
           />
           <div className="market-trade__input-group--append input-group-append">
             <span className="input-group-text">
-              {props.selectedTicker?.base_unit.toUpperCase() || "--"}
+              {storeCtx.selectedTicker?.base_unit?.toUpperCase() || "--"}
             </span>
           </div>
         </div>
       </div>
+
       <div className="market-trade__input-group input-group">
         <label htmlFor="trade_amount">{t("trade_total")}:</label>
         <div className="market-trade__input-group--box">
@@ -83,12 +87,16 @@ const TradeForm = (props) => {
             type="number"
             className="market-trade__input  form-control"
             // placeholder={t("trade_total")}
-            value={SafeMath.mult(props.price, props.volume)}
+            value={
+              props.price && props.volume
+                ? SafeMath.mult(props.price, props.volume)
+                : null
+            }
             readOnly
           />
           <div className="market-trade__input-group--append input-group-append">
             <span className="input-group-text">
-              {props.selectedTicker?.quote_unit.toUpperCase() || "--"}
+              {storeCtx.selectedTicker?.quote_unit?.toUpperCase() || "--"}
             </span>
           </div>
         </div>
@@ -97,7 +105,7 @@ const TradeForm = (props) => {
         {props.errorMessage && (
           <p
             className={`market-trade__error-message ${
-              SafeMath.lt(props.volume, props.selectedTicker?.minSz)
+              SafeMath.lt(props.volume, storeCtx.selectedTicker?.minSz)
                 ? "show"
                 : ""
             }`}
@@ -133,7 +141,9 @@ const TradeForm = (props) => {
         type="submit"
         className="btn market-trade__button"
         disabled={
-          !props.selectedTicker ||
+          !props.quoteCcyAvailable ||
+          !props.baseCcyAvailable ||
+          !storeCtx.selectedTicker ||
           SafeMath.gt(
             props.volume,
             props.kind === "bid"
@@ -141,11 +151,11 @@ const TradeForm = (props) => {
               : props.baseCcyAvailable
           ) ||
           SafeMath.lte(props.volume, "0") ||
-          SafeMath.lt(props.volume, props.selectedTicker?.minSz)
+          SafeMath.lt(props.volume, storeCtx.selectedTicker?.minSz)
         }
       >
         {props.kind === "bid" ? t("buy") : t("sell")}
-        {` ${props.selectedTicker?.base_unit.toUpperCase() ?? ""}`}
+        {` ${storeCtx.selectedTicker?.base_unit?.toUpperCase() ?? ""}`}
       </button>
     </form>
   );
@@ -451,7 +461,6 @@ const TradePannel = (props) => {
                   : limitBuyPx
               }
               volume={props.orderType === "market" ? marketBuySz : limitBuySz}
-              selectedTicker={selectedTicker}
               quoteCcyAvailable={quoteCcyAvailable}
               baseCcyAvailable={baseCcyAvailable}
               selectedPct={
@@ -480,7 +489,6 @@ const TradePannel = (props) => {
               volume={props.orderType === "market" ? marketSellSz : limitSellSz}
               quoteCcyAvailable={quoteCcyAvailable}
               baseCcyAvailable={baseCcyAvailable}
-              selectedTicker={selectedTicker}
               selectedPct={
                 props.orderType === "market"
                   ? selectedMarketSellPct
@@ -509,7 +517,6 @@ const TradePannel = (props) => {
             volume={props.orderType === "market" ? marketBuySz : limitBuySz}
             quoteCcyAvailable={quoteCcyAvailable}
             baseCcyAvailable={baseCcyAvailable}
-            selectedTicker={selectedTicker}
             selectedPct={
               props.orderType === "market"
                 ? selectedMarketBuyPct
@@ -534,7 +541,6 @@ const TradePannel = (props) => {
             volume={props.orderType === "market" ? marketSellSz : limitSellSz}
             quoteCcyAvailable={quoteCcyAvailable}
             baseCcyAvailable={baseCcyAvailable}
-            selectedTicker={selectedTicker}
             selectedPct={
               props.orderType === "market"
                 ? selectedMarketSellPct

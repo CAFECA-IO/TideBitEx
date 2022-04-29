@@ -200,7 +200,7 @@ class Communicator {
       }
       return Promise.reject({ message: res.message, code: res.code });
     } catch (error) {
-      console.error(`[getAccounts] error`, error);
+      // console.error(`[getAccounts] error`, error);
       return Promise.reject({ message: error });
     }
   }

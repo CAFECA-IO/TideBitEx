@@ -235,21 +235,21 @@ class ExchangeHub extends Bot {
     }
   }
 
-  // async getCandlesticks({ params, query }) {
-  //   switch (this._findSource(query.instId)) {
-  //     case SupportedExchange.OKEX:
-  //       return this.okexConnector.router("getCandlesticks", { params, query });
-  //     case SupportedExchange.TIDEBIT:
-  //       return this.tideBitConnector.router("getTrades", {
-  //         query: { ...query, increase: true },
-  //       });
-  //     default:
-  //       return new ResponseFormat({
-  //         message: "getCandlesticks",
-  //         payload: [],
-  //       });
-  //   }
-  // }
+  async getCandlesticks({ params, query }) {
+    switch (this._findSource(query.instId)) {
+      case SupportedExchange.OKEX:
+        return this.okexConnector.router("getCandlesticks", { params, query });
+      case SupportedExchange.TIDEBIT:
+        return this.tideBitConnector.router("getTrades", {
+          query: { ...query, increase: true },
+        });
+      default:
+        return new ResponseFormat({
+          message: "getCandlesticks",
+          payload: [],
+        });
+    }
+  }
 
   async getTrades({ params, query }) {
     const instId = this._findInstId(query.id);
@@ -737,12 +737,12 @@ class ExchangeHub extends Bot {
       });
     });
 
-    // EventBus.on(Events.candleOnUpdate, (market, formatCandle) => {
-    //   this.broadcast(market, {
-    //     type: Events.candleOnUpdate,
-    //     data: formatCandle,
-    //   });
-    // });
+    EventBus.on(Events.candleOnUpdate, (market, formatCandle) => {
+      this.broadcast(market, {
+        type: Events.candleOnUpdate,
+        data: formatCandle,
+      });
+    });
 
     // tickersOnUpdate
     EventBus.on(Events.tickers, (updateTickers) => {

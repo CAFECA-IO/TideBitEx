@@ -37,8 +37,8 @@ class ConnectorBase {
   }
 
   async _tideBitExEventListener() {
-    EventBus.on(Events.tickerOnSibscribe, (market) => {
-      this._subscribeMarket(market);
+    EventBus.on(Events.tickerOnSibscribe, (market, resolution) => {
+      this._subscribeMarket(market, resolution);
     });
     EventBus.on(Events.tickerOnUnsubscribe, (market) => {
       this._unsubscribeMarket(market);
@@ -50,7 +50,7 @@ class ConnectorBase {
       this._unsubscribeUser(data);
     });
   }
-  
+
   _subscribeUser() {
     throw new Error("need override _subscribeUser");
   }
