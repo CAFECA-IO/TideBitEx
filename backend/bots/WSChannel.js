@@ -65,7 +65,16 @@ class WSChannel extends Bot {
           this.logger.debug("HI", ip);
           ws.on("message", (message) => {
             this.logger.debug("received: %s", message);
-            const { op, args } = JSON.parse(message);
+            let op, args;
+            
+            try {
+              const parsed = JSON.parse(message);
+              op = parsed?.op;
+              args = parsed?.args;
+            } catch (error) {
+              this.logger.error(error);
+            }
+
             if (!op || !args || !args.market) {
               ws.send(
                 JSON.stringify(
