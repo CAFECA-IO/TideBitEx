@@ -1,9 +1,9 @@
 import React, { useContext } from "react";
-import StoreContext from "../store/store-context";
+// import StoreContext from "../store/store-context";
 import { useViewport } from "../store/ViewportProvider";
 
 // import TradingApexChart from "./TradingApexChart";
-import TradingViewChart from "./TradingViewChart";
+// import TradingViewChart from "./TradingViewChart";
 import { useTranslation } from "react-i18next";
 import TradingIframe from "./TradingIframe";
 
