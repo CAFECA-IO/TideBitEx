@@ -22,7 +22,7 @@ const DepthChart = (props) => {
       const _asks = storeCtx.books.asks.map((ask) => ({ ...ask }));
       if (_bids.length > _asks.length) {
         const d = _asks.length - 1;
-        for (let i = _asks.length; i < _bids.length; i++)
+        for (let i = _asks.length; i < _bids.length; i++) {
           _asks.push({
             price: SafeMath.plus(
               _asks[i - 1].price,
@@ -35,6 +35,7 @@ const DepthChart = (props) => {
             ),
             total: _asks[d].total,
           });
+        }
       } else if (_bids.length < _asks.length) {
         for (let i = _bids.length; i < _asks.length; i++) {
           const d = _bids.length - 1;
