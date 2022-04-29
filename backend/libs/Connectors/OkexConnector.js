@@ -22,6 +22,7 @@ class OkexConnector extends ConnectorBase {
     this.tickers = {};
     this.trades = [];
     this.books = {};
+    this.candleChannel = null;
     return this;
   }
 
@@ -880,8 +881,8 @@ class OkexConnector extends ConnectorBase {
               this._updateBooks(values[0], data.data);
             }
             break;
-          case "candle1m":
-            this._updateCandle1m(values[0], data.data);
+          case this.candleChannel:
+            this._updateCandle(values[0], data.channel, data.data);
             break;
           case "tickers":
             this._updateTickers(data.data);
@@ -1003,7 +1004,7 @@ class OkexConnector extends ConnectorBase {
     //   `[TO FRONTEND][OnEvent: ${Events.trades}] updateTrades`,
     //   formatTrades
     // );
-    EventBus.emit(Events.trades, market, { trades: formatTrades });
+    EventBus.emit(Events.trades, market, { market, trades: formatTrades });
     // this.logger.log(
     //   `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [END] ----------`
     // );
@@ -1056,25 +1057,25 @@ class OkexConnector extends ConnectorBase {
     }
   }
 
-  _updateCandle1m(instId, candleData) {
-    const channel = "candle1m";
+  _updateCandle(instId, channel, candleData) {
+    this.candleChannel = channel;
     this.okexWsChannels[channel][instId] = candleData;
-    // this.logger.debug(`[${this.constructor.name}]_updateCandle1m`, instId, candleData);
-    const formatCandle = candleData.map((data) => {
-      const formatData = [
-        parseInt(data[0]),
-        data[1],
-        data[2],
-        data[3],
-        data[4],
-        data[5],
-      ];
-      return {
-        instId,
-        candle: formatData,
-      };
+    // this.logger.debug(`[${this.constructor.name}]_updateCandle`, instId, candleData);
+    const formatCandle = candleData
+      .map((data) => ({
+        time: parseInt(data[0]),
+        open: data[1],
+        high: data[2],
+        low: data[3],
+        close: data[4],
+        volume: data[5],
+      }))
+      .sort((a, b) => a.time - b.time);
+    EventBus.emit(Events.candleOnUpdate, instId, {
+      instId,
+      channel,
+      candle: formatCandle,
     });
-    EventBus.emit(Events.candleOnUpdate, instId, formatCandle);
   }
 
   _updateTickers(tickerData) {
@@ -1183,14 +1184,18 @@ class OkexConnector extends ConnectorBase {
     );
   }
 
-  _subscribeCandle1m(instId) {
+  _subscribeCandle1m(instId, resolution) {
+    this.candleChannel = `candle${resolution}`;
     const args = [
       {
-        channel: "candle1m",
+        channel: this.candleChannel,
         instId,
       },
     ];
-    this.logger.debug(`[${this.constructor.name}]_subscribeCandle1m`, args);
+    this.logger.debug(
+      `[${this.constructor.name}]_subscribeCandle${resolution}`,
+      args
+    );
     this.websocket.ws.send(
       JSON.stringify({
         op: "subscribe",
@@ -1302,7 +1307,7 @@ class OkexConnector extends ConnectorBase {
   // okex ws end
 
   // TideBitEx ws
-  _subscribeMarket(market) {
+  _subscribeMarket(market, resolution) {
     const instId = this._findInstId(market);
     if (this._findSource(instId) === SupportedExchange.OKEX) {
       this.logger.log(
@@ -1310,9 +1315,10 @@ class OkexConnector extends ConnectorBase {
       );
       this.logger.log(`_subscribeMarket instId`, instId);
       this.logger.log(`_subscribeMarket market`, market);
+      this.logger.log(`_subscribeMarket resolution`, resolution);
       this._subscribeTrades(instId);
       this._subscribeBook(instId);
-      this._subscribeCandle1m(instId);
+      this._subscribeCandle1m(instId, resolution);
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeMarket [END] ++++++`
       );

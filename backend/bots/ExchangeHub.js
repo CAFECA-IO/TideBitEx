@@ -737,12 +737,12 @@ class ExchangeHub extends Bot {
       });
     });
 
-    // EventBus.on(Events.candleOnUpdate, (market, formatCandle) => {
-    //   this.broadcast(market, {
-    //     type: Events.candleOnUpdate,
-    //     data: formatCandle,
-    //   });
-    // });
+    EventBus.on(Events.candleOnUpdate, (market, formatCandle) => {
+      this.broadcast(market, {
+        type: Events.candleOnUpdate,
+        data: formatCandle,
+      });
+    });
 
     // tickersOnUpdate
     EventBus.on(Events.tickers, (updateTickers) => {

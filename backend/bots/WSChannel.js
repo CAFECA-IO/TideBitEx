@@ -188,7 +188,7 @@ class WSChannel extends Bot {
         this._channelClients[args.market] = {};
       }
       if (Object.values(this._channelClients[args.market]).length === 0) {
-        EventBus.emit(Events.tickerOnSibscribe, args.market);
+        EventBus.emit(Events.tickerOnSibscribe, args.market, args.resolution);
       }
       this._channelClients[args.market][ws.id] = ws;
     } else {
@@ -202,7 +202,7 @@ class WSChannel extends Bot {
         this._channelClients[args.market] = {};
       }
       if (Object.values(this._channelClients[args.market]).length === 0) {
-        EventBus.emit(Events.tickerOnSibscribe, args.market);
+        EventBus.emit(Events.tickerOnSibscribe, args.market, args.resolution);
       }
       this._channelClients[args.market][ws.id] = ws;
     }

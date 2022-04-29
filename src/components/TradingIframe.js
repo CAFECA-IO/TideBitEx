@@ -6,14 +6,16 @@ const TradingIframe = (props) => {
   const [query, setQuery] = useState("");
 
   useEffect(() => {
-    const { name, pricescale, source } = storeCtx.selectedTicker;
-    const arr = [];
-    if (name) arr.push(`symbol=${name}`);
-    if (pricescale) arr.push(`pricescale=${pricescale}`);
-    if (source) arr.push(`source=${source}`);
-    if (props.isMobile) arr.push(`mobile=${1}`);
-    const qs = !!arr.length ? `?${arr.join("&")}` : "";
-    setQuery(qs);
+    if (storeCtx.selectedTicker) {
+      const { name, pricescale, source } = storeCtx.selectedTicker;
+      const arr = [];
+      if (name) arr.push(`symbol=${name}`);
+      if (pricescale) arr.push(`pricescale=${pricescale}`);
+      if (source) arr.push(`source=${source}`);
+      if (props.isMobile) arr.push(`mobile=${1}`);
+      const qs = !!arr.length ? `?${arr.join("&")}` : "";
+      setQuery(qs);
+    }
   }, [storeCtx.selectedTicker, props.isMobile]);
 
   return (

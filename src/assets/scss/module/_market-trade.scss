@@ -79,15 +79,25 @@
   }
   &__input-group {
     display: flex;
+    // align-items: center;
+    // flex-wrap: unset;
     flex-direction: column;
     & > label {
       margin-bottom: 0;
       font-size: 13px;
       color: #4a4a4a;
+      // border: 1px solid #e0e3eb;
+      // padding: 8px 12px;
+      // height: 38px;
+      // border-right: none;
+      // border-top-left-radius: 0.25rem;
+      // border-bottom-left-radius: 0.25rem;
+      // min-width: 75px;
     }
   }
   &__input-group--box {
     display: flex;
+    flex: auto;
   }
   &__input-group:not(:last-child) {
     margin-bottom: 10px;
@@ -96,6 +106,10 @@
     flex: auto;
     border: 1px solid #e0e3eb;
     font-weight: 300;
+    border-radius: 0px;
+    text-align: right;
+    // border-top-right-radius: 0px;
+    // border-bottom-right-radius: 0px;
   }
   &__input:focus {
     box-shadow: none;
@@ -110,6 +124,8 @@
   &__input-group--append > span {
     width: 100%;
     display: block;
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
   }
   &__error-message--container {
     height: 27px;
@@ -155,19 +171,21 @@
   &__button {
     color: #fff;
     text-transform: uppercase;
-    padding: 10px;
+    padding: 6px 12px;
     // flex: auto;
     // margin-top: 1rem;
     align-self: flex-end;
     width: 100%;
   }
   &--buy > &__button {
-    background: #26de81;
-    box-shadow: 0px 0px 15px 0px #26de81ad;
+    // background: #26de81;
+    background: #00b5ad;
+    // box-shadow: 0px 0px 15px 0px #26de81ad;
   }
   &--sell > &__button {
-    background: #ff231f;
-    box-shadow: 0px 0px 15px 0px #ff231fad;
+    // background: #ff231f;
+    background: #d9534f;
+    // box-shadow: 0px 0px 15px 0px #ff231fad;
   }
 }
 
@@ -175,6 +193,25 @@
   // If [device width] is less than or equal to 600px, then do
   .market-trade {
     border: none;
+
+    &__input-group {
+      display: flex;
+      align-items: center;
+      flex-wrap: unset;
+      flex-direction: row;
+      & > label {
+        margin-bottom: 0;
+        font-size: 13px;
+        color: #4a4a4a;
+        border: 1px solid #e0e3eb;
+        padding: 8px 12px;
+        height: 38px;
+        border-right: none;
+        border-top-left-radius: 0.25rem;
+        border-bottom-left-radius: 0.25rem;
+        min-width: 75px;
+      }
+    }
 
     &__header {
       display: none;
@@ -202,6 +239,8 @@
       flex: 1;
       color: #f0b90b;
       text-align: center;
+      border-bottom-left-radius: 0.25rem;
+      border-bottom-right-radius: 0.25rem;
     }
     &
       > &__container

@@ -101,15 +101,6 @@ const StoreProvider = (props) => {
             setBooks(updateBooks);
           }
           break;
-        // case "candleOnUpdate":
-        //   const updateCandles = middleman.updateCandles(metaData.data);
-        //   _candleTimestamp = new Date().getTime();
-        //   if (_candleTimestamp - +candleTimestamp > 1000) {
-        //     candleTimestamp = _candleTimestamp;
-        //     setCandles(updateCandles);
-        //   }
-        //   break;
-        // // ++ TODO TideBit WS 要與 OKEX整合
         case Events.account:
           const updateAccounts = middleman.updateAccounts(metaData.data);
           _accountTimestamp = new Date().getTime();
@@ -316,6 +307,7 @@ const StoreProvider = (props) => {
             op: "switchMarket",
             args: {
               market: ticker.market,
+              resolution: resolution,
             },
           })
         );
@@ -323,6 +315,7 @@ const StoreProvider = (props) => {
       // console.log(`****^^^^**** selectTickerHandler [END] ****^^^^****`);
     },
     [
+      resolution,
       isLogin,
       selectedTicker,
       history,
@@ -373,6 +366,7 @@ const StoreProvider = (props) => {
                 args: {
                   token,
                   market: id,
+                  resolution: resolution,
                 },
               })
             );
@@ -391,6 +385,7 @@ const StoreProvider = (props) => {
     getOrderHistory,
     getOrderList,
     location.pathname,
+    resolution,
   ]);
 
   const getAccounts = useCallback(async () => {

@@ -79,10 +79,7 @@ class TibeBitConnector extends ConnectorBase {
         );
         await client.quit();
         // ++ TODO: 下面補error handle
-        this.logger.log(
-          `[${this.constructor.name} getAccounts] value:`,
-          value
-        );
+        this.logger.log(`[${this.constructor.name} getAccounts] value:`, value);
         this.logger.log(
           `[${this.constructor.name} getAccounts] value.toString("latin1"):`,
           value.toString("latin1")
@@ -576,7 +573,7 @@ class TibeBitConnector extends ConnectorBase {
         `[TO FRONTEND][OnEvent: ${Events.trades}] updateTrades`,
         formatTrades
       );
-      EventBus.emit(Events.trades, market, { trades: formatTrades });
+      EventBus.emit(Events.trades, market, { market, trades: formatTrades });
       this.logger.log(
         `---------- [${this.constructor.name}]  _updateTrades market: ${market} [END] ----------`
       );
