@@ -882,7 +882,8 @@ class OkexConnector extends ConnectorBase {
             }
             break;
           case this.candleChannel:
-            this._updateCandle(values[0], data.channel, data.data);
+            this.logger.log(`this.candleChannel`, this.candleChannel, data);
+            // this._updateCandle(values[0], data.channel, data.data);
             break;
           case "tickers":
             this._updateTickers(data.data);
