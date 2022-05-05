@@ -131,6 +131,7 @@ const CurrenciesView = (props) => {
   };
 
   useEffect(() => {
+    if(exchange)
     onChoseExchageHandler(exchange);
   }, [exchange]);
 
