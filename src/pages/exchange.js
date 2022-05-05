@@ -6,7 +6,6 @@ import MobileExchange from "./mobile-exchange";
 const Exchange = () => {
   const { width } = useViewport();
   const breakpoint = 414;
-
   return width <= breakpoint ? <MobileExchange /> : <DesktopExchange />;
 };
 
