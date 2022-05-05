@@ -443,14 +443,6 @@ const StoreProvider = (props) => {
             setAccounts(updateAccounts);
           }
         }
-        const { updatePendingOrders, updateCloseOrders } =
-          middleman.updateOrders({
-            ...order,
-            state: "wait",
-            state_text: "Waiting",
-          });
-        setPendingOrders(updatePendingOrders);
-        setCloseOrders(updateCloseOrders);
         enqueueSnackbar(
           `${order.kind === "bid" ? "Bid" : "Ask"} ${order.volume} ${
             order.instId.split("-")[0]
