@@ -30,7 +30,10 @@ const CurrencyDetail = (props) => {
           </div>
         </div>
         <div className="detail__header--sub">
-          {`${props.total}: ${props.currency}`}
+          <div>{`${props.exchange}: ${props.ex_total.toFixed(2)}: ${
+            props.currency
+          }`}</div>
+          <div>TideBit: {`${props.tb_total.toFixed(2)}${props.currency}`}</div>
         </div>
       </div>
       {props.details && (
@@ -43,25 +46,38 @@ const CurrencyDetail = (props) => {
                 <div className="currency__bar--leading">{user.memberId}</div>
                 <div
                   className={`currency__bar${
-                    total >= props.ex_total ? " alert" : ""
+                    total >= props.ex_total ? " currency__bar--alert" : ""
                   }`}
                 >
-                  <div
+                  <div className="currency__bar-box">
+                    <div
+                      style={{
+                        width: `${(user.balance / props.tb_total) * 100}%`,
+                      }}
+                    >
+                      {user.balance.toFixed(2)}
+                    </div>
+                    <div
+                      style={{
+                        width: `${(user.locked / props.tb_total) * 100}%`,
+                      }}
+                    >
+                      {user.locked.toFixed(2)}
+                    </div>
+                  </div>
+                  {/* <div
+                    className="currency__alert"
                     style={{
-                      width: `${(user.balance / total) * 100}%`,
+                      left: `${(props.ex_total / props.tb_total) * 100}%`,
                     }}
                   >
-                    {user.balance.toFixed(2)}
-                  </div>
-                  <div
-                    style={{
-                      width: `${(user.locked / total) * 100}%`,
-                    }}
-                  >
-                    {user.locked.toFixed(2)}
-                  </div>
+                    <div className="currency__alert--line"></div>
+                    <div className="currency__alert--text">
+                      {props.exchange}
+                    </div>
+                  </div> */}
                 </div>
-                <div>{props.exchange}</div>
+                <div className="currency__bar--text">TideBit</div>
               </li>
             );
           })}
@@ -90,9 +106,9 @@ const CurrenciesView = (props) => {
         const details = [];
         let sum = 0;
 
-        for (let i = 60983; i < 60987; i++) {
-          const balance = Math.random() * 100;
-          const locked = Math.random() * 100;
+        for (let i = 60983; i <= 60987; i++) {
+          const balance = Math.random() * 20;
+          const locked = Math.random() * 20;
           const total = balance + locked;
           sum += total;
 
@@ -122,7 +138,7 @@ const CurrenciesView = (props) => {
           tb_total,
           details,
           alert1: sum * 0.2, // 20% 準備率
-          alert2: details[0].total, // 單一幣種最多資產用戶持有的一倍
+          alert2: details[0].total * 2, // 單一幣種最多資產用戶持有的一倍
         };
       });
 
@@ -131,8 +147,7 @@ const CurrenciesView = (props) => {
   };
 
   useEffect(() => {
-    if(exchange)
-    onChoseExchageHandler(exchange);
+    if (exchange) onChoseExchageHandler(exchange);
   }, [exchange]);
 
   return (
@@ -167,8 +182,8 @@ const CurrenciesView = (props) => {
                                   overview[currency].alert1 &&
                                 overview[currency].ex_total <
                                   overview[currency].alert2
-                                  ? " alert"
-                                  : " warning"
+                                  ? " currency__icon--alert"
+                                  : " currency__icon--warning"
                               }`}
                             >
                               <div>!</div>
@@ -186,36 +201,61 @@ const CurrenciesView = (props) => {
                           overview[currency].tb_total;
 
                         return (
-                          <li className={`currency__overview--tile`}>
+                          <li
+                            className={`currency__overview--tile`}
+                            onClick={() => setCurrency(currency)}
+                          >
                             <div className="currency__bar--leading">
-                              {currency}
+                              <div>{currency}</div>
+                              {(overview[currency].ex_total <
+                                overview[currency].alert1 ||
+                                overview[currency].ex_total <
+                                  overview[currency].alert2) && (
+                                <div
+                                  className={`currency__icon${
+                                    overview[currency].ex_total <
+                                      overview[currency].alert1 &&
+                                    overview[currency].ex_total <
+                                      overview[currency].alert2
+                                      ? " currency__icon--alert"
+                                      : " currency__icon--warning"
+                                  }`}
+                                >
+                                  <div>!</div>
+                                </div>
+                              )}
                             </div>
                             <div className="currency__bar--container">
                               <div className="currency__exchange">
                                 <div className="currency__bar">
-                                  <div
-                                    style={{
-                                      width: `${
-                                        (overview[currency].ex_balance /
-                                          total) *
-                                        100
-                                      }%`,
-                                    }}
-                                  >
-                                    {overview[currency].ex_balance.toFixed(2)}
-                                  </div>
-                                  <div
-                                    style={{
-                                      width: `${
-                                        (overview[currency].ex_locked / total) *
-                                        100
-                                      }%`,
-                                    }}
-                                  >
-                                    {overview[currency].ex_locked.toFixed(2)}
+                                  <div className="currency__bar-box">
+                                    <div
+                                      style={{
+                                        width: `${
+                                          (overview[currency].ex_balance /
+                                            total) *
+                                          100
+                                        }%`,
+                                      }}
+                                    >
+                                      {overview[currency].ex_balance.toFixed(2)}
+                                    </div>
+                                    <div
+                                      style={{
+                                        width: `${
+                                          (overview[currency].ex_locked /
+                                            total) *
+                                          100
+                                        }%`,
+                                      }}
+                                    >
+                                      {overview[currency].ex_locked.toFixed(2)}
+                                    </div>
                                   </div>
                                 </div>
-                                <div>{exchange}</div>
+                                <div className="currency__bar--text">
+                                  {exchange}
+                                </div>
                               </div>
                               <div className="currency__exchange">
                                 <div
@@ -224,53 +264,62 @@ const CurrenciesView = (props) => {
                                       overview[currency].alert1 &&
                                     overview[currency].ex_total <
                                       overview[currency].alert2
-                                      ? " alert"
-                                      : " warning"
+                                      ? " currency__bar--alert"
+                                      : " currency__bar--warning"
                                   }`}
                                 >
-                                  <div
-                                    style={{
-                                      width: `${
-                                        (overview[currency].tb_balance /
-                                          total) *
-                                        100
-                                      }%`,
-                                    }}
-                                  >
-                                    {overview[currency].tb_balance.toFixed(2)}
-                                  </div>
-                                  <div
-                                    style={{
-                                      width: `${
-                                        (overview[currency].tb_locked / total) *
-                                        100
-                                      }%`,
-                                    }}
-                                  >
-                                    {overview[currency].tb_locked.toFixed(2)}
+                                  <div className="currency__bar-box">
+                                    <div
+                                      style={{
+                                        width: `${
+                                          (overview[currency].tb_balance /
+                                            total) *
+                                          100
+                                        }%`,
+                                      }}
+                                    >
+                                      {overview[currency].tb_balance.toFixed(2)}
+                                    </div>
+                                    <div
+                                      style={{
+                                        width: `${
+                                          (overview[currency].tb_locked /
+                                            total) *
+                                          100
+                                        }%`,
+                                      }}
+                                    >
+                                      {overview[currency].tb_locked.toFixed(2)}
+                                    </div>
                                   </div>
                                 </div>
-                                <div>Tidebit</div>
-                                <div
-                                  className="currency__alert"
-                                  style={{
-                                    left: overview[currency].alert1 / total,
-                                  }}
-                                >
-                                  <div className="currency__alert--line"></div>
-                                  <div className="currency__alert--text">
-                                    20% 準備率
-                                  </div>
+                                <div className="currency__bar--text">
+                                  Tidebit
                                 </div>
                                 <div
                                   className="currency__alert"
                                   style={{
-                                    left: overview[currency].alert2 / total,
+                                    left: `${
+                                      (overview[currency].alert1 / total) * 100
+                                    }%`,
+                                  }}
+                                >
+                                  <div className="currency__alert--line"></div>
+                                  <div className="currency__alert--text currency__alert--text-1">
+                                    RRR
+                                  </div>
+                                </div>
+                                <div
+                                  className="currency__alert"
+                                  style={{
+                                    left: `${
+                                      (overview[currency].alert2 / total) * 100
+                                    }%`,
                                   }}
                                 >
                                   <div className="currency__alert--line"></div>
                                   <div className="currency__alert--text">
-                                    單一幣種最多資產用戶持有的一倍
+                                    MPA
                                   </div>
                                 </div>
                               </div>
@@ -292,6 +341,7 @@ const CurrenciesView = (props) => {
           currency={currency}
           details={overview[currency].details}
           ex_total={overview[currency].ex_total}
+          tb_total={overview[currency].tb_total}
           onCloseHandler={() => setCurrency(null)}
         />
       )}
