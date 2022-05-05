@@ -1,6 +1,8 @@
 const SafeMath = require("./SafeMath");
 const FormData = require("form-data");
 
+
+const users = [];
 class TideBitLegacyAdapter {
   constructor({ config, database, logger }) {
     this.config = config;
@@ -8,6 +10,11 @@ class TideBitLegacyAdapter {
     this.logger = logger;
     return this;
   }
+
+  // ++ addUser
+  // => call getMemberIdFromRedis from utils
+
+  // ++ removeUser //++ gc behavior （timer 清理）
 
   static peatioOrderBody({ header, body }) {
     let obj = {};

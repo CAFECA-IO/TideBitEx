@@ -1,5 +1,4 @@
 const path = require("path");
-const { default: axios } = require("axios");
 
 const Bot = require(path.resolve(__dirname, "Bot.js"));
 const OkexConnector = require("../libs/Connectors/OkexConnector");
@@ -109,8 +108,7 @@ class ExchangeHub extends Bot {
   }
 
   async getMemberIdFromRedis(peatioSession) {
-    if (this.tideBitConnector.memberId) return this.tideBitConnector.memberId;
-    else return this.tideBitConnector.getMemberIdFromRedis(peatioSession);
+    return this.tideBitConnector.getMemberIdFromRedis(peatioSession);
   }
 
   // account api
@@ -1092,8 +1090,12 @@ class ExchangeHub extends Bot {
     if (!market) {
       throw new Error(`this.tidebitMarkets.instId ${body.instId} not found.`);
     }
-    const { id: bid } = await this.database.getCurrencyByKey(market.quote_unit);
-    const { id: ask } = await this.database.getCurrencyByKey(market.base_unit);
+    const { id: bid } = this.currencies.find(
+      (curr) => curr.key === market.quote_unit
+    );
+    const { id: ask } = this.currencies.find(
+      (curr) => curr.key === market.base_unit
+    );
     if (!bid) {
       throw new Error(`bid not found`);
     }

@@ -47,6 +47,7 @@ class Receptor extends Bot {
         app
           .use(cors())
           .use(staticServe(this.config.base.static))
+          // ++ TODO parsed memberId
           .use(this.router.routes())
           .use(this.router.allowedMethods())
           .use(proxy(peatio));
@@ -120,6 +121,7 @@ class Receptor extends Bot {
         };
         return operation(inputs).then((rs) => {
           ctx.body = rs;
+          // ++ TODO 需新增寫入 session 的功能
           next();
         });
       }
