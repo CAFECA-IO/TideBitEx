@@ -1,8 +1,8 @@
 import React from "react";
-import Layout from "../components/Layout";
+// import Layout from "../components/Layout";
 import { Switch, Route } from "react-router-dom";
 import Exchange from "../pages/exchange";
-import Markets from "../pages/markets";
+import Analysis from "../pages/analysis";
 import Profile from "./profile";
 import Wallet from "./wallet";
 import Settings from "./settings";
@@ -18,7 +18,7 @@ import Notfound from "./notfound";
 
 export default function index() {
   return (
-    <Layout>
+    // <Layout>
       <Switch>
         <Route exact path="/">
           <Exchange />
@@ -27,7 +27,7 @@ export default function index() {
           <Exchange />
         </Route>
         <Route path="/analysis">
-          <Markets />
+          <Analysis />
         </Route>
         <Route path="/profile">
           <Profile />
@@ -66,6 +66,6 @@ export default function index() {
           <Notfound />
         </Route>
       </Switch>
-    </Layout>
+    // </Layout>
   );
 }
