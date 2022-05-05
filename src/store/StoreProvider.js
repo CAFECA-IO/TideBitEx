@@ -443,6 +443,14 @@ const StoreProvider = (props) => {
             setAccounts(updateAccounts);
           }
         }
+        const { updatePendingOrders, updateCloseOrders } =
+          middleman.updateOrders({
+            ...order,
+            state: "wait",
+            state_text: "Waiting",
+          });
+        setPendingOrders(updatePendingOrders);
+        setCloseOrders(updateCloseOrders);
         enqueueSnackbar(
           `${order.kind === "bid" ? "Bid" : "Ask"} ${order.volume} ${
             order.instId.split("-")[0]
@@ -489,10 +497,16 @@ const StoreProvider = (props) => {
       };
       try {
         const result = await middleman.cancelOrder(_order);
-        // await getOrderHistory();
-        // await getOrderList();
-        // await getAccounts();
-        // await getBooks(order.instId);
+        // -- WORKAROUND
+        const { updatePendingOrders, updateCloseOrders } =
+          middleman.updateOrders({
+            ...order,
+            state: "cancel",
+            state_text: "Canceled",
+          });
+        setPendingOrders(updatePendingOrders);
+        setCloseOrders(updateCloseOrders);
+        // -- WORKAROUND
         enqueueSnackbar(
           `You have canceled order id(${order.id}): ${
             order.kind === "bid" ? "Bid" : "Ask"

@@ -869,10 +869,10 @@ class TibeBitConnector extends ConnectorBase {
         url,
         headers,
       });
-      this.logger.debug(tbCancelOrderRes);
       return new ResponseFormat({
         message: "postCancelOrder",
         code: Codes.SUCCESS,
+        payload: tbCancelOrderRes.data,
       });
     } catch (error) {
       this.logger.error(error);
