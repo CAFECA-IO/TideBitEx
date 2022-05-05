@@ -61,6 +61,7 @@ class TibeBitConnector extends ConnectorBase {
     return this;
   }
 
+  // ++ move to utils
   async getMemberIdFromRedis(peatioSession) {
     const client = redis.createClient({
       url: this.redis,
