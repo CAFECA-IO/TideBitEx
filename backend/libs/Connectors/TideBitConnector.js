@@ -832,6 +832,7 @@ class TibeBitConnector extends ConnectorBase {
       const tbOrdersRes = await axios.post(url, formbody, {
         headers,
       }); // TODO: payload
+      this.logger.log(`tbOrdersRes`, tbOrdersRes)
       return new ResponseFormat({
         message: "postPlaceOrder",
         payload: [
