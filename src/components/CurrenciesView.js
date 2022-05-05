@@ -52,30 +52,30 @@ const CurrencyDetail = (props) => {
                   <div className="currency__bar-box">
                     <div
                       style={{
-                        width: `${(user.balance / props.tb_total) * 100}%`,
+                        width: `${(user.balance / props.details[0].total) * 100}%`,
                       }}
                     >
                       {user.balance.toFixed(2)}
                     </div>
                     <div
                       style={{
-                        width: `${(user.locked / props.tb_total) * 100}%`,
+                        width: `${(user.locked / props.details[0].total) * 100}%`,
                       }}
                     >
                       {user.locked.toFixed(2)}
                     </div>
                   </div>
-                  {/* <div
+                  <div
                     className="currency__alert"
                     style={{
-                      left: `${(props.ex_total / props.tb_total) * 100}%`,
+                      left: `${(props.ex_total / props.details[0].total) * 100}%`,
                     }}
                   >
                     <div className="currency__alert--line"></div>
                     <div className="currency__alert--text">
                       {props.exchange}
                     </div>
-                  </div> */}
+                  </div>
                 </div>
                 <div className="currency__bar--text">TideBit</div>
               </li>
