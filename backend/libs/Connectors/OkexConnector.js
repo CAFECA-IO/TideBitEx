@@ -785,6 +785,51 @@ class OkexConnector extends ConnectorBase {
   }
   // trade api end
 
+  async cancelOrders({ body }) {
+    const method = "POST";
+    const path = "/api/v5/trade/cancel-batch-orders";
+
+    const timeString = new Date().toISOString();
+
+    const okAccessSign = await this.okAccessSign({
+      timeString,
+      method,
+      path,
+      body,
+    });
+
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}`,
+        headers: this.getHeaders(true, { timeString, okAccessSign }),
+        data: body,
+      });
+      this.logger.log(res.data.data);
+      if (res.data && res.data.code !== "0") {
+        const message = JSON.stringify(res.data);
+        this.logger.trace(message);
+        return new ResponseFormat({
+          message,
+          code: Codes.THIRD_PARTY_API_ERROR,
+        });
+      }
+      return new ResponseFormat({
+        message: "cancelOrders",
+        payload: res.data.data,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      let message = error.message;
+      if (error.response && error.response.data)
+        message = error.response.data.msg;
+      return new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
   // public data api
   async getInstruments({ query }) {
     const method = "GET";

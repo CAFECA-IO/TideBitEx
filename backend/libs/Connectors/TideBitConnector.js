@@ -77,15 +77,15 @@ class TibeBitConnector extends ConnectorBase {
       );
       await client.quit();
       // ++ TODO: 下面補error handle
-      this.logger.log(`[${this.constructor.name} getAccounts] value:`, value);
+      this.logger.log(`[${this.constructor.name} getMemberIdFromRedis] value:`, value);
       this.logger.log(
-        `[${this.constructor.name} getAccounts] value.toString("latin1"):`,
+        `[${this.constructor.name} getMemberIdFromRedis] value.toString("latin1"):`,
         value.toString("latin1")
       );
       const split1 = value
         .toString("latin1")
         .split("member_id\x06:\x06EFi\x02");
-      this.logger.log(`[${this.constructor.name} getAccounts] split1:`, split1);
+      this.logger.log(`[${this.constructor.name} getMemberIdFromRedis] split1:`, split1);
       if (split1.length > 0) {
         const memberIdLatin1 = split1[1].split('I"')[0];
         const memberIdString = Buffer.from(memberIdLatin1, "latin1")
@@ -96,7 +96,7 @@ class TibeBitConnector extends ConnectorBase {
       } else return -1;
     } catch (error) {
       this.logger.error(
-        `[${this.constructor.name} getAccounts] error: "get member_id fail`,
+        `[${this.constructor.name} getMemberIdFromRedis] error: "get member_id fail`,
         error
       );
       this.logger.error(error);
@@ -635,9 +635,9 @@ class TibeBitConnector extends ConnectorBase {
     );
   }
 
-  async _tbGetOrderList(query) {
+  async tbGetOrderList(query) {
     if (!query.market) {
-      throw new Error(`this.tidebitMarkets.instId ${query.instId} not found.`);
+      throw new Error(`this.tidebitMarkets.market ${query.market} not found.`);
     }
     const { id: bid } = this.currencies.find(
       (curr) => curr.key === query.market.quote_unit
@@ -658,12 +658,14 @@ class TibeBitConnector extends ConnectorBase {
         baseCcy: ask,
         state: query.state,
         memberId: query.memberId,
+        orderType: query.orderType,
       });
     } else {
       orderList = await this.database.getOrderList({
         quoteCcy: bid,
         baseCcy: ask,
         state: query.state,
+        orderType: query.orderType,
       });
     }
     const orders = orderList.map((order) => ({
@@ -696,7 +698,7 @@ class TibeBitConnector extends ConnectorBase {
 
   async getOrderList({ query }) {
     try {
-      const orders = await this._tbGetOrderList({
+      const orders = await this.tbGetOrderList({
         ...query,
         state: this.database.ORDER_STATE.WAIT,
       });
@@ -716,11 +718,11 @@ class TibeBitConnector extends ConnectorBase {
 
   async getOrderHistory({ query }) {
     try {
-      const cancelOrders = await this._tbGetOrderList({
+      const cancelOrders = await this.tbGetOrderList({
         ...query,
         state: this.database.ORDER_STATE.CANCEL,
       });
-      const doneOrders = await this._tbGetOrderList({
+      const doneOrders = await this.tbGetOrderList({
         ...query,
         state: this.database.ORDER_STATE.DONE,
       });
@@ -880,6 +882,93 @@ class TibeBitConnector extends ConnectorBase {
       // debug for postman so return error
       return new ResponseFormat({
         message: "postCancelOrder error",
+        code: Codes.UNKNOWN_ERROR,
+      });
+    }
+  }
+
+  async cancelAllAsks({ header, body }) {
+    try {
+      const url = `${this.peatio}/markets/${body.market.id}/order_asks/clear`;
+      this.logger.debug("cancelAllAsks", url);
+      const headers = {
+        Accept: "*/*",
+        "x-csrf-token": body["X-CSRF-Token"],
+        cookie: header.cookie,
+      };
+      const tbCancelOrderRes = await axios({
+        method: "post",
+        url,
+        headers,
+      });
+      return new ResponseFormat({
+        message: "cancelAllAsks",
+        code: Codes.SUCCESS,
+        payload: tbCancelOrderRes.data,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      // debug for postman so return error
+      return new ResponseFormat({
+        message: "cancelAllAsks error",
+        code: Codes.UNKNOWN_ERROR,
+      });
+    }
+  }
+
+  async cancelAllBids({ header, body }) {
+    try {
+      const url = `${this.peatio}/markets/${body.market.id}/order_bids/clear`;
+      this.logger.debug("cancelAllBids", url);
+      const headers = {
+        Accept: "*/*",
+        "x-csrf-token": body["X-CSRF-Token"],
+        cookie: header.cookie,
+      };
+      const tbCancelOrderRes = await axios({
+        method: "post",
+        url,
+        headers,
+      });
+      return new ResponseFormat({
+        message: "cancelAllBids",
+        code: Codes.SUCCESS,
+        payload: tbCancelOrderRes.data,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      // debug for postman so return error
+      return new ResponseFormat({
+        message: "cancelAllBids error",
+        code: Codes.UNKNOWN_ERROR,
+      });
+    }
+  }
+
+  async cancelAllOrders({ header, body }) {
+    try {
+      const url = `${this.peatio}/markets/${body.market.id}/orders/clear`;
+      this.logger.debug("cancelAll", url);
+      const headers = {
+        Accept: "*/*",
+        "x-csrf-token": body["X-CSRF-Token"],
+        cookie: header.cookie,
+      };
+      const tbCancelOrderRes = await axios({
+        method: "post",
+        url,
+        headers,
+      });
+      return new ResponseFormat({
+        message: "cancelAll",
+        code: Codes.SUCCESS,
+        payload: tbCancelOrderRes.data,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      // debug for postman so return error
+      return new ResponseFormat({
+        message: "cancelAll error",
         code: Codes.UNKNOWN_ERROR,
       });
     }

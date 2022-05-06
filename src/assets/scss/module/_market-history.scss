@@ -82,6 +82,23 @@
     }
   }
 }
+.order-list {
+  flex: auto;
+}
+.pending-orders {
+  flex: auto;
+  display: flex;
+  flex-direction: column;
+  &__box {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: center;
+  }
+  &__box > div {
+    cursor: pointer;
+  }
+}
 
 @media only screen and (max-width: 414px) {
   // If [device width] is less than or equal to 600px, then do

@@ -11,6 +11,7 @@ const staticServe = require("koa-static");
 const dvalue = require("dvalue");
 const cors = require("@koa/cors");
 const proxy = require("koa-better-http-proxy");
+const { parseMemberId } = require("../libs/TideBitLegacyAdapter");
 
 const Bot = require(path.resolve(__dirname, "Bot.js"));
 const Utils = require(path.resolve(__dirname, "../libs/Utils.js"));
@@ -47,7 +48,7 @@ class Receptor extends Bot {
         app
           .use(cors())
           .use(staticServe(this.config.base.static))
-          // ++ TODO parsed memberId
+          .use(parseMemberId)
           .use(this.router.routes())
           .use(this.router.allowedMethods())
           .use(proxy(peatio));
@@ -103,12 +104,12 @@ class Receptor extends Bot {
   }
 
   register({ pathname, options, operation }) {
+    this.logger.log(`register options`, options);
     const method = options.method.toLowerCase();
     this.router[method](
       pathname,
       bodyParser({ multipart: true }),
       (ctx, next) => {
-      const peatioToken = Utils.peatioToken(ctx.header)
         const inputs = {
           body: ctx.request.body,
           files: ctx.request.files,
@@ -117,7 +118,8 @@ class Receptor extends Bot {
           method: ctx.method,
           query: ctx.query,
           session: ctx.session,
-          token: peatioToken,
+          token: ctx.token,
+          memberId: ctx.memberId,
         };
         return operation(inputs).then((rs) => {
           ctx.body = rs;

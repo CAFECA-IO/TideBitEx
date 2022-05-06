@@ -227,6 +227,7 @@ const StoreContext = React.createContext({
    * @returns {Promise<Object>}
    */
   cancelOrder: async (order) => {},
+  cancelOrders: async (type) => {},
   activePageHandler: () => {},
 });
 

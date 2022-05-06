@@ -231,6 +231,18 @@ class Communicator {
     }
   }
 
+  async cancelOrders(options) {
+    try {
+      const res = await this._post(`/trade/cancel-orders`, options);
+      if (res.success) {
+        return res.data;
+      }
+      return Promise.reject({ message: res.message, code: res.code });
+    } catch (error) {
+      return Promise.reject({ message: error });
+    }
+  }
+
   // use for need jwt request
   async _get(url) {
     try {
