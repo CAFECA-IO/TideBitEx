@@ -582,6 +582,7 @@ class ExchangeHub extends Bot {
     } catch (error) {
       t.rollback();
     }
+    return t;
     /* !!! HIGH RISK (end) !!! */
   }
   async postCancelOrder({ header, params, query, body, memberId }) {
@@ -589,30 +590,33 @@ class ExchangeHub extends Bot {
 
     // const t = await this.database.transaction();
     try {
-      // get orderId from body.clOrdId
+      // 1. get orderId from body.clOrdId
       let { orderId } =
         source === SupportedExchange.OKEX
           ? Utils.parseClOrdId(body.clOrdId)
           : { orderId: body.id };
       switch (source) {
         case SupportedExchange.OKEX:
-          // if (order.state !== this.database.ORDER_STATE.WAIT) {
-          //   await t.rollback();
-          //   return new ResponseFormat({
-          //     code: Codes.ORDER_HAS_BEEN_CLOSED,
-          //     message: "order has been close",
-          //   });
-          // }
-          const okexCancelOrderRes = await this.okexConnector.router(
-            "postCancelOrder",
-            { params, query, body }
-          );
-          this.logger.log(`postCancelOrder`, body);
-          this.logger.log(`okexCancelOrderRes`, okexCancelOrderRes);
-          if (okexCancelOrderRes.success) {
-            this.updateOrderState({ orderId, memberId, body });
+          let t;
+          try {
+            /* !!! HIGH RISK (start) !!! */
+            t = this.updateOrderStatus({ orderId, memberId, body });
+            /* !!! HIGH RISK (end) !!! */
+            const okexCancelOrderRes = await this.okexConnector.router(
+              "postCancelOrder",
+              { params, query, body }
+            );
+            this.logger.log(`postCancelOrder`, body);
+            this.logger.log(`okexCancelOrderRes`, okexCancelOrderRes);
+            await t.commit();
+            return okexCancelOrderRes;
+          } catch (error) {
+            await t.rollback();
+            return new ResponseFormat({
+              message: "instId not Support now",
+              code: Codes.API_NOT_SUPPORTED,
+            });
           }
-          return okexCancelOrderRes;
         case SupportedExchange.TIDEBIT:
           return this.tideBitConnector.router(`postCancelOrder`, {
             header,
@@ -662,23 +666,56 @@ class ExchangeHub extends Bot {
                 ordId: Utils.parseClOrdId(_order.clOrdId),
               };
             });
-          const okexCancelOrdersRes = await this.okexConnector.router(
-            "cancelOrders",
-            { body: orders }
-          );
-          this.logger.log(`cancelAll orders`, orders);
-          this.logger.log(`cancelAll res`, okexCancelOrdersRes);
-          if (okexCancelOrdersRes.success) {
-            orders.map((_order) =>
-              this.updateOrderState({
-                orderData: _order,
-                orderId: order.ordId,
-                memberId,
-              })
-            );
+          const res = [];
+          const err = [];
+          orders.forEach(async (order) => {
+            let t;
+            try {
+              /* !!! HIGH RISK (start) !!! */
+              t = this.updateOrderStatus({ orderId: order.id, memberId, body });
+              /* !!! HIGH RISK (end) !!! */
+              const okexCancelOrderRes = await this.okexConnector.router(
+                "postCancelOrder",
+                { body: order }
+              );
+              this.logger.log(`postCancelOrder`, body);
+              this.logger.log(`okexCancelOrderRes`, okexCancelOrderRes);
+              res.push(okexCancelOrderRes);
+              await t.commit();
+              return okexCancelOrderRes;
+            } catch (error) {
+              await t.rollback();
+              err.push(error);
+            }
+          });
+          if (err.length > 0) {
+            return new ResponseFormat({
+              message: "Fail to cancel partial orders",
+              code: Codes.API_NOT_SUPPORTED,
+            });
+          } else {
+            return new ResponseFormat({
+              message: "postCancelOrder",
+              payload: res,
+            });
           }
+        // const okexCancelOrdersRes = await this.okexConnector.router(
+        //   "cancelOrders",
+        //   { body: orders }
+        // );
+        // this.logger.log(`cancelAll orders`, orders);
+        // this.logger.log(`cancelAll res`, okexCancelOrdersRes);
+        // if (okexCancelOrdersRes.success) {
+        //   orders.map((_order) =>
+        //     this.updateOrderState({
+        //       orderData: _order,
+        //       orderId: order.ordId,
+        //       memberId,
+        //     })
+        //   );
+        // }
 
-          return okexCancelOrdersRes;
+        // return okexCancelOrdersRes;
 
         /* !!! HIGH RISK (end) !!! */
         case SupportedExchange.TIDEBIT:

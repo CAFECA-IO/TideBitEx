@@ -192,7 +192,7 @@ export const PendingOrders = (props) => {
               <OrderTile order={order} cancelOrder={cancelOrder} />
             ))}
       </ul>
-      {storeCtx.selectedTicker.source === "TideBit" && (
+      {storeCtx.selectedTicker?.source === "TideBit" && (
         <div className="pending-orders__box">
           <div onClick={() => cancelOrders("all")}>{t("cancel_all")}</div>
           <div onClick={() => cancelOrders("ask")}>{t("cancel_all_asks")}</div>
