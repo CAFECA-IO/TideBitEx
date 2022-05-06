@@ -724,8 +724,12 @@ class Utils {
         return memberId;
       } else return -1;
     } catch (error) {
-      await client.quit();
-      return -1;
+      try {
+        await client.quit();
+        return -1;
+      } catch (error) {
+        return -1;
+      }
     }
   }
 

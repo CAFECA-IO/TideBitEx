@@ -23,7 +23,7 @@ class TideBitLegacyAdapter {
 
   // ++ middleware
   static async parseMemberId(ctx, next) {
-    console.log(`parseMemberId ctx.header`, ctx.header);
+    // console.log(`parseMemberId ctx.header`, ctx.header);
     if (Math.random() < 0.01) {
       this.usersGC();
     }
