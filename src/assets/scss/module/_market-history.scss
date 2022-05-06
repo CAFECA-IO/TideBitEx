@@ -95,6 +95,9 @@
     gap: 10px;
     justify-content: center;
   }
+  &__box > div {
+    cursor: pointer;
+  }
 }
 
 @media only screen and (max-width: 414px) {
