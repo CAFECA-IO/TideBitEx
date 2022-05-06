@@ -105,12 +105,12 @@ class Receptor extends Bot {
   }
 
   register({ pathname, options, operation }) {
+    this.logger.log(`register options`, options);
     const method = options.method.toLowerCase();
     this.router[method](
       pathname,
       bodyParser({ multipart: true }),
       (ctx, next) => {
-        this.logger.log(`register ctx`, ctx);
         const inputs = {
           body: ctx.request.body,
           files: ctx.request.files,
