@@ -500,7 +500,7 @@ class ExchangeHub extends Bot {
     }
   }
 
-  async updateOrderState({ orderId, memberId, orderData }) {
+  async updateOrderStatus({ orderId, memberId, orderData }) {
     /* !!! HIGH RISK (start) !!! */
     // 1. get orderId from body
     // 2. get order data from table
@@ -548,36 +548,41 @@ class ExchangeHub extends Bot {
     );
     EventBus.emit(Events.order, orderData.market, _updateOrder);
 
-    await this.database.updateOrder(newOrder, { dbTransaction: t });
-    if (account) {
-      let _updateAccount = {
-        balance: SafeMath.plus(account.balance, balance),
-        locked: SafeMath.plus(account.locked, locked),
-        currency: this.currencies.find((curr) => curr.id === account.currency)
-          ?.symbol,
-        total: SafeMath.plus(
-          SafeMath.plus(account.balance, balance),
-          SafeMath.plus(account.locked, locked)
-        ),
-      };
-      EventBus.emit(Events.account, _updateAccount);
-      this.logger.log(
-        `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:425`,
-        _updateAccount
-      );
+    try {
+      await this.database.updateOrder(newOrder, { dbTransaction: t });
+      if (account) {
+        let _updateAccount = {
+          balance: SafeMath.plus(account.balance, balance),
+          locked: SafeMath.plus(account.locked, locked),
+          currency: this.currencies.find((curr) => curr.id === account.currency)
+            ?.symbol,
+          total: SafeMath.plus(
+            SafeMath.plus(account.balance, balance),
+            SafeMath.plus(account.locked, locked)
+          ),
+        };
+        EventBus.emit(Events.account, _updateAccount);
+        this.logger.log(
+          `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:425`,
+          _updateAccount
+        );
 
-      await this._updateAccount(
-        account,
-        t,
-        balance,
-        locked,
-        fee,
-        this.database.MODIFIABLE_TYPE.ORDER,
-        orderId,
-        created_at,
-        this.database.FUNC.UNLOCK_FUNDS
-      );
+        await this._updateAccount(
+          account,
+          t,
+          balance,
+          locked,
+          fee,
+          this.database.MODIFIABLE_TYPE.ORDER,
+          orderId,
+          created_at,
+          this.database.FUNC.UNLOCK_FUNDS
+        );
+      }
+    } catch (error) {
+      t.rollback();
     }
+    /* !!! HIGH RISK (end) !!! */
   }
   async postCancelOrder({ header, params, query, body, memberId }) {
     const source = this._findSource(body.instId);
@@ -608,8 +613,6 @@ class ExchangeHub extends Bot {
             this.updateOrderState({ orderId, memberId, body });
           }
           return okexCancelOrderRes;
-
-        /* !!! HIGH RISK (end) !!! */
         case SupportedExchange.TIDEBIT:
           return this.tideBitConnector.router(`postCancelOrder`, {
             header,
