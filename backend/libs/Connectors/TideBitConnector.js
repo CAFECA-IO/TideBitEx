@@ -897,7 +897,7 @@ class TibeBitConnector extends ConnectorBase {
         cookie: header.cookie,
       };
       const tbCancelOrderRes = await axios({
-        method: "DELETE",
+        method: "post",
         url,
         headers,
       });
@@ -926,7 +926,7 @@ class TibeBitConnector extends ConnectorBase {
         cookie: header.cookie,
       };
       const tbCancelOrderRes = await axios({
-        method: "DELETE",
+        method: "post",
         url,
         headers,
       });
@@ -955,7 +955,7 @@ class TibeBitConnector extends ConnectorBase {
         cookie: header.cookie,
       };
       const tbCancelOrderRes = await axios({
-        method: "DELETE",
+        method: "post",
         url,
         headers,
       });

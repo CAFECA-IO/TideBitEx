@@ -162,7 +162,7 @@ export const PendingOrders = (props) => {
   };
   const cancelOrders = (type) => {
     const confirm = window.confirm(
-      `You are going to cancel all ${type === "all" ? "" : type} orders:}`
+      `You are going to cancel all ${type === "all" ? "" : type} orders`
     );
     if (confirm) {
       storeCtx.cancelOrders(type);
