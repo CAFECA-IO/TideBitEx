@@ -597,26 +597,21 @@ class ExchangeHub extends Bot {
           : { orderId: body.id };
       switch (source) {
         case SupportedExchange.OKEX:
-          let t;
-          try {
-            /* !!! HIGH RISK (start) !!! */
-            t = this.updateOrderStatus({ orderId, memberId, body });
-            /* !!! HIGH RISK (end) !!! */
-            const okexCancelOrderRes = await this.okexConnector.router(
-              "postCancelOrder",
-              { params, query, body }
-            );
-            this.logger.log(`postCancelOrder`, body);
-            this.logger.log(`okexCancelOrderRes`, okexCancelOrderRes);
-            await t.commit();
-            return okexCancelOrderRes;
-          } catch (error) {
+          /* !!! HIGH RISK (start) !!! */
+          let t = this.updateOrderStatus({ orderId, memberId, body });
+          /* !!! HIGH RISK (end) !!! */
+          const okexCancelOrderRes = await this.okexConnector.router(
+            "postCancelOrder",
+            { params, query, body }
+          );
+          this.logger.log(`postCancelOrder`, body);
+          this.logger.log(`okexCancelOrderRes`, okexCancelOrderRes);
+          if (!okexCancelOrderRes.success) {
             await t.rollback();
-            return new ResponseFormat({
-              message: "instId not Support now",
-              code: Codes.API_NOT_SUPPORTED,
-            });
+          } else {
+            await t.commit();
           }
+          return okexCancelOrderRes;
         case SupportedExchange.TIDEBIT:
           return this.tideBitConnector.router(`postCancelOrder`, {
             header,
@@ -669,23 +664,25 @@ class ExchangeHub extends Bot {
           const res = [];
           const err = [];
           orders.forEach(async (order) => {
-            let t;
-            try {
-              /* !!! HIGH RISK (start) !!! */
-              t = this.updateOrderStatus({ orderId: order.id, memberId, body });
-              /* !!! HIGH RISK (end) !!! */
-              const okexCancelOrderRes = await this.okexConnector.router(
-                "postCancelOrder",
-                { body: order }
-              );
-              this.logger.log(`postCancelOrder`, body);
-              this.logger.log(`okexCancelOrderRes`, okexCancelOrderRes);
+            /* !!! HIGH RISK (start) !!! */
+            let t = this.updateOrderStatus({
+              orderId: order.id,
+              memberId,
+              body,
+            });
+            /* !!! HIGH RISK (end) !!! */
+            const okexCancelOrderRes = await this.okexConnector.router(
+              "postCancelOrder",
+              { body }
+            );
+            this.logger.log(`postCancelOrder`, body);
+            this.logger.log(`okexCancelOrderRes`, okexCancelOrderRes);
+            if (!okexCancelOrderRes.success) {
+              err.push(okexCancelOrderRes);
+              await t.rollback();
+            } else {
               res.push(okexCancelOrderRes);
               await t.commit();
-              return okexCancelOrderRes;
-            } catch (error) {
-              await t.rollback();
-              err.push(error);
             }
           });
           if (err.length > 0) {
