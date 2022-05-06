@@ -48,7 +48,6 @@ class Receptor extends Bot {
         app
           .use(cors())
           .use(staticServe(this.config.base.static))
-          // ++ TODO parsed memberId
           .use(parseMemberId)
           .use(this.router.routes())
           .use(this.router.allowedMethods())
