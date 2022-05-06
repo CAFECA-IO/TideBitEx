@@ -49,7 +49,7 @@ class Receptor extends Bot {
           .use(cors())
           .use(staticServe(this.config.base.static))
           // ++ TODO parsed memberId
-          .use(parseMemberId)
+          // .use(parseMemberId)
           .use(this.router.routes())
           .use(this.router.allowedMethods())
           .use(proxy(peatio));
