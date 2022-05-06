@@ -34,6 +34,14 @@
     border: none;
     border-bottom: 2px solid #007bff;
   }
+  &__container--mobile,
+  &__container--mobile > .tab-content,
+  &__container--mobile > .tab-content > .tab-pane {
+    display: flex;
+    flex: auto;
+    flex-direction: column;
+    height: 100%;
+  }
 }
 @media only screen and (max-width: 1120px) {
   // If [device width] is less than or equal to 600px, then do

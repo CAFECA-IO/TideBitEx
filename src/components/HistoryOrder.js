@@ -193,9 +193,9 @@ export const PendingOrders = (props) => {
             ))}
       </ul>
       <div className="pending-orders__box">
-        <div onClick={() => cancelOrders("bid")}>{t("cancel_all")}</div>
+        <div onClick={() => cancelOrders("all")}>{t("cancel_all")}</div>
         <div onClick={() => cancelOrders("ask")}>{t("cancel_all_asks")}</div>
-        <div onClick={() => cancelOrders("all")}>{t("cancel_all_bids")}</div>
+        <div onClick={() => cancelOrders("bid")}>{t("cancel_all_bids")}</div>
       </div>
     </div>
   );
