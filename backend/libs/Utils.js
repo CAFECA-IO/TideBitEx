@@ -702,6 +702,7 @@ class Utils {
     const client = redis.createClient({
       url: this.redis,
     });
+    console.log(`client`,client)
 
     client.on("error", (err) => this.logger.error("Redis Client Error", err));
 
