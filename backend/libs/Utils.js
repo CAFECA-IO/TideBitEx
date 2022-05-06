@@ -7,6 +7,7 @@ const i18n = require("i18n");
 const dvalue = require("dvalue");
 const colors = require("colors");
 const yaml = require("js-yaml");
+const redis = require("redis");
 
 const DBOperator = require(path.resolve(__dirname, "../database/dbOperator"));
 const Codes = require("../constants/Codes");
@@ -695,6 +696,38 @@ class Utils {
     if (!data) return undefined;
     const token = data.split("=")[1];
     return token;
+  }
+
+  async getMemberIdFromRedis(peatioSession) {
+    const client = redis.createClient({
+      url: this.redis,
+    });
+
+    client.on("error", (err) => this.logger.error("Redis Client Error", err));
+
+    try {
+      await client.connect(); // 會因為連線不到卡住
+      const value = await client.get(
+        redis.commandOptions({ returnBuffers: true }),
+        peatioSession
+      );
+      await client.quit();
+      // ++ TODO: 下面補error handle
+      const split1 = value
+        .toString("latin1")
+        .split("member_id\x06:\x06EFi\x02");
+      if (split1.length > 0) {
+        const memberIdLatin1 = split1[1].split('I"')[0];
+        const memberIdString = Buffer.from(memberIdLatin1, "latin1")
+          .reverse()
+          .toString("hex");
+        const memberId = parseInt(memberIdString, 16);
+        return memberId;
+      } else return -1;
+    } catch (error) {
+      await client.quit();
+      return -1;
+    }
   }
 
   static removeZeroEnd(str) {
