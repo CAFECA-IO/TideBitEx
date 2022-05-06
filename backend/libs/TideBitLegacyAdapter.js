@@ -14,7 +14,7 @@ class TideBitLegacyAdapter {
 
   static usersGC() {
     // ++ removeUser //++ gc behavior （timer 清理）
-    Object.key(users).forEach((key) => {
+    Object.keys(users).forEach((key) => {
       if (users[key].ts > userGCInterval) {
         delete users[key];
       }
