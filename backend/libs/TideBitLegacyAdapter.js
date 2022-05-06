@@ -1,8 +1,9 @@
 const SafeMath = require("./SafeMath");
-const FormData = require("form-data");
+const Utils = require("./Utils");
 
+const users = {};
+let userGCInterval = 86400 * 1000;
 
-const users = [];
 class TideBitLegacyAdapter {
   constructor({ config, database, logger }) {
     this.config = config;
@@ -11,10 +12,40 @@ class TideBitLegacyAdapter {
     return this;
   }
 
-  // ++ addUser
-  // => call getMemberIdFromRedis from utils
+  static usersGC() {
+    // ++ removeUser //++ gc behavior （timer 清理）
+    Object.key(users).forEach((key) => {
+      if (users[key].ts > userGCInterval) {
+        delete users[key];
+      }
+    });
+  }
 
-  // ++ removeUser //++ gc behavior （timer 清理）
+  // ++ middleware
+  static async parseMemberId(ctx, next) {
+    console.log(`parseMemberId ctx.header`, ctx.header);
+    if (Math.random() < 0.01) {
+      this.usersGC();
+    }
+    const peatioToken = Utils.peatioToken(ctx.header);
+    console.log(`parseMemberId peatioToken`, peatioToken);
+    if (!peatioToken) {
+      ctx.memberId = -1;
+    } else {
+      ctx.peatioToken = peatioToken;
+      if (users[peatioToken]) {
+        ctx.memberId = users[peatioToken].memberId;
+      } else {
+        const memberId = await Utils.getMemberIdFromRedis(peatioToken);
+        if (memberId !== -1) {
+          users[peatioToken] = { memberId, ts: Date.now() };
+        }
+        ctx.memberId = memberId;
+      }
+      console.log(`parseMemberId ctx.memberId`, ctx.memberId);
+    }
+    next();
+  }
 
   static peatioOrderBody({ header, body }) {
     let obj = {};
@@ -40,4 +71,5 @@ class TideBitLegacyAdapter {
     return data;
   }
 }
+
 module.exports = TideBitLegacyAdapter;
