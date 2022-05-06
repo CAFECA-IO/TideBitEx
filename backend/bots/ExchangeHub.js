@@ -112,8 +112,7 @@ class ExchangeHub extends Bot {
   }
 
   // account api
-  async getAccounts({ token }) {
-    const memberId = await this.getMemberIdFromRedis(token);
+  async getAccounts({ memberId }) {
     if (memberId === -1) {
       return new ResponseFormat({
         message: "getAccounts",
