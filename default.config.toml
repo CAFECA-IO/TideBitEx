@@ -60,6 +60,7 @@ pathname = [
   "get | /api/v1/trade/orders-pending | Bot.ExchangeHub.getOrderList",
   "get | /api/v1/trade/orders-history | Bot.ExchangeHub.getOrderHistory",
   "post | /api/v1/trade/cancel-order | Bot.ExchangeHub.postCancelOrder",
+  "post | /api/v1/trade/cancel-orders | Bot.ExchangeHub.cancelOrders",
 
   # exchange - public
   "get | /api/v1/public/instruments | Bot.ExchangeHub.getInstruments",

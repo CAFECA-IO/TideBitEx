@@ -476,6 +476,11 @@ class Middleman {
       return await this.communicator.cancel(order);
     }
   }
+  async cancelOrders(options) {
+    if (this.isLogin) {
+      return await this.communicator.cancelOrders(options);
+    }
+  }
 }
 
 export default Middleman;

@@ -10,6 +10,7 @@ const Events = require("../constants/Events");
 const SafeMath = require("../libs/SafeMath");
 const Utils = require("../libs/Utils");
 const SupportedExchange = require("../constants/SupportedExchange");
+const { order } = require("../constants/Events");
 
 class ExchangeHub extends Bot {
   constructor() {
@@ -498,8 +499,8 @@ class ExchangeHub extends Bot {
         });
     }
   }
-  async postCancelOrder({ header, params, query, body, memberId }) {
-    const source = this._findSource(body.instId);
+
+  async updateOrderState({ orderId, memberId, orderData }) {
     /* !!! HIGH RISK (start) !!! */
     // 1. get orderId from body
     // 2. get order data from table
@@ -510,8 +511,80 @@ class ExchangeHub extends Bot {
     // 7. update account balance and locked
     // 8. post okex cancel order
     const t = await this.database.transaction();
-    // get orderId from body.clOrdId
+    /*******************************************
+     * body.clOrdId: custom orderId for okex
+     * locked: value from order.locked, used for unlock balance, negative in account_version
+     * balance: order.locked
+     *******************************************/
+    const order = await this.database.getOrder(orderId, {
+      dbTransaction: t,
+    });
+    const currencyId =
+      order?.type === this.database.TYPE.ORDER_ASK ? order?.ask : order?.bid;
+    const account = await this.database.getAccountByMemberIdCurrency(
+      memberId,
+      currencyId,
+      { dbTransaction: t }
+    );
+    const newOrder = {
+      id: orderId,
+      state: this.database.ORDER_STATE.CANCEL,
+    };
+    const locked = SafeMath.mult(order.locked, "-1");
+    const balance = order.locked;
+    const fee = "0";
+
+    const created_at = new Date().toISOString();
+
+    const _updateOrder = {
+      ...orderData,
+      state: "canceled",
+      state_text: "Canceled",
+      at: parseInt(SafeMath.div(Date.now(), "1000")),
+    };
+    this.logger.log(
+      `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] updateOrder ln:1092`,
+      _updateOrder
+    );
+    EventBus.emit(Events.order, orderData.market, _updateOrder);
+
+    await this.database.updateOrder(newOrder, { dbTransaction: t });
+    if (account) {
+      let _updateAccount = {
+        balance: SafeMath.plus(account.balance, balance),
+        locked: SafeMath.plus(account.locked, locked),
+        currency: this.currencies.find((curr) => curr.id === account.currency)
+          ?.symbol,
+        total: SafeMath.plus(
+          SafeMath.plus(account.balance, balance),
+          SafeMath.plus(account.locked, locked)
+        ),
+      };
+      EventBus.emit(Events.account, _updateAccount);
+      this.logger.log(
+        `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:425`,
+        _updateAccount
+      );
+
+      await this._updateAccount(
+        account,
+        t,
+        balance,
+        locked,
+        fee,
+        this.database.MODIFIABLE_TYPE.ORDER,
+        orderId,
+        created_at,
+        this.database.FUNC.UNLOCK_FUNDS
+      );
+    }
+  }
+  async postCancelOrder({ header, params, query, body, memberId }) {
+    const source = this._findSource(body.instId);
+
+    // const t = await this.database.transaction();
     try {
+      // get orderId from body.clOrdId
       let { orderId } =
         source === SupportedExchange.OKEX
           ? Utils.parseClOrdId(body.clOrdId)
@@ -525,89 +598,15 @@ class ExchangeHub extends Bot {
           //     message: "order has been close",
           //   });
           // }
-
           const okexCancelOrderRes = await this.okexConnector.router(
             "postCancelOrder",
             { params, query, body }
           );
           this.logger.log(`postCancelOrder`, body);
           this.logger.log(`okexCancelOrderRes`, okexCancelOrderRes);
-          if (!okexCancelOrderRes.success) {
-            await t.rollback();
-            return okexCancelOrderRes;
-          } else {
-            /*******************************************
-             * body.clOrdId: custom orderId for okex
-             * locked: value from order.locked, used for unlock balance, negative in account_version
-             * balance: order.locked
-             *******************************************/
-            const order = await this.database.getOrder(orderId, {
-              dbTransaction: t,
-            });
-            const currencyId =
-              order?.type === this.database.TYPE.ORDER_ASK
-                ? order?.ask
-                : order?.bid;
-            const account = await this.database.getAccountByMemberIdCurrency(
-              memberId,
-              currencyId,
-              { dbTransaction: t }
-            );
-            const newOrder = {
-              id: orderId,
-              state: this.database.ORDER_STATE.CANCEL,
-            };
-            const locked = SafeMath.mult(order.locked, "-1");
-            const balance = order.locked;
-            const fee = "0";
-
-            const created_at = new Date().toISOString();
-
-            const _updateOrder = {
-              ...body,
-              state: "canceled",
-              state_text: "Canceled",
-              at: parseInt(SafeMath.div(Date.now(), "1000")),
-            };
-            this.logger.log(
-              `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] updateOrder ln:1092`,
-              _updateOrder
-            );
-            EventBus.emit(Events.order, body.market, _updateOrder);
-
-            await this.database.updateOrder(newOrder, { dbTransaction: t });
-            if (account) {
-              let _updateAccount = {
-                balance: SafeMath.plus(account.balance, balance),
-                locked: SafeMath.plus(account.locked, locked),
-                currency: this.currencies.find(
-                  (curr) => curr.id === account.currency
-                )?.symbol,
-                total: SafeMath.plus(
-                  SafeMath.plus(account.balance, balance),
-                  SafeMath.plus(account.locked, locked)
-                ),
-              };
-              EventBus.emit(Events.account, _updateAccount);
-              this.logger.log(
-                `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:425`,
-                _updateAccount
-              );
-
-              await this._updateAccount(
-                account,
-                t,
-                balance,
-                locked,
-                fee,
-                this.database.MODIFIABLE_TYPE.ORDER,
-                orderId,
-                created_at,
-                this.database.FUNC.UNLOCK_FUNDS
-              );
-            }
+          if (okexCancelOrderRes.success) {
+            this.updateOrderState({ orderId, memberId, body });
           }
-          await t.commit();
           return okexCancelOrderRes;
 
         /* !!! HIGH RISK (end) !!! */
@@ -618,7 +617,7 @@ class ExchangeHub extends Bot {
           });
 
         default:
-          await t.rollback();
+          // await t.rollback();
           return new ResponseFormat({
             message: "instId not Support now",
             code: Codes.API_NOT_SUPPORTED,
@@ -626,7 +625,85 @@ class ExchangeHub extends Bot {
       }
     } catch (error) {
       this.logger.error(error);
-      await t.rollback();
+      // await t.rollback();
+      return new ResponseFormat({
+        message: error.message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
+  async cancelOrders({ header, body, memberId }) {
+    const source = this._findSource(body.instId);
+    try {
+      switch (source) {
+        case SupportedExchange.OKEX:
+          const _orders = await this.tideBitConnector.tbGetOrderList({
+            ...body,
+            market: this._findMarket(body.instId),
+            memberId,
+            state: this.database.ORDER_STATE.WAIT,
+            orderType: "limit",
+          });
+
+          const orders = _orders
+            .filter(
+              (_order) =>
+                body.type === "all" ||
+                (body.type === "ask" && _order.type === "OrderAsk") ||
+                (body.type === "bid" && _order.type === "OrderBid")
+            )
+            .map((_order) => {
+              return {
+                ..._order,
+                ordId: Utils.parseClOrdId(_order.clOrdId),
+              };
+            });
+          const okexCancelOrdersRes = await this.okexConnector.router(
+            "cancelOrders",
+            { body: orders }
+          );
+          this.logger.log(`cancelAll orders`, orders);
+          this.logger.log(`cancelAll res`, okexCancelOrdersRes);
+          if (okexCancelOrdersRes.success) {
+            orders.map((_order) =>
+              this.updateOrderState({
+                orderData: _order,
+                orderId: order.ordId,
+                memberId,
+              })
+            );
+          }
+
+          return okexCancelOrdersRes;
+
+        /* !!! HIGH RISK (end) !!! */
+        case SupportedExchange.TIDEBIT:
+          let functionName =
+            body.type === "ask"
+              ? "cancelAllAsks"
+              : body.type === "bid"
+              ? "cancelAllBids"
+              : body.type === "all"
+              ? "cancelAllOrders"
+              : undefined;
+          if (functionName) {
+            return this.tideBitConnector.router(`${functionName}`, {
+              header,
+              body: { ...body, market: this._findMarket(body.instId) },
+            });
+          } else
+            return new ResponseFormat({
+              message: "instId not Support now",
+              code: Codes.API_NOT_SUPPORTED,
+            });
+        default:
+          return new ResponseFormat({
+            message: "instId not Support now",
+            code: Codes.API_NOT_SUPPORTED,
+          });
+      }
+    } catch (error) {
       return new ResponseFormat({
         message: error.message,
         code: Codes.API_UNKNOWN_ERROR,

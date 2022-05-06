@@ -531,6 +531,34 @@ const StoreProvider = (props) => {
     [action, enqueueSnackbar, middleman, token]
   );
 
+  const cancelOrders = useCallback(
+    async (type) => {
+      const _options = {
+        type,
+        instId: selectedTicker.instId,
+        "X-CSRF-Token": token,
+      };
+      try {
+        const result = await middleman.cancelOrders(_options);
+        enqueueSnackbar(`Your orders have canceled `, {
+          variant: "success",
+          action,
+        });
+        return result;
+      } catch (error) {
+        enqueueSnackbar(
+          `${error?.message || "Some went wrong"}. Failed to cancel orders`,
+          {
+            variant: "error",
+            action,
+          }
+        );
+        return false;
+      }
+    },
+    [action, enqueueSnackbar, middleman, token, selectedTicker]
+  );
+
   const activePageHandler = (page) => {
     setActivePage(page);
   };
@@ -591,6 +619,7 @@ const StoreProvider = (props) => {
         getAccounts,
         postOrder,
         cancelOrder,
+        cancelOrders,
         activePageHandler,
       }}
     >
