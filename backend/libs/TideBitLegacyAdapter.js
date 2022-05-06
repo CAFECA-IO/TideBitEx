@@ -36,11 +36,11 @@ class TideBitLegacyAdapter {
       if (users[peatioToken]) {
         ctx.memberId = users[peatioToken].memberId;
       } else {
-        const memberId = await Utils.getMemberIdFromRedis(peatioToken);
-        if (memberId !== -1) {
-          users[peatioToken] = { memberId, ts: Date.now() };
-        }
-        ctx.memberId = memberId;
+        // const memberId = await Utils.getMemberIdFromRedis(peatioToken);
+        // if (memberId !== -1) {
+        //   users[peatioToken] = { memberId, ts: Date.now() };
+        // }
+        // ctx.memberId = memberId;
       }
       console.log(`parseMemberId ctx.memberId`, ctx.memberId);
     }
