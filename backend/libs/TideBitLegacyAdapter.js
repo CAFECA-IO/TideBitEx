@@ -25,10 +25,10 @@ class TideBitLegacyAdapter {
   static async parseMemberId(ctx, next) {
     // console.log(`parseMemberId ctx.header`, ctx.header);
     if (Math.random() < 0.01) {
-      this.usersGC();
+      this.usersGC()
     }
     const peatioToken = Utils.peatioToken(ctx.header);
-    console.log(`parseMemberId peatioToken`, peatioToken);
+    // console.log(`parseMemberId peatioToken`, peatioToken);
     if (!peatioToken) {
       ctx.memberId = -1;
     } else {
@@ -42,7 +42,7 @@ class TideBitLegacyAdapter {
         }
         ctx.memberId = memberId;
       }
-      console.log(`parseMemberId ctx.memberId`, ctx.memberId);
+      // console.log(`parseMemberId ctx.memberId`, ctx.memberId);
     }
     return next();
   }
