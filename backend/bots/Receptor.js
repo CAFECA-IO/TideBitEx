@@ -110,7 +110,7 @@ class Receptor extends Bot {
       pathname,
       bodyParser({ multipart: true }),
       (ctx, next) => {
-      const peatioToken = Utils.peatioToken(ctx.header)
+        this.logger.log(`register ctx`, ctx);
         const inputs = {
           body: ctx.request.body,
           files: ctx.request.files,
@@ -119,7 +119,8 @@ class Receptor extends Bot {
           method: ctx.method,
           query: ctx.query,
           session: ctx.session,
-          token: peatioToken,
+          token: ctx.token,
+          memberId: ctx.memberId,
         };
         return operation(inputs).then((rs) => {
           ctx.body = rs;

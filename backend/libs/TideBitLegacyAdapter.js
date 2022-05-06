@@ -32,7 +32,7 @@ class TideBitLegacyAdapter {
     if (!peatioToken) {
       ctx.memberId = -1;
     } else {
-      ctx.peatioToken = peatioToken;
+      ctx.token = peatioToken;
       if (users[peatioToken]) {
         ctx.memberId = users[peatioToken].memberId;
       } else {
