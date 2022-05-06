@@ -44,7 +44,7 @@ class TideBitLegacyAdapter {
       }
       console.log(`parseMemberId ctx.memberId`, ctx.memberId);
     }
-    next();
+    // next();
   }
 
   static peatioOrderBody({ header, body }) {
