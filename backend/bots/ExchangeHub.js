@@ -269,8 +269,7 @@ class ExchangeHub extends Bot {
   }
   // market api end
   // trade api
-  async postPlaceOrder({ header, params, query, body, token }) {
-    const memberId = await this.getMemberIdFromRedis(token);
+  async postPlaceOrder({ header, params, query, body, memberId }) {
     if (memberId === -1) {
       return new ResponseFormat({
         message: "member_id not found",
@@ -426,8 +425,7 @@ class ExchangeHub extends Bot {
     }
   }
 
-  async getOrderList({ params, query, token }) {
-    const memberId = await this.getMemberIdFromRedis(token);
+  async getOrderList({ params, query, memberId }) {
     if (memberId === -1) {
       return new ResponseFormat({
         message: "member_id not found",
@@ -464,8 +462,7 @@ class ExchangeHub extends Bot {
     }
   }
 
-  async getOrderHistory({ params, query, token }) {
-    const memberId = await this.getMemberIdFromRedis(token);
+  async getOrderHistory({ params, query, memberId }) {
     if (memberId === -1) {
       return new ResponseFormat({
         message: "member_id not found",
@@ -501,9 +498,8 @@ class ExchangeHub extends Bot {
         });
     }
   }
-  async postCancelOrder({ header, params, query, body, token }) {
+  async postCancelOrder({ header, params, query, body, memberId }) {
     const source = this._findSource(body.instId);
-    const memberId = await this.getMemberIdFromRedis(token);
     /* !!! HIGH RISK (start) !!! */
     // 1. get orderId from body
     // 2. get order data from table
