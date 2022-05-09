@@ -493,17 +493,11 @@ class OkexConnector extends ConnectorBase {
     if (subAccountsRes.success) {
       const subAccounts = subAccountsRes.payload;
       subAccounts.forEach(async (subAcc) => {
-        this.logger.debug(
-          `[${this.constructor.name}: getSubAccount] subAcc`,
-          {
+        const subAccBalRes = await this.getSubAccount({
+          query: {
             ...query,
             subAcct: subAcc.subAcct,
           },
-          subAcc
-        );
-        const subAccBalRes = await this.getSubAccount({
-          ...query,
-          subAcct: subAcc.subAcct,
         });
         this.logger.debug(
           `[${this.constructor.name}: getSubAccount] subAccBalRes`,
