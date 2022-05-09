@@ -481,6 +481,10 @@ class Middleman {
       return await this.communicator.cancelOrders(options);
     }
   }
+
+  async getCSRTToken() {
+    return await this.communicator.CSRFTokenRenew();
+  }
 }
 
 export default Middleman;

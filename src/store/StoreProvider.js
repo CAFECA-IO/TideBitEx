@@ -350,27 +350,11 @@ const StoreProvider = (props) => {
       ?.split("=")[1];
     try {
       if (XSRF) {
-        const token = await getToken(XSRF);
+        // const token = await getToken(XSRF);
+        const token = await middleman.getCSRTToken();
         if (token) {
           setToken(token);
           setIsLogin(true);
-          await getOrderList();
-          await getOrderHistory();
-          const id = location.pathname.includes("/markets/")
-            ? location.pathname.replace("/markets/", "")
-            : null;
-          if (id) {
-            connection_resolvers.push(
-              JSON.stringify({
-                op: "userStatusUpdate",
-                args: {
-                  token,
-                  market: id,
-                  resolution: resolution,
-                },
-              })
-            );
-          }
         }
       }
     } catch (error) {
@@ -379,21 +363,40 @@ const StoreProvider = (props) => {
         action,
       });
     }
-  }, [
-    action,
-    enqueueSnackbar,
-    getOrderHistory,
-    getOrderList,
-    location.pathname,
-    resolution,
-  ]);
+  }, [action, enqueueSnackbar, middleman]);
+  // }, [action, enqueueSnackbar]);
 
   const getAccounts = useCallback(async () => {
     await middleman.getAccounts();
     // console.log(`getAccounts accounts`, middleman.accounts)
     setAccounts(middleman.accounts);
     if (middleman.isLogin) await getCSRFToken();
-  }, [getCSRFToken, middleman]);
+    await getOrderList();
+    await getOrderHistory();
+    const id = location.pathname.includes("/markets/")
+      ? location.pathname.replace("/markets/", "")
+      : null;
+    if (id) {
+      connection_resolvers.push(
+        JSON.stringify({
+          op: "userStatusUpdate",
+          args: {
+            token,
+            market: id,
+            resolution: resolution,
+          },
+        })
+      );
+    }
+  }, [
+    getCSRFToken,
+    getOrderHistory,
+    getOrderList,
+    location.pathname,
+    middleman,
+    resolution,
+    token,
+  ]);
 
   const postOrder = useCallback(
     async (order) => {
