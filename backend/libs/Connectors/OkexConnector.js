@@ -1231,7 +1231,7 @@ class OkexConnector extends ConnectorBase {
   }
 
   _subscribeCandle1m(instId, resolution) {
-    this.candleChannel = `candle${resolution}`;
+    this.candleChannel = `candle1m`;
     const args = [
       {
         channel: this.candleChannel,
