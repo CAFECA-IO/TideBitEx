@@ -547,11 +547,18 @@ class OkexConnector extends ConnectorBase {
     if (enable) arr.push(`enable=${enable}`);
     const qs = !!arr.length ? `?${arr.join("&")}` : "";
 
+    const timeString = new Date().toISOString();
+    const okAccessSign = await this.okAccessSign({
+      timeString,
+      method,
+      path: path,
+    });
+
     try {
       const res = await axios({
         method: method.toLocaleLowerCase(),
         url: `${this.domain}${path}${qs}`,
-        headers: this.getHeaders(false),
+        headers: this.getHeaders(true, { timeString, okAccessSign }),
       });
       if (res.data && res.data.code !== "0") {
         const message = JSON.stringify(res.data);
@@ -588,11 +595,18 @@ class OkexConnector extends ConnectorBase {
     if (enable) arr.push(`enable=${enable}`);
     const qs = !!arr.length ? `?${arr.join("&")}` : "";
 
+    const timeString = new Date().toISOString();
+    const okAccessSign = await this.okAccessSign({
+      timeString,
+      method,
+      path: path,
+    });
+
     try {
       const res = await axios({
         method: method.toLocaleLowerCase(),
         url: `${this.domain}${path}${qs}`,
-        headers: this.getHeaders(false),
+        headers: this.getHeaders(true, { timeString, okAccessSign }),
       });
       if (res.data && res.data.code !== "0") {
         const message = JSON.stringify(res.data);
