@@ -484,6 +484,7 @@ class Communicator {
       }
       if (!requestRetry && response.success) return response;
       else if (retries > 0 && retryCodes.includes(response.code)) {
+        console.log(`[Communicator] _request retries`, retries);
         setTimeout(() => {
           return this._request(method, url, data, retries - 1, backoff * 2);
         }, backoff);

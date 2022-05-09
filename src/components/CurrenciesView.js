@@ -4,21 +4,7 @@ import StoreContext from "../store/store-context";
 import SafeMath from "../utils/SafeMath";
 
 const exchanges = ["OKEx", "Binance"];
-const exchangeCurrencies = {
-  OKEx: [
-    "BTC",
-    "BCH",
-    "DASH",
-    "ETH",
-    "ETC",
-    "EOS",
-    "LTC",
-    "NEO",
-    "USDT",
-    "USDC",
-  ],
-  Binance: ["BTC", "BCH", "ETH"],
-};
+
 const CurrencyDetail = (props) => {
   return (
     <div className="detail">
@@ -108,8 +94,10 @@ const CurrenciesView = (props) => {
 
       // get tidebit currencies
       const tbAccounts = await storeCtx.getUsersAccounts();
+      console.log(`tbAccounts`,tbAccounts)
       // get exchange currencies
       const exAccounts = await storeCtx.getExAccounts(exchange);
+      console.log(`exAccounts`,exAccounts)
 
       // overview
       const overview = {};
