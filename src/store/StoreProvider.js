@@ -425,7 +425,7 @@ const StoreProvider = (props) => {
     async (order) => {
       const _order = {
         ...order,
-        "X-CSRF-Token": token,
+        // "X-CSRF-Token": token,
       };
       try {
         const result = await middleman.postOrder(_order);
@@ -503,7 +503,7 @@ const StoreProvider = (props) => {
       middleman,
       selectedTicker?.base_unit,
       selectedTicker?.quote_unit,
-      token,
+      // token,
     ]
   );
 
@@ -511,7 +511,7 @@ const StoreProvider = (props) => {
     async (order) => {
       const _order = {
         ...order,
-        "X-CSRF-Token": token,
+        // "X-CSRF-Token": token,
       };
       try {
         const result = await middleman.cancelOrder(_order);
@@ -554,7 +554,8 @@ const StoreProvider = (props) => {
         return false;
       }
     },
-    [action, enqueueSnackbar, middleman, token]
+    [action, enqueueSnackbar, middleman]
+    // [action, enqueueSnackbar, middleman, token]
   );
 
   const cancelOrders = useCallback(
@@ -562,7 +563,7 @@ const StoreProvider = (props) => {
       const _options = {
         type,
         instId: selectedTicker.instId,
-        "X-CSRF-Token": token,
+        // "X-CSRF-Token": token,
       };
       try {
         const result = await middleman.cancelOrders(_options);

@@ -826,6 +826,7 @@ class ExchangeHub extends Bot {
 
   // public api end
   async getExAccounts({ query }) {
+    this.logger.debug(`[${this.constructor.name}] getExAccounts`, query)
     const { exchange } = query;
     switch (exchange) {
       case "OKEx":

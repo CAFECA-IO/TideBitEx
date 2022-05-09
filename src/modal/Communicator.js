@@ -281,24 +281,6 @@ class Communicator {
     }
   }
 
-  async getSubAccount(exchange, subAcct) {
-    try {
-      const url = `/account/subaccount/balances?exchange=${exchange}&subAcct=${subAcct}`;
-      // const res = await this._get(url);
-      const res = await this._request({
-        method: "GET",
-        url,
-      });
-      if (res.success) {
-        return res.data;
-      }
-      return Promise.reject({ message: res.message, code: res.code });
-    } catch (error) {
-      // console.error(`[getAccounts] error`, error);
-      return Promise.reject({ message: error });
-    }
-  }
-
   async getExAccounts(exchange) {
     try {
       const url = `/users/subaccount/list?exchange=${exchange}`;
@@ -324,7 +306,7 @@ class Communicator {
       const res = await this._request({
         method: "POST",
         url: `/trade/order`,
-        data: order,
+        data: { ...order, "X-CSRF-Token": this.CSRFToken },
       });
       if (res.success) {
         return res.data;
@@ -342,7 +324,7 @@ class Communicator {
       const res = await this._request({
         method: "POST",
         url: `/trade/cancel-order`,
-        data: order,
+        data: { ...order, "X-CSRF-Token": this.CSRFToken },
       });
       if (res.success) {
         return res.data;
@@ -359,7 +341,7 @@ class Communicator {
       const res = await this._request({
         method: "POST",
         url: `/trade/cancel-orders`,
-        data: options,
+        data: { options, "X-CSRF-Token": this.CSRFToken },
       });
       if (res.success) {
         return res.data;
@@ -543,7 +525,7 @@ class Communicator {
     this.CSRFToken = token;
     this.httpAgent.setCSRFToken(token);
     try {
-      const time = 24 * 60 * 60 * 1000;
+      const time = 1 * 60 * 60 * 1000;
       if (this.CSRFTokenRenewTimeout) {
         clearTimeout(this.CSRFTokenRenewTimeout);
         this.CSRFTokenRenewTimeout = null;

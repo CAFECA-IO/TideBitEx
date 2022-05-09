@@ -486,6 +486,10 @@ class OkexConnector extends ConnectorBase {
   async getExAccounts({ query }) {
     const exAccounts = {};
     const subAccountsRes = await this.getSubAccounts({ query });
+    this.logger.debug(
+      `[${this.constructor.name}: getExAccounts] subAccountsRes`,
+      subAccountsRes
+    );
     if (subAccountsRes.success) {
       const subAccounts = subAccountsRes.payload;
       subAccounts.forEach(async (subAcc) => {
@@ -493,6 +497,10 @@ class OkexConnector extends ConnectorBase {
           ...query,
           subAcct: subAcc.subAcct,
         });
+        this.logger.debug(
+          `[${this.constructor.name}: getSubAccount] subAccBalRes`,
+          subAccBalRes
+        );
         if (subAccBalRes.success) {
           const subAccBal = subAccBalRes.payload;
           if (!exAccounts[subAccBal.currency]) {
