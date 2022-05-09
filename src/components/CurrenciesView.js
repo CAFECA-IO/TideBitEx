@@ -86,14 +86,15 @@ const CurrencyDetail = (props) => {
 
 const CurrenciesView = (props) => {
   const storeCtx = useContext(StoreContext);
-  const [exchange, setExchange] = useState("OKEx");
+  const [currExchange, setCurrExchange] = useState(null);
   const [overview, setOverview] = useState(null);
   const [currency, setCurrency] = useState(null);
 
   const onChoseExchageHandler = useCallback(
     async (exchange) => {
+      if (exchange === currExchange) return;
       console.log(`onChoseExchageHandler exchange`, exchange);
-      setExchange(exchange);
+      setCurrExchange(exchange);
 
       // get tidebit currencies
       const tbAccounts = await storeCtx.getUsersAccounts();
@@ -121,25 +122,27 @@ const CurrenciesView = (props) => {
 
       setOverview(overview);
     },
-    [storeCtx]
+    [currExchange, storeCtx]
   );
 
   useEffect(() => {
-    if (exchange) onChoseExchageHandler(exchange);
-  }, [exchange, onChoseExchageHandler]);
+    if (!currExchange) {
+      onChoseExchageHandler("OKEx");
+    }
+  }, [currExchange, onChoseExchageHandler]);
 
   return (
     <div className="currencies-view">
       {!currency && (
-        <Tabs defaultActiveKey={exchange}>
+        <Tabs defaultActiveKey={currExchange}>
           {exchanges.map((_exchange) => (
             <Tab
               eventKey={_exchange}
               title={_exchange}
               key={_exchange}
-              onClick={() => setExchange(exchange)}
+              onClick={() => onChoseExchageHandler(_exchange)}
             >
-              {exchange === _exchange && (
+              {currExchange === _exchange && (
                 <>
                   <ul className="currency__list">
                     {overview &&
@@ -238,7 +241,7 @@ const CurrenciesView = (props) => {
                                   </div>
                                 </div>
                                 <div className="currency__bar--text">
-                                  {exchange}
+                                  {_exchange}
                                 </div>
                               </div>
                               <div className="currency__exchange">
@@ -327,7 +330,7 @@ const CurrenciesView = (props) => {
       )}
       {!!currency && (
         <CurrencyDetail
-          exchange={exchange}
+          exchange={currExchange}
           currency={currency}
           details={overview[currency].details}
           ex_total={overview[currency].ex_total}
