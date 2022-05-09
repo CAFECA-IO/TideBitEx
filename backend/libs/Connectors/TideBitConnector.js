@@ -634,7 +634,7 @@ class TibeBitConnector extends ConnectorBase {
         });
         accounts[currency]["details"].sort((a, b) => b.total - a.total);
       });
-      this.logger.debug(`[${this.constructor.name} getUsersAccounts]`, accounts)
+      // this.logger.debug(`[${this.constructor.name} getUsersAccounts]`, accounts)
       return new ResponseFormat({
         message: "getAccounts",
         payload: accounts,

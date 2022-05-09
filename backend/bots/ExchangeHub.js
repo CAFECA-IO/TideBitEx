@@ -803,35 +803,18 @@ class ExchangeHub extends Bot {
       payload: list,
     });
   }
-  // public api end
-  async getSubAccount({ query }) {
-    const { exchange } = query;
-    switch (exchange) {
-      case "OKEx":
-      default:
-        try {
-          const okexRes = await this.okexConnector.router("getSubAccount", {
-            query,
-          });
-          return okexRes;
-        } catch (error) {
-          this.logger.error(error);
-          return new ResponseFormat({
-            message: error.stack,
-            code: Codes.API_UNKNOWN_ERROR,
-          });
-        }
-    }
-  }
 
   // public api end
   async getExAccounts({ query }) {
-    this.logger.debug(`[${this.constructor.name}] getExAccounts`, query)
     const { exchange } = query;
+    this.logger.debug(`[${this.constructor.name}] getExAccounts`, exchange);
     switch (exchange) {
       case "OKEx":
       default:
         try {
+          this.logger.debug(
+            `[${this.constructor.name}] getExAccounts run default`
+          );
           const okexRes = await this.okexConnector.router("getExAccounts", {
             query,
           });
