@@ -559,8 +559,8 @@ class OkexConnector extends ConnectorBase {
     if (enable) arr.push(`enable=${enable}`);
     const qs = !!arr.length ? `?${arr.join("&")}` : "";
 
-    // const timeString = new Date().toISOString();
-    const timeString = new Date(new Date().getTime() + 3000).toISOString();
+    const timeString = new Date().toISOString();
+    // const timeString = new Date(new Date().getTime() + 3000).toISOString();
     const okAccessSign = await this.okAccessSign({
       timeString,
       method,

@@ -484,9 +484,15 @@ class Communicator {
       }
       if (!requestRetry && response.success) return response;
       else if (retries > 0 && retryCodes.includes(response.code)) {
-        console.log(`[Communicator] _request retries`, retries);
+        // console.trace(`[Communicator] _request retries`, retries);
         setTimeout(() => {
-          return this._request(method, url, data, retries - 1, backoff * 2);
+          return this._request({
+            method,
+            url,
+            data,
+            retries: retries - 1,
+            backoff: backoff * 2,
+          });
         }, backoff);
       } else return Promise.reject(response);
     } catch (error) {
@@ -494,7 +500,13 @@ class Communicator {
         try {
           await this.CSRFTokenRenew();
           setTimeout(() => {
-            return this._request(method, url, data, retries - 1, backoff * 2);
+            return this._request({
+              method,
+              url,
+              data,
+              retries: retries - 1,
+              backoff: backoff * 2,
+            });
           }, backoff);
         } catch (error) {
           return Promise.reject(error);
