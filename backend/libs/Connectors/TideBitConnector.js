@@ -604,6 +604,7 @@ class TibeBitConnector extends ConnectorBase {
           (curr) => curr.id === account.currency
         ).symbol;
         if (!accounts[currency]) {
+          accounts[currency] = {};
           accounts[currency]["details"] = [];
           accounts[currency]["balance"] = "0";
           accounts[currency]["locked"] = "0";

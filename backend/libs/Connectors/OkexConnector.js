@@ -496,6 +496,7 @@ class OkexConnector extends ConnectorBase {
         if (subAccBalRes.success) {
           const subAccBal = subAccBalRes.payload;
           if (!exAccounts[subAccBal.currency]) {
+            exAccounts[subAccBal.currency] = {};
             exAccounts[subAccBal.currency]["details"] = [];
             exAccounts[subAccBal.currency]["balance"] = "0";
             exAccounts[subAccBal.currency]["locked"] = "0";
