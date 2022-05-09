@@ -485,11 +485,11 @@ class OkexConnector extends ConnectorBase {
 
   async getExAccounts({ query }) {
     const exAccounts = {};
-    const subAccountsRes = await this.getSubAccounts({ query });
     this.logger.debug(
-      `[${this.constructor.name}: getExAccounts] subAccountsRes`,
-      subAccountsRes
+      `[${this.constructor.name}: getExAccounts] exAccounts`,
+      exAccounts
     );
+    const subAccountsRes = await this.getSubAccounts({ query });
     if (subAccountsRes.success) {
       const subAccounts = subAccountsRes.payload;
       subAccounts.forEach(async (subAcc) => {
@@ -549,7 +549,7 @@ class OkexConnector extends ConnectorBase {
     const method = "GET";
     const path = "/api/v5/users/subaccount/list";
     const { subAcct, enable } = query;
-
+    this.logger.debug(`[${this.constructor.name}] getSubAccounts`, subAcct, enable);
     const arr = [];
     if (subAcct) arr.push(`subAcct=${subAcct}`);
     if (enable) arr.push(`enable=${enable}`);
@@ -582,7 +582,7 @@ class OkexConnector extends ConnectorBase {
         payload,
       });
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error(error.response);
       let message = error.message;
       if (error.response && error.response.data)
         message = error.response.data.msg;
@@ -636,7 +636,7 @@ class OkexConnector extends ConnectorBase {
         payload: balances,
       });
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error(error.response);
       let message = error.message;
       if (error.response && error.response.data)
         message = error.response.data.msg;
