@@ -551,7 +551,7 @@ class OkexConnector extends ConnectorBase {
     const okAccessSign = await this.okAccessSign({
       timeString,
       method,
-      path: path,
+      path: `${path}${qs}`,
     });
 
     try {
@@ -599,7 +599,7 @@ class OkexConnector extends ConnectorBase {
     const okAccessSign = await this.okAccessSign({
       timeString,
       method,
-      path: path,
+      path: `${path}${qs}`,
     });
 
     try {
