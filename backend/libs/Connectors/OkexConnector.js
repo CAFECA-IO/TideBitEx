@@ -549,13 +549,18 @@ class OkexConnector extends ConnectorBase {
     const method = "GET";
     const path = "/api/v5/users/subaccount/list";
     const { subAcct, enable } = query;
-    this.logger.debug(`[${this.constructor.name}] getSubAccounts`, subAcct, enable);
+    this.logger.debug(
+      `[${this.constructor.name}] getSubAccounts`,
+      subAcct,
+      enable
+    );
     const arr = [];
     if (subAcct) arr.push(`subAcct=${subAcct}`);
     if (enable) arr.push(`enable=${enable}`);
     const qs = !!arr.length ? `?${arr.join("&")}` : "";
 
-    const timeString = new Date().toISOString();
+    // const timeString = new Date().toISOString();
+    const timeString = new Date(new Date().getTime() + 3000).toISOString();
     const okAccessSign = await this.okAccessSign({
       timeString,
       method,
