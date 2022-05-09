@@ -262,6 +262,61 @@ class Communicator {
     }
   }
 
+  // Account
+  async getUsersAccounts() {
+    try {
+      const url = `/users/account/list`;
+      // const res = await this._get(url);
+      const res = await this._request({
+        method: "GET",
+        url,
+      });
+      if (res.success) {
+        return res.data;
+      }
+      return Promise.reject({ message: res.message, code: res.code });
+    } catch (error) {
+      // console.error(`[getAccounts] error`, error);
+      return Promise.reject({ message: error });
+    }
+  }
+
+  async getSubAccount(exchange, subAcct) {
+    try {
+      const url = `/account/subaccount/balances?exchange=${exchange}&subAcct=${subAcct}`;
+      // const res = await this._get(url);
+      const res = await this._request({
+        method: "GET",
+        url,
+      });
+      if (res.success) {
+        return res.data;
+      }
+      return Promise.reject({ message: res.message, code: res.code });
+    } catch (error) {
+      // console.error(`[getAccounts] error`, error);
+      return Promise.reject({ message: error });
+    }
+  }
+
+  async getExAccounts(exchange) {
+    try {
+      const url = `/users/subaccount/list?exchange=${exchange}`;
+      // const res = await this._get(url);
+      const res = await this._request({
+        method: "GET",
+        url,
+      });
+      if (res.success) {
+        return res.data;
+      }
+      return Promise.reject({ message: res.message, code: res.code });
+    } catch (error) {
+      // console.error(`[getAccounts] error`, error);
+      return Promise.reject({ message: error });
+    }
+  }
+
   // Trade
   async order(order) {
     try {
@@ -427,6 +482,7 @@ class Communicator {
     }
   }
 
+  //https://hackernoon.com/how-to-improve-your-backend-by-adding-retries-to-your-api-calls-83r3udx
   async _request({ method, url, data, retries = 3, backoff = 300 }) {
     let response,
       requestRetry,

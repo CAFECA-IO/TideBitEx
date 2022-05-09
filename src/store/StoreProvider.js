@@ -398,6 +398,26 @@ const StoreProvider = (props) => {
     token,
   ]);
 
+  const getExAccounts = useCallback(async (exchange) => {
+    let exAccounts;
+    try {
+      exAccounts = await middleman.getExAccounts(exchange);
+    } catch (error) {
+      console.error(error);
+    }
+    return exAccounts;
+  }, [middleman]);
+
+  const getUsersAccounts = useCallback(async () => {
+    let usersAccounts;
+    try {
+       usersAccounts = await middleman.getUsersAccounts();
+    } catch (error) {
+      console.error(error);
+    }
+    return usersAccounts;
+  }, [middleman]);
+
   const postOrder = useCallback(
     async (order) => {
       const _order = {
@@ -624,6 +644,8 @@ const StoreProvider = (props) => {
         cancelOrder,
         cancelOrders,
         activePageHandler,
+        getExAccounts,
+        getUsersAccounts
       }}
     >
       {props.children}

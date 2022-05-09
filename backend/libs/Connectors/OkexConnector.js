@@ -482,6 +482,148 @@ class OkexConnector extends ConnectorBase {
       });
     }
   }
+
+  async getExAccounts({ query }) {
+    const exAccounts = {};
+    const subAccountsRes = await this.getSubAccounts({ query });
+    if (subAccountsRes.success) {
+      const subAccounts = subAccountsRes.payload;
+      subAccounts.forEach(async (subAcc) => {
+        const subAccBalRes = await this.getSubAccount({
+          ...query,
+          subAcct: subAcc.subAcct,
+        });
+        if (subAccBalRes.success) {
+          const subAccBal = subAccBalRes.payload;
+          if (!exAccounts[subAccBal.currency]) {
+            exAccounts[subAccBal.currency]["details"] = [];
+            exAccounts[subAccBal.currency]["balance"] = "0";
+            exAccounts[subAccBal.currency]["locked"] = "0";
+            exAccounts[subAccBal.currency]["total"] = "0";
+          }
+          exAccounts[subAccBal.currency]["balance"] = SafeMath.plus(
+            exAccounts[subAccBal.currency]["balance"],
+            subAccBal.total
+          );
+          exAccounts[subAccBal.currency]["locked"] = SafeMath.plus(
+            exAccounts[subAccBal.currency]["locked"],
+            subAccBal.total
+          );
+          exAccounts[subAccBal.currency]["total"] = SafeMath.plus(
+            exAccounts[subAccBal.currency]["total"],
+            subAccBal.total
+          );
+          exAccounts[subAccBal.currency]["details"].push({
+            currency: subAccBal.currency,
+            balance: subAccBal.balance,
+            locked: subAccBal.locked,
+            total: subAccBal.total,
+          });
+          exAccounts[subAccBal.currency]["details"].sort(
+            (a, b) => b.total - a.total
+          );
+        } else {
+          // ++ TODO
+          return;
+        }
+      });
+    } else {
+      return subAccountsRes;
+    }
+    return new ResponseFormat({
+      message: "getSubAccounts",
+      payload: exAccounts,
+    });
+  }
+
+  async getSubAccounts({ query }) {
+    const method = "GET";
+    const path = "/api/v5/users/subaccount/list";
+    const { subAcct, enable } = query;
+
+    const arr = [];
+    if (subAcct) arr.push(`subAcct=${subAcct}`);
+    if (enable) arr.push(`enable=${enable}`);
+    const qs = !!arr.length ? `?${arr.join("&")}` : "";
+
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}${qs}`,
+        headers: this.getHeaders(false),
+      });
+      if (res.data && res.data.code !== "0") {
+        const message = JSON.stringify(res.data);
+        this.logger.trace(message);
+        return new ResponseFormat({
+          message,
+          code: Codes.THIRD_PARTY_API_ERROR,
+        });
+      }
+      const payload = res.data.data;
+      return new ResponseFormat({
+        message: "getSubAccounts",
+        payload,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      let message = error.message;
+      if (error.response && error.response.data)
+        message = error.response.data.msg;
+      return new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
+  async getSubAccount({ query }) {
+    const method = "GET";
+    const path = "/api/v5/account/subaccount/balances";
+    const { subAcct, enable } = query;
+
+    const arr = [];
+    if (subAcct) arr.push(`subAcct=${subAcct}`);
+    if (enable) arr.push(`enable=${enable}`);
+    const qs = !!arr.length ? `?${arr.join("&")}` : "";
+
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}${qs}`,
+        headers: this.getHeaders(false),
+      });
+      if (res.data && res.data.code !== "0") {
+        const message = JSON.stringify(res.data);
+        this.logger.trace(message);
+        return new ResponseFormat({
+          message,
+          code: Codes.THIRD_PARTY_API_ERROR,
+        });
+      }
+      const data = res.data.data;
+      const balances = data.details.map((detail) => ({
+        currency: detail.ccy,
+        balance: detail.availBal,
+        locked: detail.frozenBal,
+        total: SafeMath.plus(detail.availBal, detail.frozenBal),
+      }));
+      return new ResponseFormat({
+        message: "getSubAccount",
+        payload: balances,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      let message = error.message;
+      if (error.response && error.response.data)
+        message = error.response.data.msg;
+      return new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
   // market api end
   // trade api
   async postPlaceOrder({ params, query, body, memberId, orderId }) {

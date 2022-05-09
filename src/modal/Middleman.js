@@ -485,6 +485,15 @@ class Middleman {
   async getCSRTToken() {
     return await this.communicator.CSRFTokenRenew();
   }
+
+  async getExAccounts(exchange) {
+    return await this.communicator.getExAccounts(exchange);
+  }
+
+
+  async getUsersAccounts(exchange) {
+    return await this.communicator.getUsersAccounts(exchange);
+  }
 }
 
 export default Middleman;

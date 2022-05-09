@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { Tabs, Tab } from "react-bootstrap";
+import StoreContext from "../store/store-context";
+import SafeMath from "../utils/SafeMath";
 
 const exchanges = ["OKEx", "Binance"];
 const exchangeCurrencies = {
@@ -52,14 +54,18 @@ const CurrencyDetail = (props) => {
                   <div className="currency__bar-box">
                     <div
                       style={{
-                        width: `${(user.balance / props.details[0].total) * 100}%`,
+                        width: `${
+                          (user.balance / props.details[0].total) * 100
+                        }%`,
                       }}
                     >
                       {user.balance.toFixed(2)}
                     </div>
                     <div
                       style={{
-                        width: `${(user.locked / props.details[0].total) * 100}%`,
+                        width: `${
+                          (user.locked / props.details[0].total) * 100
+                        }%`,
                       }}
                     >
                       {user.locked.toFixed(2)}
@@ -68,7 +74,9 @@ const CurrencyDetail = (props) => {
                   <div
                     className="currency__alert"
                     style={{
-                      left: `${(props.ex_total / props.details[0].total) * 100}%`,
+                      left: `${
+                        (props.ex_total / props.details[0].total) * 100
+                      }%`,
                     }}
                   >
                     <div className="currency__alert--line"></div>
@@ -88,67 +96,46 @@ const CurrencyDetail = (props) => {
 };
 
 const CurrenciesView = (props) => {
+  const storeCtx = useContext(StoreContext);
   const [exchange, setExchange] = useState("OKEx");
   const [overview, setOverview] = useState(null);
   const [currency, setCurrency] = useState(null);
 
-  const onChoseExchageHandler = (exchange) => {
-    console.log(`onChoseExchageHandler exchange`, exchange);
-    setExchange(exchange);
-    // get exchange currencies
-    const currencies = exchangeCurrencies[exchange];
+  const onChoseExchageHandler = useCallback(
+    async (exchange) => {
+      console.log(`onChoseExchageHandler exchange`, exchange);
+      setExchange(exchange);
 
-    // get exchange overview
-    setTimeout(() => {
+      // get tidebit currencies
+      const tbAccounts = await storeCtx.getUsersAccounts();
+      // get exchange currencies
+      const exAccounts = await storeCtx.getExAccounts(exchange);
+
+      // overview
       const overview = {};
-      currencies?.forEach((currency) => {
-        // get currencies detail
-        const details = [];
-        let sum = 0;
-
-        for (let i = 60983; i <= 60987; i++) {
-          const balance = Math.random() * 20;
-          const locked = Math.random() * 20;
-          const total = balance + locked;
-          sum += total;
-
-          details.push({
-            memberId: i,
-            balance,
-            locked,
-            total,
-          });
-        }
-        details.sort((a, b) => b.total - a.total);
-
-        const ex_balance = Math.random() * 100;
-        const ex_locked = Math.random() * 100;
-        const ex_total = ex_balance + ex_locked;
-
-        const tb_balance = Math.random() * 100;
-        const tb_locked = sum - tb_balance;
-        const tb_total = tb_balance + tb_locked;
-
-        overview[currency] = {
-          ex_balance,
-          ex_locked,
-          ex_total,
-          tb_locked,
-          tb_balance,
-          tb_total,
-          details,
-          alert1: sum * 0.2, // 20% 準備率
-          alert2: details[0].total * 2, // 單一幣種最多資產用戶持有的一倍
+      Object.values(tbAccounts)?.forEach((acc) => {
+        const exAcc = exAccounts[acc.currency];
+        overview[acc.currency] = {
+          ex_balance: exAcc?.balance || "0.0",
+          ex_locked: exAcc?.locked || "0.0",
+          ex_total: exAcc?.total || "0.0",
+          tb_balance: tbAccounts.balance,
+          tb_locked: tbAccounts.locked,
+          tb_total: tbAccounts.total,
+          details: tbAccounts.details,
+          alert1: SafeMath.mult(tbAccounts.total, 0.2), // 20% 準備率
+          alert2: SafeMath.mult(tbAccounts.details[0].total, 2), // 單一幣種最多資產用戶持有的一倍
         };
       });
 
       setOverview(overview);
-    }, 1000);
-  };
+    },
+    [storeCtx]
+  );
 
   useEffect(() => {
     if (exchange) onChoseExchageHandler(exchange);
-  }, [exchange]);
+  }, [exchange, onChoseExchageHandler]);
 
   return (
     <div className="currencies-view">

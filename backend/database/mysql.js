@@ -51,7 +51,21 @@ class mysql {
     return this.db.transaction();
   }
 
-  async getAccounts(memberId, options) {
+  async getAccounts() {
+    const query = "SELECT * FROM `accounts`;";
+    try {
+      const [accounts] = await this.db.query({
+        query,
+      });
+      this.logger.log(query);
+      return accounts;
+    } catch (error) {
+      this.logger.error(error);
+      return [];
+    }
+  }
+
+  async getAccountsByMemberId(memberId) {
     const query = "SELECT * FROM `accounts` WHERE `accounts`.member_id = ?;";
     const values = [memberId];
     try {

@@ -65,4 +65,8 @@ pathname = [
   # exchange - public
   "get | /api/v1/public/instruments | Bot.ExchangeHub.getInstruments",
 
+  # exchange - users
+  "get | /api/v1/users/account/list | Bot.ExchangeHub.getUsersAccounts",
+  "get | /api/v1/users/subaccount/list | Bot.ExchangeHub.getExAccounts",
+
 ]
