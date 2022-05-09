@@ -483,18 +483,23 @@ class Communicator {
         requestRetry = true;
       }
       if (!requestRetry && response.success) return response;
-      else if (retries > 0 && retryCodes.includes(response.code)) {
-        // console.trace(`[Communicator] _request retries`, retries);
-        setTimeout(() => {
-          return this._request({
-            method,
-            url,
-            data,
-            retries: retries - 1,
-            backoff: backoff * 2,
-          });
-        }, backoff);
-      } else return Promise.reject(response);
+      // else if (
+      //   !response.success &&
+      //   retries > 0 &&
+      //   retryCodes.includes(response.code)
+      // ) {
+      //   // console.trace(`[Communicator] _request retries`, retries);
+      //   setTimeout(() => {
+      //     return this._request({
+      //       method,
+      //       url,
+      //       data,
+      //       retries: retries - 1,
+      //       backoff: backoff * 2,
+      //     });
+      //   }, backoff);
+      // } 
+      else return Promise.reject(response);
     } catch (error) {
       if (error.code === Codes.EXPIRED_ACCESS_TOKEN) {
         try {

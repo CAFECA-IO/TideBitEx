@@ -2,6 +2,7 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import { Tabs, Tab } from "react-bootstrap";
 import StoreContext from "../store/store-context";
 import SafeMath from "../utils/SafeMath";
+import { formateDecimal } from "../utils/Utils";
 
 const exchanges = ["OKEx", "Binance"];
 
@@ -18,10 +19,12 @@ const CurrencyDetail = (props) => {
           </div>
         </div>
         <div className="detail__header--sub">
-          <div>{`${props.exchange}: ${props.ex_total.toFixed(2)}: ${
+          <div>{`${props.exchange}: ${formateDecimal(props.ex_total, 2)}: ${
             props.currency
           }`}</div>
-          <div>TideBit: {`${props.tb_total.toFixed(2)}${props.currency}`}</div>
+          <div>
+            TideBit: {`${formateDecimal(props.tb_total, 2)}${props.currency}`}
+          </div>
         </div>
       </div>
       {props.details && (
@@ -45,7 +48,7 @@ const CurrencyDetail = (props) => {
                         }%`,
                       }}
                     >
-                      {user.balance.toFixed(2)}
+                      {formateDecimal(user.balance, 2)}
                     </div>
                     <div
                       style={{
@@ -54,7 +57,7 @@ const CurrencyDetail = (props) => {
                         }%`,
                       }}
                     >
-                      {user.locked.toFixed(2)}
+                      {formateDecimal(user.locked, 2)}
                     </div>
                   </div>
                   <div
@@ -94,10 +97,10 @@ const CurrenciesView = (props) => {
 
       // get tidebit currencies
       const tbAccounts = await storeCtx.getUsersAccounts();
-      console.log(`tbAccounts`,tbAccounts)
+      console.log(`tbAccounts`, tbAccounts);
       // get exchange currencies
       const exAccounts = await storeCtx.getExAccounts(exchange);
-      console.log(`exAccounts`,exAccounts)
+      console.log(`exAccounts`, exAccounts);
 
       // overview
       const overview = {};
@@ -112,7 +115,7 @@ const CurrenciesView = (props) => {
           tb_total: tbAccounts.total,
           details: tbAccounts.details,
           alert1: SafeMath.mult(tbAccounts.total, 0.2), // 20% 準備率
-          alert2: SafeMath.mult(tbAccounts.details[0].total, 2), // 單一幣種最多資產用戶持有的一倍
+          // alert2: SafeMath.mult(tbAccounts.details[0].total, 2), // 單一幣種最多資產用戶持有的一倍
         };
       });
 
@@ -213,7 +216,10 @@ const CurrenciesView = (props) => {
                                         }%`,
                                       }}
                                     >
-                                      {overview[currency].ex_balance.toFixed(2)}
+                                      {formateDecimal(
+                                        overview[currency].ex_balance,
+                                        2
+                                      )}
                                     </div>
                                     <div
                                       style={{
@@ -224,7 +230,10 @@ const CurrenciesView = (props) => {
                                         }%`,
                                       }}
                                     >
-                                      {overview[currency].ex_locked.toFixed(2)}
+                                      {formateDecimal(
+                                        overview[currency].ex_locked,
+                                        2
+                                      )}
                                     </div>
                                   </div>
                                 </div>
@@ -253,7 +262,10 @@ const CurrenciesView = (props) => {
                                         }%`,
                                       }}
                                     >
-                                      {overview[currency].tb_balance.toFixed(2)}
+                                      {formateDecimal(
+                                        overview[currency].tb_balance,
+                                        2
+                                      )}
                                     </div>
                                     <div
                                       style={{
@@ -264,7 +276,10 @@ const CurrenciesView = (props) => {
                                         }%`,
                                       }}
                                     >
-                                      {overview[currency].tb_locked.toFixed(2)}
+                                      {formateDecimal(
+                                        overview[currency].tb_locked,
+                                        2
+                                      )}
                                     </div>
                                   </div>
                                 </div>
