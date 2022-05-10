@@ -18,10 +18,18 @@ class Utils {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
+  static concatPromise(prevRS, job) {
+    const result = Array.isArray(prevRS) ? prevRS : [];
+    return job().then((rs) => {
+      result.push(rs);
+      return Promise.resolve(result);
+    });
+  }
+
   static waterfallPromise(jobs, ms) {
-    return jobs.reduce(async (prev, curr, index) => {
-      await Utils.wait(ms * index);
-      return prev.then(() => curr());
+    return jobs.reduce(async (prev, curr) => {
+      await Utils.wait(ms);
+      return prev.then((rs) => Utils.concatPromise(rs, curr));
     }, Promise.resolve());
   }
 

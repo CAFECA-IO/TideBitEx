@@ -484,7 +484,35 @@ class OkexConnector extends ConnectorBase {
     }
   }
 
-  createExAccJob(subAccount, exAccounts) {
+  formateExAcc(subAcctsBals) {
+    const exAccounts = {};
+    return subAcctsBals.reduce((prev, subAcctsBal) => {
+      if (!prev[subAcctsBal.currency]) {
+        prev[subAcctsBal.currency] = {};
+        prev[subAcctsBal.currency]["details"] = [];
+        prev[subAcctsBal.currency]["balance"] = "0";
+        prev[subAcctsBal.currency]["locked"] = "0";
+        prev[subAcctsBal.currency]["total"] = "0";
+      }
+      prev[subAcctsBal.currency]["balance"] = SafeMath.plus(
+        prev[subAcctsBal.currency]["balance"],
+        subAcctsBal?.balance
+      );
+      prev[subAcctsBal.currency]["locked"] = SafeMath.plus(
+        prev[subAcctsBal.currency]["locked"],
+        subAcctsBal?.locked
+      );
+      prev[subAcctsBal.currency]["total"] = SafeMath.plus(
+        prev[subAcctsBal.currency]["total"],
+        subAcctsBal?.total
+      );
+      prev[subAcctsBal.currency]["details"].push(subAcctsBal);
+      prev[subAcctsBal.currency]["details"].sort((a, b) => b?.total - a?.total);
+      return prev;
+    }, exAccounts);
+  }
+
+  fetchSubAcctsBalsJob(subAccount) {
     return () => {
       return new Promise(async (resolve, reject) => {
         const subAccBalRes = await this.getSubAccount({
@@ -494,38 +522,7 @@ class OkexConnector extends ConnectorBase {
         });
         if (subAccBalRes.success) {
           const subAccBals = subAccBalRes.payload;
-          subAccBals.forEach((subAccBal) => {
-            if (!exAccounts[subAccBal.currency]) {
-              exAccounts[subAccBal.currency] = {};
-              exAccounts[subAccBal.currency]["details"] = [];
-              exAccounts[subAccBal.currency]["balance"] = "0";
-              exAccounts[subAccBal.currency]["locked"] = "0";
-              exAccounts[subAccBal.currency]["total"] = "0";
-            }
-            exAccounts[subAccBal.currency]["balance"] = SafeMath.plus(
-              exAccounts[subAccBal.currency]["balance"],
-              subAccBal?.balance
-            );
-            exAccounts[subAccBal.currency]["locked"] = SafeMath.plus(
-              exAccounts[subAccBal.currency]["locked"],
-              subAccBal?.locked
-            );
-            exAccounts[subAccBal.currency]["total"] = SafeMath.plus(
-              exAccounts[subAccBal.currency]["total"],
-              subAccBal?.total
-            );
-            exAccounts[subAccBal.currency]["details"].push({
-              subAcct: subAccount.subAcct,
-              currency: subAccBal.currency,
-              balance: subAccBal.balance,
-              locked: subAccBal.locked,
-              total: subAccBal.total,
-            });
-            exAccounts[subAccBal.currency]["details"].sort(
-              (a, b) => b?.total - a?.total
-            );
-          });
-          resolve(true);
+          resolve(subAccBals);
         } else {
           // ++ TODO
           this.logger.error(subAccBalRes);
@@ -537,16 +534,16 @@ class OkexConnector extends ConnectorBase {
 
   async getExAccounts({ query }) {
     return new Promise(async (resolve, reject) => {
-      const exAccounts = {};
       const subAccountsRes = await this.getSubAccounts({ query });
       if (subAccountsRes.success) {
         const subAccounts = subAccountsRes.payload;
         waterfallPromise(
           subAccounts.map((subAccount) =>
-            this.createExAccJob(subAccount, exAccounts)
+            this.fetchSubAcctsBalsJob(subAccount)
           ),
           1000
-        ).then(() => {
+        ).then((subAcctsBals) => {
+          const exAccounts = this.formateExAcc(subAcctsBals);
           this.logger.debug(
             `[${this.constructor.name}] getExAccounts exAccounts`,
             exAccounts
