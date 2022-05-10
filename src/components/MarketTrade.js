@@ -185,7 +185,7 @@ const TradePannel = (props) => {
   const { t } = useTranslation();
 
   const limitBuyPxHandler = (value) => {
-    console.trace(`limitBuyPxHandler`, value);
+    // console.trace(`limitBuyPxHandler`, value);
     let _value = +value < 0 ? "0" : value;
     setLimitBuyPx(_value);
   };

@@ -20,6 +20,10 @@ class HTTPAgent {
     this.axios.defaults.headers.common["token"] = token;
   }
 
+  setCSRFToken(token) {
+    this.axios.defaults.headers.common["X-CSRF-Token"] = token;
+  }
+
   getToken() {
     try {
       const { token } = this.axios.defaults.headers.common;
@@ -36,7 +40,7 @@ class HTTPAgent {
           success: false,
         };
       }
-        // console.log(res);
+      // console.log(res);
       return {
         success: res.data.success,
         data: res.data.payload,
@@ -60,6 +64,14 @@ class HTTPAgent {
 
   put(path, body) {
     return this._request(() => this.axios.put(path, body));
+  }
+
+  request(options) {
+    return this._request(() => this.axios(options));
+  }
+
+  CSRFTokenRenew(options) {
+    return this.axios(options);
   }
 
   _refreshToken() {

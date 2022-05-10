@@ -42,6 +42,9 @@
     flex-direction: column;
     height: 100%;
   }
+  &__container--mobile > .tab-content > .tab-pane.fade {
+    display: none;
+  }
 }
 @media only screen and (max-width: 1120px) {
   // If [device width] is less than or equal to 600px, then do

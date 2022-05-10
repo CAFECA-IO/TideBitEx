@@ -11,6 +11,7 @@ const Events = require("../../constants/Events");
 const SafeMath = require("../SafeMath");
 const SupportedExchange = require("../../constants/SupportedExchange");
 const Utils = require("../Utils");
+const { waterfallPromise } = require("../Utils");
 
 const HEART_BEAT_TIME = 25000;
 
@@ -482,6 +483,197 @@ class OkexConnector extends ConnectorBase {
       });
     }
   }
+
+  formateExAccts(subAcctsBals) {
+    const exAccounts = {};
+    return subAcctsBals.reduce((prev, subAcctsBal) => {
+      if (!prev[subAcctsBal.currency]) {
+        prev[subAcctsBal.currency] = {};
+        prev[subAcctsBal.currency]["details"] = [];
+        prev[subAcctsBal.currency]["balance"] = "0";
+        prev[subAcctsBal.currency]["locked"] = "0";
+        prev[subAcctsBal.currency]["total"] = "0";
+      }
+      prev[subAcctsBal.currency]["balance"] = SafeMath.plus(
+        prev[subAcctsBal.currency]["balance"],
+        subAcctsBal?.balance
+      );
+      prev[subAcctsBal.currency]["locked"] = SafeMath.plus(
+        prev[subAcctsBal.currency]["locked"],
+        subAcctsBal?.locked
+      );
+      prev[subAcctsBal.currency]["total"] = SafeMath.plus(
+        prev[subAcctsBal.currency]["total"],
+        subAcctsBal?.total
+      );
+      prev[subAcctsBal.currency]["details"].push(subAcctsBal);
+      prev[subAcctsBal.currency]["details"].sort((a, b) => b?.total - a?.total);
+      return prev;
+    }, exAccounts);
+  }
+
+  fetchSubAcctsBalsJob(subAccount) {
+    return () => {
+      return new Promise(async (resolve, reject) => {
+        const subAccBalRes = await this.getSubAccount({
+          query: {
+            subAcct: subAccount.subAcct,
+          },
+        });
+        if (subAccBalRes.success) {
+          const subAccBals = subAccBalRes.payload;
+          resolve(subAccBals);
+        } else {
+          // ++ TODO
+          this.logger.error(subAccBalRes);
+          reject(subAccBalRes);
+        }
+      });
+    };
+  }
+
+  async getExAccounts({ query }) {
+    return new Promise(async (resolve, reject) => {
+      const subAccountsRes = await this.getSubAccounts({ query });
+      if (subAccountsRes.success) {
+        const subAccounts = subAccountsRes.payload;
+        const jobs = subAccounts.map((subAccount) =>
+          this.fetchSubAcctsBalsJob(subAccount)
+        );
+        waterfallPromise(jobs, 1000).then((subAcctsBals) => {
+          this.logger.debug(
+            `[${this.constructor.name}] getExAccounts subAcctsBals`,
+            subAcctsBals
+          );
+          const exAccounts = this.formateExAccts(subAcctsBals);
+          this.logger.debug(
+            `[${this.constructor.name}] getExAccounts exAccounts`,
+            exAccounts
+          );
+          resolve(
+            new ResponseFormat({
+              message: "getExAccounts",
+              payload: exAccounts,
+            })
+          );
+        });
+      } else {
+        reject(subAccountsRes);
+      }
+    });
+  }
+
+  async getSubAccounts({ query }) {
+    const method = "GET";
+    const path = "/api/v5/users/subaccount/list";
+    const { subAcct, enable } = query;
+    const arr = [];
+    if (subAcct) arr.push(`subAcct=${subAcct}`);
+    if (enable) arr.push(`enable=${enable}`);
+    const qs = !!arr.length ? `?${arr.join("&")}` : "";
+
+    const timeString = new Date().toISOString();
+    // const timeString = new Date(new Date().getTime() + 3000).toISOString();
+    const okAccessSign = await this.okAccessSign({
+      timeString,
+      method,
+      path: `${path}${qs}`,
+    });
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}${qs}`,
+        headers: this.getHeaders(true, { timeString, okAccessSign }),
+      });
+      if (res.data && res.data.code !== "0") {
+        const message = JSON.stringify(res.data);
+        this.logger.trace(message);
+        return new ResponseFormat({
+          message,
+          code: Codes.THIRD_PARTY_API_ERROR,
+        });
+      }
+      const payload = res.data.data;
+      // this.logger.debug(
+      //   `[${this.constructor.name}] getSubAccounts payload`,
+      //   payload
+      // );
+      return new ResponseFormat({
+        message: "getSubAccounts",
+        payload,
+      });
+    } catch (error) {
+      this.logger.error(error.response);
+      let message = error.message;
+      if (error.response && error.response.data)
+        message = error.response.data.msg;
+      return new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
+  async getSubAccount({ query }) {
+    const method = "GET";
+    const path = "/api/v5/account/subaccount/balances";
+    const { subAcct, enable } = query;
+
+    const arr = [];
+    if (subAcct) arr.push(`subAcct=${subAcct}`);
+    if (enable) arr.push(`enable=${enable}`);
+    const qs = !!arr.length ? `?${arr.join("&")}` : "";
+
+    const timeString = new Date().toISOString();
+    const okAccessSign = await this.okAccessSign({
+      timeString,
+      method,
+      path: `${path}${qs}`,
+    });
+
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}${qs}`,
+        headers: this.getHeaders(true, { timeString, okAccessSign }),
+      });
+      if (res.data && res.data.code !== "0") {
+        const message = JSON.stringify(res.data);
+        this.logger.trace(message);
+        return new ResponseFormat({
+          message,
+          code: Codes.THIRD_PARTY_API_ERROR,
+        });
+      }
+      const [data] = res.data.data;
+      // this.logger.debug(`[${this.constructor.name}: getSubAccount] data`, data);
+      const balances = data.details.map((detail) => ({
+        subAcct,
+        currency: detail.ccy,
+        balance: detail.availBal,
+        locked: detail.frozenBal,
+        total: SafeMath.plus(detail.availBal, detail.frozenBal),
+      }));
+      // this.logger.debug(
+      //   `[${this.constructor.name}: getSubAccount] balances`,
+      //   balances
+      // );
+      return new ResponseFormat({
+        message: "getSubAccount",
+        payload: balances,
+      });
+    } catch (error) {
+      this.logger.error(error.response);
+      let message = error.message;
+      if (error.response && error.response.data)
+        message = error.response.data.msg;
+      return new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
   // market api end
   // trade api
   async postPlaceOrder({ params, query, body, memberId, orderId }) {
@@ -1231,7 +1423,7 @@ class OkexConnector extends ConnectorBase {
   }
 
   _subscribeCandle1m(instId, resolution) {
-    this.candleChannel = `candle${resolution}`;
+    this.candleChannel = `candle1m`;
     const args = [
       {
         channel: this.candleChannel,

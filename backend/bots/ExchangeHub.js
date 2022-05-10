@@ -112,6 +112,10 @@ class ExchangeHub extends Bot {
     return this.tideBitConnector.getMemberIdFromRedis(peatioSession);
   }
 
+  async getUsersAccounts() {
+    return this.tideBitConnector.router("getUsersAccounts", {});
+  }
+
   // account api
   async getAccounts({ memberId }) {
     if (memberId === -1) {
@@ -777,7 +781,6 @@ class ExchangeHub extends Bot {
         code: Codes.API_UNKNOWN_ERROR,
       });
     }
-
     try {
       const tideBitOnlyMarkets = Utils.marketFilterExclude(
         list,
@@ -800,7 +803,31 @@ class ExchangeHub extends Bot {
       payload: list,
     });
   }
+
   // public api end
+  async getExAccounts({ query }) {
+    const { exchange } = query;
+    this.logger.debug(`[${this.constructor.name}] getExAccounts`, exchange);
+    switch (exchange) {
+      case "OKEx":
+      default:
+        try {
+          this.logger.debug(
+            `[${this.constructor.name}] getExAccounts run default`
+          );
+          const okexRes = await this.okexConnector.router("getExAccounts", {
+            query,
+          });
+          return okexRes;
+        } catch (error) {
+          this.logger.error(error);
+          return new ResponseFormat({
+            message: error.stack,
+            code: Codes.API_UNKNOWN_ERROR,
+          });
+        }
+    }
+  }
 
   async _eventListener() {
     EventBus.on(Events.account, (account) => {

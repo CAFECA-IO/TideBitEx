@@ -14,11 +14,27 @@ const Codes = require("../constants/Codes");
 const { default: BigNumber } = require("bignumber.js");
 
 class Utils {
-  static waterfallPromise(jobs) {
+  static wait(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  static concatPromise(prevRS, job) {
+    const result = Array.isArray(prevRS) ? prevRS : [];
+    return job().then((rs) => {
+      result.push(rs);
+      return Promise.resolve(result);
+    });
+  }
+
+  static waterfallPromise(jobs, ms) {
     return jobs.reduce((prev, curr) => {
-      return prev.then(() => curr());
+      return prev.then(async (rs) => {
+        await Utils.wait(ms);
+        return Utils.concatPromise(rs, curr);
+      });
     }, Promise.resolve());
   }
+
   static retryPromise(promise, args, maxTries, context, timeout) {
     context = context || null;
     return promise.apply(context, args).then(

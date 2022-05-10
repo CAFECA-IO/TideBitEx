@@ -77,7 +77,10 @@ class TibeBitConnector extends ConnectorBase {
       );
       await client.quit();
       // ++ TODO: 下面補error handle
-      this.logger.log(`[${this.constructor.name} getMemberIdFromRedis] value:`, value);
+      this.logger.log(
+        `[${this.constructor.name} getMemberIdFromRedis] value:`,
+        value
+      );
       this.logger.log(
         `[${this.constructor.name} getMemberIdFromRedis] value.toString("latin1"):`,
         value.toString("latin1")
@@ -85,7 +88,10 @@ class TibeBitConnector extends ConnectorBase {
       const split1 = value
         .toString("latin1")
         .split("member_id\x06:\x06EFi\x02");
-      this.logger.log(`[${this.constructor.name} getMemberIdFromRedis] split1:`, split1);
+      this.logger.log(
+        `[${this.constructor.name} getMemberIdFromRedis] split1:`,
+        split1
+      );
       if (split1.length > 0) {
         const memberIdLatin1 = split1[1].split('I"')[0];
         const memberIdString = Buffer.from(memberIdLatin1, "latin1")
@@ -573,9 +579,79 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
+  /* 
+  {
+    'BTC': {
+      'sum': '0.0',
+      'balance': [
+        {
+          'currency': 'BTC',
+          'balance': '0.0',
+          'locked': '0.0',
+          'total': '0.0',
+        }
+      ]
+    }
+  }
+  **/
+
+  async getUsersAccounts() {
+    try {
+      const _accounts = await this.database.getAccounts();
+      const accounts = {};
+      _accounts.forEach((account) => {
+        let currency = this.currencies.find(
+          (curr) => curr.id === account.currency
+        ).symbol;
+        if (!accounts[currency]) {
+          accounts[currency] = {};
+          accounts[currency]["details"] = [];
+          accounts[currency]["balance"] = "0";
+          accounts[currency]["locked"] = "0";
+          accounts[currency]["total"] = "0";
+        }
+        let balance = Utils.removeZeroEnd(account.balance);
+        let locked = Utils.removeZeroEnd(account.locked);
+        let total = SafeMath.plus(balance, locked);
+        accounts[currency]["balance"] = SafeMath.plus(
+          accounts[currency]["balance"],
+          balance
+        );
+        accounts[currency]["locked"] = SafeMath.plus(
+          accounts[currency]["locked"],
+          locked
+        );
+        accounts[currency]["total"] = SafeMath.plus(
+          accounts[currency]["total"],
+          total
+        );
+        accounts[currency]["details"].push({
+          currency: currency,
+          memberId: account.member_id,
+          balance,
+          locked,
+          total,
+        });
+        accounts[currency]["details"].sort((a, b) => b.total - a.total);
+      });
+      // this.logger.debug(`[${this.constructor.name} getUsersAccounts]`, accounts)
+      return new ResponseFormat({
+        message: "getAccounts",
+        payload: accounts,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      const message = error.message;
+      return new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
   async getAccounts({ memberId }) {
     try {
-      const _accounts = await this.database.getAccounts(memberId);
+      const _accounts = await this.database.getAccountsByMemberId(memberId);
       const accounts = _accounts.map((account) => ({
         currency: this.currencies.find((curr) => curr.id === account.currency)
           .symbol,

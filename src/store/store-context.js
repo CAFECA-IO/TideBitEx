@@ -197,7 +197,7 @@ const StoreContext = React.createContext({
    * @param {String} ccy ex: "BTC,ETH"
    * @returns {Promise<Balance>}
    */
-   getAccounts: async (ccy) => {},
+  getAccounts: async (ccy) => {},
   /**
    * @typedef {Object} Order
    * @property {string} instId 產品Id
@@ -229,6 +229,8 @@ const StoreContext = React.createContext({
   cancelOrder: async (order) => {},
   cancelOrders: async (type) => {},
   activePageHandler: () => {},
+  getExAccounts: async(exchange) => {},
+  getUsersAccounts: async() => {},
 });
 
 export default StoreContext;
