@@ -133,31 +133,58 @@ vi private/marketsSource.toml
 | key | instId(大寫)，以`tb`開頭，ex: tbETH-USDT |
 | value | 來源字串，請參考```backend/bots/constants/SupportedExchange.js``` |
 
+需要同時有定義交易對名稱以及來源名稱
+
 sample:
 ```toml
 [markets]
-tbBTC-USDT = 'OKEx'
-tbETH-USDT = 'OKEx'
-tbXPA-ETH = 'TideBit'
-tbCBT-XPA = 'TideBit'
+BTCUSD = 'BTC-USD'
+tbBTC-USD = 'TideBit'
 ```
 
-
 ### 啟動
+之後便可以使用pm2掛載
 ```sh
-npm start
+pm2 start bin/main.js
 ```
 
 正常執行後會看到
 ```
+[PM2] Spawning PM2 daemon with pm2_home=/home/ubuntu/.pm2
+[PM2] PM2 Successfully daemonized
+[PM2][Module] Starting NPM module pm2-logrotate
+[PM2][WARN] Applications pm2-logrotate not running, starting...
+[PM2] App [pm2-logrotate] launched (1 instances)
+[PM2] Starting /home/ubuntu/workspace/TideBitEx/bin/main.js in fork_mode (1 instance)
+[PM2] Done.
+```
+
+再執行
+```
+pm2 log 1
+```
+會看到
+```
 DB    tidebitstaging connect success
+register options ...
+...
 HTTP   http://127.0.0.1:80
 HTTPS  https://127.0.0.1:443
 ```
 
-之後便可以使用pm2掛載
-```sh
-pm2 start . -n TideBitEx
+之後有在TidebitEX上做修改後需重啟
+```
+pm2 restart bin/main.js
+```
+
+組合log一起使用
+```
+pm2 restart bin/main.js && pm2 log 1
+```
+
+關閉掛載
+```
+pm2 kill
 ```
 
 ## trouble shoot
