@@ -488,63 +488,70 @@ class OkexConnector extends ConnectorBase {
     const subAccountsRes = await this.getSubAccounts({ query });
     if (subAccountsRes.success) {
       const subAccounts = subAccountsRes.payload;
-      subAccounts.forEach(async (subAcc, index) => {
-        const timer = setTimeout(async () => {
-          const subAccBalRes = await this.getSubAccount({
-            query: {
-              ...query,
-              subAcct: subAcc.subAcct,
-            },
+      Promise.all(
+        subAccounts.map(async (subAcc, index) => {
+          return new Promise((resolve, reject) => {
+            const timer = setTimeout(async () => {
+              const subAccBalRes = await this.getSubAccount({
+                query: {
+                  ...query,
+                  subAcct: subAcc.subAcct,
+                },
+              });
+              if (subAccBalRes.success) {
+                const subAccBal = subAccBalRes.payload;
+                if (!exAccounts[subAccBal.currency]) {
+                  exAccounts[subAccBal.currency] = {};
+                  exAccounts[subAccBal.currency]["details"] = [];
+                  exAccounts[subAccBal.currency]["balance"] = "0";
+                  exAccounts[subAccBal.currency]["locked"] = "0";
+                  exAccounts[subAccBal.currency]["total"] = "0";
+                }
+                exAccounts[subAccBal.currency]["balance"] = SafeMath.plus(
+                  exAccounts[subAccBal.currency]["balance"],
+                  subAccBal?.balance
+                );
+                exAccounts[subAccBal.currency]["locked"] = SafeMath.plus(
+                  exAccounts[subAccBal.currency]["locked"],
+                  subAccBal?.locked
+                );
+                exAccounts[subAccBal.currency]["total"] = SafeMath.plus(
+                  exAccounts[subAccBal.currency]["total"],
+                  subAccBal?.total
+                );
+                exAccounts[subAccBal.currency]["details"].push({
+                  currency: subAccBal.currency,
+                  balance: subAccBal.balance,
+                  locked: subAccBal.locked,
+                  total: subAccBal.total,
+                });
+                exAccounts[subAccBal.currency]["details"].sort(
+                  (a, b) => b?.total - a?.total
+                );
+                resolve(true);
+              } else {
+                // ++ TODO
+                this.logger.error(subAccBalRes);
+
+                reject(subAccBalRes);
+              }
+              clearTimeout(timer);
+            }, index * 1000);
           });
-          if (subAccBalRes.success) {
-            const subAccBal = subAccBalRes.payload;
-            if (!exAccounts[subAccBal.currency]) {
-              exAccounts[subAccBal.currency] = {};
-              exAccounts[subAccBal.currency]["details"] = [];
-              exAccounts[subAccBal.currency]["balance"] = "0";
-              exAccounts[subAccBal.currency]["locked"] = "0";
-              exAccounts[subAccBal.currency]["total"] = "0";
-            }
-            exAccounts[subAccBal.currency]["balance"] = SafeMath.plus(
-              exAccounts[subAccBal.currency]["balance"],
-              subAccBal?.balance
-            );
-            exAccounts[subAccBal.currency]["locked"] = SafeMath.plus(
-              exAccounts[subAccBal.currency]["locked"],
-              subAccBal?.locked
-            );
-            exAccounts[subAccBal.currency]["total"] = SafeMath.plus(
-              exAccounts[subAccBal.currency]["total"],
-              subAccBal?.total
-            );
-            exAccounts[subAccBal.currency]["details"].push({
-              currency: subAccBal.currency,
-              balance: subAccBal.balance,
-              locked: subAccBal.locked,
-              total: subAccBal.total,
-            });
-            exAccounts[subAccBal.currency]["details"].sort(
-              (a, b) => b?.total - a?.total
-            );
-          } else {
-            // ++ TODO
-            this.logger.error(subAccBalRes);
-            return;
-          }
-          clearTimeout(timer);
-        }, index * 1000);
+        })
+      ).then(() => {
+        this.logger.debug(
+          `[${this.constructor.name}] getExAccounts exAccounts`,
+          exAccounts
+        );
+        return new ResponseFormat({
+          message: "getSubAccounts",
+          payload: exAccounts,
+        });
       });
     } else {
       return subAccountsRes;
     }
-    this.logger.debug(
-      `[${this.constructor.name}] getExAccounts exAccounts`,
-      exAccounts
-    );
-    return new ResponseFormat({
-      message: "getSubAccounts",
-      payload: exAccounts,
-    });
   }
 
   async getSubAccounts({ query }) {
@@ -630,7 +637,7 @@ class OkexConnector extends ConnectorBase {
           code: Codes.THIRD_PARTY_API_ERROR,
         });
       }
-      const data = res.data.data;
+      const [data] = res.data.data;
       this.logger.debug(`[${this.constructor.name}: getSubAccount] data`, data);
       const balances = data.details.map((detail) => ({
         currency: detail.ccy,
