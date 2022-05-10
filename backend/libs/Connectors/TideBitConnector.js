@@ -627,7 +627,7 @@ class TibeBitConnector extends ConnectorBase {
         );
         accounts[currency]["details"].push({
           currency: currency,
-          memberId: account.memberId,
+          memberId: account.member_id,
           balance,
           locked,
           total,
