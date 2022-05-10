@@ -14,7 +14,7 @@ import Events from "../constant/Events";
 let tickerTimestamp = 0,
   bookTimestamp = 0,
   accountTimestamp = 0,
-connection_resolvers = [];
+  connection_resolvers = [];
 
 const StoreProvider = (props) => {
   const middleman = useMemo(() => new Middleman(), []);
@@ -160,9 +160,9 @@ const StoreProvider = (props) => {
         if (data) ws.send(data);
       }, 1000);
     });
-    ws.addEventListener("close", async(msg) => {
+    ws.addEventListener("close", async (msg) => {
       clearInterval(interval);
-      await getCSRFToken()
+      await getCSRFToken();
       console.log(
         "Socket is closed. Reconnect will be attempted in 1 second.",
         msg.reason
