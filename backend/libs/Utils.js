@@ -14,17 +14,17 @@ const Codes = require("../constants/Codes");
 const { default: BigNumber } = require("bignumber.js");
 
 class Utils {
-  static waterfallPromise(jobs) {
+  static wait(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  static waterfallPromise(jobs, ms) {
     return jobs.reduce((prev, curr) => {
+      Utils.wait(ms);
       return prev.then(() => curr());
     }, Promise.resolve());
   }
-  static wait(ms) {
-    return new Promise((resolve) => {
-      const timer = setTimeout(resolve, ms);
-      clearTimeout(timer);
-    });
-  }
+
   static retryPromise(promise, args, maxTries, context, timeout) {
     context = context || null;
     return promise.apply(context, args).then(

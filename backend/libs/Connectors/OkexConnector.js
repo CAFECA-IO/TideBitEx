@@ -544,7 +544,8 @@ class OkexConnector extends ConnectorBase {
         waterfallPromise(
           subAccounts.map((subAccount) =>
             this.createExAccJob(subAccount, exAccounts)
-          )
+          ),
+          1000
         ).then(() => {
           this.logger.debug(
             `[${this.constructor.name}] getExAccounts exAccounts`,
