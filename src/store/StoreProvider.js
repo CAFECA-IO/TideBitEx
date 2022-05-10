@@ -293,7 +293,7 @@ const StoreProvider = (props) => {
         middleman.updateSelectedTicker(ticker);
         setSelectedTicker(ticker);
         console.log(`ticker`, ticker);
-        document.title = `${ticker.last} ${ticker.name}`;
+        document.title = `${ticker?.last} ${ticker?.name}`;
         history.push({
           pathname: `/markets/${ticker.market}`,
         });
@@ -610,16 +610,18 @@ const StoreProvider = (props) => {
   };
 
   const start = useCallback(async () => {
-    // console.log(`******** start [START] ********`);
-    connectWS();
-    const market = location.pathname.includes("/markets/")
-      ? location.pathname.replace("/markets/", "")
-      : null;
-    const ticker = await getTicker(market);
-    await selectTickerHandler(ticker);
-    await getTickers();
-    await getAccounts();
-    // console.log(`******** start [END] ********`);
+    if (location.pathname.includes("/markets")) {
+      // console.log(`******** start [START] ********`);
+      connectWS();
+      const market = location.pathname.includes("/markets/")
+        ? location.pathname.replace("/markets/", "")
+        : null;
+      const ticker = await getTicker(market);
+      await selectTickerHandler(ticker);
+      await getTickers();
+      await getAccounts();
+      // console.log(`******** start [END] ********`);
+    }
   }, [
     connectWS,
     getTicker,
