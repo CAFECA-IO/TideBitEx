@@ -19,6 +19,12 @@ class Utils {
       return prev.then(() => curr());
     }, Promise.resolve());
   }
+  static wait(ms) {
+    return new Promise((resolve) => {
+      const timer = setTimeout(resolve, ms);
+      clearTimeout(timer);
+    });
+  }
   static retryPromise(promise, args, maxTries, context, timeout) {
     context = context || null;
     return promise.apply(context, args).then(
