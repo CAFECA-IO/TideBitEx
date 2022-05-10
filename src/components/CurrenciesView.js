@@ -98,10 +98,10 @@ const CurrenciesView = (props) => {
 
       // get tidebit currencies
       const tbAccounts = await storeCtx.getUsersAccounts();
-      console.log(`tbAccounts`, tbAccounts);
+      console.log(`onChoseExchageHandler tbAccounts`, tbAccounts);
       // get exchange currencies
       const exAccounts = await storeCtx.getExAccounts(exchange);
-      console.log(`exAccounts`, exAccounts);
+      console.log(`onChoseExchageHandler exAccounts`, exAccounts);
 
       // overview
       const overview = {};

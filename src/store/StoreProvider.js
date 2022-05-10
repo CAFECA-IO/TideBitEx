@@ -419,7 +419,7 @@ const StoreProvider = (props) => {
 
   const getExAccounts = useCallback(
     async (exchange) => {
-      let exAccounts = [];
+      let exAccounts = null;
       try {
         exAccounts = await middleman.getExAccounts(exchange);
       } catch (error) {
@@ -431,7 +431,7 @@ const StoreProvider = (props) => {
   );
 
   const getUsersAccounts = useCallback(async () => {
-    let usersAccounts = [];
+    let usersAccounts = null;
     try {
       usersAccounts = await middleman.getUsersAccounts();
     } catch (error) {

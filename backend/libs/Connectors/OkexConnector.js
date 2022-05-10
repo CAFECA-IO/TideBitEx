@@ -547,7 +547,7 @@ class OkexConnector extends ConnectorBase {
           exAccounts
         );
         return new ResponseFormat({
-          message: "getSubAccounts",
+          message: "getExAccounts",
           payload: exAccounts,
         });
       });

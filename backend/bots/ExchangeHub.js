@@ -818,6 +818,10 @@ class ExchangeHub extends Bot {
           const okexRes = await this.okexConnector.router("getExAccounts", {
             query,
           });
+          this.logger.debug(
+            `[${this.constructor.name}] getExAccounts okexRes`,
+            okexRes
+          );
           return okexRes;
         } catch (error) {
           this.logger.error(error);
