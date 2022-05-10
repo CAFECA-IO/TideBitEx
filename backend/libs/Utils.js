@@ -27,11 +27,11 @@ class Utils {
   }
 
   static waterfallPromise(jobs, ms) {
-    return jobs.reduce(async (prev, curr) => {
-      console.log(`before wait`, new Date().getTime());
-      await Utils.wait(ms);
-      console.log(`after wait`, new Date().getTime());
-      return prev.then((rs) => Utils.concatPromise(rs, curr));
+    return jobs.reduce((prev, curr) => {
+      return prev.then(async (rs) => {
+        await Utils.wait(ms);
+        Utils.concatPromise(rs, curr);
+      });
     }, Promise.resolve());
   }
 
