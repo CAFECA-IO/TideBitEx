@@ -541,6 +541,10 @@ class OkexConnector extends ConnectorBase {
           this.fetchSubAcctsBalsJob(subAccount)
         );
         waterfallPromise(jobs, 1000).then((subAcctsBals) => {
+          this.logger.debug(
+            `[${this.constructor.name}] getExAccounts subAcctsBals`,
+            subAcctsBals
+          );
           const exAccounts = this.formateExAccts(subAcctsBals);
           this.logger.debug(
             `[${this.constructor.name}] getExAccounts exAccounts`,

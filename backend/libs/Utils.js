@@ -30,7 +30,7 @@ class Utils {
     return jobs.reduce((prev, curr) => {
       return prev.then(async (rs) => {
         await Utils.wait(ms);
-        Utils.concatPromise(rs, curr);
+        return Utils.concatPromise(rs, curr);
       });
     }, Promise.resolve());
   }
