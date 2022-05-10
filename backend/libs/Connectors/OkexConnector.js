@@ -11,6 +11,7 @@ const Events = require("../../constants/Events");
 const SafeMath = require("../SafeMath");
 const SupportedExchange = require("../../constants/SupportedExchange");
 const Utils = require("../Utils");
+const { waterfallPromise } = require("../Utils");
 
 const HEART_BEAT_TIME = 25000;
 
@@ -483,67 +484,82 @@ class OkexConnector extends ConnectorBase {
     }
   }
 
-  async getExAccounts({ query }) {
+  formateExAccts(subAcctsBals) {
     const exAccounts = {};
-    this.logger.debug(
-      `[${this.constructor.name}: getExAccounts] exAccounts`,
-      exAccounts
-    );
-    const subAccountsRes = await this.getSubAccounts({ query });
-    if (subAccountsRes.success) {
-      const subAccounts = subAccountsRes.payload;
-      subAccounts.forEach(async (subAcc) => {
+    return subAcctsBals.reduce((prev, subAcctsBal) => {
+      if (!prev[subAcctsBal.currency]) {
+        prev[subAcctsBal.currency] = {};
+        prev[subAcctsBal.currency]["details"] = [];
+        prev[subAcctsBal.currency]["balance"] = "0";
+        prev[subAcctsBal.currency]["locked"] = "0";
+        prev[subAcctsBal.currency]["total"] = "0";
+      }
+      prev[subAcctsBal.currency]["balance"] = SafeMath.plus(
+        prev[subAcctsBal.currency]["balance"],
+        subAcctsBal?.balance
+      );
+      prev[subAcctsBal.currency]["locked"] = SafeMath.plus(
+        prev[subAcctsBal.currency]["locked"],
+        subAcctsBal?.locked
+      );
+      prev[subAcctsBal.currency]["total"] = SafeMath.plus(
+        prev[subAcctsBal.currency]["total"],
+        subAcctsBal?.total
+      );
+      prev[subAcctsBal.currency]["details"].push(subAcctsBal);
+      prev[subAcctsBal.currency]["details"].sort((a, b) => b?.total - a?.total);
+      return prev;
+    }, exAccounts);
+  }
+
+  fetchSubAcctsBalsJob(subAccount) {
+    return () => {
+      return new Promise(async (resolve, reject) => {
         const subAccBalRes = await this.getSubAccount({
           query: {
-            ...query,
-            subAcct: subAcc.subAcct,
+            subAcct: subAccount.subAcct,
           },
         });
-        this.logger.debug(
-          `[${this.constructor.name}: getSubAccount] subAccBalRes`,
-          subAccBalRes
-        );
         if (subAccBalRes.success) {
-          const subAccBal = subAccBalRes.payload;
-          if (!exAccounts[subAccBal.currency]) {
-            exAccounts[subAccBal.currency] = {};
-            exAccounts[subAccBal.currency]["details"] = [];
-            exAccounts[subAccBal.currency]["balance"] = "0";
-            exAccounts[subAccBal.currency]["locked"] = "0";
-            exAccounts[subAccBal.currency]["total"] = "0";
-          }
-          exAccounts[subAccBal.currency]["balance"] = SafeMath.plus(
-            exAccounts[subAccBal.currency]["balance"],
-            subAccBal.total
-          );
-          exAccounts[subAccBal.currency]["locked"] = SafeMath.plus(
-            exAccounts[subAccBal.currency]["locked"],
-            subAccBal.total
-          );
-          exAccounts[subAccBal.currency]["total"] = SafeMath.plus(
-            exAccounts[subAccBal.currency]["total"],
-            subAccBal.total
-          );
-          exAccounts[subAccBal.currency]["details"].push({
-            currency: subAccBal.currency,
-            balance: subAccBal.balance,
-            locked: subAccBal.locked,
-            total: subAccBal.total,
-          });
-          exAccounts[subAccBal.currency]["details"].sort(
-            (a, b) => b.total - a.total
-          );
+          const subAccBals = subAccBalRes.payload;
+          resolve(subAccBals);
         } else {
           // ++ TODO
-          return;
+          this.logger.error(subAccBalRes);
+          reject(subAccBalRes);
         }
       });
-    } else {
-      return subAccountsRes;
-    }
-    return new ResponseFormat({
-      message: "getSubAccounts",
-      payload: exAccounts,
+    };
+  }
+
+  async getExAccounts({ query }) {
+    return new Promise(async (resolve, reject) => {
+      const subAccountsRes = await this.getSubAccounts({ query });
+      if (subAccountsRes.success) {
+        const subAccounts = subAccountsRes.payload;
+        const jobs = subAccounts.map((subAccount) =>
+          this.fetchSubAcctsBalsJob(subAccount)
+        );
+        waterfallPromise(jobs, 1000).then((subAcctsBals) => {
+          this.logger.debug(
+            `[${this.constructor.name}] getExAccounts subAcctsBals`,
+            subAcctsBals
+          );
+          const exAccounts = this.formateExAccts(subAcctsBals);
+          this.logger.debug(
+            `[${this.constructor.name}] getExAccounts exAccounts`,
+            exAccounts
+          );
+          resolve(
+            new ResponseFormat({
+              message: "getExAccounts",
+              payload: exAccounts,
+            })
+          );
+        });
+      } else {
+        reject(subAccountsRes);
+      }
     });
   }
 
@@ -551,11 +567,6 @@ class OkexConnector extends ConnectorBase {
     const method = "GET";
     const path = "/api/v5/users/subaccount/list";
     const { subAcct, enable } = query;
-    this.logger.debug(
-      `[${this.constructor.name}] getSubAccounts`,
-      subAcct,
-      enable
-    );
     const arr = [];
     if (subAcct) arr.push(`subAcct=${subAcct}`);
     if (enable) arr.push(`enable=${enable}`);
@@ -568,7 +579,6 @@ class OkexConnector extends ConnectorBase {
       method,
       path: `${path}${qs}`,
     });
-
     try {
       const res = await axios({
         method: method.toLocaleLowerCase(),
@@ -584,6 +594,10 @@ class OkexConnector extends ConnectorBase {
         });
       }
       const payload = res.data.data;
+      // this.logger.debug(
+      //   `[${this.constructor.name}] getSubAccounts payload`,
+      //   payload
+      // );
       return new ResponseFormat({
         message: "getSubAccounts",
         payload,
@@ -631,13 +645,19 @@ class OkexConnector extends ConnectorBase {
           code: Codes.THIRD_PARTY_API_ERROR,
         });
       }
-      const data = res.data.data;
+      const [data] = res.data.data;
+      // this.logger.debug(`[${this.constructor.name}: getSubAccount] data`, data);
       const balances = data.details.map((detail) => ({
+        subAcct,
         currency: detail.ccy,
         balance: detail.availBal,
         locked: detail.frozenBal,
         total: SafeMath.plus(detail.availBal, detail.frozenBal),
       }));
+      // this.logger.debug(
+      //   `[${this.constructor.name}: getSubAccount] balances`,
+      //   balances
+      // );
       return new ResponseFormat({
         message: "getSubAccount",
         payload: balances,

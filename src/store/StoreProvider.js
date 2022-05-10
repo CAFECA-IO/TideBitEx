@@ -5,7 +5,7 @@ import { Config } from "../constant/Config";
 import Middleman from "../modal/Middleman";
 import StoreContext from "./store-context";
 import SafeMath from "../utils/SafeMath";
-import { getToken } from "../utils/Token";
+// import { getToken } from "../utils/Token";
 import Events from "../constant/Events";
 
 // const wsServer = "wss://exchange.tidebit.network/ws/v1";
@@ -124,7 +124,31 @@ const StoreProvider = (props) => {
     [middleman, resolution]
   );
 
-  const connect = useCallback(() => {
+  const getCSRFToken = useCallback(async () => {
+    const XSRF = document.cookie
+      .split(";")
+      .filter((v) => /XSRF-TOKEN/.test(v))
+      .pop()
+      ?.split("=")[1];
+    try {
+      if (XSRF) {
+        // const token = await getToken(XSRF);
+        const token = await middleman.getCSRTToken();
+        if (token) {
+          setToken(token);
+          setIsLogin(true);
+        }
+      }
+    } catch (error) {
+      enqueueSnackbar(`"getToken error: ${error?.message}"`, {
+        variant: "error",
+        action,
+      });
+    }
+  }, [action, enqueueSnackbar, middleman]);
+  // }, [action, enqueueSnackbar]);
+
+  const connectWS = useCallback(() => {
     const ws = new WebSocket(Config[Config.status].websocket);
     let interval;
     ws.addEventListener("open", () => {
@@ -136,21 +160,23 @@ const StoreProvider = (props) => {
         if (data) ws.send(data);
       }, 1000);
     });
-    ws.addEventListener("close", (msg) => {
+    ws.addEventListener("close", async (msg) => {
       clearInterval(interval);
+      await getCSRFToken();
       console.log(
         "Socket is closed. Reconnect will be attempted in 1 second.",
         msg.reason
       );
       setTimeout(function () {
-        connect();
+        connectWS();
       }, 1000);
     });
     ws.addEventListener("message", (msg) => {
       // console.log(`message msg`, msg);
       wsUpdateHandler(msg);
     });
-  }, [wsUpdateHandler]);
+    // middleman.connectWS(wsUpdateHandler);
+  }, [getCSRFToken, wsUpdateHandler]);
 
   const orderBookHandler = useCallback((price, amount) => {
     setOrderbook({ price, amount });
@@ -292,7 +318,7 @@ const StoreProvider = (props) => {
         middleman.updateSelectedTicker(ticker);
         setSelectedTicker(ticker);
         console.log(`ticker`, ticker);
-        document.title = `${ticker.last} ${ticker.name}`;
+        document.title = `${ticker?.last} ${ticker?.name}`;
         history.push({
           pathname: `/markets/${ticker.market}`,
         });
@@ -311,6 +337,14 @@ const StoreProvider = (props) => {
             },
           })
         );
+        // middleman.sendMsg(
+        //   "switchMarket",
+        //   {
+        //     market: ticker.market,
+        //     resolution: resolution,
+        //   },
+        //   false
+        // );
       }
       // console.log(`****^^^^**** selectTickerHandler [END] ****^^^^****`);
     },
@@ -342,37 +376,15 @@ const StoreProvider = (props) => {
     [action, enqueueSnackbar, middleman]
   );
 
-  const getCSRFToken = useCallback(async () => {
-    const XSRF = document.cookie
-      .split(";")
-      .filter((v) => /XSRF-TOKEN/.test(v))
-      .pop()
-      ?.split("=")[1];
-    try {
-      if (XSRF) {
-        // const token = await getToken(XSRF);
-        const token = await middleman.getCSRTToken();
-        if (token) {
-          setToken(token);
-          setIsLogin(true);
-        }
-      }
-    } catch (error) {
-      enqueueSnackbar(`"getToken error: ${error?.message}"`, {
-        variant: "error",
-        action,
-      });
-    }
-  }, [action, enqueueSnackbar, middleman]);
-  // }, [action, enqueueSnackbar]);
-
   const getAccounts = useCallback(async () => {
     await middleman.getAccounts();
     // console.log(`getAccounts accounts`, middleman.accounts)
     setAccounts(middleman.accounts);
-    if (middleman.isLogin) await getCSRFToken();
-    await getOrderList();
-    await getOrderHistory();
+    if (middleman.isLogin) {
+      await getCSRFToken();
+      await getOrderList();
+      await getOrderHistory();
+    }
     const id = location.pathname.includes("/markets/")
       ? location.pathname.replace("/markets/", "")
       : null;
@@ -387,6 +399,14 @@ const StoreProvider = (props) => {
           },
         })
       );
+      // middleman.sendMsg(
+      //   "userStatusUpdate",
+      //   {
+      //     market: id,
+      //     resolution: resolution,
+      //   },
+      //   true
+      // );
     }
   }, [
     getCSRFToken,
@@ -400,11 +420,11 @@ const StoreProvider = (props) => {
 
   const getExAccounts = useCallback(
     async (exchange) => {
-      let exAccounts = [];
+      let exAccounts = {};
       try {
         exAccounts = await middleman.getExAccounts(exchange);
       } catch (error) {
-        console.error(error);
+        console.log(error);
       }
       return exAccounts;
     },
@@ -412,11 +432,11 @@ const StoreProvider = (props) => {
   );
 
   const getUsersAccounts = useCallback(async () => {
-    let usersAccounts = [];
+    let usersAccounts = {};
     try {
       usersAccounts = await middleman.getUsersAccounts();
     } catch (error) {
-      console.error(error);
+      console.log(error);
     }
     return usersAccounts;
   }, [middleman]);
@@ -583,7 +603,7 @@ const StoreProvider = (props) => {
         return false;
       }
     },
-    [action, enqueueSnackbar, middleman, token, selectedTicker]
+    [action, enqueueSnackbar, middleman, selectedTicker]
   );
 
   const activePageHandler = (page) => {
@@ -591,18 +611,20 @@ const StoreProvider = (props) => {
   };
 
   const start = useCallback(async () => {
-    // console.log(`******** start [START] ********`);
-    connect();
-    const market = location.pathname.includes("/markets/")
-      ? location.pathname.replace("/markets/", "")
-      : null;
-    const ticker = await getTicker(market);
-    await selectTickerHandler(ticker);
-    await getTickers();
-    await getAccounts();
-    // console.log(`******** start [END] ********`);
+    if (location.pathname.includes("/markets")) {
+      console.log(`******** start [START] ********`);
+      connectWS();
+      const market = location.pathname.includes("/markets/")
+        ? location.pathname.replace("/markets/", "")
+        : null;
+      const ticker = await getTicker(market);
+      await selectTickerHandler(ticker);
+      await getTickers();
+      await getAccounts();
+      console.log(`******** start [END] ********`);
+    }
   }, [
-    connect,
+    connectWS,
     getTicker,
     getAccounts,
     getTickers,

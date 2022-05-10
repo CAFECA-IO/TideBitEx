@@ -31,30 +31,34 @@ const CurrencyDetail = (props) => {
         <ul className="currency__overview">
           <div className="currency__overview--header">Overview</div>
           {props.details.map((user) => {
-            const total = user.balance + user.locked;
+            const total = SafeMath.plus(user.balance, user.locked);
             return (
               <li className={`currency__overview--tile`}>
                 <div className="currency__bar--leading">{user.memberId}</div>
                 <div
                   className={`currency__bar${
-                    total >= props.ex_total ? " currency__bar--alert" : ""
+                    SafeMath.gte(total, props.ex_total)
+                      ? " currency__bar--alert"
+                      : ""
                   }`}
                 >
                   <div className="currency__bar-box">
                     <div
                       style={{
-                        width: `${
-                          (user.balance / props.details[0].total) * 100
-                        }%`,
+                        width: `${SafeMath.mult(
+                          SafeMath.div(user.balance, props.details[0].total),
+                          100
+                        )}%`,
                       }}
                     >
                       {formateDecimal(user.balance, 2)}
                     </div>
                     <div
                       style={{
-                        width: `${
-                          (user.locked / props.details[0].total) * 100
-                        }%`,
+                        width: `${SafeMath.mult(
+                          SafeMath.div(user.locked, props.details[0].total),
+                          100
+                        )}%`,
                       }}
                     >
                       {formateDecimal(user.locked, 2)}
@@ -63,9 +67,10 @@ const CurrencyDetail = (props) => {
                   <div
                     className="currency__alert"
                     style={{
-                      left: `${
-                        (props.ex_total / props.details[0].total) * 100
-                      }%`,
+                      left: `${SafeMath.mult(
+                        SafeMath.div(props.ex_total, props.details[0].total),
+                        100
+                      )}%`,
                     }}
                   >
                     <div className="currency__alert--line"></div>
@@ -98,28 +103,32 @@ const CurrenciesView = (props) => {
 
       // get tidebit currencies
       const tbAccounts = await storeCtx.getUsersAccounts();
-      console.log(`tbAccounts`, tbAccounts);
+      console.log(`onChoseExchageHandler tbAccounts`, tbAccounts);
       // get exchange currencies
       const exAccounts = await storeCtx.getExAccounts(exchange);
-      console.log(`exAccounts`, exAccounts);
+      console.log(`onChoseExchageHandler exAccounts`, exAccounts);
 
       // overview
       const overview = {};
-      Object.values(tbAccounts)?.forEach((acc) => {
-        const exAcc = exAccounts[acc.currency];
-        overview[acc.currency] = {
+      Object.keys(tbAccounts)?.forEach((curr) => {
+        const tbAcc = tbAccounts[curr];
+        const exAcc = exAccounts[curr];
+        // console.log(`onChoseExchageHandler tbAcc`, tbAcc);
+        // console.log(`onChoseExchageHandler exAcc`, exAcc);
+        overview[curr] = {
           ex_balance: exAcc?.balance || "0.0",
           ex_locked: exAcc?.locked || "0.0",
           ex_total: exAcc?.total || "0.0",
-          tb_balance: tbAccounts.balance,
-          tb_locked: tbAccounts.locked,
-          tb_total: tbAccounts.total,
-          details: tbAccounts.details,
-          alert1: SafeMath.mult(tbAccounts.total, 0.2), // 20% 準備率
-          // alert2: SafeMath.mult(tbAccounts.details[0].total, 2), // 單一幣種最多資產用戶持有的一倍
+          tb_balance: tbAcc.balance,
+          tb_locked: tbAcc.locked,
+          tb_total: tbAcc.total,
+          details: tbAcc.details,
+          alert1: SafeMath.mult(tbAcc.total, 0.2), // 20% 準備率
+          alert2: SafeMath.mult(tbAcc.details[0].total, 2), // 單一幣種最多資產用戶持有的一倍
         };
+        // console.log(`onChoseExchageHandler overview[curr]`, overview[curr]);
       });
-
+      console.log(`onChoseExchageHandler overview`, overview);
       setOverview(overview);
     },
     [currExchange, storeCtx]
@@ -134,35 +143,43 @@ const CurrenciesView = (props) => {
   return (
     <div className="currencies-view">
       {!currency && (
-        <Tabs defaultActiveKey={currExchange}>
-          {exchanges.map((_exchange) => (
+        <Tabs defaultActiveKey={"OKEx"}>
+          {exchanges.map((exchange) => (
             <Tab
-              eventKey={_exchange}
-              title={_exchange}
-              key={_exchange}
-              onClick={() => onChoseExchageHandler(_exchange)}
+              eventKey={exchange}
+              title={exchange}
+              key={exchange}
+              onClick={() => onChoseExchageHandler(exchange)}
             >
-              {currExchange === _exchange && (
+              {currExchange === exchange && (
                 <>
                   <ul className="currency__list">
-                    {overview &&
+                    {!!overview &&
                       Object.keys(overview).map((currency) => (
                         <li
                           className={`currency__button`}
-                          key={`${_exchange}:${currency}`}
+                          key={`${exchange}:${currency}`}
                           onClick={() => setCurrency(currency)}
                         >
                           <div>{currency}</div>
-                          {(overview[currency].ex_total <
-                            overview[currency].alert1 ||
-                            overview[currency].ex_total <
-                              overview[currency].alert2) && (
+                          {(SafeMath.lt(
+                            overview[currency].ex_total,
+                            overview[currency].alert1
+                          ) ||
+                            SafeMath.lt(
+                              overview[currency].ex_total,
+                              overview[currency].alert2
+                            )) && (
                             <div
                               className={`currency__icon${
-                                overview[currency].ex_total <
-                                  overview[currency].alert1 &&
-                                overview[currency].ex_total <
+                                SafeMath.lt(
+                                  overview[currency].ex_total,
+                                  overview[currency].alert1
+                                ) &&
+                                SafeMath.lt(
+                                  overview[currency].ex_total,
                                   overview[currency].alert2
+                                )
                                   ? " currency__icon--alert"
                                   : " currency__icon--warning"
                               }`}
@@ -173,14 +190,14 @@ const CurrenciesView = (props) => {
                         </li>
                       ))}
                   </ul>
-                  {overview && (
+                  {!!overview && (
                     <ul className="currency__overview">
                       <div className="currency__overview--header">Overview</div>
                       {Object.keys(overview).map((currency) => {
-                        const total =
-                          overview[currency].ex_total +
-                          overview[currency].tb_total;
-
+                        const total = SafeMath.plus(
+                          overview[currency].ex_total,
+                          overview[currency].tb_total
+                        );
                         return (
                           <li
                             className={`currency__overview--tile`}
@@ -188,16 +205,24 @@ const CurrenciesView = (props) => {
                           >
                             <div className="currency__bar--leading">
                               <div>{currency}</div>
-                              {(overview[currency].ex_total <
-                                overview[currency].alert1 ||
-                                overview[currency].ex_total <
-                                  overview[currency].alert2) && (
+                              {(SafeMath.lt(
+                                overview[currency].ex_total,
+                                overview[currency].alert1
+                              ) ||
+                                SafeMath.lt(
+                                  overview[currency].ex_total,
+                                  overview[currency].alert2
+                                )) && (
                                 <div
                                   className={`currency__icon${
-                                    overview[currency].ex_total <
-                                      overview[currency].alert1 &&
-                                    overview[currency].ex_total <
+                                    SafeMath.lt(
+                                      overview[currency].ex_total,
+                                      overview[currency].alert1
+                                    ) &&
+                                    SafeMath.lt(
+                                      overview[currency].ex_total,
                                       overview[currency].alert2
+                                    )
                                       ? " currency__icon--alert"
                                       : " currency__icon--warning"
                                   }`}
@@ -212,11 +237,13 @@ const CurrenciesView = (props) => {
                                   <div className="currency__bar-box">
                                     <div
                                       style={{
-                                        width: `${
-                                          (overview[currency].ex_balance /
-                                            total) *
+                                        width: `${SafeMath.mult(
+                                          SafeMath.div(
+                                            overview[currency].ex_balance,
+                                            total
+                                          ),
                                           100
-                                        }%`,
+                                        )}%`,
                                       }}
                                     >
                                       {formateDecimal(
@@ -226,11 +253,13 @@ const CurrenciesView = (props) => {
                                     </div>
                                     <div
                                       style={{
-                                        width: `${
-                                          (overview[currency].ex_locked /
-                                            total) *
+                                        width: `${SafeMath.mult(
+                                          SafeMath.div(
+                                            overview[currency].ex_locked,
+                                            total
+                                          ),
                                           100
-                                        }%`,
+                                        )}%`,
                                       }}
                                     >
                                       {formateDecimal(
@@ -241,16 +270,20 @@ const CurrenciesView = (props) => {
                                   </div>
                                 </div>
                                 <div className="currency__bar--text">
-                                  {_exchange}
+                                  {exchange}
                                 </div>
                               </div>
                               <div className="currency__exchange">
                                 <div
                                   className={`currency__bar${
-                                    overview[currency].ex_total <
-                                      overview[currency].alert1 &&
-                                    overview[currency].ex_total <
+                                    SafeMath.lt(
+                                      overview[currency].ex_total,
+                                      overview[currency].alert1
+                                    ) &&
+                                    SafeMath.lt(
+                                      overview[currency].ex_total,
                                       overview[currency].alert2
+                                    )
                                       ? " currency__bar--alert"
                                       : " currency__bar--warning"
                                   }`}
@@ -258,11 +291,13 @@ const CurrenciesView = (props) => {
                                   <div className="currency__bar-box">
                                     <div
                                       style={{
-                                        width: `${
-                                          (overview[currency].tb_balance /
-                                            total) *
+                                        width: `${SafeMath.mult(
+                                          SafeMath.div(
+                                            overview[currency].tb_balance,
+                                            total
+                                          ),
                                           100
-                                        }%`,
+                                        )}%`,
                                       }}
                                     >
                                       {formateDecimal(
@@ -272,11 +307,13 @@ const CurrenciesView = (props) => {
                                     </div>
                                     <div
                                       style={{
-                                        width: `${
-                                          (overview[currency].tb_locked /
-                                            total) *
+                                        width: `${SafeMath.mult(
+                                          SafeMath.div(
+                                            overview[currency].tb_locked,
+                                            total
+                                          ),
                                           100
-                                        }%`,
+                                        )}%`,
                                       }}
                                     >
                                       {formateDecimal(
@@ -292,9 +329,21 @@ const CurrenciesView = (props) => {
                                 <div
                                   className="currency__alert"
                                   style={{
-                                    left: `${
-                                      (overview[currency].alert1 / total) * 100
-                                    }%`,
+                                    left: `${SafeMath.mult(
+                                      SafeMath.div(
+                                        overview[currency].alert1,
+                                        total
+                                      ),
+                                      100
+                                    )}%`,
+                                    transform: `translateY(${
+                                      SafeMath.eq(
+                                        overview[currency].alert1,
+                                        overview[currency].alert2
+                                      )
+                                        ? "10px"
+                                        : "0px"
+                                    })`,
                                   }}
                                 >
                                   <div className="currency__alert--line"></div>
@@ -305,9 +354,13 @@ const CurrenciesView = (props) => {
                                 <div
                                   className="currency__alert"
                                   style={{
-                                    left: `${
-                                      (overview[currency].alert2 / total) * 100
-                                    }%`,
+                                    left: `${SafeMath.mult(
+                                      SafeMath.div(
+                                        overview[currency].alert2,
+                                        total
+                                      ),
+                                      100
+                                    )}%`,
                                   }}
                                 >
                                   <div className="currency__alert--line"></div>

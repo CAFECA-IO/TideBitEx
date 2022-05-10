@@ -17,6 +17,7 @@ class Communicator {
     this.tokenRenewTimeout = null;
     this.CSRFToken = null;
     this.CSRFTokenRenewTimeout = null;
+    // this.msgList = [];
     return this;
   }
 
@@ -477,7 +478,6 @@ class Communicator {
       options = { method, url, data };
     try {
       response = await this.httpAgent.request(options);
-
       if (response.code === Codes.EXPIRED_ACCESS_TOKEN) {
         await this.CSRFTokenRenew();
         requestRetry = true;
@@ -498,25 +498,9 @@ class Communicator {
             backoff: backoff * 2,
           });
         }, backoff);
-      } 
-      else return Promise.reject(response);
+      } else return Promise.reject(response);
     } catch (error) {
-      if (error.code === Codes.EXPIRED_ACCESS_TOKEN) {
-        try {
-          await this.CSRFTokenRenew();
-          setTimeout(() => {
-            return this._request({
-              method,
-              url,
-              data,
-              retries: retries - 1,
-              backoff: backoff * 2,
-            });
-          }, backoff);
-        } catch (error) {
-          return Promise.reject(error);
-        }
-      }
+      return Promise.reject(error);
     }
   }
 
@@ -555,6 +539,54 @@ class Communicator {
       this.CSRFTokenRenewTimeout = null;
     }
   }
+
+  // sendMsg(op, args, needAuth) {
+  //   if (needAuth) {
+  //     this.msgList.push(
+  //       JSON.stringify({
+  //         op,
+  //         args: {
+  //           ...args,
+  //           token: this.CSRFToken,
+  //         },
+  //       })
+  //     );
+  //   } else {
+  //     this.msgList.push(
+  //       JSON.stringify({
+  //         op,
+  //         args,
+  //       })
+  //     );
+  //   }
+  // }
+
+  // connectWS(callback) {
+  //   const ws = new WebSocket(Config[Config.status].websocket);
+  //   let interval;
+  //   ws.addEventListener("open", () => {
+  //     clearInterval(interval);
+  //     const data = this.msgList.shift();
+  //     if (data) ws.send(data);
+  //     interval = setInterval(() => {
+  //       const data = this.msgList.shift();
+  //       if (data) ws.send(data);
+  //     }, 1000);
+  //   });
+  //   ws.addEventListener("close", (msg) => {
+  //     clearInterval(interval);
+  //     console.log(
+  //       "Socket is closed. Reconnect will be attempted in 1 second.",
+  //       msg.reason
+  //     );
+  //     setTimeout(function () {
+  //       this.connectWS(callback);
+  //     }, 1000);
+  //   });
+  //   ws.addEventListener("message", (msg) => {
+  //     callback(msg);
+  //   });
+  // }
 }
 
 export default Communicator;

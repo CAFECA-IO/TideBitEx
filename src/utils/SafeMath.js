@@ -86,7 +86,8 @@ class SafeMath {
   static div(a, b) {
     const bnA = SafeMath.toBn(a);
     const bnB = SafeMath.toBn(b);
-    return bnA.dividedBy(bnB).toFixed();
+    const result = SafeMath.eq(b, "0") ? "0" : bnA.dividedBy(bnB).toFixed();
+    return result;
   }
 
   /**

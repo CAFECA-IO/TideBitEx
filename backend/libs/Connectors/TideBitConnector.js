@@ -615,11 +615,11 @@ class TibeBitConnector extends ConnectorBase {
         let total = SafeMath.plus(balance, locked);
         accounts[currency]["balance"] = SafeMath.plus(
           accounts[currency]["balance"],
-          total
+          balance
         );
         accounts[currency]["locked"] = SafeMath.plus(
           accounts[currency]["locked"],
-          total
+          locked
         );
         accounts[currency]["total"] = SafeMath.plus(
           accounts[currency]["total"],
@@ -627,7 +627,7 @@ class TibeBitConnector extends ConnectorBase {
         );
         accounts[currency]["details"].push({
           currency: currency,
-          memberId: account.memberId,
+          memberId: account.member_id,
           balance,
           locked,
           total,
