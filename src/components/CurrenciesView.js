@@ -105,21 +105,21 @@ const CurrenciesView = (props) => {
 
       // overview
       const overview = {};
-      Object.values(tbAccounts)?.forEach((acc) => {
-        const exAcc = exAccounts[acc.currency];
-        overview[acc.currency] = {
+      Object.keys(tbAccounts)?.forEach((curr) => {
+        const exAcc = exAccounts[curr];
+        const tbAcc = tbAccounts[curr];
+        overview[curr] = {
           ex_balance: exAcc?.balance || "0.0",
           ex_locked: exAcc?.locked || "0.0",
           ex_total: exAcc?.total || "0.0",
-          tb_balance: tbAccounts.balance,
-          tb_locked: tbAccounts.locked,
-          tb_total: tbAccounts.total,
-          details: tbAccounts.details,
-          alert1: SafeMath.mult(tbAccounts.total, 0.2), // 20% 準備率
-          // alert2: SafeMath.mult(tbAccounts.details[0].total, 2), // 單一幣種最多資產用戶持有的一倍
+          tb_balance: tbAcc.balance,
+          tb_locked: tbAcc.locked,
+          tb_total: tbAcc.total,
+          details: tbAcc.details,
+          alert1: SafeMath.mult(tbAcc.total, 0.2), // 20% 準備率
+          alert2: SafeMath.mult(tbAcc.details[0].total, 2), // 單一幣種最多資產用戶持有的一倍
         };
       });
-
       setOverview(overview);
     },
     [currExchange, storeCtx]
@@ -145,7 +145,7 @@ const CurrenciesView = (props) => {
               {currExchange === _exchange && (
                 <>
                   <ul className="currency__list">
-                    {overview &&
+                    {!!overview &&
                       Object.keys(overview).map((currency) => (
                         <li
                           className={`currency__button`}
@@ -173,7 +173,7 @@ const CurrenciesView = (props) => {
                         </li>
                       ))}
                   </ul>
-                  {overview && (
+                  {!!overview && (
                     <ul className="currency__overview">
                       <div className="currency__overview--header">Overview</div>
                       {Object.keys(overview).map((currency) => {
