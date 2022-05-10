@@ -11,7 +11,7 @@ const Events = require("../../constants/Events");
 const SafeMath = require("../SafeMath");
 const SupportedExchange = require("../../constants/SupportedExchange");
 const Utils = require("../Utils");
-const { waterfallPromise, wait } = require("../Utils");
+const { waterfallPromise } = require("../Utils");
 
 const HEART_BEAT_TIME = 25000;
 
@@ -490,11 +490,10 @@ class OkexConnector extends ConnectorBase {
       const subAccountsRes = await this.getSubAccounts({ query });
       if (subAccountsRes.success) {
         const subAccounts = subAccountsRes.payload;
-        waterfallPromise(
+        Promise.all(
           subAccounts.map(async (subAcc, index) => {
             return new Promise(async (resolve, reject) => {
-              // const timer = setTimeout(async () => {
-              wait(1000);
+              const timer = setTimeout(async () => {
               const subAccBalRes = await this.getSubAccount({
                 query: {
                   ...query,
@@ -540,8 +539,8 @@ class OkexConnector extends ConnectorBase {
                 this.logger.error(subAccBalRes);
                 reject(subAccBalRes);
               }
-              // clearTimeout(timer);
-              // }, index * 1000);
+              clearTimeout(timer);
+              }, index * 1000);
             });
           })
         ).then(() => {
