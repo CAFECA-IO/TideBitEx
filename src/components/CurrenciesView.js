@@ -162,16 +162,24 @@ const CurrenciesView = (props) => {
                           onClick={() => setCurrency(currency)}
                         >
                           <div>{currency}</div>
-                          {(overview[currency].ex_total <
-                            overview[currency].alert1 ||
-                            overview[currency].ex_total <
-                              overview[currency].alert2) && (
+                          {(SafeMath.lt(
+                            overview[currency].ex_total,
+                            overview[currency].alert1
+                          ) ||
+                            SafeMath.lt(
+                              overview[currency].ex_total,
+                              overview[currency].alert2
+                            )) && (
                             <div
                               className={`currency__icon${
-                                overview[currency].ex_total <
-                                  overview[currency].alert1 &&
-                                overview[currency].ex_total <
+                                SafeMath.lt(
+                                  overview[currency].ex_total,
+                                  overview[currency].alert1
+                                ) &&
+                                SafeMath.lt(
+                                  overview[currency].ex_total,
                                   overview[currency].alert2
+                                )
                                   ? " currency__icon--alert"
                                   : " currency__icon--warning"
                               }`}
