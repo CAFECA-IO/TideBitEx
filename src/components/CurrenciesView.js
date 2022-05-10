@@ -198,7 +198,6 @@ const CurrenciesView = (props) => {
                           overview[currency].ex_total,
                           overview[currency].tb_total
                         );
-
                         return (
                           <li
                             className={`currency__overview--tile`}
