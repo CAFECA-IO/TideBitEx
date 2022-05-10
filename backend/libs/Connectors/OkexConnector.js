@@ -490,10 +490,10 @@ class OkexConnector extends ConnectorBase {
       const subAccountsRes = await this.getSubAccounts({ query });
       if (subAccountsRes.success) {
         const subAccounts = subAccountsRes.payload;
-        subAccounts.map();
         waterfallPromise(
           subAccounts.map(async (subAcc, index) => {
             return new Promise(async (resolve, reject) => {
+              // const timer = setTimeout(async () => {
               wait(1000);
               const subAccBalRes = await this.getSubAccount({
                 query: {
@@ -540,6 +540,8 @@ class OkexConnector extends ConnectorBase {
                 this.logger.error(subAccBalRes);
                 reject(subAccBalRes);
               }
+              // clearTimeout(timer);
+              // }, index * 1000);
             });
           })
         ).then(() => {
