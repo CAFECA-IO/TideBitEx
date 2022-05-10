@@ -484,7 +484,7 @@ class OkexConnector extends ConnectorBase {
     }
   }
 
-  formateExAcc(subAcctsBals) {
+  formateExAccts(subAcctsBals) {
     const exAccounts = {};
     return subAcctsBals.reduce((prev, subAcctsBal) => {
       if (!prev[subAcctsBal.currency]) {
@@ -537,13 +537,11 @@ class OkexConnector extends ConnectorBase {
       const subAccountsRes = await this.getSubAccounts({ query });
       if (subAccountsRes.success) {
         const subAccounts = subAccountsRes.payload;
-        waterfallPromise(
-          subAccounts.map((subAccount) =>
-            this.fetchSubAcctsBalsJob(subAccount)
-          ),
-          1000
-        ).then((subAcctsBals) => {
-          const exAccounts = this.formateExAcc(subAcctsBals);
+        const jobs = subAccounts.map((subAccount) =>
+          this.fetchSubAcctsBalsJob(subAccount)
+        );
+        waterfallPromise(jobs, 1000).then((subAcctsBals) => {
+          const exAccounts = this.formateExAccts(subAcctsBals);
           this.logger.debug(
             `[${this.constructor.name}] getExAccounts exAccounts`,
             exAccounts

@@ -20,6 +20,7 @@ class Utils {
 
   static concatPromise(prevRS, job) {
     const result = Array.isArray(prevRS) ? prevRS : [];
+    console.log(`concatPromise`, new Date().getTime());
     return job().then((rs) => {
       result.push(rs);
       return Promise.resolve(result);
