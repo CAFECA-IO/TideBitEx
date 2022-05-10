@@ -19,8 +19,8 @@ class Utils {
   }
 
   static waterfallPromise(jobs, ms) {
-    return jobs.reduce((prev, curr) => {
-      Utils.wait(ms);
+    return jobs.reduce(async (prev, curr) => {
+      await Utils.wait(ms);
       return prev.then(() => curr());
     }, Promise.resolve());
   }
