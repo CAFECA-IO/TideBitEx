@@ -1,11 +1,11 @@
 import React, { useEffect, useCallback, useMemo, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import { useSnackbar } from "notistack";
-import { Config } from "../constant/Config";
+// import { Config } from "../constant/Config";
 import Middleman from "../modal/Middleman";
 import StoreContext from "./store-context";
 import SafeMath from "../utils/SafeMath";
-import { getToken } from "../utils/Token";
+// import { getToken } from "../utils/Token";
 import Events from "../constant/Events";
 
 // const wsServer = "wss://exchange.tidebit.network/ws/v1";
@@ -13,8 +13,8 @@ import Events from "../constant/Events";
 
 let tickerTimestamp = 0,
   bookTimestamp = 0,
-  accountTimestamp = 0,
-  connection_resolvers = [];
+  accountTimestamp = 0;
+  // connection_resolvers = [];
 
 const StoreProvider = (props) => {
   const middleman = useMemo(() => new Middleman(), []);
@@ -34,7 +34,7 @@ const StoreProvider = (props) => {
   const [selectedTicker, setSelectedTicker] = useState(null);
   const [activePage, setActivePage] = useState("market");
   const [orderbook, setOrderbook] = useState(null);
-  const [token, setToken] = useState(null);
+  // const [token, setToken] = useState(null);
   const [languageKey, setLanguageKey] = useState("en");
 
   const action = useCallback(
@@ -124,33 +124,34 @@ const StoreProvider = (props) => {
     [middleman, resolution]
   );
 
-  const connect = useCallback(() => {
-    const ws = new WebSocket(Config[Config.status].websocket);
-    let interval;
-    ws.addEventListener("open", () => {
-      clearInterval(interval);
-      const data = connection_resolvers.shift();
-      if (data) ws.send(data);
-      interval = setInterval(() => {
-        const data = connection_resolvers.shift();
-        if (data) ws.send(data);
-      }, 1000);
-    });
-    ws.addEventListener("close", (msg) => {
-      clearInterval(interval);
-      console.log(
-        "Socket is closed. Reconnect will be attempted in 1 second.",
-        msg.reason
-      );
-      setTimeout(function () {
-        connect();
-      }, 1000);
-    });
-    ws.addEventListener("message", (msg) => {
-      // console.log(`message msg`, msg);
-      wsUpdateHandler(msg);
-    });
-  }, [wsUpdateHandler]);
+  const connectWS = useCallback(() => {
+    // const ws = new WebSocket(Config[Config.status].websocket);
+    // let interval;
+    // ws.addEventListener("open", () => {
+    //   clearInterval(interval);
+    //   const data = connection_resolvers.shift();
+    //   if (data) ws.send(data);
+    //   interval = setInterval(() => {
+    //     const data = connection_resolvers.shift();
+    //     if (data) ws.send(data);
+    //   }, 1000);
+    // });
+    // ws.addEventListener("close", (msg) => {
+    //   clearInterval(interval);
+    //   console.log(
+    //     "Socket is closed. Reconnect will be attempted in 1 second.",
+    //     msg.reason
+    //   );
+    //   setTimeout(function () {
+    //     connect();
+    //   }, 1000);
+    // });
+    // ws.addEventListener("message", (msg) => {
+    //   // console.log(`message msg`, msg);
+    //   wsUpdateHandler(msg);
+    // });
+    middleman.connectWS(wsUpdateHandler);
+  }, [middleman, wsUpdateHandler]);
 
   const orderBookHandler = useCallback((price, amount) => {
     setOrderbook({ price, amount });
@@ -302,14 +303,22 @@ const StoreProvider = (props) => {
           await getOrderList();
           await getOrderHistory();
         }
-        connection_resolvers.push(
-          JSON.stringify({
-            op: "switchMarket",
-            args: {
-              market: ticker.market,
-              resolution: resolution,
-            },
-          })
+        // connection_resolvers.push(
+        //   JSON.stringify({
+        //     op: "switchMarket",
+        //     args: {
+        //       market: ticker.market,
+        //       resolution: resolution,
+        //     },
+        //   })
+        // );
+        middleman.sendMsg(
+          "switchMarket",
+          {
+            market: ticker.market,
+            resolution: resolution,
+          },
+          false
         );
       }
       // console.log(`****^^^^**** selectTickerHandler [END] ****^^^^****`);
@@ -353,7 +362,7 @@ const StoreProvider = (props) => {
         // const token = await getToken(XSRF);
         const token = await middleman.getCSRTToken();
         if (token) {
-          setToken(token);
+          // setToken(token);
           setIsLogin(true);
         }
       }
@@ -370,22 +379,32 @@ const StoreProvider = (props) => {
     await middleman.getAccounts();
     // console.log(`getAccounts accounts`, middleman.accounts)
     setAccounts(middleman.accounts);
-    if (middleman.isLogin) await getCSRFToken();
-    await getOrderList();
-    await getOrderHistory();
+    if (middleman.isLogin) {
+      await getCSRFToken();
+      await getOrderList();
+      await getOrderHistory();
+    }
     const id = location.pathname.includes("/markets/")
       ? location.pathname.replace("/markets/", "")
       : null;
     if (id) {
-      connection_resolvers.push(
-        JSON.stringify({
-          op: "userStatusUpdate",
-          args: {
-            token,
-            market: id,
-            resolution: resolution,
-          },
-        })
+      // connection_resolvers.push(
+      //   JSON.stringify({
+      //     op: "userStatusUpdate",
+      //     args: {
+      //       token,
+      //       market: id,
+      //       resolution: resolution,
+      //     },
+      //   })
+      // );
+      middleman.sendMsg(
+        "userStatusUpdate",
+        {
+          market: id,
+          resolution: resolution,
+        },
+        true
       );
     }
   }, [
@@ -395,7 +414,7 @@ const StoreProvider = (props) => {
     location.pathname,
     middleman,
     resolution,
-    token,
+    // token,
   ]);
 
   const getExAccounts = useCallback(
@@ -583,7 +602,7 @@ const StoreProvider = (props) => {
         return false;
       }
     },
-    [action, enqueueSnackbar, middleman, token, selectedTicker]
+    [action, enqueueSnackbar, middleman, selectedTicker]
   );
 
   const activePageHandler = (page) => {
@@ -592,7 +611,7 @@ const StoreProvider = (props) => {
 
   const start = useCallback(async () => {
     // console.log(`******** start [START] ********`);
-    connect();
+    connectWS();
     const market = location.pathname.includes("/markets/")
       ? location.pathname.replace("/markets/", "")
       : null;
@@ -602,7 +621,7 @@ const StoreProvider = (props) => {
     await getAccounts();
     // console.log(`******** start [END] ********`);
   }, [
-    connect,
+    connectWS,
     getTicker,
     getAccounts,
     getTickers,

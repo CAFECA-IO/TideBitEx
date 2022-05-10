@@ -485,10 +485,6 @@ class OkexConnector extends ConnectorBase {
 
   async getExAccounts({ query }) {
     const exAccounts = {};
-    this.logger.debug(
-      `[${this.constructor.name}: getExAccounts] exAccounts`,
-      exAccounts
-    );
     const subAccountsRes = await this.getSubAccounts({ query });
     if (subAccountsRes.success) {
       const subAccounts = subAccountsRes.payload;
@@ -499,10 +495,6 @@ class OkexConnector extends ConnectorBase {
             subAcct: subAcc.subAcct,
           },
         });
-        this.logger.debug(
-          `[${this.constructor.name}: getSubAccount] subAccBalRes`,
-          subAccBalRes
-        );
         if (subAccBalRes.success) {
           const subAccBal = subAccBalRes.payload;
           if (!exAccounts[subAccBal.currency]) {
@@ -514,15 +506,15 @@ class OkexConnector extends ConnectorBase {
           }
           exAccounts[subAccBal.currency]["balance"] = SafeMath.plus(
             exAccounts[subAccBal.currency]["balance"],
-            subAccBal.total
+            subAccBal?.balance
           );
           exAccounts[subAccBal.currency]["locked"] = SafeMath.plus(
             exAccounts[subAccBal.currency]["locked"],
-            subAccBal.total
+            subAccBal?.locked
           );
           exAccounts[subAccBal.currency]["total"] = SafeMath.plus(
             exAccounts[subAccBal.currency]["total"],
-            subAccBal.total
+            subAccBal?.total
           );
           exAccounts[subAccBal.currency]["details"].push({
             currency: subAccBal.currency,
@@ -531,16 +523,21 @@ class OkexConnector extends ConnectorBase {
             total: subAccBal.total,
           });
           exAccounts[subAccBal.currency]["details"].sort(
-            (a, b) => b.total - a.total
+            (a, b) => b?.total - a?.total
           );
         } else {
           // ++ TODO
+          this.logger.error(subAccBalRes)
           return;
         }
       });
     } else {
       return subAccountsRes;
     }
+    this.logger.debug(
+      `[${this.constructor.name}] getExAccounts exAccounts`,
+      exAccounts
+    );
     return new ResponseFormat({
       message: "getSubAccounts",
       payload: exAccounts,
@@ -551,11 +548,6 @@ class OkexConnector extends ConnectorBase {
     const method = "GET";
     const path = "/api/v5/users/subaccount/list";
     const { subAcct, enable } = query;
-    this.logger.debug(
-      `[${this.constructor.name}] getSubAccounts`,
-      subAcct,
-      enable
-    );
     const arr = [];
     if (subAcct) arr.push(`subAcct=${subAcct}`);
     if (enable) arr.push(`enable=${enable}`);
@@ -584,6 +576,10 @@ class OkexConnector extends ConnectorBase {
         });
       }
       const payload = res.data.data;
+      this.logger.debug(
+        `[${this.constructor.name}] getSubAccounts payload`,
+        payload
+      );
       return new ResponseFormat({
         message: "getSubAccounts",
         payload,
@@ -632,12 +628,17 @@ class OkexConnector extends ConnectorBase {
         });
       }
       const data = res.data.data;
+      this.logger.debug(`[${this.constructor.name}: getSubAccount] data`, data);
       const balances = data.details.map((detail) => ({
         currency: detail.ccy,
         balance: detail.availBal,
         locked: detail.frozenBal,
         total: SafeMath.plus(detail.availBal, detail.frozenBal),
       }));
+      this.logger.debug(
+        `[${this.constructor.name}: getSubAccount] balances`,
+        balances
+      );
       return new ResponseFormat({
         message: "getSubAccount",
         payload: balances,

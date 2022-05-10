@@ -490,9 +490,16 @@ class Middleman {
     return await this.communicator.getExAccounts(exchange);
   }
 
-
   async getUsersAccounts(exchange) {
     return await this.communicator.getUsersAccounts(exchange);
+  }
+
+  connectWS(callback){
+    return this.communicator.connectWS(callback)
+  }
+
+  sendMsg(op, args, needAuth){
+    return this.sendMsg(op, args, needAuth)
   }
 }
 
