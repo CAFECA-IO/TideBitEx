@@ -576,7 +576,6 @@ class OkexConnector extends ConnectorBase {
       method,
       path: `${path}${qs}`,
     });
-
     try {
       const res = await axios({
         method: method.toLocaleLowerCase(),
@@ -592,10 +591,10 @@ class OkexConnector extends ConnectorBase {
         });
       }
       const payload = res.data.data;
-      this.logger.debug(
-        `[${this.constructor.name}] getSubAccounts payload`,
-        payload
-      );
+      // this.logger.debug(
+      //   `[${this.constructor.name}] getSubAccounts payload`,
+      //   payload
+      // );
       return new ResponseFormat({
         message: "getSubAccounts",
         payload,
@@ -644,17 +643,17 @@ class OkexConnector extends ConnectorBase {
         });
       }
       const [data] = res.data.data;
-      this.logger.debug(`[${this.constructor.name}: getSubAccount] data`, data);
+      // this.logger.debug(`[${this.constructor.name}: getSubAccount] data`, data);
       const balances = data.details.map((detail) => ({
         currency: detail.ccy,
         balance: detail.availBal,
         locked: detail.frozenBal,
         total: SafeMath.plus(detail.availBal, detail.frozenBal),
       }));
-      this.logger.debug(
-        `[${this.constructor.name}: getSubAccount] balances`,
-        balances
-      );
+      // this.logger.debug(
+      //   `[${this.constructor.name}: getSubAccount] balances`,
+      //   balances
+      // );
       return new ResponseFormat({
         message: "getSubAccount",
         payload: balances,

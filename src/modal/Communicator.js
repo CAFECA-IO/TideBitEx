@@ -17,7 +17,7 @@ class Communicator {
     this.tokenRenewTimeout = null;
     this.CSRFToken = null;
     this.CSRFTokenRenewTimeout = null;
-    this.msgList = [];
+    // this.msgList = [];
     return this;
   }
 
@@ -540,53 +540,53 @@ class Communicator {
     }
   }
 
-  sendMsg(op, args, needAuth) {
-    if (needAuth) {
-      this.msgList.push(
-        JSON.stringify({
-          op,
-          args: {
-            ...args,
-            token: this.CSRFToken,
-          },
-        })
-      );
-    } else {
-      this.msgList.push(
-        JSON.stringify({
-          op,
-          args,
-        })
-      );
-    }
-  }
+  // sendMsg(op, args, needAuth) {
+  //   if (needAuth) {
+  //     this.msgList.push(
+  //       JSON.stringify({
+  //         op,
+  //         args: {
+  //           ...args,
+  //           token: this.CSRFToken,
+  //         },
+  //       })
+  //     );
+  //   } else {
+  //     this.msgList.push(
+  //       JSON.stringify({
+  //         op,
+  //         args,
+  //       })
+  //     );
+  //   }
+  // }
 
-  connectWS(callback) {
-    const ws = new WebSocket(Config[Config.status].websocket);
-    let interval;
-    ws.addEventListener("open", () => {
-      clearInterval(interval);
-      const data = this.msgList.shift();
-      if (data) ws.send(data);
-      interval = setInterval(() => {
-        const data = this.msgList.shift();
-        if (data) ws.send(data);
-      }, 1000);
-    });
-    ws.addEventListener("close", (msg) => {
-      clearInterval(interval);
-      console.log(
-        "Socket is closed. Reconnect will be attempted in 1 second.",
-        msg.reason
-      );
-      setTimeout(function () {
-        this.connectWS(callback);
-      }, 1000);
-    });
-    ws.addEventListener("message", (msg) => {
-      callback(msg);
-    });
-  }
+  // connectWS(callback) {
+  //   const ws = new WebSocket(Config[Config.status].websocket);
+  //   let interval;
+  //   ws.addEventListener("open", () => {
+  //     clearInterval(interval);
+  //     const data = this.msgList.shift();
+  //     if (data) ws.send(data);
+  //     interval = setInterval(() => {
+  //       const data = this.msgList.shift();
+  //       if (data) ws.send(data);
+  //     }, 1000);
+  //   });
+  //   ws.addEventListener("close", (msg) => {
+  //     clearInterval(interval);
+  //     console.log(
+  //       "Socket is closed. Reconnect will be attempted in 1 second.",
+  //       msg.reason
+  //     );
+  //     setTimeout(function () {
+  //       this.connectWS(callback);
+  //     }, 1000);
+  //   });
+  //   ws.addEventListener("message", (msg) => {
+  //     callback(msg);
+  //   });
+  // }
 }
 
 export default Communicator;
