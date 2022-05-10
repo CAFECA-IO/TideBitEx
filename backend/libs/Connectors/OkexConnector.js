@@ -539,7 +539,7 @@ class OkexConnector extends ConnectorBase {
                   reject(subAccBalRes);
                 }
                 clearTimeout(timer);
-              }, index * 300);
+              }, index * 1000);
             });
           })
         ).then(() => {
