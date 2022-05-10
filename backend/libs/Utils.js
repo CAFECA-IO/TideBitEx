@@ -20,7 +20,6 @@ class Utils {
 
   static concatPromise(prevRS, job) {
     const result = Array.isArray(prevRS) ? prevRS : [];
-    console.log(`concatPromise`, new Date().getTime());
     return job().then((rs) => {
       result.push(rs);
       return Promise.resolve(result);
@@ -29,7 +28,9 @@ class Utils {
 
   static waterfallPromise(jobs, ms) {
     return jobs.reduce(async (prev, curr) => {
+      console.log(`before wait`, new Date().getTime());
       await Utils.wait(ms);
+      console.log(`after wait`, new Date().getTime());
       return prev.then((rs) => Utils.concatPromise(rs, curr));
     }, Promise.resolve());
   }
