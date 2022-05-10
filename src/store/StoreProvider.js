@@ -14,7 +14,7 @@ import Events from "../constant/Events";
 let tickerTimestamp = 0,
   bookTimestamp = 0,
   accountTimestamp = 0;
-  // connection_resolvers = [];
+// connection_resolvers = [];
 
 const StoreProvider = (props) => {
   const middleman = useMemo(() => new Middleman(), []);
@@ -419,11 +419,11 @@ const StoreProvider = (props) => {
 
   const getExAccounts = useCallback(
     async (exchange) => {
-      let exAccounts = null;
+      let exAccounts = {};
       try {
         exAccounts = await middleman.getExAccounts(exchange);
       } catch (error) {
-        console.error(error);
+        console.log(error);
       }
       return exAccounts;
     },
@@ -431,11 +431,11 @@ const StoreProvider = (props) => {
   );
 
   const getUsersAccounts = useCallback(async () => {
-    let usersAccounts = null;
+    let usersAccounts = {};
     try {
       usersAccounts = await middleman.getUsersAccounts();
     } catch (error) {
-      console.error(error);
+      console.log(error);
     }
     return usersAccounts;
   }, [middleman]);
