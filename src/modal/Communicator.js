@@ -478,8 +478,8 @@ class Communicator {
       options = { method, url, data };
     try {
       response = await this.httpAgent.request(options);
-      console.log(`[Communicator] _request url`, url);
-      console.log(`[Communicator] _request response`, response);
+      // console.log(`[Communicator] _request url`, url);
+      // console.log(`[Communicator] _request response`, response);
       if (response.code === Codes.EXPIRED_ACCESS_TOKEN) {
         await this.CSRFTokenRenew();
         requestRetry = true;
@@ -490,7 +490,7 @@ class Communicator {
         retries > 0 &&
         retryCodes.includes(response.code)
       ) {
-        console.log(`[Communicator] _request retries`, retries);
+        // console.log(`[Communicator] _request retries`, retries);
         setTimeout(() => {
           return this._request({
             method,

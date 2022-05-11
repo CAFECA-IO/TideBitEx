@@ -198,10 +198,10 @@ class Middleman {
         }
       });
       this.rawBooks = updateRawBooks;
-       console.log(`updateBooks this.rawBooks`, this.rawBooks);
+      //  console.log(`updateBooks this.rawBooks`, this.rawBooks);
       this.books = this.handleBooks();
     }
-   
+
     return this.books;
   }
 

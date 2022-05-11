@@ -1286,6 +1286,8 @@ class OkexConnector extends ConnectorBase {
     formatBooks["market"] = instId.replace("-", "").toLowerCase();
 
     if (!this.books) this.books = formatBooks;
+    if (formatBooks["updateAll"])
+      this.logger.log(`*[${formatBooks}]*`, this.books);
 
     if (formatBooks["asks"].length > 0 || formatBooks["bids"].length > 0) {
       // this.logger.log(
