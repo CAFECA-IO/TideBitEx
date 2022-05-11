@@ -1052,19 +1052,21 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
-  async _registerPrivateChannel(sn) {
+  async _registerPrivateChannel(wsId, sn) {
     try {
-      if (!this.private_channel[sn]) {
-        this.private_channel[sn] = this.private_pusher[sn].subscribe(
-          `private-${sn}`
-        );
-        this.private_channel[sn].bind("account", (data) =>
+      if (!this.private_channel[wsId]) {
+        this.private_channel[wsId] = {};
+        this.private_channel[wsId]["sn"] = sn;
+        this.private_channel[wsId]["channel"] = this.private_pusher[
+          wsId
+        ].subscribe(`private-${sn}`);
+        this.private_channel[wsId]["channel"].bind("account", (data) =>
           this._updateAccount(data)
         );
-        this.private_channel[sn].bind("order", (data) =>
+        this.private_channel[wsId]["channel"].bind("order", (data) =>
           this._updateOrder(data)
         );
-        this.private_channel[sn].bind("trade", (data) => {
+        this.private_channel[wsId]["channel"].bind("trade", (data) => {
           this._updateTrade(data);
         });
       }
@@ -1074,49 +1076,72 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
-  _unregisterPrivateChannel(sn) {
-    if (!sn || !this.isStart) return;
+  _unregisterPrivateChannel(wsId) {
+    if (!wsId || !this.isStart) return;
     try {
-      this.private_channel[sn]?.unbind();
-      this.private_channel = this.private_pusher[sn].unsubscribe(
-        `private-${sn}`
+      this.private_channel[wsId]["channel"]?.unbind();
+      this.private_channel = this.private_pusher[wsId].unsubscribe(
+        `private-${this.private_channel[wsId]["sn"]}`
       );
-      delete this.private_channel[sn];
+      delete this.private_channel[wsId];
     } catch (error) {
       this.logger.error(`_unregisterPrivateChannel error`, error);
       throw error;
     }
   }
 
-  _registerMarketChannel(market) {
+  _registerMarketChannel(market, wsId) {
     if (!this.market_channel[`market-${market}-global`]) {
       try {
+        this.market_channel[`market-${market}-global`] = {};
         this.logger.log(`_registerMarketChannel market`, market);
-        this.market_channel[`market-${market}-global`] =
+        this.market_channel[`market-${market}-global`]["channel"] =
           this.public_pusher.subscribe(`market-${market}-global`);
-        this.market_channel[`market-${market}-global`].bind("update", (data) =>
-          this._updateBooks(market, data)
+        this.market_channel[`market-${market}-global`]["channel"].bind(
+          "update",
+          (data) => this._updateBooks(market, data)
         );
-        this.market_channel[`market-${market}-global`].bind(
+        this.market_channel[`market-${market}-global`]["channel"].bind(
           "trades",
           (data) => {
             this._updateTrades(market, data);
           }
         );
+        this.market_channel[`market-${market}-global`]["listener"] = [wsId];
       } catch (error) {
         this.logger.error(`_registerMarketChannel error`, error);
         throw error;
       }
+    } else {
+      this.market_channel[`market-${market}-global`]["listener"].push(wsId);
     }
   }
 
-  _unregisterMarketChannel(market) {
+  _unregisterMarketChannel(market, wsId) {
     if (!this.isStart || !this.market_channel[`market-${market}-global`])
       return;
     try {
-      this.market_channel[`market-${market}-global`]?.unbind();
-      this.public_pusher?.unsubscribe(`market-${market}-global`);
-      delete this.market_channel[`market-${market}-global`];
+      if (
+        this.market_channel[`market-${market}-global`]["listener"]?.length > 0
+      ) {
+        const index = this.market_channel[`market-${market}-global`][
+          "listener"
+        ].findIndex((_wsId) => _wsId === wsId);
+        this.market_channel[`market-${market}-global`]["listener"] =
+          this.market_channel[`market-${market}-global`]["listener"].splice(
+            index,
+            1
+          );
+      } else {
+        this.market_channel[`market-${market}-global`]["channel"]?.unbind();
+        this.public_pusher?.unsubscribe(`market-${market}-global`);
+        delete this.market_channel[`market-${market}-global`];
+      }
+      if (Object.keys(this.market_channel).length === 0) {
+        this.start = false;
+        this._unregisterGlobalChannel();
+        // delete this.public_pusher;
+      }
     } catch (error) {
       this.logger.error(`_unregisterMarketChannel error`, error);
       throw error;
@@ -1163,8 +1188,8 @@ class TibeBitConnector extends ConnectorBase {
     // );
   }
 
-  _startPusherWithLoginToken(headers, sn) {
-    this.private_pusher[sn] = new Pusher(this.key, {
+  _startPusherWithLoginToken(headers, wsId) {
+    this.private_pusher[wsId] = new Pusher(this.key, {
       encrypted: this.encrypted,
       wsHost: this.wsHost,
       wsPort: this.wsPort,
@@ -1236,6 +1261,14 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
+  /**
+   *
+   * @param {*} credential
+   * headers
+   * token
+   * market
+   * wsId
+   */
   async _subscribeUser(credential) {
     try {
       this.logger.log(
@@ -1244,8 +1277,8 @@ class TibeBitConnector extends ConnectorBase {
       const memberId = await this.getMemberIdFromRedis(credential.token);
       if (memberId !== -1) {
         const member = await this.database.getMemberById(memberId);
-        this._startPusherWithLoginToken(credential.headers, member.sn);
-        await this._registerPrivateChannel(member.sn);
+        this._startPusherWithLoginToken(credential.headers, credential.wsId);
+        await this._registerPrivateChannel(credential.wsId, member.sn);
       }
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeUser [END] ++++++`
@@ -1255,29 +1288,31 @@ class TibeBitConnector extends ConnectorBase {
       throw error;
     }
   }
-
+  /**
+   *
+   * @param {*} credential
+   * wsId
+   * market
+   */
   async _unsubscribeUser(credential) {
     try {
       this.logger.log(
         `---------- [${this.constructor.name}]  _unsubscribeUser [START] ----------`
       );
       // this._stopPusher();
-      const memberId = await this.getMemberIdFromRedis(credential.token);
-      if (memberId !== -1) {
-        const member = await this.database.getMemberById(memberId);
-        this._unregisterPrivateChannel(member.sn);
-        delete this.private_pusher[member.sn];
-        this.logger.log(
-          `---------- [${this.constructor.name}]  _unsubscribeUser [END] ----------`
-        );
-      }
+      this._unregisterPrivateChannel(credential.wsId);
+      delete this.private_pusher[credential.wsId];
+      this._unsubscribeMarket(credential.market, credential.wsId);
+      this.logger.log(
+        `---------- [${this.constructor.name}]  _unsubscribeUser [END] ----------`
+      );
     } catch (error) {
       this.logger.error(`_subscribeUser error`, error);
       throw error;
     }
   }
 
-  _subscribeMarket(market) {
+  _subscribeMarket(market, wsId) {
     if (
       this._findSource(this._findInstId(market)) === SupportedExchange.TIDEBIT
     ) {
@@ -1285,14 +1320,14 @@ class TibeBitConnector extends ConnectorBase {
         `++++++++ [${this.constructor.name}]  _subscribeMarket [START] ++++++`
       );
       if (!this.isStart) this._startPusher();
-      this._registerMarketChannel(market);
+      this._registerMarketChannel(market, wsId);
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeMarket [END] ++++++`
       );
     }
   }
 
-  _unsubscribeMarket(market) {
+  _unsubscribeMarket(market, wsId) {
     if (
       this._findSource(this._findInstId(market)) === SupportedExchange.TIDEBIT
     ) {
@@ -1300,7 +1335,7 @@ class TibeBitConnector extends ConnectorBase {
         `---------- [${this.constructor.name}]  _unsubscribeMarket [START] ----------`
       );
       this.logger.log(`market`, market);
-      this._unregisterMarketChannel(market);
+      this._unregisterMarketChannel(market, wsId);
     }
     this.logger.log(
       `---------- [${this.constructor.name}]  _unsubscribeMarket [END] ----------`

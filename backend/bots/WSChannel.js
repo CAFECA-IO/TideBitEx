@@ -88,7 +88,6 @@ class WSChannel extends Bot {
             }
             switch (op) {
               case "userStatusUpdate":
-                this.logger.log(`--TEST--`, req)
                 this._onOpStatusUpdate(req.headers, ws, args);
                 break;
               case "switchMarket":
@@ -126,8 +125,16 @@ class WSChannel extends Bot {
                 Object.values(this._channelClients[findClient.channel])
                   .length === 0
               ) {
-                EventBus.emit(Events.tickerOnUnsubscribe, findClient.channel);
-                EventBus.emit(Events.userOnUnsubscribe, findClient.channel);
+                EventBus.emit(
+                  Events.tickerOnUnsubscribe,
+                  findClient.channel,
+                  ws.id
+                );
+                EventBus.emit(
+                  Events.userOnUnsubscribe,
+                  findClient.channel,
+                  ws.id
+                );
               }
             }
             delete this._client[ws.id];
@@ -159,16 +166,12 @@ class WSChannel extends Bot {
             },
             market: args.market,
             token,
+            wsId: ws.id,
           });
         } else
           EventBus.emit(Events.userOnUnsubscribe, {
-            headers: {
-              cookie: headers.cookie,
-              "content-type": "application/json",
-              "x-csrf-token": args.token,
-            },
             market: args.market,
-            token,
+            wsId: ws.id,
           });
       }
       this._channelClients[args.market][ws.id] = ws;
@@ -207,21 +210,21 @@ class WSChannel extends Bot {
         this._channelClients[args.market] = {};
       }
       if (Object.values(this._channelClients[args.market]).length === 0) {
-        EventBus.emit(Events.tickerOnSibscribe, args.market, args.resolution);
+        EventBus.emit(Events.tickerOnSibscribe, args.market, ws.id);
       }
       this._channelClients[args.market][ws.id] = ws;
     } else {
       const oldChannel = findClient.channel;
       delete this._channelClients[oldChannel][ws.id];
       if (Object.values(this._channelClients[oldChannel]).length === 0) {
-        EventBus.emit(Events.tickerOnUnsubscribe, oldChannel);
+        EventBus.emit(Events.tickerOnUnsubscribe, oldChannel, ws.id);
       }
       findClient.channel = args.market;
       if (!this._channelClients[args.market]) {
         this._channelClients[args.market] = {};
       }
       if (Object.values(this._channelClients[args.market]).length === 0) {
-        EventBus.emit(Events.tickerOnSibscribe, args.market, args.resolution);
+        EventBus.emit(Events.tickerOnSibscribe, args.market, ws.id);
       }
       this._channelClients[args.market][ws.id] = ws;
     }
