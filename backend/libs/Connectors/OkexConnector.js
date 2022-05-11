@@ -545,7 +545,11 @@ class OkexConnector extends ConnectorBase {
           //   `[${this.constructor.name}] getExAccounts subAcctsBals`,
           //   subAcctsBals
           // );
-          const exAccounts = this.formateExAccts(subAcctsBals);
+          const _subAcctsBals = subAcctsBals.reduce((prev, curr) => {
+            prev.concat(curr);
+            return prev;
+          }, []);
+          const exAccounts = this.formateExAccts(_subAcctsBals);
           this.logger.debug(
             `[${this.constructor.name}] getExAccounts exAccounts`,
             exAccounts
