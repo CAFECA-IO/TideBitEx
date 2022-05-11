@@ -466,7 +466,7 @@ class Communicator {
   }
 
   //https://hackernoon.com/how-to-improve-your-backend-by-adding-retries-to-your-api-calls-83r3udx
-  async _request({ method, url, data, retries = 3, backoff = 1000 }) {
+  async _request({ method, url, data, retries = 3, backoff = 300 }) {
     let response,
       requestRetry,
       // retryCodes = [408, 500, 502, 503, 504, 522, 524],
@@ -478,6 +478,8 @@ class Communicator {
       options = { method, url, data };
     try {
       response = await this.httpAgent.request(options);
+      console.log(`[Communicator] _request url`, url);
+      console.log(`[Communicator] _request response`, response);
       if (response.code === Codes.EXPIRED_ACCESS_TOKEN) {
         await this.CSRFTokenRenew();
         requestRetry = true;

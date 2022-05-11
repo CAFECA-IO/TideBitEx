@@ -117,10 +117,10 @@ class ExchangeHub extends Bot {
   }
 
   async getUsersAccounts() {
-    return new ResponseFormat({
-      message:'test',
-      code: Codes.API_UNKNOWN_ERROR,
-    });
+    // return new ResponseFormat({
+    //   message:'test',
+    //   code: Codes.API_UNKNOWN_ERROR,
+    // });
     return this.tideBitConnector.router("getUsersAccounts", {});
   }
 
