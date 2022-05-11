@@ -1074,6 +1074,10 @@ class TibeBitConnector extends ConnectorBase {
       this.logger.error(`private_channel error`, error);
       throw error;
     }
+    this.logger.log(
+      `[${this.constructor.name}] this.private_channel`,
+      this.private_channel
+    );
   }
 
   _unregisterPrivateChannel(wsId) {
@@ -1115,6 +1119,10 @@ class TibeBitConnector extends ConnectorBase {
     } else {
       this.market_channel[`market-${market}-global`]["listener"].push(wsId);
     }
+    this.logger.log(
+      `[${this.constructor.name}] this.market_channel`,
+      this.market_channel
+    );
   }
 
   _unregisterMarketChannel(market, wsId) {
@@ -1140,7 +1148,8 @@ class TibeBitConnector extends ConnectorBase {
       if (Object.keys(this.market_channel).length === 0) {
         this.start = false;
         this._unregisterGlobalChannel();
-        // delete this.public_pusher;
+        delete this.public_pusher;
+        this.public_pusher = null;
       }
     } catch (error) {
       this.logger.error(`_unregisterMarketChannel error`, error);
@@ -1296,21 +1305,23 @@ class TibeBitConnector extends ConnectorBase {
    * market
    */
   async _unsubscribeUser(credential) {
-    try {
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _unsubscribeUser [START] ----------`
-      );
-      this.logger.error(`_unsubscribeUser credential`, credential);
-      // this._stopPusher();
-      this._unregisterPrivateChannel(credential.wsId);
-      delete this.private_pusher[credential.wsId];
-      this._unsubscribeMarket(credential.market, credential.wsId);
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _unsubscribeUser [END] ----------`
-      );
-    } catch (error) {
-      this.logger.error(`_unsubscribeUser error`, error);
-      throw error;
+    if (this.private_pusher[credential.wsId]) {
+      try {
+        this.logger.log(
+          `---------- [${this.constructor.name}]  _unsubscribeUser [START] ----------`
+        );
+        this.logger.error(`_unsubscribeUser credential`, credential);
+        // this._stopPusher();
+        this._unregisterPrivateChannel(credential.wsId);
+        delete this.private_pusher[credential.wsId];
+        this._unsubscribeMarket(credential.market, credential.wsId);
+        this.logger.log(
+          `---------- [${this.constructor.name}]  _unsubscribeUser [END] ----------`
+        );
+      } catch (error) {
+        this.logger.error(`_unsubscribeUser error`, error);
+        throw error;
+      }
     }
   }
 
