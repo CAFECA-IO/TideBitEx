@@ -1262,7 +1262,7 @@ class OkexConnector extends ConnectorBase {
     const [books] = bookData;
     const formatBooks = {};
     let asks, bids;
-    if (this.books) {
+    if (!!this.books) {
       const asks = books.asks
         .filter((ask) => {
           const _ask = this.books.asks.find((a) => SafeMath.eq(a[0], ask[0]));
