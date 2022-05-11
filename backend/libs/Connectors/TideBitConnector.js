@@ -13,17 +13,13 @@ const TideBitLegacyAdapter = require("../TideBitLegacyAdapter");
 
 class TibeBitConnector extends ConnectorBase {
   isStart = false;
-  isCredential = false;
 
-  public_pusher = {};
+  public_pusher = null;
   private_pusher = {};
 
   global_channel = null;
-  private_channel = null;
-  market_channel = null;
-
-  market = null;
-  user = null;
+  private_channel = {};
+  market_channel = {};
 
   tickers = {};
   trades = [];
@@ -1056,23 +1052,19 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
-  async _registerPrivateChannel(token) {
+  async _registerPrivateChannel(sn) {
     try {
-      this.logger.log(`_registerPrivateChannel token`, token);
-      const memberId = await this.getMemberIdFromRedis(token);
-      if (memberId !== -1) {
-        this.token = token;
-        const member = await this.database.getMemberById(memberId);
-        if (this.user && member.sn !== this.user) {
-          this._unregisterPrivateChannel();
-        }
-        this.user = member.sn;
-        this.private_channel = this.pusher.subscribe(`private-${member.sn}`);
-        this.private_channel.bind("account", (data) =>
+      if (!this.private_channel[sn]) {
+        this.private_channel[sn] = this.private_pusher[sn].subscribe(
+          `private-${sn}`
+        );
+        this.private_channel[sn].bind("account", (data) =>
           this._updateAccount(data)
         );
-        this.private_channel.bind("order", (data) => this._updateOrder(data));
-        this.private_channel.bind("trade", (data) => {
+        this.private_channel[sn].bind("order", (data) =>
+          this._updateOrder(data)
+        );
+        this.private_channel[sn].bind("trade", (data) => {
           this._updateTrade(data);
         });
       }
@@ -1082,17 +1074,14 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
-  _unregisterPrivateChannel(user) {
-    if (!this.isCredential || !this.isStart) return;
+  _unregisterPrivateChannel(sn) {
+    if (!sn || !this.isStart) return;
     try {
-      this.private_channel?.unbind();
-      if (user)
-        this.private_channel = this.pusher.unsubscribe(`private-${user}`);
-      if (this.user)
-        this.private_channel = this.pusher.unsubscribe(`private-${this.user}`);
-      this.private_channel = null;
-      this.isCredential = false;
-      this.user = null;
+      this.private_channel[sn]?.unbind();
+      this.private_channel = this.private_pusher[sn].unsubscribe(
+        `private-${sn}`
+      );
+      delete this.private_channel[sn];
     } catch (error) {
       this.logger.error(`_unregisterPrivateChannel error`, error);
       throw error;
@@ -1100,30 +1089,34 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _registerMarketChannel(market) {
-    try {
-      this.logger.log(`_registerMarketChannel market`, market);
-      this.market = market;
-      this.market_channel = this.pusher.subscribe(`market-${market}-global`);
-      this.market_channel.bind("update", (data) =>
-        this._updateBooks(market, data)
-      );
-      this.market_channel.bind("trades", (data) => {
-        this._updateTrades(market, data);
-      });
-    } catch (error) {
-      this.logger.error(`_registerMarketChannel error`, error);
-      throw error;
+    if (!this.market_channel[`market-${market}-global`]) {
+      try {
+        this.logger.log(`_registerMarketChannel market`, market);
+        this.market_channel[`market-${market}-global`] =
+          this.public_pusher.subscribe(`market-${market}-global`);
+        this.market_channel[`market-${market}-global`].bind("update", (data) =>
+          this._updateBooks(market, data)
+        );
+        this.market_channel[`market-${market}-global`].bind(
+          "trades",
+          (data) => {
+            this._updateTrades(market, data);
+          }
+        );
+      } catch (error) {
+        this.logger.error(`_registerMarketChannel error`, error);
+        throw error;
+      }
     }
   }
 
   _unregisterMarketChannel(market) {
-    if (!this.isStart) return;
+    if (!this.isStart || !this.market_channel[`market-${market}-global`])
+      return;
     try {
-      this.market_channel?.unbind();
-      if (market) this.pusher?.unsubscribe(`market-${market}-global`);
-      if (this.market) this.pusher?.unsubscribe(`market-${this.market}-global`);
-      this.market_channel = null;
-      this.market = null;
+      this.market_channel[`market-${market}-global`]?.unbind();
+      this.public_pusher?.unsubscribe(`market-${market}-global`);
+      delete this.market_channel[`market-${market}-global`];
     } catch (error) {
       this.logger.error(`_unregisterMarketChannel error`, error);
       throw error;
@@ -1132,7 +1125,7 @@ class TibeBitConnector extends ConnectorBase {
 
   _registerGlobalChannel() {
     try {
-      this.global_channel = this.pusher.subscribe("market-global");
+      this.global_channel = this.public_pusher.subscribe("market-global");
       this.global_channel.bind("tickers", (data) => this._updateTickers(data));
     } catch (error) {
       this.logger.error(`_registerGlobalChannel error`, error);
@@ -1144,7 +1137,7 @@ class TibeBitConnector extends ConnectorBase {
     if (!this.isStart) return;
     try {
       this.global_channel?.unbind();
-      this.pusher?.unsubscribe("market-global");
+      this.public_pusher?.unsubscribe("market-global");
       this.global_channel = null;
     } catch (error) {
       this.logger.error(`_unregisterGlobalChannel error`, error);
@@ -1153,7 +1146,7 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _startPusher() {
-    this.pusher = new Pusher(this.key, {
+    this.public_pusher = new Pusher(this.key, {
       encrypted: this.encrypted,
       wsHost: this.wsHost,
       wsPort: this.wsPort,
@@ -1165,13 +1158,13 @@ class TibeBitConnector extends ConnectorBase {
     });
     this.isStart = true;
     this._registerGlobalChannel();
-    // this.pusher.bind_global((data) =>
+    // this.public_pusher.bind_global((data) =>
     //   this.logger.log(`[_startPusher][bind_global] data`, data)
     // );
   }
 
-  _startPusherWithLoginToken(headers) {
-    this.pusher = new Pusher(this.key, {
+  _startPusherWithLoginToken(headers, sn) {
+    this.private_pusher[sn] = new Pusher(this.key, {
       encrypted: this.encrypted,
       wsHost: this.wsHost,
       wsPort: this.wsPort,
@@ -1220,10 +1213,8 @@ class TibeBitConnector extends ConnectorBase {
       },
     });
     this.isStart = true;
-    this.isCredential = true;
-    this._registerGlobalChannel();
-    this._registerGlobalChannel();
-    // this.pusher.bind_global((data) =>
+    // this.isCredential = true;
+    // this.public_pusher.bind_global((data) =>
     //   this.logger.log(`[_startPusherWithLoginToken][bind_global] data`, data)
     // );
   }
@@ -1232,12 +1223,12 @@ class TibeBitConnector extends ConnectorBase {
     this._unregisterGlobalChannel();
     this._unregisterMarketChannel();
     this._unregisterPrivateChannel();
-    this.isStart = false;
-    this.isCredential = false;
+    // this.isStart = false;
+    // this.isCredential = false;
   }
 
   _restartPusherWithLoginToken(credential) {
-    this._stopPusher();
+    // this._stopPusher();
     this._startPusherWithLoginToken(credential.headers);
     if (credential.market) {
       this.logger.log(`credential.market`, credential.market);
@@ -1246,24 +1237,44 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async _subscribeUser(credential) {
-    this.logger.log(
-      `++++++++ [${this.constructor.name}]  _subscribeUser [START] ++++++`
-    );
-    this._restartPusherWithLoginToken(credential);
-    await this._registerPrivateChannel(credential.token);
-    this.logger.log(
-      `++++++++ [${this.constructor.name}]  _subscribeUser [END] ++++++`
-    );
+    try {
+      this.logger.log(
+        `++++++++ [${this.constructor.name}]  _subscribeUser [START] ++++++`
+      );
+      const memberId = await this.getMemberIdFromRedis(credential.token);
+      if (memberId !== -1) {
+        const member = await this.database.getMemberById(memberId);
+        this._startPusherWithLoginToken(credential.headers, member.sn);
+        await this._registerPrivateChannel(member.sn);
+      }
+      this.logger.log(
+        `++++++++ [${this.constructor.name}]  _subscribeUser [END] ++++++`
+      );
+    } catch (error) {
+      this.logger.error(`_subscribeUser error`, error);
+      throw error;
+    }
   }
 
-  _unsubscribeUser() {
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _unsubscribeUser [START] ----------`
-    );
-    this._stopPusher();
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _unsubscribeUser [END] ----------`
-    );
+  async _unsubscribeUser(credential) {
+    try {
+      this.logger.log(
+        `---------- [${this.constructor.name}]  _unsubscribeUser [START] ----------`
+      );
+      // this._stopPusher();
+      const memberId = await this.getMemberIdFromRedis(credential.token);
+      if (memberId !== -1) {
+        const member = await this.database.getMemberById(memberId);
+        this._unregisterPrivateChannel(member.sn);
+        delete this.private_pusher[member.sn];
+        this.logger.log(
+          `---------- [${this.constructor.name}]  _unsubscribeUser [END] ----------`
+        );
+      }
+    } catch (error) {
+      this.logger.error(`_subscribeUser error`, error);
+      throw error;
+    }
   }
 
   _subscribeMarket(market) {

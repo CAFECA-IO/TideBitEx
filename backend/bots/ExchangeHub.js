@@ -610,7 +610,7 @@ class ExchangeHub extends Bot {
       switch (source) {
         case SupportedExchange.OKEX:
           /* !!! HIGH RISK (start) !!! */
-          let t = this.updateOrderStatus({
+          let t = await this.updateOrderStatus({
             orderId,
             memberId,
             orderData: body,
@@ -681,7 +681,7 @@ class ExchangeHub extends Bot {
           const err = [];
           orders.forEach(async (order) => {
             /* !!! HIGH RISK (start) !!! */
-            let t = this.updateOrderStatus({
+            let t = await this.updateOrderStatus({
               orderId: order.id,
               memberId,
               orderData: body,

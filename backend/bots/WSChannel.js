@@ -66,7 +66,7 @@ class WSChannel extends Bot {
           ws.on("message", (message) => {
             this.logger.debug("received: %s", message);
             let op, args;
-            
+
             try {
               const parsed = JSON.parse(message);
               op = parsed?.op;
@@ -88,6 +88,7 @@ class WSChannel extends Bot {
             }
             switch (op) {
               case "userStatusUpdate":
+                this.logger.log(`--TEST--`, req)
                 this._onOpStatusUpdate(req.headers, ws, args);
                 break;
               case "switchMarket":
@@ -159,7 +160,16 @@ class WSChannel extends Bot {
             market: args.market,
             token,
           });
-        } else EventBus.emit(Events.userOnUnsubscribe);
+        } else
+          EventBus.emit(Events.userOnUnsubscribe, {
+            headers: {
+              cookie: headers.cookie,
+              "content-type": "application/json",
+              "x-csrf-token": args.token,
+            },
+            market: args.market,
+            token,
+          });
       }
       this._channelClients[args.market][ws.id] = ws;
     } else {
