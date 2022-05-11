@@ -192,8 +192,13 @@ class WSChannel extends Bot {
             },
             market: args.market,
             token,
+            wsId: ws.id,
           });
-        } else EventBus.emit(Events.userOnUnsubscribe);
+        } else
+          EventBus.emit(Events.userOnUnsubscribe, {
+            market: args.market,
+            wsId: ws.id,
+          });
       }
       this._channelClients[args.market][ws.id] = ws;
     }

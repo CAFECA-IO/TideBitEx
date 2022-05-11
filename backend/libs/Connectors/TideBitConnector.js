@@ -1274,6 +1274,7 @@ class TibeBitConnector extends ConnectorBase {
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeUser [START] ++++++`
       );
+      this.logger.error(`_subscribeUser credential`, credential);
       const memberId = await this.getMemberIdFromRedis(credential.token);
       if (memberId !== -1) {
         const member = await this.database.getMemberById(memberId);
@@ -1299,6 +1300,7 @@ class TibeBitConnector extends ConnectorBase {
       this.logger.log(
         `---------- [${this.constructor.name}]  _unsubscribeUser [START] ----------`
       );
+      this.logger.error(`_unsubscribeUser credential`, credential);
       // this._stopPusher();
       this._unregisterPrivateChannel(credential.wsId);
       delete this.private_pusher[credential.wsId];
@@ -1307,7 +1309,7 @@ class TibeBitConnector extends ConnectorBase {
         `---------- [${this.constructor.name}]  _unsubscribeUser [END] ----------`
       );
     } catch (error) {
-      this.logger.error(`_subscribeUser error`, error);
+      this.logger.error(`_unsubscribeUser error`, error);
       throw error;
     }
   }
@@ -1319,6 +1321,7 @@ class TibeBitConnector extends ConnectorBase {
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeMarket [START] ++++++`
       );
+      this.logger.error(`_subscribeMarket market, wsId`, market, wsId);
       if (!this.isStart) this._startPusher();
       this._registerMarketChannel(market, wsId);
       this.logger.log(
@@ -1334,7 +1337,7 @@ class TibeBitConnector extends ConnectorBase {
       this.logger.log(
         `---------- [${this.constructor.name}]  _unsubscribeMarket [START] ----------`
       );
-      this.logger.log(`market`, market);
+      this.logger.error(`_unsubscribeMarket market, wsId`, market, wsId);
       this._unregisterMarketChannel(market, wsId);
     }
     this.logger.log(
