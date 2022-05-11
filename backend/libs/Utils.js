@@ -19,12 +19,13 @@ class Utils {
   }
 
   static concatPromise(prevRS, job) {
-    const result = Array.isArray(prevRS) ? prevRS : [];
+    let result = Array.isArray(prevRS) ? prevRS : [];
     console.debug(`[concatPromise] result before`, result);
     return job().then((rs) => {
       console.debug(`[concatPromise] rs`, rs, Array.isArray(rs));
-      Array.isArray(rs) ? result.concat(rs) : result.push(rs);
-      console.debug(`[concatPromise] result`, result);
+      if (Array.isArray(rs)) result = result.concat(rs);
+      else result.push(rs);
+      console.debug(`[concatPromise] result `, result);
 
       return Promise.resolve(result);
     });
