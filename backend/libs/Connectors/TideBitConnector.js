@@ -59,10 +59,6 @@ class TibeBitConnector extends ConnectorBase {
     this.database = database;
     this.redis = redis;
     this.currencies = await this.database.getCurrencies();
-    this.logger.log(
-      `[${this.constructor.name}] this.currencies`,
-      this.currencies
-    );
     return this;
   }
 
