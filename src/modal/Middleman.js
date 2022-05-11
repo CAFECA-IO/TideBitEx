@@ -160,6 +160,7 @@ class Middleman {
         asks: data.asks.map((ask) => [...ask, true]),
         bids: data.bids.map((bid) => [...bid, true]),
       };
+      console.log(`updateAll this.rawBooks`, this.rawBooks);
       this.books = this.handleBooks();
     } else {
       const updateRawBooks = {
@@ -197,9 +198,10 @@ class Middleman {
         }
       });
       this.rawBooks = updateRawBooks;
+       console.log(`updateBooks this.rawBooks`, this.rawBooks);
       this.books = this.handleBooks();
     }
-    // console.log(`updateBooks updateRawBooks`, updateRawBooks);
+   
     return this.books;
   }
 

@@ -933,7 +933,7 @@ class OkexConnector extends ConnectorBase {
     }
   }
 
-  async postCancelOrder({ params, query, body }) {
+  async postCancelOrder({ body }) {
     const method = "POST";
     const path = "/api/v5/trade/cancel-order";
 
@@ -1286,7 +1286,7 @@ class OkexConnector extends ConnectorBase {
     formatBooks["market"] = instId.replace("-", "").toLowerCase();
 
     if (!this.books) this.books = formatBooks;
-    
+
     if (formatBooks["asks"].length > 0 || formatBooks["bids"].length > 0) {
       // this.logger.log(
       //   `---------- [${this.constructor.name}]  _updateBooks instId: ${instId} [START] ----------`

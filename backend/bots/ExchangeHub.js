@@ -610,7 +610,11 @@ class ExchangeHub extends Bot {
       switch (source) {
         case SupportedExchange.OKEX:
           /* !!! HIGH RISK (start) !!! */
-          let t = this.updateOrderStatus({ orderId, memberId, body });
+          let t = this.updateOrderStatus({
+            orderId,
+            memberId,
+            orderData: body,
+          });
           /* !!! HIGH RISK (end) !!! */
           const okexCancelOrderRes = await this.okexConnector.router(
             "postCancelOrder",
@@ -680,7 +684,7 @@ class ExchangeHub extends Bot {
             let t = this.updateOrderStatus({
               orderId: order.id,
               memberId,
-              body,
+              orderData: body,
             });
             /* !!! HIGH RISK (end) !!! */
             const okexCancelOrderRes = await this.okexConnector.router(
