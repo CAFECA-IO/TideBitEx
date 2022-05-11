@@ -1332,7 +1332,7 @@ class TibeBitConnector extends ConnectorBase {
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeMarket [START] ++++++`
       );
-      this.logger.error(`_subscribeMarket market, wsId`, market, wsId);
+      this.logger.log(`_subscribeMarket market, wsId`, market, wsId);
       if (!this.isStart) this._startPusher();
       this._registerMarketChannel(market, wsId);
       this.logger.log(
