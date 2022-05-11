@@ -34,7 +34,7 @@ class ExchangeHub extends Bot {
           markets: this.config.markets,
         });
         this.tideBitConnector = new TideBitConnector({ logger });
-        this.tideBitConnector.init({
+        await this.tideBitConnector.init({
           app: this.config.pusher.app,
           key: this.config.pusher.key,
           secret: this.config.pusher.secret,
@@ -51,7 +51,11 @@ class ExchangeHub extends Bot {
       })
       .then(async () => {
         this.tidebitMarkets = this.getTidebitMarkets();
-        this.currencies = await this.tideBitConnector.currencies;
+        this.currencies = this.tideBitConnector.currencies;
+        // this.logger.log(
+        //   `[${this.constructor.name}] this.currencies`,
+        //   this.currencies
+        // );
         return this;
       });
   }

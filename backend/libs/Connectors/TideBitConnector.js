@@ -31,6 +31,7 @@ class TibeBitConnector extends ConnectorBase {
     this.books = {};
     return this;
   }
+
   async init({
     app,
     key,

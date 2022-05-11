@@ -347,14 +347,8 @@ class OkexConnector extends ConnectorBase {
       const [data] = res.data.data;
       const orderBooks = {};
       orderBooks["market"] = instId.replace("-", "").toLowerCase();
-      orderBooks["asks"] = data.asks.map((ask) => [
-        ask[0],
-        SafeMath.plus(ask[2], ask[3]),
-      ]);
-      orderBooks["bids"] = data.bids.map((bid) => [
-        bid[0],
-        SafeMath.plus(bid[2], bid[3]),
-      ]);
+      orderBooks["asks"] = data.asks.map((ask) => [ask[0], ask[1]]);
+      orderBooks["bids"] = data.bids.map((bid) => [bid[0], bid[1]]);
       this.books = orderBooks;
       // this.logger.log(orderBooks);
       // this.logger.log(
@@ -487,6 +481,8 @@ class OkexConnector extends ConnectorBase {
   formateExAccts(subAcctsBals) {
     const exAccounts = {};
     return subAcctsBals.reduce((prev, subAcctsBal) => {
+      // this.logger.log(`formateExAccts prev`, prev);
+      // this.logger.log(`formateExAccts subAcctsBal`, subAcctsBal);
       if (!prev[subAcctsBal.currency]) {
         prev[subAcctsBal.currency] = {};
         prev[subAcctsBal.currency]["details"] = [];
@@ -522,6 +518,10 @@ class OkexConnector extends ConnectorBase {
         });
         if (subAccBalRes.success) {
           const subAccBals = subAccBalRes.payload;
+          // this.logger.debug(
+          //   `[${this.constructor.name}: fetchSubAcctsBalsJob] subAccBals`,
+          //   subAccBals
+          // );
           resolve(subAccBals);
         } else {
           // ++ TODO
@@ -541,11 +541,19 @@ class OkexConnector extends ConnectorBase {
           this.fetchSubAcctsBalsJob(subAccount)
         );
         waterfallPromise(jobs, 1000).then((subAcctsBals) => {
+          // this.logger.debug(
+          //   `[${this.constructor.name}] getExAccounts subAcctsBals`,
+          //   subAcctsBals
+          // );
+          const _subAcctsBals = subAcctsBals.reduce((prev, curr) => {
+            prev = prev.concat(curr);
+            return prev;
+          }, []);
           this.logger.debug(
-            `[${this.constructor.name}] getExAccounts subAcctsBals`,
-            subAcctsBals
+            `[${this.constructor.name}] getExAccounts _subAcctsBals`,
+            _subAcctsBals
           );
-          const exAccounts = this.formateExAccts(subAcctsBals);
+          const exAccounts = this.formateExAccts(_subAcctsBals);
           this.logger.debug(
             `[${this.constructor.name}] getExAccounts exAccounts`,
             exAccounts
@@ -1119,7 +1127,7 @@ class OkexConnector extends ConnectorBase {
             }
             break;
           case this.candleChannel:
-            this.logger.log(`this.candleChannel`, this.candleChannel, data);
+            // this.logger.log(`this.candleChannel`, this.candleChannel, data);
             // this._updateCandle(values[0], data.channel, data.data);
             break;
           case "tickers":
@@ -1255,21 +1263,15 @@ class OkexConnector extends ConnectorBase {
     const asks = books.asks
       .filter((ask) => {
         const _ask = this.books.asks.find((a) => SafeMath.eq(a[0], ask[0]));
-        return (
-          !_ask ||
-          (!!_ask && !SafeMath.eq(_ask[1], SafeMath.plus(ask[2], ask[3])))
-        );
+        return !_ask || (!!_ask && !SafeMath.eq(_ask[1], ask[1]));
       })
-      .map((ask) => [ask[0], SafeMath.plus(ask[2], ask[3])]);
+      .map((ask) => [ask[0], ask[1]]);
     const bids = books.bids
       .filter((bid) => {
         const _bid = this.books.bids.find((b) => SafeMath.eq(b[0], bid[0]));
-        return (
-          !_bid ||
-          (!!_bid && !SafeMath.eq(_bid[1], SafeMath.plus(bid[2], bid[3])))
-        );
+        return !_bid || (!!_bid && !SafeMath.eq(_bid[1], bid[1]));
       })
-      .map((bid) => [bid[0], SafeMath.plus(bid[2], bid[3])]);
+      .map((bid) => [bid[0], bid[1]]);
     const formatBooks = {
       asks,
       bids,
@@ -1430,10 +1432,10 @@ class OkexConnector extends ConnectorBase {
         instId,
       },
     ];
-    this.logger.debug(
-      `[${this.constructor.name}]_subscribeCandle${resolution}`,
-      args
-    );
+    // this.logger.debug(
+    //   `[${this.constructor.name}]_subscribeCandle${resolution}`,
+    //   args
+    // );
     this.websocket.ws.send(
       JSON.stringify({
         op: "subscribe",
