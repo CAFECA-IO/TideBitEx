@@ -1298,7 +1298,10 @@ class OkexConnector extends ConnectorBase {
         orderBooks["market"] = instId.replace("-", "").toLowerCase();
         orderBooks["asks"] = books.asks.map((ask) => [ask[0], ask[1]]);
         orderBooks["bids"] = books.bids.map((bid) => [bid[0], bid[1]]);
+        this.logger.log(`_updateBooks orderBooks`,orderBooks)
+
         this.books = orderBooks;
+        this.logger.log(`_updateBooks this.books`,this.books)
         return new ResponseFormat({
           message: "getOrderBooks",
           payload: orderBooks,
