@@ -21,9 +21,9 @@ class Utils {
   static concatPromise(prevRS, job) {
     const result = Array.isArray(prevRS) ? prevRS : [];
     return job().then((rs) => {
-      this.logger.debug(`[concatPromise] rs`, rs);
+      console.debug(`[concatPromise] rs`, rs);
       Array.isArray(rs) ? result.concat(rs) : result.push(rs);
-      this.logger.debug(`[concatPromise] result`, result);
+      console.debug(`[concatPromise] result`, result);
 
       return Promise.resolve(result);
     });
