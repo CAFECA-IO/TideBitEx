@@ -481,8 +481,8 @@ class OkexConnector extends ConnectorBase {
   formateExAccts(subAcctsBals) {
     const exAccounts = {};
     return subAcctsBals.reduce((prev, subAcctsBal) => {
-      this.logger.log(`formateExAccts prev`, prev)
-      this.logger.log(`formateExAccts subAcctsBal`, subAcctsBal)
+      this.logger.log(`formateExAccts prev`, prev);
+      this.logger.log(`formateExAccts subAcctsBal`, subAcctsBal);
       if (!prev[subAcctsBal.currency]) {
         prev[subAcctsBal.currency] = {};
         prev[subAcctsBal.currency]["details"] = [];
@@ -518,6 +518,10 @@ class OkexConnector extends ConnectorBase {
         });
         if (subAccBalRes.success) {
           const subAccBals = subAccBalRes.payload;
+          this.logger.debug(
+            `[${this.constructor.name}: fetchSubAcctsBalsJob] subAccBals`,
+            subAccBals
+          );
           resolve(subAccBals);
         } else {
           // ++ TODO

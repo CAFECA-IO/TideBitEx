@@ -21,7 +21,7 @@ class Utils {
   static concatPromise(prevRS, job) {
     const result = Array.isArray(prevRS) ? prevRS : [];
     return job().then((rs) => {
-      result.push(rs);
+      result.concat(rs);
       return Promise.resolve(result);
     });
   }
