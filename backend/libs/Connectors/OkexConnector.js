@@ -20,10 +20,10 @@ class OkexConnector extends ConnectorBase {
     super({ logger });
     this.websocket = new WebSocket({ logger });
     this.websocketPrivate = new WebSocket({ logger });
-    this.tickers = {};
-    this.trades = [];
-    this.books = {};
-    this.candleChannel = null;
+    this.tickers = null;
+    this.trades = null;
+    this.books = null;
+    // this.candleChannel = null;
     return this;
   }
 
@@ -1259,6 +1259,7 @@ class OkexConnector extends ConnectorBase {
   _updateBooks(instId, bookData) {
     // const channel = "books";
     // this.okexWsChannels[channel][instId] = bookData;
+    this.logger.log(`_updateBooks this.books`,this.books)
     const [books] = bookData;
     if (this.books) {
       const asks = books.asks
