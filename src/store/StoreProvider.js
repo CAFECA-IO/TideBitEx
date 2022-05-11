@@ -140,13 +140,13 @@ const StoreProvider = (props) => {
         }
       }
     } catch (error) {
-      enqueueSnackbar(`"getToken error: ${error?.message}"`, {
-        variant: "error",
-        action,
-      });
+      // enqueueSnackbar(`"getToken error: ${error?.message}"`, {
+      //   variant: "error",
+      //   action,
+      // });
+      console.error(`etToken error`, error);
     }
-  }, [action, enqueueSnackbar, middleman]);
-  // }, [action, enqueueSnackbar]);
+  }, [middleman]);
 
   const connectWS = useCallback(() => {
     const ws = new WebSocket(Config[Config.status].websocket);
