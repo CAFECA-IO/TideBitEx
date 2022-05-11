@@ -701,16 +701,16 @@ class OkexConnector extends ConnectorBase {
     const filterBody = {
       instId: body.instId,
       tdMode: body.tdMode,
-      ccy: body.ccy,
+      // ccy: body.ccy,
       clOrdId,
       tag: this.brokerId,
       side: body.kind === "bid" ? "buy" : "ask",
-      posSide: body.posSide,
+      // posSide: body.posSide,
       ordType: body.ordType,
       sz: body.volume,
       px: body.price,
-      reduceOnly: body.reduceOnly,
-      tgtCcy: body.tgtCcy,
+      // reduceOnly: body.reduceOnly,
+      // tgtCcy: body.tgtCcy,
     };
     this.logger.log("filterBody:", filterBody);
 
