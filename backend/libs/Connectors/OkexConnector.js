@@ -1249,21 +1249,15 @@ class OkexConnector extends ConnectorBase {
     const asks = books.asks
       .filter((ask) => {
         const _ask = this.books.asks.find((a) => SafeMath.eq(a[0], ask[0]));
-        return (
-          !_ask ||
-          (!!_ask && !SafeMath.eq(_ask[1], SafeMath.plus(ask[2], ask[3])))
-        );
+        return !_ask || (!!_ask && !SafeMath.eq(_ask[1], ask[1]));
       })
-      .map((ask) => [ask[0], SafeMath.plus(ask[2], ask[3])]);
+      .map((ask) => [ask[0], ask[1]]);
     const bids = books.bids
       .filter((bid) => {
         const _bid = this.books.bids.find((b) => SafeMath.eq(b[0], bid[0]));
-        return (
-          !_bid ||
-          (!!_bid && !SafeMath.eq(_bid[1], SafeMath.plus(bid[2], bid[3])))
-        );
+        return !_bid || (!!_bid && !SafeMath.eq(_bid[1], bid[1]));
       })
-      .map((bid) => [bid[0], SafeMath.plus(bid[2], bid[3])]);
+      .map((bid) => [bid[0], bid[1]]);
     const formatBooks = {
       asks,
       bids,
