@@ -1314,7 +1314,7 @@ class TibeBitConnector extends ConnectorBase {
         // this._stopPusher();
         this._unregisterPrivateChannel(credential.wsId);
         delete this.private_pusher[credential.wsId];
-        this._unsubscribeMarket(credential.market, credential.wsId);
+        // this._unsubscribeMarket(credential.market, credential.wsId);
         this.logger.log(
           `---------- [${this.constructor.name}]  _unsubscribeUser [END] ----------`
         );
