@@ -141,6 +141,20 @@ const StoreProvider = (props) => {
         if (token) {
           setToken(token);
           setIsLogin(true);
+          const id = location.pathname.includes("/markets/")
+            ? location.pathname.replace("/markets/", "")
+            : null;
+          if (id) {
+            connection_resolvers.push(
+              JSON.stringify({
+                op: "userStatusUpdate",
+                args: {
+                  token,
+                  market: id,
+                },
+              })
+            );
+          }
         }
       }
     } catch (error) {
@@ -150,7 +164,7 @@ const StoreProvider = (props) => {
       // });
       console.error(`etToken error`, error);
     }
-  }, [middleman]);
+  }, [location.pathname, middleman]);
 
   const connectWS = useCallback(() => {
     const ws = new WebSocket(Config[Config.status].websocket);
@@ -337,7 +351,6 @@ const StoreProvider = (props) => {
             op: "switchMarket",
             args: {
               market: ticker.market,
-              resolution: resolution,
             },
           })
         );
@@ -353,7 +366,7 @@ const StoreProvider = (props) => {
       // console.log(`****^^^^**** selectTickerHandler [END] ****^^^^****`);
     },
     [
-      resolution,
+      // resolution,
       isLogin,
       selectedTicker,
       history,
@@ -389,38 +402,7 @@ const StoreProvider = (props) => {
       await getOrderList();
       await getOrderHistory();
     }
-    const id = location.pathname.includes("/markets/")
-      ? location.pathname.replace("/markets/", "")
-      : null;
-    if (id) {
-      connection_resolvers.push(
-        JSON.stringify({
-          op: "userStatusUpdate",
-          args: {
-            token,
-            market: id,
-            resolution: resolution,
-          },
-        })
-      );
-      // middleman.sendMsg(
-      //   "userStatusUpdate",
-      //   {
-      //     market: id,
-      //     resolution: resolution,
-      //   },
-      //   true
-      // );
-    }
-  }, [
-    getCSRFToken,
-    getOrderHistory,
-    getOrderList,
-    location.pathname,
-    middleman,
-    resolution,
-    token,
-  ]);
+  }, [getCSRFToken, getOrderHistory, getOrderList, middleman]);
 
   const getExAccounts = useCallback(
     async (exchange) => {
