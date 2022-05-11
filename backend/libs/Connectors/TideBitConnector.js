@@ -12,23 +12,25 @@ const Codes = require("../../constants/Codes");
 const TideBitLegacyAdapter = require("../TideBitLegacyAdapter");
 
 class TibeBitConnector extends ConnectorBase {
+  isStart = false;
+  isCredential = false;
+
+  public_pusher = {};
+  private_pusher = {};
+
+  global_channel = null;
+  private_channel = null;
+  market_channel = null;
+
+  market = null;
+  user = null;
+
+  tickers = {};
+  trades = [];
+  books = {};
+
   constructor({ logger }) {
     super({ logger });
-    this.isStart = false;
-    this.isCredential = false;
-
-    this.pusher = null;
-
-    this.global_channel = null;
-    this.private_channel = null;
-    this.market_channel = null;
-
-    this.market = null;
-    this.user = null;
-
-    this.tickers = {};
-    this.trades = [];
-    this.books = {};
     return this;
   }
 
@@ -348,7 +350,7 @@ class TibeBitConnector extends ConnectorBase {
         }
       });
       const books = { asks, bids, market: query.id };
-      this.books = books;
+      // this.books = books;
       // this.logger.log(`[FROM TideBit] Response books`, books);
       // this.logger.log(
       //   `---------- [${this.constructor.name}]  getOrderBooks market: ${query.id} [END] ----------`
@@ -389,45 +391,49 @@ class TibeBitConnector extends ConnectorBase {
     let index,
       asks = [],
       bids = [];
+    if (this.books) {
+      this.books.asks?.forEach((ask) => {
+        index = data.asks.findIndex((_ask) => SafeMath.eq(_ask[0], ask[0]));
+        if (index === -1) {
+          asks.push([ask[0], "0"]);
+        }
+      });
+      data.asks.forEach((ask) => {
+        index = this.books?.asks?.findIndex((_ask) =>
+          SafeMath.eq(_ask[0], ask[0])
+        );
+        if (
+          index === -1 ||
+          index === undefined ||
+          !SafeMath.eq(this.books.asks[index][1], ask[1])
+        ) {
+          asks.push(ask);
+        }
+      });
+      this.books.bids?.forEach((bid) => {
+        index = data.bids.findIndex((_bid) => SafeMath.eq(_bid[0], bid[0]));
+        if (index === -1) {
+          bids.push([bid[0], "0"]);
+        }
+      });
+      data.bids.forEach((bid) => {
+        index = this.books?.bids?.findIndex((_bid) =>
+          SafeMath.eq(_bid[0], bid[0])
+        );
+        if (
+          index === -1 ||
+          index === undefined ||
+          !SafeMath.eq(this.books.bids[index][1], bid[1])
+        ) {
+          bids.push(bid);
+        }
+      });
+    } else {
+      asks = data.asks;
+      bids = data.bids;
+    }
 
-    this.books?.asks?.forEach((ask) => {
-      index = data.asks.findIndex((_ask) => SafeMath.eq(_ask[0], ask[0]));
-      if (index === -1) {
-        asks.push([ask[0], "0"]);
-      }
-    });
-    data.asks.forEach((ask) => {
-      index = this.books?.asks?.findIndex((_ask) =>
-        SafeMath.eq(_ask[0], ask[0])
-      );
-      if (
-        index === -1 ||
-        index === undefined ||
-        !SafeMath.eq(this.books.asks[index][1], ask[1])
-      ) {
-        asks.push(ask);
-      }
-    });
-    this.books?.bids?.forEach((bid) => {
-      index = data.bids.findIndex((_bid) => SafeMath.eq(_bid[0], bid[0]));
-      if (index === -1) {
-        bids.push([bid[0], "0"]);
-      }
-    });
-    data.bids.forEach((bid) => {
-      index = this.books?.bids?.findIndex((_bid) =>
-        SafeMath.eq(_bid[0], bid[0])
-      );
-      if (
-        index === -1 ||
-        index === undefined ||
-        !SafeMath.eq(this.books.bids[index][1], bid[1])
-      ) {
-        bids.push(bid);
-      }
-    });
-
-    if (!this.books[market]) this.books = { ...data, market };
+    if (!this.books || !this.books[market]) this.books = { ...data, market };
 
     const formatBooks = {
       asks,
