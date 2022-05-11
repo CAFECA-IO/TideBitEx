@@ -390,7 +390,8 @@ class TibeBitConnector extends ConnectorBase {
       return;
     let index,
       asks = [],
-      bids = [];
+      bids = [],
+      formatBooks = {};
     if (!!this.books) {
       this.books.asks?.forEach((ask) => {
         index = data.asks.findIndex((_ask) => SafeMath.eq(_ask[0], ask[0]));
@@ -431,17 +432,15 @@ class TibeBitConnector extends ConnectorBase {
     } else {
       asks = data.asks;
       bids = data.bids;
+      formatBooks["updateAll"] = true;
     }
+    formatBooks["asks"] = asks;
+    formatBooks["bids"] = bids;
+    formatBooks["market"] = market;
 
-    if (!this.books || !this.books[market]) this.books = { ...data, market };
+    if (!this.books) this.books = formatBooks;
 
-    const formatBooks = {
-      asks,
-      bids,
-      market,
-    };
-
-    if (asks.length > 0 || bids.length > 0) {
+    if (formatBooks["asks"].length > 0 || formatBooks["bids"].length > 0) {
       // this.logger.log(
       //   `---------- [${this.constructor.name}]  _updateBooks market: ${market} [START] ----------`
       // );
