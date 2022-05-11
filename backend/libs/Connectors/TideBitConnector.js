@@ -27,7 +27,7 @@ class TibeBitConnector extends ConnectorBase {
 
   tickers = {};
   trades = [];
-  books = {};
+  books = null;
 
   constructor({ logger }) {
     super({ logger });
@@ -391,7 +391,7 @@ class TibeBitConnector extends ConnectorBase {
     let index,
       asks = [],
       bids = [];
-    if (this.books) {
+    if (!!this.books) {
       this.books.asks?.forEach((ask) => {
         index = data.asks.findIndex((_ask) => SafeMath.eq(_ask[0], ask[0]));
         if (index === -1) {

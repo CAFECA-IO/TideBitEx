@@ -22,7 +22,7 @@ class OkexConnector extends ConnectorBase {
     this.websocketPrivate = new WebSocket({ logger });
     this.tickers = {};
     this.trades = [];
-    this.books = {};
+    this.books = null;
     this.candleChannel = null;
     return this;
   }
