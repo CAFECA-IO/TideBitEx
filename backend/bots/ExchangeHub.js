@@ -48,6 +48,11 @@ class ExchangeHub extends Bot {
           markets: this.config.markets,
           database: database,
         });
+        this.logger.log(`!!!!!!!!!!!!!`)
+        this.logger.log(
+          `[${this.constructor.name}] init this.currencies`,
+          this.currencies
+        );
       })
       .then(async () => {
         this.tidebitMarkets = this.getTidebitMarkets();
@@ -56,6 +61,7 @@ class ExchangeHub extends Bot {
           `[${this.constructor.name}] this.currencies`,
           this.currencies
         );
+        this.logger.log(`!!!!!!!!!!!!!`)
         return this;
       });
   }
