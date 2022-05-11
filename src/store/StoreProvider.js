@@ -14,6 +14,7 @@ import Events from "../constant/Events";
 let tickerTimestamp = 0,
   bookTimestamp = 0,
   accountTimestamp = 0,
+  tradeTimestamp = 0,
   connection_resolvers = [];
 
 const StoreProvider = (props) => {
@@ -58,6 +59,7 @@ const StoreProvider = (props) => {
         _bookTimestamp = 0,
         // _candleTimestamp = 0,
         _accountTimestamp = 0,
+        _tradeTimestamp = 0,
         metaData = JSON.parse(msg.data);
       switch (metaData.type) {
         case Events.tickers:
@@ -84,13 +86,15 @@ const StoreProvider = (props) => {
           }
           break;
         case Events.trades:
-          const { trades, candles, volumes } = middleman.updateTrades(
-            metaData.data.trades,
-            resolution
-          );
-          setTrades(trades);
-          setCandles({ candles, volumes });
-          middleman.resetTrades();
+          if (_tradeTimestamp - +tradeTimestamp > 1000) {
+            const { trades, candles, volumes } = middleman.updateTrades(
+              metaData.data.trades,
+              resolution
+            );
+            setTrades(trades);
+            setCandles({ candles, volumes });
+            middleman.resetTrades();
+          }
           break;
         case Events.update:
           const updateBooks = middleman.updateBooks(metaData.data);
@@ -137,6 +141,20 @@ const StoreProvider = (props) => {
         if (token) {
           setToken(token);
           setIsLogin(true);
+          const id = location.pathname.includes("/markets/")
+            ? location.pathname.replace("/markets/", "")
+            : null;
+          if (id) {
+            connection_resolvers.push(
+              JSON.stringify({
+                op: "userStatusUpdate",
+                args: {
+                  token,
+                  market: id,
+                },
+              })
+            );
+          }
         }
       }
     } catch (error) {
@@ -146,7 +164,7 @@ const StoreProvider = (props) => {
       // });
       console.error(`etToken error`, error);
     }
-  }, [middleman]);
+  }, [location.pathname, middleman]);
 
   const connectWS = useCallback(() => {
     const ws = new WebSocket(Config[Config.status].websocket);
@@ -333,7 +351,6 @@ const StoreProvider = (props) => {
             op: "switchMarket",
             args: {
               market: ticker.market,
-              resolution: resolution,
             },
           })
         );
@@ -349,7 +366,7 @@ const StoreProvider = (props) => {
       // console.log(`****^^^^**** selectTickerHandler [END] ****^^^^****`);
     },
     [
-      resolution,
+      // resolution,
       isLogin,
       selectedTicker,
       history,
@@ -385,38 +402,7 @@ const StoreProvider = (props) => {
       await getOrderList();
       await getOrderHistory();
     }
-    const id = location.pathname.includes("/markets/")
-      ? location.pathname.replace("/markets/", "")
-      : null;
-    if (id) {
-      connection_resolvers.push(
-        JSON.stringify({
-          op: "userStatusUpdate",
-          args: {
-            token,
-            market: id,
-            resolution: resolution,
-          },
-        })
-      );
-      // middleman.sendMsg(
-      //   "userStatusUpdate",
-      //   {
-      //     market: id,
-      //     resolution: resolution,
-      //   },
-      //   true
-      // );
-    }
-  }, [
-    getCSRFToken,
-    getOrderHistory,
-    getOrderList,
-    location.pathname,
-    middleman,
-    resolution,
-    token,
-  ]);
+  }, [getCSRFToken, getOrderHistory, getOrderList, middleman]);
 
   const getExAccounts = useCallback(
     async (exchange) => {
@@ -612,7 +598,7 @@ const StoreProvider = (props) => {
 
   const start = useCallback(async () => {
     if (location.pathname.includes("/markets")) {
-      console.log(`******** start [START] ********`);
+      // console.log(`******** start [START] ********`);
       connectWS();
       const market = location.pathname.includes("/markets/")
         ? location.pathname.replace("/markets/", "")
@@ -621,7 +607,7 @@ const StoreProvider = (props) => {
       await selectTickerHandler(ticker);
       await getTickers();
       await getAccounts();
-      console.log(`******** start [END] ********`);
+      // console.log(`******** start [END] ********`);
     }
   }, [
     connectWS,

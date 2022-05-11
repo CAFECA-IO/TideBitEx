@@ -37,11 +37,11 @@ class ConnectorBase {
   }
 
   async _tideBitExEventListener() {
-    EventBus.on(Events.tickerOnSibscribe, (market, resolution) => {
-      this._subscribeMarket(market, resolution);
+    EventBus.on(Events.tickerOnSibscribe, (market, wsId) => {
+      this._subscribeMarket(market, wsId);
     });
-    EventBus.on(Events.tickerOnUnsubscribe, (market) => {
-      this._unsubscribeMarket(market);
+    EventBus.on(Events.tickerOnUnsubscribe, (market, wsId) => {
+      this._unsubscribeMarket(market, wsId);
     });
     EventBus.on(Events.userOnSubscribe, (data) => {
       this._subscribeUser(data);

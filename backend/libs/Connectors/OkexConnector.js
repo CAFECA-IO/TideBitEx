@@ -22,7 +22,7 @@ class OkexConnector extends ConnectorBase {
     this.websocketPrivate = new WebSocket({ logger });
     this.tickers = {};
     this.trades = [];
-    this.books = {};
+    this.books = null;
     this.candleChannel = null;
     return this;
   }
@@ -349,7 +349,7 @@ class OkexConnector extends ConnectorBase {
       orderBooks["market"] = instId.replace("-", "").toLowerCase();
       orderBooks["asks"] = data.asks.map((ask) => [ask[0], ask[1]]);
       orderBooks["bids"] = data.bids.map((bid) => [bid[0], bid[1]]);
-      this.books = orderBooks;
+      // this.books = orderBooks;
       // this.logger.log(orderBooks);
       // this.logger.log(
       //   `---------- [${this.constructor.name}]  getOrderBooks [END] ----------`
@@ -701,16 +701,16 @@ class OkexConnector extends ConnectorBase {
     const filterBody = {
       instId: body.instId,
       tdMode: body.tdMode,
-      ccy: body.ccy,
+      // ccy: body.ccy,
       clOrdId,
       tag: this.brokerId,
       side: body.kind === "bid" ? "buy" : "ask",
-      posSide: body.posSide,
+      // posSide: body.posSide,
       ordType: body.ordType,
       sz: body.volume,
       px: body.price,
-      reduceOnly: body.reduceOnly,
-      tgtCcy: body.tgtCcy,
+      // reduceOnly: body.reduceOnly,
+      // tgtCcy: body.tgtCcy,
     };
     this.logger.log("filterBody:", filterBody);
 
@@ -933,7 +933,7 @@ class OkexConnector extends ConnectorBase {
     }
   }
 
-  async postCancelOrder({ params, query, body }) {
+  async postCancelOrder({ body }) {
     const method = "POST";
     const path = "/api/v5/trade/cancel-order";
 
@@ -1260,24 +1260,36 @@ class OkexConnector extends ConnectorBase {
     // const channel = "books";
     // this.okexWsChannels[channel][instId] = bookData;
     const [books] = bookData;
-    const asks = books.asks
-      .filter((ask) => {
-        const _ask = this.books.asks.find((a) => SafeMath.eq(a[0], ask[0]));
-        return !_ask || (!!_ask && !SafeMath.eq(_ask[1], ask[1]));
-      })
-      .map((ask) => [ask[0], ask[1]]);
-    const bids = books.bids
-      .filter((bid) => {
-        const _bid = this.books.bids.find((b) => SafeMath.eq(b[0], bid[0]));
-        return !_bid || (!!_bid && !SafeMath.eq(_bid[1], bid[1]));
-      })
-      .map((bid) => [bid[0], bid[1]]);
-    const formatBooks = {
-      asks,
-      bids,
-      market: instId.replace("-", "").toLowerCase(),
-    };
-    if (asks.length > 0 || bids.length > 0) {
+    let asks = [],
+      bids = [],
+      formatBooks = {};
+    if (!!this.books) {
+      asks = books.asks
+        .filter((ask) => {
+          const _ask = this.books.asks.find((a) => SafeMath.eq(a[0], ask[0]));
+          return !_ask || (!!_ask && !SafeMath.eq(_ask[1], ask[1]));
+        })
+        .map((ask) => [ask[0], ask[1]]);
+      bids = books.bids
+        .filter((bid) => {
+          const _bid = this.books.bids.find((b) => SafeMath.eq(b[0], bid[0]));
+          return !_bid || (!!_bid && !SafeMath.eq(_bid[1], bid[1]));
+        })
+        .map((bid) => [bid[0], bid[1]]);
+    } else {
+      asks = books.asks.map((ask) => [ask[0], ask[1]]);
+      bids = books.bids.map((bid) => [bid[0], bid[1]]);
+      formatBooks["updateAll"] = true;
+    }
+    formatBooks["asks"] = asks;
+    formatBooks["bids"] = bids;
+    formatBooks["market"] = instId.replace("-", "").toLowerCase();
+
+    if (!this.books) this.books = formatBooks;
+    if (formatBooks["updateAll"])
+      this.logger.log(`*[${formatBooks}]*`, this.books);
+
+    if (formatBooks["asks"].length > 0 || formatBooks["bids"].length > 0) {
       // this.logger.log(
       //   `---------- [${this.constructor.name}]  _updateBooks instId: ${instId} [START] ----------`
       // );

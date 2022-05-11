@@ -117,6 +117,10 @@ class ExchangeHub extends Bot {
   }
 
   async getUsersAccounts() {
+    // return new ResponseFormat({
+    //   message:'test',
+    //   code: Codes.API_UNKNOWN_ERROR,
+    // });
     return this.tideBitConnector.router("getUsersAccounts", {});
   }
 
@@ -606,7 +610,11 @@ class ExchangeHub extends Bot {
       switch (source) {
         case SupportedExchange.OKEX:
           /* !!! HIGH RISK (start) !!! */
-          let t = this.updateOrderStatus({ orderId, memberId, body });
+          let t = await this.updateOrderStatus({
+            orderId,
+            memberId,
+            orderData: body,
+          });
           /* !!! HIGH RISK (end) !!! */
           const okexCancelOrderRes = await this.okexConnector.router(
             "postCancelOrder",
@@ -673,10 +681,10 @@ class ExchangeHub extends Bot {
           const err = [];
           orders.forEach(async (order) => {
             /* !!! HIGH RISK (start) !!! */
-            let t = this.updateOrderStatus({
+            let t = await this.updateOrderStatus({
               orderId: order.id,
               memberId,
-              body,
+              orderData: body,
             });
             /* !!! HIGH RISK (end) !!! */
             const okexCancelOrderRes = await this.okexConnector.router(
