@@ -349,7 +349,7 @@ class OkexConnector extends ConnectorBase {
       orderBooks["market"] = instId.replace("-", "").toLowerCase();
       orderBooks["asks"] = data.asks.map((ask) => [ask[0], ask[1]]);
       orderBooks["bids"] = data.bids.map((bid) => [bid[0], bid[1]]);
-      this.books = orderBooks;
+      // this.books = orderBooks;
       // this.logger.log(orderBooks);
       // this.logger.log(
       //   `---------- [${this.constructor.name}]  getOrderBooks [END] ----------`
@@ -1260,37 +1260,49 @@ class OkexConnector extends ConnectorBase {
     // const channel = "books";
     // this.okexWsChannels[channel][instId] = bookData;
     const [books] = bookData;
-    const asks = books.asks
-      .filter((ask) => {
-        const _ask = this.books.asks.find((a) => SafeMath.eq(a[0], ask[0]));
-        return !_ask || (!!_ask && !SafeMath.eq(_ask[1], ask[1]));
-      })
-      .map((ask) => [ask[0], ask[1]]);
-    const bids = books.bids
-      .filter((bid) => {
-        const _bid = this.books.bids.find((b) => SafeMath.eq(b[0], bid[0]));
-        return !_bid || (!!_bid && !SafeMath.eq(_bid[1], bid[1]));
-      })
-      .map((bid) => [bid[0], bid[1]]);
-    const formatBooks = {
-      asks,
-      bids,
-      market: instId.replace("-", "").toLowerCase(),
-    };
-    if (asks.length > 0 || bids.length > 0) {
-      // this.logger.log(
-      //   `---------- [${this.constructor.name}]  _updateBooks instId: ${instId} [START] ----------`
-      // );
-      // this.logger.log(`[FROM OKEX] bookData`, bookData);
-      // this.logger.log(
-      //   `[TO FRONTEND][OnEvent: ${Events.update}] updateBooks`,
-      //   formatBooks
-      // );
-      EventBus.emit(
-        Events.update,
-        instId.replace("-", "").toLowerCase(),
-        formatBooks
-      );
+    if (this.books) {
+      const asks = books.asks
+        .filter((ask) => {
+          const _ask = this.books.asks.find((a) => SafeMath.eq(a[0], ask[0]));
+          return !_ask || (!!_ask && !SafeMath.eq(_ask[1], ask[1]));
+        })
+        .map((ask) => [ask[0], ask[1]]);
+      const bids = books.bids
+        .filter((bid) => {
+          const _bid = this.books.bids.find((b) => SafeMath.eq(b[0], bid[0]));
+          return !_bid || (!!_bid && !SafeMath.eq(_bid[1], bid[1]));
+        })
+        .map((bid) => [bid[0], bid[1]]);
+      const formatBooks = {
+        asks,
+        bids,
+        market: instId.replace("-", "").toLowerCase(),
+      };
+      if (asks.length > 0 || bids.length > 0) {
+        // this.logger.log(
+        //   `---------- [${this.constructor.name}]  _updateBooks instId: ${instId} [START] ----------`
+        // );
+        // this.logger.log(`[FROM OKEX] bookData`, bookData);
+        // this.logger.log(
+        //   `[TO FRONTEND][OnEvent: ${Events.update}] updateBooks`,
+        //   formatBooks
+        // );
+        EventBus.emit(
+          Events.update,
+          instId.replace("-", "").toLowerCase(),
+          formatBooks
+        );
+      } else {
+        const orderBooks = {};
+        orderBooks["market"] = instId.replace("-", "").toLowerCase();
+        orderBooks["asks"] = books.asks.map((ask) => [ask[0], ask[1]]);
+        orderBooks["bids"] = books.bids.map((bid) => [bid[0], bid[1]]);
+        this.books = orderBooks;
+        return new ResponseFormat({
+          message: "getOrderBooks",
+          payload: orderBooks,
+        });
+      }
       // this.logger.log(
       //   `---------- [${this.constructor.name}] _updateBooks instId: ${instId} [END] ----------`
       // );
