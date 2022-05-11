@@ -347,14 +347,8 @@ class OkexConnector extends ConnectorBase {
       const [data] = res.data.data;
       const orderBooks = {};
       orderBooks["market"] = instId.replace("-", "").toLowerCase();
-      orderBooks["asks"] = data.asks.map((ask) => [
-        ask[0],
-        SafeMath.plus(ask[2], ask[3]),
-      ]);
-      orderBooks["bids"] = data.bids.map((bid) => [
-        bid[0],
-        SafeMath.plus(bid[2], bid[3]),
-      ]);
+      orderBooks["asks"] = data.asks.map((ask) => [ask[0], ask[1]]);
+      orderBooks["bids"] = data.bids.map((bid) => [bid[0], bid[1]]);
       this.books = orderBooks;
       // this.logger.log(orderBooks);
       // this.logger.log(
