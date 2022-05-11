@@ -51,7 +51,11 @@ class ExchangeHub extends Bot {
       })
       .then(async () => {
         this.tidebitMarkets = this.getTidebitMarkets();
-        this.currencies = await this.tideBitConnector.currencies;
+        this.currencies = this.tideBitConnector.currencies;
+        this.logger.log(
+          `[${this.constructor.name}] this.currencies`,
+          this.currencies
+        );
         return this;
       });
   }

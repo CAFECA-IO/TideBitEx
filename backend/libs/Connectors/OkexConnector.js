@@ -1418,10 +1418,10 @@ class OkexConnector extends ConnectorBase {
         instId,
       },
     ];
-    this.logger.debug(
-      `[${this.constructor.name}]_subscribeCandle${resolution}`,
-      args
-    );
+    // this.logger.debug(
+    //   `[${this.constructor.name}]_subscribeCandle${resolution}`,
+    //   args
+    // );
     this.websocket.ws.send(
       JSON.stringify({
         op: "subscribe",
