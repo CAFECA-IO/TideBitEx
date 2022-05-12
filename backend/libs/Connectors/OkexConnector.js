@@ -1286,42 +1286,40 @@ class OkexConnector extends ConnectorBase {
       );
       this.logger.log(`3[ON BACKEND][OnEvent: ${Events.update}] books`, books);
       books.asks
-        .filter((ask) => {
-          const _ask = updateBooks.asks.find((a) => SafeMath.eq(a[0], ask[0]));
-          return !_ask || (!!_ask && !SafeMath.eq(_ask[1], ask[1]));
-        })
+        // .filter((ask) => {
+        //   const _ask = updateBooks.asks.find((a) => SafeMath.eq(a[0], ask[0]));
+        //   return !_ask || (!!_ask && !SafeMath.eq(_ask[1], ask[1]));
+        // })
         .forEach((ask) => {
           let index;
           let updateAsk = [ask[0], ask[1], true];
+          this.logger.log(
+            `4[ON BACKEND][OnEvent: ${Events.update}] updateAsk`,
+            updateAsk
+          );
           if (index === -1) {
             if (SafeMath.gt(ask[1], "0")) updateBooks.asks.push(updateAsk);
-            else
-              this.logger.error(
-                `[${this.constructor.name}][Should not happen]ln 1286 _updateBooks updateAsk[1] is 0`,
-                ask
-              );
           } else {
             updateBooks.asks[index] = updateAsk;
             if (SafeMath.lte(ask[1], "0")) {
               updateBooks.asks.splice(index, 1);
             }
           }
+          this.logger.log(
+            `5[ON BACKEND][OnEvent: ${Events.update}] updateBooks.asks`,
+            updateBooks.asks
+          );
         });
       books.bids
-        .filter((bid) => {
-          const _bid = updateBooks.bids.find((b) => SafeMath.eq(b[0], bid[0]));
-          return !_bid || (!!_bid && !SafeMath.eq(_bid[1], bid[1]));
-        })
+        // .filter((bid) => {
+        //   const _bid = updateBooks.bids.find((b) => SafeMath.eq(b[0], bid[0]));
+        //   return !_bid || (!!_bid && !SafeMath.eq(_bid[1], bid[1]));
+        // })
         .forEach((bid) => {
           let index;
           let updateBid = [bid[0], bid[1], true];
           if (index === -1) {
             if (SafeMath.gt(bid[1], "0")) updateBooks.bids.push(updateBid);
-            else
-              this.logger.error(
-                `[${this.constructor.name}][Should not happen]ln 1286 _updateBooks updateBid[1] is 0`,
-                bid
-              );
           } else {
             updateBooks.bids[index] = updateBid;
             if (SafeMath.lte(bid[1], "0")) {
