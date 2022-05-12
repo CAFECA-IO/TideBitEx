@@ -1261,8 +1261,7 @@ class OkexConnector extends ConnectorBase {
     // this.okexWsChannels[channel][instId] = bookData;
     const [books] = bookData;
     let asks = [],
-      bids = [],
-      formatBooks = {};
+      bids = [];
     if (this.books) {
       const updateBooks = {
         asks: this.book?.asks
@@ -1325,6 +1324,7 @@ class OkexConnector extends ConnectorBase {
         asks,
         bids,
       };
+      this.logger.error(`this.books`, this.books);
     }
 
     // if (formatBooks["asks"].length > 0 || formatBooks["bids"].length > 0) {
