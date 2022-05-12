@@ -51,7 +51,6 @@ class OkexConnector extends ConnectorBase {
       url: wssPrivate,
       heartBeat: HEART_BEAT_TIME,
     });
-    this.logger.log(`markets`, markets);
     return this;
   }
 
@@ -63,6 +62,7 @@ class OkexConnector extends ConnectorBase {
     this._okexWsEventListener();
     // this._subscribeInstruments();
     this._wsPrivateLogin();
+    this.logger.log(`this.instIds`, this.instIds);
     this._subscribeTickers(this.instIds)
   }
 
