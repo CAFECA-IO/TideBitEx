@@ -1336,10 +1336,10 @@ class OkexConnector extends ConnectorBase {
     }
 
     // if (formatBooks["asks"].length > 0 || formatBooks["bids"].length > 0) {
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _updateBooks instId: ${instId} [START] ----------`
-    );
-    this.logger.log(`[FROM OKEX] books`, books);
+    // this.logger.log(
+    //   `---------- [${this.constructor.name}]  _updateBooks instId: ${instId} [START] ----------`
+    // );
+    // this.logger.log(`[FROM OKEX] books`, books);
     // this.logger.log(
     //   `4[TO FRONTEND][OnEvent: ${Events.update}] this.books`,
     //   this.books
@@ -1349,9 +1349,9 @@ class OkexConnector extends ConnectorBase {
       instId.replace("-", "").toLowerCase(),
       this.books
     );
-    this.logger.log(
-      `---------- [${this.constructor.name}] _updateBooks instId: ${instId} [END] ----------`
-    );
+    // this.logger.log(
+    //   `---------- [${this.constructor.name}] _updateBooks instId: ${instId} [END] ----------`
+    // );
     // }
   }
 
@@ -1429,10 +1429,12 @@ class OkexConnector extends ConnectorBase {
       //   `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
       // );
       // this.logger.log(`[FROM OKEX] tickerData`, tickerData);
-      // this.logger.log(
-      //   `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
-      //   updateTickers
-      // );
+      if (updateTickers["btcusdt"])
+        this.logger.log(
+          `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
+          new Date(updateTickers["btcusdt"].at),
+          updateTickers["btcusdt"]
+        );
       EventBus.emit(Events.tickers, updateTickers);
       // this.logger.log(
       //   `---------- [${this.constructor.name}]  _updateTickers [END] ----------`
