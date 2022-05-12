@@ -1271,9 +1271,17 @@ class OkexConnector extends ConnectorBase {
           ? this.book.bids.map((bid) => bid.slice(0, 2))
           : [],
       };
+      this.logger.error(
+        `[ON BACKEND][OnEvent: ${Events.update}] updateBooks`,
+        updateBooks
+      );
+      this.logger.log(
+        `[ON BACKEND][OnEvent: ${Events.update}] books`,
+        books
+      );
       asks = books.asks
         .filter((ask) => {
-          const _ask = this.books.asks.find((a) => SafeMath.eq(a[0], ask[0]));
+          const _ask = updateBooks.asks.find((a) => SafeMath.eq(a[0], ask[0]));
           return !_ask || (!!_ask && !SafeMath.eq(_ask[1], ask[1]));
         })
         .forEach((ask) => {
@@ -1295,7 +1303,7 @@ class OkexConnector extends ConnectorBase {
         });
       bids = books.bids
         .filter((bid) => {
-          const _bid = this.books.bids.find((b) => SafeMath.eq(b[0], bid[0]));
+          const _bid = updateBooks.bids.find((b) => SafeMath.eq(b[0], bid[0]));
           return !_bid || (!!_bid && !SafeMath.eq(_bid[1], bid[1]));
         })
         .forEach((bid) => {
@@ -1331,7 +1339,7 @@ class OkexConnector extends ConnectorBase {
     this.logger.log(
       `---------- [${this.constructor.name}]  _updateBooks instId: ${instId} [START] ----------`
     );
-    this.logger.log(`[FROM OKEX] bookData`, bookData);
+    // this.logger.log(`[FROM OKEX] bookData`, bookData);
     this.logger.log(
       `[TO FRONTEND][OnEvent: ${Events.update}] updateBooks`,
       this.books
