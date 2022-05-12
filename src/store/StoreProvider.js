@@ -86,6 +86,7 @@ const StoreProvider = (props) => {
           }
           break;
         case Events.trades:
+          _tradeTimestamp = new Date().getTime();
           if (_tradeTimestamp - +tradeTimestamp > 1000) {
             const { trades, candles, volumes } = middleman.updateTrades(
               metaData.data.trades,

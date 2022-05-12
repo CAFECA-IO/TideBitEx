@@ -1213,9 +1213,9 @@ class OkexConnector extends ConnectorBase {
   _updateTrades(instId, tradeData) {
     const channel = "trades";
     this.okexWsChannels[channel][instId] = tradeData;
-    this.logger.log(
-      `============ [${this.constructor.name}]  _updateTrades instId: ${instId} [START] ============`
-    );
+    // this.logger.log(
+    //   `============ [${this.constructor.name}]  _updateTrades instId: ${instId} [START] ============`
+    // );
     this.logger.log(`[FROM OKEX] tradeData`, tradeData);
     const market = instId.replace("-", "").toLowerCase();
     const filteredTrades = tradeData
@@ -1246,14 +1246,14 @@ class OkexConnector extends ConnectorBase {
             : "down",
       };
     });
-    this.logger.log(
-      `[TO FRONTEND][OnEvent: ${Events.trades}] updateTrades`,
-      formatTrades
-    );
+    // this.logger.log(
+    //   `[TO FRONTEND][OnEvent: ${Events.trades}] updateTrades`,
+    //   formatTrades
+    // );
     EventBus.emit(Events.trades, market, { market, trades: formatTrades });
-    this.logger.log(
-      `============ [${this.constructor.name}]  _updateTrades instId: ${instId} [END] ============`
-    );
+    // this.logger.log(
+    //   `============ [${this.constructor.name}]  _updateTrades instId: ${instId} [END] ============`
+    // );
   }
 
   _updateBooks(instId, bookData) {
@@ -1263,54 +1263,94 @@ class OkexConnector extends ConnectorBase {
     let asks = [],
       bids = [],
       formatBooks = {};
-    // if (!!this.books) {
-    //   asks = books.asks
-    //     .filter((ask) => {
-    //       const _ask = this.books.asks.find((a) => SafeMath.eq(a[0], ask[0]));
-    //       return !_ask || (!!_ask && !SafeMath.eq(_ask[1], ask[1]));
-    //     })
-    //     .map((ask) => [ask[0], ask[1]]);
-    //   bids = books.bids
-    //     .filter((bid) => {
-    //       const _bid = this.books.bids.find((b) => SafeMath.eq(b[0], bid[0]));
-    //       return !_bid || (!!_bid && !SafeMath.eq(_bid[1], bid[1]));
-    //     })
-    //     .map((bid) => [bid[0], bid[1]]);
-    // } else {
-    //   asks = books.asks.map((ask) => [ask[0], ask[1]]);
-    //   bids = books.bids.map((bid) => [bid[0], bid[1]]);
-    //   formatBooks["updateAll"] = true;
-    // }
-    asks = books.asks.map((ask) => [ask[0], ask[1]]);
-    bids = books.bids.map((bid) => [bid[0], bid[1]]);
+    if (!!this.books) {
+      asks = books.asks
+        .filter((ask) => {
+          const _ask = this.books.asks.find((a) => SafeMath.eq(a[0], ask[0]));
+          return !_ask || (!!_ask && !SafeMath.eq(_ask[1], ask[1]));
+        })
+        .map((ask) => [ask[0], ask[1]]);
+      bids = books.bids
+        .filter((bid) => {
+          const _bid = this.books.bids.find((b) => SafeMath.eq(b[0], bid[0]));
+          return !_bid || (!!_bid && !SafeMath.eq(_bid[1], bid[1]));
+        })
+        .map((bid) => [bid[0], bid[1]]);
 
-    formatBooks["asks"] = asks;
-    formatBooks["bids"] = bids;
-    formatBooks["market"] = instId.replace("-", "").toLowerCase();
+      const updateBooks = {
+        asks: this.book.asks
+          ? this.book.asks.map((ask) => ask.slice(0, 2))
+          : [],
+        bids: this.book.bids
+          ? this.book.bids.map((bid) => bid.slice(0, 2))
+          : [],
+      };
 
-    if (!this.books) {
+      asks.forEach((ask) => {
+        let index;
+        let updateAsk = [...ask, true];
+        index = updateBooks.findIndex((a) => SafeMath.eq(a[0], ask[0]));
+        if (index === -1) {
+          if (SafeMath.gt(ask[1], "0")) updateBooks.asks.push(updateAsk);
+          else
+            this.logger.error(
+              `[${this.constructor.name}][Should not happen]ln 1286 _updateBooks updateAsk[1] is 0`,
+              ask
+            );
+        } else {
+          updateBooks.asks[index] = updateAsk;
+          if (SafeMath.lte(ask[1], "0")) {
+            updateBooks.asks.splice(index, 1);
+          }
+        }
+      });
+      bids.forEach((bid) => {
+        let index;
+        let updateBid = [...bid, true];
+        index = updateBooks.findIndex((a) => SafeMath.eq(a[0], bid[0]));
+        if (index === -1) {
+          if (SafeMath.gt(bid[1], "0")) updateBooks.bids.push(updateBid);
+          else
+            this.logger.error(
+              `[${this.constructor.name}][Should not happen]ln 1286 _updateBooks updateBid[1] is 0`,
+              bid
+            );
+        } else {
+          updateBooks.bids[index] = updateBid;
+          if (SafeMath.lte(bid[1], "0")) {
+            updateBooks.bids.splice(index, 1);
+          }
+        }
+      });
+      this.books = updateBooks;
+    } else {
+      formatBooks["market"] = instId.replace("-", "").toLowerCase();
+      asks = books.asks.map((ask) => [ask[0], ask[1], true]);
+      bids = books.bids.map((bid) => [bid[0], bid[1], true]);
       formatBooks["updateAll"] = true;
+      formatBooks["asks"] = asks;
+      formatBooks["bids"] = bids;
       this.books = formatBooks;
     }
 
-    if (formatBooks["asks"].length > 0 || formatBooks["bids"].length > 0) {
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _updateBooks instId: ${instId} [START] ----------`
-      );
-      this.logger.log(`[FROM OKEX] bookData`, bookData);
-      this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.update}] updateBooks`,
-        formatBooks
-      );
-      EventBus.emit(
-        Events.update,
-        instId.replace("-", "").toLowerCase(),
-        formatBooks
-      );
-      this.logger.log(
-        `---------- [${this.constructor.name}] _updateBooks instId: ${instId} [END] ----------`
-      );
-    }
+    // if (formatBooks["asks"].length > 0 || formatBooks["bids"].length > 0) {
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateBooks instId: ${instId} [START] ----------`
+    );
+    this.logger.log(`[FROM OKEX] bookData`, bookData);
+    this.logger.log(
+      `[TO FRONTEND][OnEvent: ${Events.update}] updateBooks`,
+      this.books
+    );
+    EventBus.emit(
+      Events.update,
+      instId.replace("-", "").toLowerCase(),
+      this.books
+    );
+    this.logger.log(
+      `---------- [${this.constructor.name}] _updateBooks instId: ${instId} [END] ----------`
+    );
+    // }
   }
 
   _updateCandle(instId, channel, candleData) {
