@@ -1216,7 +1216,7 @@ class OkexConnector extends ConnectorBase {
     // this.logger.log(
     //   `============ [${this.constructor.name}]  _updateTrades instId: ${instId} [START] ============`
     // );
-    this.logger.log(`[FROM OKEX] tradeData`, tradeData);
+    // this.logger.log(`[FROM OKEX] tradeData`, tradeData);
     const market = instId.replace("-", "").toLowerCase();
     const filteredTrades = tradeData
       .filter(
