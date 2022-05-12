@@ -1260,7 +1260,7 @@ class OkexConnector extends ConnectorBase {
         // update: true,
       };
     });
-    this.trades = formatTrades.concat(this.trades)//.slice(0, 100);
+    this.trades = formatTrades.concat(this.trades); //.slice(0, 100);
     // this.logger.log(
     //   `[TO FRONTEND][OnEvent: ${Events.trades}] updateTrades`,
     //   formatTrades
@@ -1347,14 +1347,16 @@ class OkexConnector extends ConnectorBase {
     }
 
     // if (formatBooks["asks"].length > 0 || formatBooks["bids"].length > 0) {
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  _updateBooks instId: ${instId} [START] ----------`
-    // );
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateBooks instId: ${instId} [START] ----------`
+    );
     // this.logger.log(`[FROM OKEX] books`, books);
     let _asks = this.books.asks.slice(0, 10);
     let _bids = this.books.bids.slice(0, 10);
     this.logger.log(
-      `[${new Date(books["ts"] + 8 * 60 * 60 * 1000)}] this.books`,
+      `[${instId.replace("-", "").toLowerCase()}][${new Date(
+        parseInt(books["ts"]) + 8 * 60 * 60 * 1000
+      )}] this.books`,
       _asks,
       _bids
     );
@@ -1363,10 +1365,10 @@ class OkexConnector extends ConnectorBase {
       instId.replace("-", "").toLowerCase(),
       this.books
     );
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}] _updateBooks instId: ${instId} [END] ----------`
-    // );
-    // }
+    this.logger.log(
+      `---------- [${this.constructor.name}] _updateBooks instId: ${instId} [END] ----------`
+    );
+    }
   }
 
   _updateCandle(instId, channel, candleData) {
