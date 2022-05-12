@@ -224,24 +224,24 @@ class Middleman {
     // console.log(`updateData`, updateData);
     // console.log(`resolution`, resolution);
     // console.log(`***********Events.trades************`);
-    // const _updateTrades = updateTrades
-    //   .filter((trade) => trade.market === this.selectedTicker.market)
-    //   .map((trade) => ({
-    //     ...trade,
-    // side:
-    //   i === updateData.length - 1
-    //     ? !this.trades[0]
-    //       ? SafeMath.gte(trade.price, this.trades[0].price)
-    //         ? "up"
-    //         : "down"
-    //       : "up"
-    //     : SafeMath.gte(trade.px, updateData[i + 1].px)
-    //     ? "up"
-    //     : "down",
-    //   update: true,
-    // }))
-    // .concat(this.trades || []);
-    this.trades = updateTrades;
+    const _updateTrades = updateTrades
+      .filter((trade) => trade.market === this.selectedTicker.market)
+      .map((trade) => ({
+        ...trade,
+        // side:
+        //   i === updateData.length - 1
+        //     ? !this.trades[0]
+        //       ? SafeMath.gte(trade.price, this.trades[0].price)
+        //         ? "up"
+        //         : "down"
+        //       : "up"
+        //     : SafeMath.gte(trade.px, updateData[i + 1].px)
+        //     ? "up"
+        //     : "down",
+        update: true,
+      }))
+      .concat(this.trades || []);
+    this.trades = _updateTrades.slice(0, 100);
     // console.log(
     //   `updateTrades _updateTrades[${_updateTrades.length}]`,
     //   _updateTrades
