@@ -1434,10 +1434,7 @@ class OkexConnector extends ConnectorBase {
         this.tickers[market] = updateTicker;
         return prev;
       }, {});
-    this.logger.error(
-      `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
-      updateTickers["btcusdt"]
-    );
+   
     if (Object.keys(updateTickers).length > 0) {
       this.logger.log(
         `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
