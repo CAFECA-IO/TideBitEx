@@ -1344,7 +1344,7 @@ class OkexConnector extends ConnectorBase {
     // this.logger.log(
     //   `---------- [${this.constructor.name}]  _updateBooks instId: ${instId} [START] ----------`
     // );
-    this.logger.log(`[FROM OKEX] books`, books);
+    // this.logger.log(`[FROM OKEX] books`, books);
     this.logger.log(
       `[${new Date(books["ts"] + 8 * 60 * 60 * 1000)}] this.books`,
       this.books
