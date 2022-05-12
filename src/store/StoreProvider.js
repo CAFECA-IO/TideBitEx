@@ -126,7 +126,7 @@ const StoreProvider = (props) => {
         default:
       }
     },
-    [middleman, resolution]
+    [middleman]
   );
 
   const getCSRFToken = useCallback(async () => {
