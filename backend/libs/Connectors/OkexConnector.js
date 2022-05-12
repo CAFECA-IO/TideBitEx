@@ -1368,7 +1368,6 @@ class OkexConnector extends ConnectorBase {
     this.logger.log(
       `---------- [${this.constructor.name}] _updateBooks instId: ${instId} [END] ----------`
     );
-    }
   }
 
   _updateCandle(instId, channel, candleData) {
