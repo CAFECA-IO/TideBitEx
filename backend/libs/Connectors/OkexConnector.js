@@ -1269,18 +1269,14 @@ class OkexConnector extends ConnectorBase {
       );
       const updateBooks = {
         ...this.books,
-        asks: this.books.asks
-          ? this.books.asks.map((ask) => {
-              const _updateAsk = ask.slice(0, 2);
-              return _updateAsk;
-            })
-          : [],
-        bids: this.books.bids
-          ? this.books.bids.map((bid) => {
-              const _updateBid = bid.slice(0, 2);
-              return _updateBid;
-            })
-          : [],
+        asks: this.books.asks.map((ask) => {
+          const _updateAsk = ask.slice(0, 2);
+          return _updateAsk;
+        }),
+        bids: this.books.bids.map((bid) => {
+          const _updateBid = bid.slice(0, 2);
+          return _updateBid;
+        }),
       };
       this.logger.error(
         `2[ON BACKEND][OnEvent: ${Events.update}] updateBooks`,
