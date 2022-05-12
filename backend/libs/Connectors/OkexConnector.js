@@ -1408,8 +1408,8 @@ class OkexConnector extends ConnectorBase {
           : SafeMath.eq(change, "0")
           ? "0"
           : "1";
-        prev[data.instId.replace("-", "/").toLowerCase] = {
-          market: data.instId.replace("-", "/").toLowerCase,
+        prev[data.instId.replace("-", "/").toLowerCase()] = {
+          market: data.instId.replace("-", "/").toLowerCase(),
           instId: data.instId,
           name: data.instId.replace("-", "/"),
           base_unit: data.instId.split("-")[0].toLowerCase(),
@@ -1431,6 +1431,10 @@ class OkexConnector extends ConnectorBase {
         };
         return prev;
       }, {});
+      this.logger.log(
+        `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
+        updateTickers['btcusdt']
+      );
     if (Object.keys(updateTickers).length > 0) {
       this.logger.log(
         `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
