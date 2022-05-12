@@ -57,13 +57,13 @@ class OkexConnector extends ConnectorBase {
   async start() {
     Object.keys(this.markets).forEach((key) => {
       if (this.markets[key] === "OKEx")
-        this.instIds.push(this.markets[key].replace("tb", ""));
+        this.instIds.push(key.replace("tb", ""));
     });
     this._okexWsEventListener();
     // this._subscribeInstruments();
     this._wsPrivateLogin();
     this.logger.log(`this.instIds`, this.instIds);
-    this._subscribeTickers(this.instIds)
+    this._subscribeTickers(this.instIds);
   }
 
   async okAccessSign({ timeString, method, path, body }) {
