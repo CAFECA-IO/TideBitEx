@@ -212,7 +212,7 @@ class Middleman {
       const rawBooks = await this.communicator.books(id, sz);
       this.rawBooks = rawBooks;
       // console.log(`getBooks this.rawBooks`, this.rawBooks);
-      this.books = this.handleBooks();
+      this.books = this.handleBooks(rawBooks);
       return this.books;
     } catch (error) {
       throw error;

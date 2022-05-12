@@ -25,6 +25,11 @@ class OkexConnector extends ConnectorBase {
     this.books = null;
     this.instIds = [];
     this.candleChannel = null;
+
+    this.tickerTimestamp = 0;
+    this.bookTimestamp = 0;
+    this.accountTimestamp = 0;
+    this.tradeTimestamp = 0;
     return this;
   }
 
@@ -1339,11 +1344,11 @@ class OkexConnector extends ConnectorBase {
     // this.logger.log(
     //   `---------- [${this.constructor.name}]  _updateBooks instId: ${instId} [START] ----------`
     // );
-    // this.logger.log(`[FROM OKEX] books`, books);
-    // this.logger.log(
-    //   `4[TO FRONTEND][OnEvent: ${Events.update}] this.books`,
-    //   this.books
-    // );
+    this.logger.log(`[FROM OKEX] books`, books);
+    this.logger.log(
+      `[${new Date(books["ts"] + 8 * 60 * 60 * 1000)}] this.books`,
+      this.books
+    );
     EventBus.emit(
       Events.update,
       instId.replace("-", "").toLowerCase(),
