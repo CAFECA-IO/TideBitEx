@@ -1253,11 +1253,15 @@ class OkexConnector extends ConnectorBase {
             : "down",
       };
     });
+    this.trades = formatTrades.concat(this.trades);
     // this.logger.log(
     //   `[TO FRONTEND][OnEvent: ${Events.trades}] updateTrades`,
     //   formatTrades
     // );
-    EventBus.emit(Events.trades, market, { market, trades: formatTrades });
+    EventBus.emit(Events.trades, market, {
+      market,
+      trades: formatTrades,
+    });
     // this.logger.log(
     //   `============ [${this.constructor.name}]  _updateTrades instId: ${instId} [END] ============`
     // );
