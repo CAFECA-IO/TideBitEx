@@ -1263,74 +1263,68 @@ class OkexConnector extends ConnectorBase {
     let asks = [],
       bids = [],
       formatBooks = {};
-    if (!!this.books) {
+    if (this.books) {
+      const updateBooks = {
+        asks: this.book?.asks
+          ? this.book.asks.map((ask) => ask.slice(0, 2))
+          : [],
+        bids: this.book?.bids
+          ? this.book.bids.map((bid) => bid.slice(0, 2))
+          : [],
+      };
       asks = books.asks
         .filter((ask) => {
           const _ask = this.books.asks.find((a) => SafeMath.eq(a[0], ask[0]));
           return !_ask || (!!_ask && !SafeMath.eq(_ask[1], ask[1]));
         })
-        .map((ask) => [ask[0], ask[1]]);
+        .forEach((ask) => {
+          let index;
+          let updateAsk = [ask[0], ask[1], true];
+          if (index === -1) {
+            if (SafeMath.gt(ask[1], "0")) updateBooks.asks.push(updateAsk);
+            else
+              this.logger.error(
+                `[${this.constructor.name}][Should not happen]ln 1286 _updateBooks updateAsk[1] is 0`,
+                ask
+              );
+          } else {
+            updateBooks.asks[index] = updateAsk;
+            if (SafeMath.lte(ask[1], "0")) {
+              updateBooks.asks.splice(index, 1);
+            }
+          }
+        });
       bids = books.bids
         .filter((bid) => {
           const _bid = this.books.bids.find((b) => SafeMath.eq(b[0], bid[0]));
           return !_bid || (!!_bid && !SafeMath.eq(_bid[1], bid[1]));
         })
-        .map((bid) => [bid[0], bid[1]]);
-
-      const updateBooks = {
-        asks: this.book.asks
-          ? this.book.asks.map((ask) => ask.slice(0, 2))
-          : [],
-        bids: this.book.bids
-          ? this.book.bids.map((bid) => bid.slice(0, 2))
-          : [],
-      };
-
-      asks.forEach((ask) => {
-        let index;
-        let updateAsk = [...ask, true];
-        index = updateBooks.findIndex((a) => SafeMath.eq(a[0], ask[0]));
-        if (index === -1) {
-          if (SafeMath.gt(ask[1], "0")) updateBooks.asks.push(updateAsk);
-          else
-            this.logger.error(
-              `[${this.constructor.name}][Should not happen]ln 1286 _updateBooks updateAsk[1] is 0`,
-              ask
-            );
-        } else {
-          updateBooks.asks[index] = updateAsk;
-          if (SafeMath.lte(ask[1], "0")) {
-            updateBooks.asks.splice(index, 1);
+        .forEach((bid) => {
+          let index;
+          let updateBid = [bid[0], bid[1], true];
+          if (index === -1) {
+            if (SafeMath.gt(bid[1], "0")) updateBooks.bids.push(updateBid);
+            else
+              this.logger.error(
+                `[${this.constructor.name}][Should not happen]ln 1286 _updateBooks updateBid[1] is 0`,
+                bid
+              );
+          } else {
+            updateBooks.bids[index] = updateBid;
+            if (SafeMath.lte(bid[1], "0")) {
+              updateBooks.bids.splice(index, 1);
+            }
           }
-        }
-      });
-      bids.forEach((bid) => {
-        let index;
-        let updateBid = [...bid, true];
-        index = updateBooks.findIndex((a) => SafeMath.eq(a[0], bid[0]));
-        if (index === -1) {
-          if (SafeMath.gt(bid[1], "0")) updateBooks.bids.push(updateBid);
-          else
-            this.logger.error(
-              `[${this.constructor.name}][Should not happen]ln 1286 _updateBooks updateBid[1] is 0`,
-              bid
-            );
-        } else {
-          updateBooks.bids[index] = updateBid;
-          if (SafeMath.lte(bid[1], "0")) {
-            updateBooks.bids.splice(index, 1);
-          }
-        }
-      });
+        });
       this.books = updateBooks;
     } else {
-      formatBooks["market"] = instId.replace("-", "").toLowerCase();
       asks = books.asks.map((ask) => [ask[0], ask[1], true]);
       bids = books.bids.map((bid) => [bid[0], bid[1], true]);
-      formatBooks["updateAll"] = true;
-      formatBooks["asks"] = asks;
-      formatBooks["bids"] = bids;
-      this.books = formatBooks;
+      this.books = {
+        market: instId.replace("-", "").toLowerCase(),
+        asks,
+        bids,
+      };
     }
 
     // if (formatBooks["asks"].length > 0 || formatBooks["bids"].length > 0) {
