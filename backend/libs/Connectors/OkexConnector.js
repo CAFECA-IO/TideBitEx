@@ -1444,12 +1444,12 @@ class OkexConnector extends ConnectorBase {
       //   `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
       // );
       // this.logger.log(`[FROM OKEX] tickerData`, tickerData);
-      if (updateTickers["btcusdt"])
-        this.logger.log(
-          `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
-          new Date(updateTickers["btcusdt"].at),
-          updateTickers["btcusdt"]
-        );
+      // if (updateTickers["btcusdt"])
+      //   this.logger.log(
+      //     `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
+      //     new Date(updateTickers["btcusdt"].at),
+      //     updateTickers["btcusdt"]
+      //   );
       EventBus.emit(Events.tickers, updateTickers);
       // this.logger.log(
       //   `---------- [${this.constructor.name}]  _updateTickers [END] ----------`
