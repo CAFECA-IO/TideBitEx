@@ -1408,8 +1408,9 @@ class OkexConnector extends ConnectorBase {
           : SafeMath.eq(change, "0")
           ? "0"
           : "1";
-        prev[data.instId.replace("-", "/").toLowerCase()] = {
-          market: data.instId.replace("-", "/").toLowerCase(),
+        const market = data.instId.replace("-", "").toLowerCase();
+        const updateTicker = {
+          market,
           instId: data.instId,
           name: data.instId.replace("-", "/"),
           base_unit: data.instId.split("-")[0].toLowerCase(),
@@ -1429,12 +1430,14 @@ class OkexConnector extends ConnectorBase {
           at: parseInt(data.ts),
           source: SupportedExchange.OKEX,
         };
+        prev[market] = updateTicker;
+        this.tickers[market] = updateTicker;
         return prev;
       }, {});
-      this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
-        updateTickers['btcusdt']
-      );
+    this.logger.error(
+      `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
+      updateTickers["btcusdt"]
+    );
     if (Object.keys(updateTickers).length > 0) {
       this.logger.log(
         `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
@@ -1639,11 +1642,11 @@ class OkexConnector extends ConnectorBase {
   }
 
   _unsubscribeMarket(market) {
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _unsubscribeMarket[${market}] [START] ----------`
+    );
     const instId = this._findInstId(market);
     if (this._findSource(instId) === SupportedExchange.OKEX) {
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _unsubscribeMarket [START] ----------`
-      );
       this.logger.log(`_unsubscribeMarket market`, market);
       this.logger.log(`_unsubscribeMarket instId`, instId);
       this._unsubscribeTrades(instId);
