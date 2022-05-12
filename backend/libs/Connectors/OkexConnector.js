@@ -1267,11 +1267,11 @@ class OkexConnector extends ConnectorBase {
       this.books
     );
     if (this.books) {
-      this.books.asks.for((ask) => {
+      this.books.asks.forEach((ask) => {
         const _updateAsk = ask.slice(0, 2);
         asks.push(_updateAsk);
       });
-      this.books.bids.for((bid) => {
+      this.books.bids.forEach((bid) => {
         const _updateBid = bid.slice(0, 2);
         bids.push(_updateBid);
       });
