@@ -1262,28 +1262,30 @@ class OkexConnector extends ConnectorBase {
     const [books] = bookData;
     let asks = [],
       bids = [];
+    this.logger.error(
+      `1[ON BACKEND][OnEvent: ${Events.update}] this.books`,
+      this.books
+    );
     if (this.books) {
-      this.logger.error(
-        `1[ON BACKEND][OnEvent: ${Events.update}] this.books`,
-        this.books
-      );
+      this.books.asks.for((ask) => {
+        const _updateAsk = ask.slice(0, 2);
+        asks.push(_updateAsk);
+      });
+      this.books.bids.for((bid) => {
+        const _updateBid = bid.slice(0, 2);
+        bids.push(_updateBid);
+      });
       const updateBooks = {
-        ...this.books,
-        asks: this.books.asks.map((ask) => {
-          const _updateAsk = ask.slice(0, 2);
-          return _updateAsk;
-        }),
-        bids: this.books.bids.map((bid) => {
-          const _updateBid = bid.slice(0, 2);
-          return _updateBid;
-        }),
+        market: this.books.market,
+        asks,
+        bids,
       };
       this.logger.error(
         `2[ON BACKEND][OnEvent: ${Events.update}] updateBooks`,
         updateBooks
       );
       this.logger.log(`3[ON BACKEND][OnEvent: ${Events.update}] books`, books);
-      asks = books.asks
+      books.asks
         .filter((ask) => {
           const _ask = updateBooks.asks.find((a) => SafeMath.eq(a[0], ask[0]));
           return !_ask || (!!_ask && !SafeMath.eq(_ask[1], ask[1]));
@@ -1305,7 +1307,7 @@ class OkexConnector extends ConnectorBase {
             }
           }
         });
-      bids = books.bids
+      books.bids
         .filter((bid) => {
           const _bid = updateBooks.bids.find((b) => SafeMath.eq(b[0], bid[0]));
           return !_bid || (!!_bid && !SafeMath.eq(_bid[1], bid[1]));
@@ -1329,14 +1331,21 @@ class OkexConnector extends ConnectorBase {
         });
       this.books = updateBooks;
     } else {
-      asks = books.asks.map((ask) => [ask[0], ask[1], true]);
-      bids = books.bids.map((bid) => [bid[0], bid[1], true]);
+      books.asks.forEach((ask) => {
+        if (SafeMath.gt(ask[1], 0)) {
+          asks.push([ask[0], ask[1], true]);
+        }
+      });
+      books.bids.forEach((bid) => {
+        if (SafeMath.gt(bid[1], 0)) {
+          bids.push([bid[0], bid[1], true]);
+        }
+      });
       this.books = {
         market: instId.replace("-", "").toLowerCase(),
         asks,
         bids,
       };
-      this.logger.error(`this.books`, this.books);
     }
 
     // if (formatBooks["asks"].length > 0 || formatBooks["bids"].length > 0) {
