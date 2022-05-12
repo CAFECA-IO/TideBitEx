@@ -1432,18 +1432,18 @@ class OkexConnector extends ConnectorBase {
         return prev;
       }, {});
     if (Object.keys(updateTickers).length > 0) {
-      // this.logger.log(
-      //   `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
-      // );
-      // this.logger.log(`[FROM OKEX] tickerData`, tickerData);
-      // this.logger.log(
-      //   `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
-      //   updateTickers
-      // );
+      this.logger.log(
+        `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
+      );
+      this.logger.log(`[FROM OKEX] tickerData`, tickerData);
+      this.logger.log(
+        `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
+        updateTickers
+      );
       EventBus.emit(Events.tickers, updateTickers);
-      // this.logger.log(
-      //   `---------- [${this.constructor.name}]  _updateTickers [END] ----------`
-      // );
+      this.logger.log(
+        `---------- [${this.constructor.name}]  _updateTickers [END] ----------`
+      );
     }
   }
 
