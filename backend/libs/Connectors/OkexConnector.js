@@ -50,6 +50,7 @@ class OkexConnector extends ConnectorBase {
       url: wssPrivate,
       heartBeat: HEART_BEAT_TIME,
     });
+    this.logger.log(`markets`, markets)
     return this;
   }
 
@@ -57,6 +58,7 @@ class OkexConnector extends ConnectorBase {
     this._okexWsEventListener();
     this._subscribeInstruments();
     this._wsPrivateLogin();
+    // this._subscribeTickers()
   }
 
   async okAccessSign({ timeString, method, path, body }) {
@@ -1609,7 +1611,7 @@ class OkexConnector extends ConnectorBase {
   // okex ws end
 
   // TideBitEx ws
-  _subscribeMarket(market, resolution) {
+  _subscribeMarket(market, wsId) {
     const instId = this._findInstId(market);
     if (this._findSource(instId) === SupportedExchange.OKEX) {
       this.logger.log(
@@ -1617,10 +1619,10 @@ class OkexConnector extends ConnectorBase {
       );
       this.logger.log(`_subscribeMarket instId`, instId);
       this.logger.log(`_subscribeMarket market`, market);
-      this.logger.log(`_subscribeMarket resolution`, resolution);
+      this.logger.log(`_subscribeMarket wsId`, wsId);
       this._subscribeTrades(instId);
       this._subscribeBook(instId);
-      this._subscribeCandle1m(instId, resolution);
+      this._subscribeCandle1m(instId, wsId);
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeMarket [END] ++++++`
       );
