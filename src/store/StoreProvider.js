@@ -98,12 +98,12 @@ const StoreProvider = (props) => {
           }
           break;
         case Events.update:
-          // const updateBooks = middleman.updateBooks(metaData.data);
+          const updateBooks = middleman.updateBooks(metaData.data);
           _bookTimestamp = new Date().getTime();
           if (_bookTimestamp - +bookTimestamp > 1000) {
             // console.log(`updateBooks`, updateBooks);
             bookTimestamp = _bookTimestamp;
-            setBooks(metaData.data);
+            setBooks(updateBooks);
           }
           break;
         case Events.account:

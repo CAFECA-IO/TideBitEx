@@ -97,7 +97,7 @@ class Middleman {
     return this.tickers;
   }
 
-  handleBooks() {
+  handleBooks(data) {
     let totalAsks = "0",
       totalBids = "0",
       asks = [],
@@ -105,7 +105,7 @@ class Middleman {
       askPx,
       bidPx;
 
-    this.rawBooks.asks
+    data.asks
       ?.sort((a, b) => +a[0] - +b[0])
       ?.forEach((d, i) => {
         totalAsks = SafeMath.plus(d[1], totalAsks);
@@ -121,9 +121,9 @@ class Middleman {
           askPx = d[0];
           asks.push(ask);
         }
-        if (this.rawBooks.asks[i][2]) this.rawBooks.asks[i].splice(2, 1);
+        if (data.asks[i][2]) data.asks[i].splice(2, 1);
       });
-    this.rawBooks.bids
+    data.bids
       ?.sort((a, b) => +b[0] - +a[0])
       ?.forEach((d, i) => {
         totalBids = SafeMath.plus(d[1], totalBids);
@@ -139,7 +139,7 @@ class Middleman {
           bidPx = d[0];
           bids.push(bid);
         }
-        if (this.rawBooks.bids[i][2]) this.rawBooks.bids[i].splice(2, 1);
+        if (data.bids[i][2]) data.bids[i].splice(2, 1);
       });
     const updateBooks = {
       asks,
@@ -155,55 +155,55 @@ class Middleman {
     // console.log(`data`, data);
     // console.log(`^^^^^^^^ Events.update ^^^^^^^^`);
     if (data.market !== this.selectedTicker.market) return;
-    if (data.updateAll) {
-      this.rawBooks = {
-        asks: data.asks.map((ask) => [...ask, true]),
-        bids: data.bids.map((bid) => [...bid, true]),
-      };
-      console.log(`updateAll this.rawBooks`, this.rawBooks);
-      this.books = this.handleBooks();
-    } else {
-      const updateRawBooks = {
-        asks: this.rawBooks?.asks
-          ? this.rawBooks.asks.map((ask) => [...ask])
-          : [],
-        bids: this.rawBooks?.bids
-          ? this.rawBooks.bids.map((bid) => [...bid])
-          : [],
-      };
-      data.asks.forEach((ask) => {
-        let index,
-          updateAsk = ask;
-        updateAsk.push(true);
-        index = updateRawBooks.asks.findIndex((d) => SafeMath.eq(d[0], ask[0]));
-        if (index === -1) {
-          if (SafeMath.gt(ask[1], "0")) updateRawBooks.asks.push(updateAsk);
-        } else {
-          if (SafeMath.gt(ask[1], "0")) {
-            updateRawBooks.asks[index] = updateAsk;
-          } else updateRawBooks.asks.splice(index, 1);
-        }
-      });
-      data.bids.forEach((bid) => {
-        let index,
-          updateBid = bid;
-        updateBid.push(true);
-        index = updateRawBooks.bids.findIndex((d) => SafeMath.eq(d[0], bid[0]));
-        if (index === -1) {
-          if (SafeMath.gt(bid[1], "0")) updateRawBooks.bids.push(updateBid);
-        } else {
-          if (SafeMath.gt(bid[1], "0")) {
-            updateRawBooks.bids[index] = updateBid;
-          } else updateRawBooks.bids.splice(index, 1);
-        }
-      });
-      this.rawBooks = updateRawBooks;
-      //  console.log(`updateBooks this.rawBooks`, this.rawBooks);
-      this.books = this.handleBooks();
-    }
+    // if (data.updateAll) {
+    //   this.rawBooks = {
+    //     asks: data.asks.map((ask) => [...ask, true]),
+    //     bids: data.bids.map((bid) => [...bid, true]),
+    //   };
+    //   console.log(`updateAll this.rawBooks`, this.rawBooks);
+    //   this.books = this.handleBooks();
+    // } else {
+    //   const updateRawBooks = {
+    //     asks: this.rawBooks?.asks
+    //       ? this.rawBooks.asks.map((ask) => [...ask])
+    //       : [],
+    //     bids: this.rawBooks?.bids
+    //       ? this.rawBooks.bids.map((bid) => [...bid])
+    //       : [],
+    //   };
+    //   data.asks.forEach((ask) => {
+    //     let index,
+    //       updateAsk = ask;
+    //     updateAsk.push(true);
+    //     index = updateRawBooks.asks.findIndex((d) => SafeMath.eq(d[0], ask[0]));
+    //     if (index === -1) {
+    //       if (SafeMath.gt(ask[1], "0")) updateRawBooks.asks.push(updateAsk);
+    //     } else {
+    //       if (SafeMath.gt(ask[1], "0")) {
+    //         updateRawBooks.asks[index] = updateAsk;
+    //       } else updateRawBooks.asks.splice(index, 1);
+    //     }
+    //   });
+    //   data.bids.forEach((bid) => {
+    //     let index,
+    //       updateBid = bid;
+    //     updateBid.push(true);
+    //     index = updateRawBooks.bids.findIndex((d) => SafeMath.eq(d[0], bid[0]));
+    //     if (index === -1) {
+    //       if (SafeMath.gt(bid[1], "0")) updateRawBooks.bids.push(updateBid);
+    //     } else {
+    //       if (SafeMath.gt(bid[1], "0")) {
+    //         updateRawBooks.bids[index] = updateBid;
+    //       } else updateRawBooks.bids.splice(index, 1);
+    //     }
+    //   });
+    //   this.rawBooks = updateRawBooks;
+    //   //  console.log(`updateBooks this.rawBooks`, this.rawBooks);
+    //   this.books = this.handleBooks();
+    // }
 
     this.rawBooks = data;
-    this.books = this.handleBooks();
+    this.books = this.handleBooks(data);
     return this.books;
   }
 

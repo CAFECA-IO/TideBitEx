@@ -1267,59 +1267,6 @@ class OkexConnector extends ConnectorBase {
     // );
   }
 
-  _handleBooks(books) {
-    let totalAsks = "0",
-      totalBids = "0",
-      asks = [],
-      bids = [],
-      askPx,
-      bidPx;
-
-    books.asks
-      ?.sort((a, b) => +a[0] - +b[0])
-      ?.forEach((d, i) => {
-        totalAsks = SafeMath.plus(d[1], totalAsks);
-        let ask = {
-          price: d[0],
-          amount: d[1],
-          total: totalAsks,
-          update: !!d[2],
-        };
-        if (d[0] === askPx) {
-          asks[asks.length - 1] = ask;
-        } else {
-          askPx = d[0];
-          asks.push(ask);
-        }
-        if (books.asks[i][2]) books.asks[i].splice(2, 1);
-      });
-    books.bids
-      ?.sort((a, b) => +b[0] - +a[0])
-      ?.forEach((d, i) => {
-        totalBids = SafeMath.plus(d[1], totalBids);
-        let bid = {
-          price: d[0],
-          amount: d[1],
-          total: totalBids,
-          update: !!d[2],
-        };
-        if (d[0] === bidPx) {
-          bids[bids.length - 1] = bid;
-        } else {
-          bidPx = d[0];
-          bids.push(bid);
-        }
-        if (books.bids[i][2]) books.bids[i].splice(2, 1);
-      });
-    const updateBooks = {
-      asks,
-      bids,
-      ts: Date.now(),
-      total: SafeMath.plus(totalAsks, totalBids),
-    };
-    return updateBooks;
-  }
-
   _updateBooks(instId, bookData) {
     const channel = "books";
     this.okexWsChannels[channel][instId] = bookData;
@@ -1400,7 +1347,7 @@ class OkexConnector extends ConnectorBase {
     EventBus.emit(
       Events.update,
       instId.replace("-", "").toLowerCase(),
-      this._handleBooks(this.books)
+      this.books
     );
     this.logger.log(
       `---------- [${this.constructor.name}] _updateBooks instId: ${instId} [END] ----------`
