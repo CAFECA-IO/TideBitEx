@@ -1257,8 +1257,8 @@ class OkexConnector extends ConnectorBase {
   }
 
   _updateBooks(instId, bookData) {
-    // const channel = "books";
-    // this.okexWsChannels[channel][instId] = bookData;
+    const channel = "books";
+    this.okexWsChannels[channel][instId] = bookData;
     const [books] = bookData;
     let asks = [],
       bids = [];
