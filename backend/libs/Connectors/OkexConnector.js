@@ -1263,17 +1263,67 @@ class OkexConnector extends ConnectorBase {
     // );
   }
 
+  _handleBooks(books) {
+    let totalAsks = "0",
+      totalBids = "0",
+      asks = [],
+      bids = [],
+      askPx,
+      bidPx;
+
+    books.asks
+      ?.sort((a, b) => +a[0] - +b[0])
+      ?.forEach((d, i) => {
+        totalAsks = SafeMath.plus(d[1], totalAsks);
+        let ask = {
+          price: d[0],
+          amount: d[1],
+          total: totalAsks,
+          update: !!d[2],
+        };
+        if (d[0] === askPx) {
+          asks[asks.length - 1] = ask;
+        } else {
+          askPx = d[0];
+          asks.push(ask);
+        }
+        if (books.asks[i][2]) books.asks[i].splice(2, 1);
+      });
+    books.bids
+      ?.sort((a, b) => +b[0] - +a[0])
+      ?.forEach((d, i) => {
+        totalBids = SafeMath.plus(d[1], totalBids);
+        let bid = {
+          price: d[0],
+          amount: d[1],
+          total: totalBids,
+          update: !!d[2],
+        };
+        if (d[0] === bidPx) {
+          bids[bids.length - 1] = bid;
+        } else {
+          bidPx = d[0];
+          bids.push(bid);
+        }
+        if (books.bids[i][2]) books.bids[i].splice(2, 1);
+      });
+    const updateBooks = {
+      asks,
+      bids,
+      ts: Date.now(),
+      total: SafeMath.plus(totalAsks, totalBids),
+    };
+    return updateBooks;
+  }
+
   _updateBooks(instId, bookData) {
     const channel = "books";
     this.okexWsChannels[channel][instId] = bookData;
     const [books] = bookData;
     let asks = [],
       bids = [];
-    // this.logger.error(
-    //   `1[ON BACKEND][OnEvent: ${Events.update}] this.books`,
-    //   this.books
-    // );
     if (this.books) {
+      // -- START loop 複製 OKEx物件裡面的 books property --
       this.books.asks.forEach((ask) => {
         const _updateAsk = ask.slice(0, 2);
         asks.push(_updateAsk);
@@ -1287,46 +1337,34 @@ class OkexConnector extends ConnectorBase {
         asks,
         bids,
       };
-      // this.logger.error(
-      //   `2[ON BACKEND][OnEvent: ${Events.update}] updateBooks`,
-      //   updateBooks
-      // );
-      // this.logger.log(`3[ON BACKEND][OnEvent: ${Events.update}] books`, books);
-      books.asks
-        // .filter((ask) => {
-        //   const _ask = updateBooks.asks.find((a) => SafeMath.eq(a[0], ask[0]));
-        //   return !_ask || (!!_ask && !SafeMath.eq(_ask[1], ask[1]));
-        // })
-        .forEach((ask) => {
-          let index = updateBooks.asks.findIndex((a) => a[0] === ask[0]);
-          let updateAsk = [ask[0], ask[1], true];
+      // -- END 複製 OKEx物件裡面的 books property --
 
-          if (index === -1) {
-            if (SafeMath.gt(ask[1], "0")) updateBooks.asks.push(updateAsk);
-          } else {
-            updateBooks.asks[index] = updateAsk;
-            if (SafeMath.lte(ask[1], "0")) {
-              updateBooks.asks.splice(index, 1);
-            }
+      // -- loop OKEx books data
+      books.asks.forEach((ask) => {
+        // -- 在OKEx物件裡面 books.asks 陣列找到 與 OKEx books data ask價格相同的index
+        let index = updateBooks.asks.findIndex((a) => a[0] === ask[0]);
+        let updateAsk = [ask[0], ask[1], true];
+        if (index === -1) {
+          if (SafeMath.gt(ask[1], "0")) updateBooks.asks.push(updateAsk);
+        } else {
+          updateBooks.asks[index] = updateAsk;
+          if (SafeMath.lte(ask[1], "0")) {
+            updateBooks.asks.splice(index, 1);
           }
-        });
-      books.bids
-        // .filter((bid) => {
-        //   const _bid = updateBooks.bids.find((b) => SafeMath.eq(b[0], bid[0]));
-        //   return !_bid || (!!_bid && !SafeMath.eq(_bid[1], bid[1]));
-        // })
-        .forEach((bid) => {
-          let index = updateBooks.bids.findIndex((b) => b[0] === bid[0]);
-          let updateBid = [bid[0], bid[1], true];
-          if (index === -1) {
-            if (SafeMath.gt(bid[1], "0")) updateBooks.bids.push(updateBid);
-          } else {
-            updateBooks.bids[index] = updateBid;
-            if (SafeMath.lte(bid[1], "0")) {
-              updateBooks.bids.splice(index, 1);
-            }
+        }
+      });
+      books.bids.forEach((bid) => {
+        let index = updateBooks.bids.findIndex((b) => b[0] === bid[0]);
+        let updateBid = [bid[0], bid[1], true];
+        if (index === -1) {
+          if (SafeMath.gt(bid[1], "0")) updateBooks.bids.push(updateBid);
+        } else {
+          updateBooks.bids[index] = updateBid;
+          if (SafeMath.lte(bid[1], "0")) {
+            updateBooks.bids.splice(index, 1);
           }
-        });
+        }
+      });
       this.books = updateBooks;
     } else {
       books.asks.forEach((ask) => {
@@ -1358,7 +1396,7 @@ class OkexConnector extends ConnectorBase {
     EventBus.emit(
       Events.update,
       instId.replace("-", "").toLowerCase(),
-      this.books
+      this._handleBooks(this.books)
     );
     this.logger.log(
       `---------- [${this.constructor.name}] _updateBooks instId: ${instId} [END] ----------`
@@ -1434,20 +1472,20 @@ class OkexConnector extends ConnectorBase {
         this.tickers[market] = updateTicker;
         return prev;
       }, {});
-   
+
     if (Object.keys(updateTickers).length > 0) {
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
-      );
-      this.logger.log(`[FROM OKEX] tickerData`, tickerData);
-      this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
-        updateTickers
-      );
+      // this.logger.log(
+      //   `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
+      // );
+      // this.logger.log(`[FROM OKEX] tickerData`, tickerData);
+      // this.logger.log(
+      //   `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
+      //   updateTickers
+      // );
       EventBus.emit(Events.tickers, updateTickers);
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _updateTickers [END] ----------`
-      );
+      // this.logger.log(
+      //   `---------- [${this.constructor.name}]  _updateTickers [END] ----------`
+      // );
     }
   }
 
