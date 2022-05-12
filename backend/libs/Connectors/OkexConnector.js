@@ -1324,7 +1324,7 @@ class OkexConnector extends ConnectorBase {
       this.books = {
         market: updateBooks.market,
         asks: updateBooks.asks.sort((a, b) => +a[0] - +b[0]).slice(0, 100),
-        bids: updateBooks.bid.sort((a, b) => +b[0] - +a[0]).slice(0, 100),
+        bids: updateBooks.bids.sort((a, b) => +b[0] - +a[0]).slice(0, 100),
       };
     } else {
       books.asks.forEach((ask) => {
