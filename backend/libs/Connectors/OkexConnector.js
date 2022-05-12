@@ -23,6 +23,7 @@ class OkexConnector extends ConnectorBase {
     this.tickers = {};
     this.trades = [];
     this.books = null;
+    this.instIds = [];
     this.candleChannel = null;
     return this;
   }
@@ -50,15 +51,19 @@ class OkexConnector extends ConnectorBase {
       url: wssPrivate,
       heartBeat: HEART_BEAT_TIME,
     });
-    this.logger.log(`markets`, markets)
+    this.logger.log(`markets`, markets);
     return this;
   }
 
   async start() {
+    Object.keys(this.markets).forEach((key) => {
+      if (this.markets[key] === "OKEx")
+        this.instIds.push(this.markets[key].replace("tb", ""));
+    });
     this._okexWsEventListener();
-    this._subscribeInstruments();
+    // this._subscribeInstruments();
     this._wsPrivateLogin();
-    // this._subscribeTickers()
+    this._subscribeTickers(this.instIds)
   }
 
   async okAccessSign({ timeString, method, path, body }) {
