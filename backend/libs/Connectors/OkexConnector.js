@@ -1291,9 +1291,9 @@ class OkexConnector extends ConnectorBase {
         //   return !_ask || (!!_ask && !SafeMath.eq(_ask[1], ask[1]));
         // })
         .forEach((ask) => {
-          let index = updateBooks.asks.find((a) => a[0] === ask[0]);
+          let index = updateBooks.asks.findIndex((a) => a[0] === ask[0]);
           let updateAsk = [ask[0], ask[1], true];
-         
+
           if (index === -1) {
             if (SafeMath.gt(ask[1], "0")) updateBooks.asks.push(updateAsk);
           } else {
@@ -1302,7 +1302,6 @@ class OkexConnector extends ConnectorBase {
               updateBooks.asks.splice(index, 1);
             }
           }
-         
         });
       books.bids
         // .filter((bid) => {
@@ -1310,7 +1309,7 @@ class OkexConnector extends ConnectorBase {
         //   return !_bid || (!!_bid && !SafeMath.eq(_bid[1], bid[1]));
         // })
         .forEach((bid) => {
-          let index = updateBooks.bids.find((b) => b[0] === bid[0]);
+          let index = updateBooks.bids.findIndex((b) => b[0] === bid[0]);
           let updateBid = [bid[0], bid[1], true];
           if (index === -1) {
             if (SafeMath.gt(bid[1], "0")) updateBooks.bids.push(updateBid);
