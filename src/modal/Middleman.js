@@ -106,7 +106,7 @@ class Middleman {
       bidPx;
 
     data.asks
-      ?.sort((a, b) => +a[0] - +b[0])
+      // ?.sort((a, b) => +a[0] - +b[0])
       ?.forEach((d, i) => {
         totalAsks = SafeMath.plus(d[1], totalAsks);
         let ask = {
@@ -124,7 +124,7 @@ class Middleman {
         if (data.asks[i][2]) data.asks[i].splice(2, 1);
       });
     data.bids
-      ?.sort((a, b) => +b[0] - +a[0])
+      // ?.sort((a, b) => +b[0] - +a[0])
       ?.forEach((d, i) => {
         totalBids = SafeMath.plus(d[1], totalBids);
         let bid = {
@@ -224,24 +224,24 @@ class Middleman {
     // console.log(`updateData`, updateData);
     // console.log(`resolution`, resolution);
     // console.log(`***********Events.trades************`);
-    const _updateTrades = updateTrades
-      .filter((trade) => trade.market === this.selectedTicker.market)
-      .map((trade) => ({
-        ...trade,
-        // side:
-        //   i === updateData.length - 1
-        //     ? !this.trades[0]
-        //       ? SafeMath.gte(trade.price, this.trades[0].price)
-        //         ? "up"
-        //         : "down"
-        //       : "up"
-        //     : SafeMath.gte(trade.px, updateData[i + 1].px)
-        //     ? "up"
-        //     : "down",
-        update: true,
-      }))
-      .concat(this.trades || []);
-    this.trades = _updateTrades.slice(0, 100);
+    // const _updateTrades = updateTrades
+    //   .filter((trade) => trade.market === this.selectedTicker.market)
+    //   .map((trade) => ({
+    //     ...trade,
+    // side:
+    //   i === updateData.length - 1
+    //     ? !this.trades[0]
+    //       ? SafeMath.gte(trade.price, this.trades[0].price)
+    //         ? "up"
+    //         : "down"
+    //       : "up"
+    //     : SafeMath.gte(trade.px, updateData[i + 1].px)
+    //     ? "up"
+    //     : "down",
+    //   update: true,
+    // }))
+    // .concat(this.trades || []);
+    this.trades = updateTrades;
     // console.log(
     //   `updateTrades _updateTrades[${_updateTrades.length}]`,
     //   _updateTrades

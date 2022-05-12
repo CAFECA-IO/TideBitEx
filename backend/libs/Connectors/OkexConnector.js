@@ -1229,6 +1229,7 @@ class OkexConnector extends ConnectorBase {
     //   `============ [${this.constructor.name}]  _updateTrades instId: ${instId} [START] ============`
     // );
     // this.logger.log(`[FROM OKEX] tradeData`, tradeData);
+    this.trades = this.trades.map((trade) => ({ ...trade, update: false }));
     const market = instId.replace("-", "").toLowerCase();
     const filteredTrades = tradeData
       .filter(
@@ -1256,9 +1257,10 @@ class OkexConnector extends ConnectorBase {
             : SafeMath.gte(data.px, filteredTrades[i + 1].price)
             ? "up"
             : "down",
+        update: true,
       };
     });
-    this.trades = formatTrades.concat(this.trades);
+    this.trades = formatTrades.concat(this.trades).slice(0, 100);
     // this.logger.log(
     //   `[TO FRONTEND][OnEvent: ${Events.trades}] updateTrades`,
     //   formatTrades

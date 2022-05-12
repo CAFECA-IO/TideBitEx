@@ -94,7 +94,7 @@ const StoreProvider = (props) => {
             );
             setTrades(trades);
             // setCandles({ candles, volumes });
-            middleman.resetTrades();
+            // middleman.resetTrades();
           }
           break;
         case Events.update:
