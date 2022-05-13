@@ -74,7 +74,7 @@ class OkexConnector extends ConnectorBase {
     this.logger.log(`start this.okexWsChannels`, this.okexWsChannels);
     this._okexWsEventListener();
     // this._subscribeInstruments();
-    this._subscribeTickers();
+    this._subscribeTickers(this.instIds);
     this._wsPrivateLogin();
   }
 
