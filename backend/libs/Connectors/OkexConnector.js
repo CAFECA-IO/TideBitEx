@@ -463,7 +463,7 @@ class OkexConnector extends ConnectorBase {
                 : "down",
           };
         });
-        if (!this.okexWsChannels["trades"]) this.okexWsChannels["trades"] = {};
+      if (!this.okexWsChannels["trades"]) this.okexWsChannels["trades"] = {};
       this.okexWsChannels["trades"][instId] = payload;
       // this.logger.log(
       //   `---------- [${this.constructor.name}]  getTrades [START] ----------`
@@ -1273,6 +1273,7 @@ class OkexConnector extends ConnectorBase {
     const channel = "books";
     const [updateBooks] = data;
     const market = instId.replace("-", "").toLowerCase();
+    if (!this.okexWsChannels[channel]) this.okexWsChannels[channel] = {};
     if (this.okexWsChannels[channel][instId]) {
       const books = {
         market,
