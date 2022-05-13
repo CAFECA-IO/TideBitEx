@@ -51,6 +51,8 @@ class OkexConnector extends ConnectorBase {
     this.passPhrase = passPhrase;
     this.brokerId = brokerId;
     this.markets = markets;
+    this.okexWsChannels["trades"] = {};
+    this.okexWsChannels["books"] = {};
     await this.websocket.init({ url: wssPublic, heartBeat: HEART_BEAT_TIME });
     await this.websocketPrivate.init({
       url: wssPrivate,
@@ -426,8 +428,8 @@ class OkexConnector extends ConnectorBase {
     const { instId, limit, force } = query;
     if (
       !force &&
-      Object.keys(this.okexWsChannels["trades"]).length > 0 &&
-      Object.keys(this.okexWsChannels["trades"][instId]).length > 0
+      Object.keys(this.okexWsChannels.trades).length > 0 &&
+      this.okexWsChannels.trades[instId]?.data.length > 0
     )
       return this.okexWsChannels["trades"][instId]["data"];
 
@@ -1107,9 +1109,9 @@ class OkexConnector extends ConnectorBase {
         // );
         const values = Object.values(arg);
         if (data.event === "subscribe") {
-          this.okexWsChannels[channel] = this.okexWsChannels[channel] || {};
-          this.okexWsChannels[channel][values[0]] =
-            this.okexWsChannels[channel][values[0]] || {};
+          // this.okexWsChannels[channel] = this.okexWsChannels[channel] || {};
+          // this.okexWsChannels[channel][values[0]] =
+          //   this.okexWsChannels[channel][values[0]] || {};
         } else if (data.event === "unsubscribe") {
           delete this.okexWsChannels[channel][values[0]];
           // ++ TODO ws onClose clean channel
