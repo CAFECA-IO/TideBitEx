@@ -170,14 +170,19 @@ class Middleman {
       update: true,
     }));
 
-    updatedTrades = updatedTrades.map((t) => {
+    return {
+      updateTrades: updatedTrades.concat(this.trades).slice(0, 100),
+      updatedTrades,
+    };
+  };
+
+  updateUpdatedTradesQueue = (updatedTrades) => {
+    let _updatedTrades = updatedTrades.map((t) => {
       let index = this.updateTradesQueue.findIndex((_t) => _t.tid === t.tid);
       if (index !== -1) this.updateTradesQueue.splice(index, 1);
       return { ...t, update: false };
     });
-    this.trades = updatedTrades.concat(this.trades).slice(0, 100);
-
-    return updatedTrades.concat(this.trades).slice(0, 100);
+    this.trades = _updatedTrades.concat(this.trades).slice(0, 100);
   };
 
   async getTrades(id, limit, resolution) {

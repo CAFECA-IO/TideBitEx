@@ -80,8 +80,9 @@ const StoreProvider = (props) => {
           _tradeTimestamp = new Date().getTime();
           if (_tradeTimestamp - +tradeTimestamp > 1000) {
             tradeTimestamp = _tradeTimestamp;
-            const trades = middleman.getUpdateTrades();
-            setTrades(trades);
+            const { updateTrades, updatedTrades } = middleman.getUpdateTrades();
+            setTrades(updateTrades);
+            middleman.updateUpdatedTradesQueue(updatedTrades);
           }
           break;
         case Events.update:

@@ -423,7 +423,13 @@ class OkexConnector extends ConnectorBase {
   async getTrades({ query }) {
     const method = "GET";
     const path = "/api/v5/market/trades";
-    const { instId, limit } = query;
+    const { instId, limit, force } = query;
+    if (
+      !force &&
+      Object.keys(this.okexWsChannels["trades"]).length > 0 &&
+      Object.keys(this.okexWsChannels["trades"][instId]).length > 0
+    )
+      return this.okexWsChannels["trades"][instId]["data"];
 
     const arr = [];
     if (instId) arr.push(`instId=${instId}`);
@@ -464,14 +470,10 @@ class OkexConnector extends ConnectorBase {
           };
         });
       if (!this.okexWsChannels["trades"]) this.okexWsChannels["trades"] = {};
-      this.okexWsChannels["trades"][instId] = payload;
-      // this.logger.log(
-      //   `---------- [${this.constructor.name}]  getTrades [START] ----------`
-      // );
-      // this.logger.log(this.trades);
-      // this.logger.log(
-      //   `---------- [${this.constructor.name}]  getTrades [END] ----------`
-      // );
+      if (!this.okexWsChannels["trades"][instId])
+        this.okexWsChannels["trades"][instId] = {};
+      this.okexWsChannels["trades"][instId]["data"] = payload;
+      if (!!force) this.okexWsChannels["trades"][instId]["update"] = true;
       return new ResponseFormat({
         message: "getTrades",
         payload,
@@ -1220,55 +1222,69 @@ class OkexConnector extends ConnectorBase {
     EventBus.emit(Events.orderDetailUpdate, instType, formatOrders);
   }
 
-  _updateTrades(instId, tradeData) {
+  async _updateTrades(instId, tradeData) {
     const channel = "trades";
     const market = instId.replace("-", "").toLowerCase();
-    const filteredTrades = tradeData
-      .filter(
-        (data) =>
-          SafeMath.gte(
-            SafeMath.div(data.ts, "1000"),
-            this.okexWsChannels[channel][instId][0].at
-          ) &&
-          !this.okexWsChannels[channel][instId].find(
-            (_t) => _t.id === data.tradeId
-          )
-      )
-      .sort((a, b) => b.ts - a.ts);
-    const formatTrades = filteredTrades.map((data, i) => {
-      return {
-        tid: data.tradeId, // [about to decrepted]
-        type: data.side, // [about to decrepted]
-        date: parseInt(SafeMath.div(data.ts, "1000")), // [about to decrepted]
-        amount: data.sz, // [about to decrepted]
-        id: data.tradeId,
-        price: data.px,
-        volume: data.sz,
-        market,
-        at: parseInt(SafeMath.div(data.ts, "1000")),
-        side:
-          i === filteredTrades.length - 1
-            ? SafeMath.gte(
-                data.px,
-                this.okexWsChannels[channel][instId][0]?.price
-              )
+    if (this.okexWsChannels[channel][instId]["update"]) {
+      const filteredTrades = tradeData
+        .filter(
+          (data) =>
+            SafeMath.gte(
+              SafeMath.div(data.ts, "1000"),
+              this.okexWsChannels[channel][instId]["data"][0].at
+            ) &&
+            !this.okexWsChannels[channel][instId]["data"].find(
+              (_t) => _t.id === data.tradeId
+            )
+        )
+        .sort((a, b) => b.ts - a.ts);
+      const formatTrades = filteredTrades.map((data, i) => {
+        return {
+          tid: data.tradeId, // [about to decrepted]
+          type: data.side, // [about to decrepted]
+          date: parseInt(SafeMath.div(data.ts, "1000")), // [about to decrepted]
+          amount: data.sz, // [about to decrepted]
+          id: data.tradeId,
+          price: data.px,
+          volume: data.sz,
+          market,
+          at: parseInt(SafeMath.div(data.ts, "1000")),
+          side:
+            i === filteredTrades.length - 1
+              ? SafeMath.gte(
+                  data.px,
+                  this.okexWsChannels[channel][instId]["data"][0]?.price
+                )
+                ? "up"
+                : "down"
+              : SafeMath.gte(data.px, filteredTrades[i + 1].price)
               ? "up"
-              : "down"
-            : SafeMath.gte(data.px, filteredTrades[i + 1].price)
-            ? "up"
-            : "down",
-        // update: true,
-      };
-    });
-    this.okexWsChannels[channel][instId] = formatTrades
-      .concat(this.okexWsChannels[channel][instId])
-      .slice(0, 100);
-    this.logger.log(`this.okexWsChannels[${channel}][${instId}]`, formatTrades);
-    // const timestamp = Date.now();
-    // if (timestamp - this._tradesTimestamp > this._tradesUpdateInterval) {
-    //   this._tradesTimestamp = timestamp;
-    EventBus.emit(Events.trades, market, { market, trades: formatTrades });
-    // }
+              : "down",
+          // update: true,
+        };
+      });
+      this.okexWsChannels[channel][instId]["data"] = formatTrades
+        .concat(this.okexWsChannels[channel][instId])
+        .slice(0, 100);
+      this.logger.log(
+        `this.okexWsChannels[${channel}][${instId}]`,
+        formatTrades
+      );
+      EventBus.emit(Events.trades, market, { market, trades: formatTrades });
+    } else {
+      await this.getTrades({
+        query: {
+          instId,
+          limit: 100,
+          force: true,
+        },
+      });
+      EventBus.emit(Events.trades, market, {
+        market,
+        trades: this.okexWsChannels[channel][instId]["data"],
+        updateAll: true,
+      });
+    }
   }
 
   _updateBooks(instId, data) {
