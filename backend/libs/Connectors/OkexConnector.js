@@ -1410,14 +1410,14 @@ class OkexConnector extends ConnectorBase {
         };
         updateTickers[id] = updateTicker;
         this.tickers[id] = updateTicker;
+        this.logger.log(
+          `---------- [${this.constructor.name}]  _updateTickers id: ${id} [START] ----------`
+        );
+        this.logger.log(`[FROM OKEX] updateTicker`, updateTicker);
+        this.logger.log(
+          `---------- [${this.constructor.name}]  _updateTickers id: ${id} [END] ----------`
+        );
       }
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _updateTickers id: ${id} [START] ----------`
-      );
-      this.logger.log(`[FROM OKEX] updateTicker`, updateTicker);
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _updateTickers id: ${id} [END] ----------`
-      );
     });
     if (Object.keys(updateTickers).length > 0) {
       const timestamp = Date.now();
