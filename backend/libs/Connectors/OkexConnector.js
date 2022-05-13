@@ -353,8 +353,8 @@ class OkexConnector extends ConnectorBase {
       orderBooks["asks"] = data.asks.map((ask) => [ask[0], ask[1]]);
       orderBooks["bids"] = data.bids.map((bid) => [bid[0], bid[1]]);
 
-      if (!this.okexWsChannels["books"]) this.okexWsChannels["books"] = {};
-      this.okexWsChannels["books"][instId] = orderBooks;
+      // if (!this.okexWsChannels["books"]) this.okexWsChannels["books"] = {};
+      // this.okexWsChannels["books"][instId] = orderBooks;
 
       return new ResponseFormat({
         message: "getOrderBooks",
