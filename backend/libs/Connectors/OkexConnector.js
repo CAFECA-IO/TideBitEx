@@ -1225,6 +1225,7 @@ class OkexConnector extends ConnectorBase {
       `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [START] ----------`
     );
     this.logger.log(`[FROM OKEX] tradeData`, tradeData);
+    this.logger.log(`[FROM OKEX] this.trades[0]`, this.trades[0]);
     const market = instId.replace("-", "").toLowerCase();
     const filteredTrades = tradeData
       .filter(
@@ -1410,6 +1411,13 @@ class OkexConnector extends ConnectorBase {
         updateTickers[id] = updateTicker;
         this.tickers[id] = updateTicker;
       }
+      this.logger.log(
+        `---------- [${this.constructor.name}]  _updateTickers id: ${id} [START] ----------`
+      );
+      this.logger.log(`[FROM OKEX] updateTicker`, updateTicker);
+      this.logger.log(
+        `---------- [${this.constructor.name}]  _updateTickers id: ${id} [END] ----------`
+      );
     });
     if (Object.keys(updateTickers).length > 0) {
       const timestamp = Date.now();
@@ -1589,7 +1597,7 @@ class OkexConnector extends ConnectorBase {
   // okex ws end
 
   // TideBitEx ws
-  _subscribeMarket(market, resolution) {
+  _subscribeMarket(market, wsId) {
     const instId = this._findInstId(market);
     if (this._findSource(instId) === SupportedExchange.OKEX) {
       // this.books = null;
@@ -1602,10 +1610,8 @@ class OkexConnector extends ConnectorBase {
       );
       this.logger.log(`_subscribeMarket instId`, instId);
       this.logger.log(`_subscribeMarket market`, market);
-      this.logger.log(`_subscribeMarket resolution`, resolution);
       this._subscribeTrades(instId);
       this._subscribeBook(instId);
-      // this._subscribeCandle1m(instId, resolution);
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeMarket [END] ++++++`
       );
