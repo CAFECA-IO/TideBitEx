@@ -463,13 +463,13 @@ class OkexConnector extends ConnectorBase {
           };
         });
       this.trades = payload;
-      this.logger.log(
-        `---------- [${this.constructor.name}]  getTrades [START] ----------`
-      );
-      this.logger.log(this.trades);
-      this.logger.log(
-        `---------- [${this.constructor.name}]  getTrades [END] ----------`
-      );
+      // this.logger.log(
+      //   `---------- [${this.constructor.name}]  getTrades [START] ----------`
+      // );
+      // this.logger.log(this.trades);
+      // this.logger.log(
+      //   `---------- [${this.constructor.name}]  getTrades [END] ----------`
+      // );
       return new ResponseFormat({
         message: "getTrades",
         payload,

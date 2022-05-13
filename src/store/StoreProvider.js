@@ -205,7 +205,7 @@ const StoreProvider = (props) => {
   );
 
   const getTrades = useCallback(
-    async (id, limit) => {
+    async (id, limit=100) => {
       try {
         const { trades, candles, volumes } = await middleman.getTrades(
           id,
