@@ -25,7 +25,7 @@ class OkexConnector extends ConnectorBase {
   _tradesTimestamp = 0;
 
   tickers = {};
-  trades = [];
+  trades = null;
   books = null;
 
   constructor({ logger }) {
@@ -466,7 +466,7 @@ class OkexConnector extends ConnectorBase {
       this.logger.log(
         `---------- [${this.constructor.name}]  getTrades [START] ----------`
       );
-      this.logger.log(this.trades)
+      this.logger.log(this.trades);
       this.logger.log(
         `---------- [${this.constructor.name}]  getTrades [END] ----------`
       );
@@ -1221,18 +1221,20 @@ class OkexConnector extends ConnectorBase {
   _updateTrades(instId, tradeData) {
     const channel = "trades";
     // this.okexWsChannels[channel][instId] = tradeData[0];
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [START] ----------`
-    // );
-    // this.logger.log(`[FROM OKEX] tradeData`, tradeData);
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [START] ----------`
+    );
+    this.logger.log(`[FROM OKEX] tradeData`, tradeData);
     const market = instId.replace("-", "").toLowerCase();
     const filteredTrades = tradeData
       .filter(
         (data) =>
-          SafeMath.gte(data.at, this.trades[0].at) &&
-          !this.trades.find((_t) => _t.id === data.tradeId)
+          !this.trades ||
+          (SafeMath.gte(data.at, this.trades[0].at) &&
+            !this.trades.find((_t) => _t.id === data.tradeId))
       )
       .sort((a, b) => b.ts - a.ts);
+    this.logger.error(`[FROM OKEX] formatTrades`, formatTrades);
     const formatTrades = filteredTrades.map((data, i) => {
       return {
         tid: data.tradeId, // [about to decrepted]
@@ -1412,10 +1414,6 @@ class OkexConnector extends ConnectorBase {
     if (Object.keys(updateTickers).length > 0) {
       const timestamp = Date.now();
       if (timestamp - this._tickersTimestamp > this._tickersUpdateInterval) {
-        this.logger.log(
-          `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
-          updateTickers
-        );
         this._tickersTimestamp = timestamp;
         EventBus.emit(Events.tickers, updateTickers);
       }
@@ -1595,7 +1593,7 @@ class OkexConnector extends ConnectorBase {
     const instId = this._findInstId(market);
     if (this._findSource(instId) === SupportedExchange.OKEX) {
       this.books = null;
-      this.trades = [];
+      this.trades = null;
       this._booksTimestamp = 0;
       this._tradesTimestamp = 0;
 
