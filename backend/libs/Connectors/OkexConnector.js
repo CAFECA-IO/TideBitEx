@@ -354,6 +354,7 @@ class OkexConnector extends ConnectorBase {
       orderBooks["market"] = instId.replace("-", "").toLowerCase();
       orderBooks["asks"] = data.asks.map((ask) => [ask[0], ask[1]]);
       orderBooks["bids"] = data.bids.map((bid) => [bid[0], bid[1]]);
+      this.okexWsChannels["books"][instId] = orderBooks;
 
       return new ResponseFormat({
         message: "getOrderBooks",
@@ -1260,14 +1261,14 @@ class OkexConnector extends ConnectorBase {
 
   _updateBooks(instId, data) {
     const channel = "books";
-    // this.okexWsChannels[channel][instId] = data;
+
     const [updateBooks] = data;
     const market = instId.replace("-", "").toLowerCase();
-    if (this.books) {
+    if (this.okexWsChannels["books"][instId]) {
       const books = {
         market,
-        asks: this.books.asks.map((ask) => [ask[0], ask[1]]),
-        bids: this.books.bids.map((bid) => [bid[0], bid[1]]),
+        asks: this.okexWsChannels["books"][instId].asks.map((ask) => [ask[0], ask[1]]),
+        bids: this.okexWsChannels["books"][instId].bids.map((bid) => [bid[0], bid[1]]),
       };
       updateBooks.asks.forEach((ask) => {
         const updateAsk = [ask[0], ask[1], true];
@@ -1301,13 +1302,13 @@ class OkexConnector extends ConnectorBase {
           }
         }
       });
-      this.books = {
+      this.okexWsChannels["books"][instId] = {
         market,
         asks: books.asks.sort((a, b) => +a[0] - +b[0]),
         bids: books.bids.sort((a, b) => +b[0] - +a[0]),
       };
     } else {
-      this.books = {
+      this.okexWsChannels["books"][instId] = {
         market,
         asks:
           updateBooks.asks
@@ -1322,12 +1323,8 @@ class OkexConnector extends ConnectorBase {
     const timestamp = Date.now();
     if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
       this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.books}] updateBooks`,
+        `[TO FRONTEND][OnEvent: ${Events.update}] updateBooks`,
         updateBooks
-      );
-      this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.books}] this.books`,
-        this.books
       );
       this._booksTimestamp = timestamp;
       EventBus.emit(Events.update, market, this.books);
