@@ -1228,7 +1228,7 @@ class OkexConnector extends ConnectorBase {
           SafeMath.gte(
             SafeMath.div(data.ts, "1000"),
             this.okexWsChannels[channel][instId][0].at
-          ) && !this.trades.find((_t) => _t.id === data.tradeId)
+          ) && !this.okexWsChannels[channel][instId].find((_t) => _t.id === data.tradeId)
       )
       .sort((a, b) => b.ts - a.ts);
     const formatTrades = filteredTrades.map((data, i) => {
@@ -1601,7 +1601,6 @@ class OkexConnector extends ConnectorBase {
       this.logger.log(`_subscribeMarket instId`, instId);
       this.logger.log(`_subscribeMarket market`, market);
 
-      this.books = null;
       this._booksTimestamp = 0;
       this._tradesTimestamp = 0;
 
