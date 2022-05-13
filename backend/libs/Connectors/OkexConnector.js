@@ -26,6 +26,7 @@ class OkexConnector extends ConnectorBase {
 
   tickers = {};
   okexWsChannels = {};
+  instIds = [];
 
   constructor({ logger }) {
     super({ logger });
@@ -70,7 +71,7 @@ class OkexConnector extends ConnectorBase {
         this.okexWsChannels.books[instId] = {};
       }
     });
-this.logger.log(`start this.okexWsChannels`, this.okexWsChannels)
+    this.logger.log(`start this.okexWsChannels`, this.okexWsChannels);
     this._okexWsEventListener();
     // this._subscribeInstruments();
     this._subscribeTickers();
