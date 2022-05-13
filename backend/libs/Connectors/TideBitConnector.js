@@ -538,9 +538,8 @@ class TibeBitConnector extends ConnectorBase {
     const filteredTrades = data.trades
       .filter(
         (t) =>
-          !this.trades ||
-          (SafeMath.gte(t.date, this.trades[0]?.at) &&
-            !this.trades.find((_t) => _t.id === t.tid))
+          SafeMath.gte(t.date, this.trades[0]?.at) &&
+          !this.trades.find((_t) => _t.id === t.tid)
       )
       .sort((a, b) => b.date - a.date);
     const formatTrades = filteredTrades

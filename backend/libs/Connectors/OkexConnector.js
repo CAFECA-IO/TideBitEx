@@ -17,8 +17,8 @@ const HEART_BEAT_TIME = 25000;
 
 class OkexConnector extends ConnectorBase {
   _tickersUpdateInterval = 0;
-  _booksUpdateInterval = 0;
-  _tradesUpdateInterval = 0;
+  _booksUpdateInterval = 500;
+  _tradesUpdateInterval = 300;
 
   _tickersTimestamp = 0;
   _booksTimestamp = 0;
@@ -1230,9 +1230,8 @@ class OkexConnector extends ConnectorBase {
     const filteredTrades = tradeData
       .filter(
         (data) =>
-          !this.trades ||
-          (SafeMath.gte(data.at, this.trades[0].at) &&
-            !this.trades.find((_t) => _t.id === data.tradeId))
+          SafeMath.gte(SafeMath.div(data.at, "1000"), this.trades[0].at) &&
+          !this.trades.find((_t) => _t.id === data.tradeId)
       )
       .sort((a, b) => b.ts - a.ts);
     this.logger.error(`[FROM OKEX] filteredTrades`, filteredTrades);
