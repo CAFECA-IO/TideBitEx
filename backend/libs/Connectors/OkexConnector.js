@@ -17,8 +17,8 @@ const HEART_BEAT_TIME = 25000;
 
 class OkexConnector extends ConnectorBase {
   _tickersUpdateInterval = 0;
-  _booksUpdateInterval = 500;
-  _tradesUpdateInterval = 500;
+  _booksUpdateInterval = 0;
+  _tradesUpdateInterval = 0;
 
   _tickersTimestamp = 0;
   _booksTimestamp = 0;
@@ -1322,10 +1322,10 @@ class OkexConnector extends ConnectorBase {
     }
     const timestamp = Date.now();
     if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
-      this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.books}] books`,
-        this.books
-      );
+      // this.logger.log(
+      //   `[TO FRONTEND][OnEvent: ${Events.books}] books`,
+      //   this.books
+      // );
       this._booksTimestamp = timestamp;
       EventBus.emit(Events.update, market, this.books);
     }
