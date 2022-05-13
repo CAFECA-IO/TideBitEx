@@ -76,7 +76,7 @@ const OrderBook = (props) => {
                     SafeMath.div(book.total, storeCtx.books.total),
                     "100"
                   )
-                ).toFixed(18)}%`}
+                ).toFixed(2)}%`}
               />
             ))}
         </ul>
@@ -103,7 +103,7 @@ const OrderBook = (props) => {
                     SafeMath.div(book.total, storeCtx.books.total),
                     "100"
                   )
-                ).toFixed(18)}%`}
+                ).toFixed(2)}%`}
               />
             ))}
         </ul>
