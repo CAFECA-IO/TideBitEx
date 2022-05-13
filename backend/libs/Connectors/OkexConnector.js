@@ -25,7 +25,7 @@ class OkexConnector extends ConnectorBase {
   _tradesTimestamp = 0;
 
   tickers = {};
-  trades = null;
+  trades = [];
   books = null;
 
   constructor({ logger }) {
@@ -1569,7 +1569,7 @@ class OkexConnector extends ConnectorBase {
     const instId = this._findInstId(market);
     if (this._findSource(instId) === SupportedExchange.OKEX) {
       this.books = null;
-      this.trades = null;
+      this.trades = [];
       this._booksTimestamp = 0;
       this._tradesTimestamp = 0;
 

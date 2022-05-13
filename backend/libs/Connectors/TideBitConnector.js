@@ -32,7 +32,7 @@ class TibeBitConnector extends ConnectorBase {
   market_channel = {};
 
   tickers = {};
-  trades = null;
+  trades = [];
   books = null;
 
   constructor({ logger }) {
@@ -1315,7 +1315,7 @@ class TibeBitConnector extends ConnectorBase {
       this._findSource(this._findInstId(market)) === SupportedExchange.TIDEBIT
     ) {
       this.books = null;
-      this.trades = null;
+      this.trades = [];
       this._booksTimestamp = 0;
       this._tradesTimestamp = 0;
 
