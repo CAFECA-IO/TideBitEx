@@ -158,6 +158,10 @@ class Middleman {
     }
   }
 
+  updateAllTrades = (updateData) => {
+    this.trades = updateData.trades;
+  };
+
   updateTrades = (updateData) => {
     if (updateData.market !== this.selectedTicker.market) return;
     const updateTrades = updateData.trades;
@@ -185,27 +189,14 @@ class Middleman {
     this.trades = _updatedTrades.concat(this.trades).slice(0, 100);
   };
 
-  async getTrades(id, limit, resolution) {
+  async getTrades(id, limit) {
     try {
       this.updateTradesQueue = [];
       const trades = await this.communicator.trades(id, limit);
       if (trades) {
-        this.trades = trades.reduce(
-          (prev, curr, i) => [
-            ...prev,
-            i === 0
-              ? { ...curr, trend: 1 }
-              : {
-                  ...curr,
-                  trend: SafeMath.gte(curr.px, prev[prev.length - 1].px)
-                    ? 1
-                    : 0,
-                },
-          ],
-          []
-        );
-        const { candles, volumes } = this.updateCandles(trades, resolution);
-        return { trades, candles, volumes };
+        this.trades = trades
+        // const { candles, volumes } = this.updateCandles(trades, resolution);
+        return trades;
       }
     } catch (error) {
       throw error;

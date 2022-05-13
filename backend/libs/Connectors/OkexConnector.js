@@ -437,6 +437,7 @@ class OkexConnector extends ConnectorBase {
     const method = "GET";
     const path = "/api/v5/market/trades";
     const { instId, limit, force } = query;
+    this.logger.log(`!!!!! important getTrades force`, force);
     if (!force && this.okexWsChannels.trades[instId]?.update)
       return this.okexWsChannels.trades[instId]?.data || [];
 
@@ -479,7 +480,13 @@ class OkexConnector extends ConnectorBase {
           };
         });
       this.okexWsChannels.trades[instId].data = payload;
-      if (!!force) this.okexWsChannels.trades[instId].update = true;
+      if (!!force) {
+        this.okexWsChannels.trades[instId].update = true;
+        this.logger.log(
+          `!!!!! important getTrades this.okexWsChannels.trades[${instId}]`,
+          this.okexWsChannels.trades[instId]
+        );
+      }
       return new ResponseFormat({
         message: "getTrades",
         payload,

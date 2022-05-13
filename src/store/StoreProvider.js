@@ -76,6 +76,10 @@ const StoreProvider = (props) => {
           }
           break;
         case Events.trades:
+          if (metaData.data.updateAll) {
+            middleman.updateAllTrades(metaData.data);
+            setTrades(metaData.data);
+          }
           middleman.updateTrades(metaData.data);
           _tradeTimestamp = new Date().getTime();
           if (_tradeTimestamp - +tradeTimestamp > 1000) {
@@ -207,13 +211,13 @@ const StoreProvider = (props) => {
   const getTrades = useCallback(
     async (id, limit = 100) => {
       try {
-        const { trades, candles, volumes } = await middleman.getTrades(
+        const trades = await middleman.getTrades(
           id,
-          limit,
-          resolution
+          limit
+          // resolution
         );
         setTrades(trades);
-        setCandles({ candles, volumes });
+        // setCandles({ candles, volumes });
       } catch (error) {
         enqueueSnackbar(`"getTrades error: ${error?.message}"`, {
           variant: "error",
@@ -221,7 +225,7 @@ const StoreProvider = (props) => {
         });
       }
     },
-    [action, enqueueSnackbar, middleman, resolution]
+    [action, enqueueSnackbar, middleman]
   );
 
   // const getCandles = useCallback(
