@@ -12,6 +12,16 @@ const Codes = require("../../constants/Codes");
 const TideBitLegacyAdapter = require("../TideBitLegacyAdapter");
 
 class TibeBitConnector extends ConnectorBase {
+  _accountsUpdateInterval = 0;
+  _tickersUpdateInterval = 0;
+  _booksUpdateInterval = 1000;
+  _tradesUpdateInterval = 1000;
+
+  _accountsTimestamp = 0;
+  _tickersTimestamp = 0;
+  _booksTimestamp = 0;
+  _tradesTimestamp = 0;
+
   isStart = false;
 
   public_pusher = null;
@@ -22,7 +32,7 @@ class TibeBitConnector extends ConnectorBase {
   market_channel = {};
 
   tickers = {};
-  trades = [];
+  trades = null;
   books = null;
 
   constructor({ logger }) {
@@ -266,23 +276,16 @@ class TibeBitConnector extends ConnectorBase {
           : SafeMath.eq(change, "0")
           ? "0"
           : "1";
-        updateTickers[id] = { ...data[id], change, changePct, market: id };
+        const updateTicker = { ...data[id], change, changePct, market: id };
+        updateTickers[id] = updateTicker;
+        this.tickers[id] = updateTicker;
       }
     });
-
     if (Object.keys(updateTickers).length > 0) {
-      // this.logger.log(
-      //   `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
-      // );
-      // this.logger.log(`[FROM TideBit] tickerData`, data);
-      // this.logger.log(
-      //   `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
-      //   updateTickers
-      // );
-      EventBus.emit(Events.tickers, updateTickers);
-      // this.logger.log(
-      //   `---------- [${this.constructor.name}]  _updateTickers [END] ----------`
-      // );
+      const timestamp = Date.now();
+      if (timestamp - this._tickersTimestamp > this._tickersUpdateInterval) {
+        EventBus.emit(Events.tickers, updateTickers);
+      }
     }
   }
 
@@ -365,7 +368,7 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
-  _updateBooks(market, data) {
+  _updateBooks(market, updateBooks) {
     /**
     {
         asks: [
@@ -378,77 +381,68 @@ class TibeBitConnector extends ConnectorBase {
         ]
     }
     */
-    if (
-      this.market !== market ||
-      data.asks.length === 0 ||
-      data.bids.length === 0
-    )
-      return;
-    let index,
-      asks = [],
-      bids = [],
-      formatBooks = {};
-    if (!!this.books) {
-      this.books.asks?.forEach((ask) => {
-        index = data.asks.findIndex((_ask) => SafeMath.eq(_ask[0], ask[0]));
+    if (this.books) {
+      const books = {
+        market,
+        asks: this.books.asks.filter((ask) =>
+          updateBooks.asks.find((_ask) => SafeMath.eq(_ask[0], ask[0]))
+        ),
+        bids: this.books.bids.filter((bid) =>
+          updateBooks.bids.find((_bid) => SafeMath.eq(_bid[0], bid[0]))
+        ),
+      };
+      updateBooks.asks.forEach((ask) => {
+        const index = books.asks.findIndex((a) => SafeMath.eq(a[0], ask[0]));
         if (index === -1) {
-          asks.push([ask[0], "0"]);
+          if (SafeMath.gt(ask[1], "0")) {
+            books.asks.push([ask[0], ask[1], true]);
+          } else {
+            if (SafeMath.gt(ask[1], "0")) {
+              books.asks[index] = [ask[0], ask[1], true];
+            } else {
+              books.asks.splice(index, 1);
+            }
+          }
         }
       });
-      data.asks.forEach((ask) => {
-        index = this.books?.asks?.findIndex((_ask) =>
-          SafeMath.eq(_ask[0], ask[0])
-        );
-        if (
-          index === -1 ||
-          index === undefined ||
-          !SafeMath.eq(this.books.asks[index][1], ask[1])
-        ) {
-          asks.push(ask);
-        }
-      });
-      this.books.bids?.forEach((bid) => {
-        index = data.bids.findIndex((_bid) => SafeMath.eq(_bid[0], bid[0]));
+      updateBooks.bids.forEach((bid) => {
+        const index = books.bids.findIndex((a) => SafeMath.eq(a[0], bid[0]));
         if (index === -1) {
-          bids.push([bid[0], "0"]);
+          if (SafeMath.gt(bid[1], "0")) {
+            books.bids.push([bid[0], bid[1], true]);
+          } else {
+            if (SafeMath.gt(bid[1], "0")) {
+              books.bids[index] = [bid[0], bid[1], true];
+            } else {
+              books.bids.splice(index, 1);
+            }
+          }
         }
       });
-      data.bids.forEach((bid) => {
-        index = this.books?.bids?.findIndex((_bid) =>
-          SafeMath.eq(_bid[0], bid[0])
-        );
-        if (
-          index === -1 ||
-          index === undefined ||
-          !SafeMath.eq(this.books.bids[index][1], bid[1])
-        ) {
-          bids.push(bid);
-        }
-      });
+      this.books = {
+        market,
+        asks: books.asks.sort((a, b) => +a[0] - +b[0]).slice(0, 100),
+        bids: books.bids.sort((a, b) => +b[0] - +a[0]).slice(0, 100),
+      };
     } else {
-      asks = data.asks;
-      bids = data.bids;
-      formatBooks["updateAll"] = true;
+      this.books = {
+        market,
+        asks:
+          updateBooks.asks
+            ?.map((ask) => [ask[0], ask[1], true])
+            ?.sort((a, b) => +a[0] - +b[0])
+            ?.slice(0, 100) || [],
+        bids:
+          updateBooks.bids
+            ?.map((bid) => [bid[0], bid[1], true])
+            ?.sort((a, b) => +b[0] - +a[0])
+            ?.slice(0, 100) || [],
+      };
     }
-    formatBooks["asks"] = asks;
-    formatBooks["bids"] = bids;
-    formatBooks["market"] = market;
-
-    if (!this.books) this.books = formatBooks;
-
-    if (formatBooks["asks"].length > 0 || formatBooks["bids"].length > 0) {
-      // this.logger.log(
-      //   `---------- [${this.constructor.name}]  _updateBooks market: ${market} [START] ----------`
-      // );
-      // this.logger.log(`[FROM TideBit] bookData`, data);
-      // this.logger.log(
-      //   `[TO FRONTEND][OnEvent: ${Events.update}] updateBooks`,
-      //   formatBooks
-      // );
-      EventBus.emit(Events.update, market, formatBooks);
-      // this.logger.log(
-      //   `---------- [${this.constructor.name}]  _updateBooks market: ${market} [END] ----------`
-      // );
+    const timestamp = Date.now();
+    if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
+      this._booksTimestamp = timestamp;
+      EventBus.emit(Events.update, market, this.books);
     }
   }
   /**
@@ -565,19 +559,10 @@ class TibeBitConnector extends ConnectorBase {
             : "down",
       }))
       .sort((a, b) => b.at - a.at);
-    if (formatTrades.length > 0) {
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _updateTrades market: ${market} [START] ----------`
-      );
-      this.logger.log(`[FROM TideBit] tradesData`, data);
-      this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.trades}] updateTrades`,
-        formatTrades
-      );
+    this.trades = formatTrades.concat(this.trades).slice(0, 100);
+    const timestamp = Date.now();
+    if (timestamp - this._tradesTimestamp > this._tradesUpdateInterval) {
       EventBus.emit(Events.trades, market, { market, trades: formatTrades });
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _updateTrades market: ${market} [END] ----------`
-      );
     }
   }
 
@@ -1329,6 +1314,11 @@ class TibeBitConnector extends ConnectorBase {
     if (
       this._findSource(this._findInstId(market)) === SupportedExchange.TIDEBIT
     ) {
+      this.books = null;
+      this.trades = null;
+      this._booksTimestamp = 0;
+      this._tradesTimestamp = 0;
+
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeMarket [START] ++++++`
       );

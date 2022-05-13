@@ -56,54 +56,42 @@ const StoreProvider = (props) => {
   const wsUpdateHandler = useCallback(
     (msg) => {
       let _tickerTimestamp = 0,
-        _bookTimestamp = 0,
-        // _candleTimestamp = 0,
+        // _bookTimestamp = 0,
         _accountTimestamp = 0,
-        _tradeTimestamp = 0,
+        // _tradeTimestamp = 0,
         metaData = JSON.parse(msg.data);
       switch (metaData.type) {
         case Events.tickers:
           const { updateTicker, updateTickers } = middleman.updateTickers(
             metaData.data
           );
-          _tickerTimestamp = new Date().getTime();
           if (!!updateTicker) {
-            // console.log(`Events.tickers updateTicker`, updateTicker);
             setSelectedTicker(updateTicker);
             document.title = `${updateTicker.last} ${updateTicker.name}`;
           }
+          _tickerTimestamp = new Date().getTime();
           if (_tickerTimestamp - +tickerTimestamp > 1000) {
-            // console.log(
-            //   `++++++++****+++++ Events.tickers[START] +++++*****+++++`
-            // );
             tickerTimestamp = _tickerTimestamp;
             setTickers(updateTickers);
-            // console.log(`updateTickers`, updateTickers);
-            // console.log(`updateTicker`, updateTicker);
-            // console.log(
-            //   `++++++++****+++++ Events.tickers[END] +++++*****+++++`
-            // );
           }
           break;
         case Events.trades:
-          if (_tradeTimestamp - +tradeTimestamp > 1000) {
-            const { trades, candles, volumes } = middleman.updateTrades(
-              metaData.data.trades,
-              resolution
-            );
-            setTrades(trades);
-            setCandles({ candles, volumes });
-            middleman.resetTrades();
-          }
+          // _tradeTimestamp = new Date().getTime();
+          // if (_tradeTimestamp - +tradeTimestamp > 1000) {
+          //   tradeTimestamp = _tradeTimestamp;
+          const trades = middleman.updateTrades(metaData.data);
+          setTrades(trades);
+          // setCandles({ candles, volumes });
+          // middleman.resetTrades();
+          // }
           break;
         case Events.update:
           const updateBooks = middleman.updateBooks(metaData.data);
-          _bookTimestamp = new Date().getTime();
-          if (_bookTimestamp - +bookTimestamp > 1000) {
-            // console.log(`updateBooks`, updateBooks);
-            bookTimestamp = _bookTimestamp;
-            setBooks(updateBooks);
-          }
+          // _bookTimestamp = new Date().getTime();
+          // if (_bookTimestamp - +bookTimestamp > 1000) {
+          //   bookTimestamp = _bookTimestamp;
+          setBooks(updateBooks);
+          // }
           break;
         case Events.account:
           const updateAccounts = middleman.updateAccounts(metaData.data);
