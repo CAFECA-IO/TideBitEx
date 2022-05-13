@@ -25,8 +25,7 @@ class OkexConnector extends ConnectorBase {
   _tradesTimestamp = 0;
 
   tickers = {};
-  trades = null;
-  books = null;
+  okexWsChannels = {};
 
   constructor({ logger }) {
     super({ logger });
@@ -52,7 +51,6 @@ class OkexConnector extends ConnectorBase {
     this.passPhrase = passPhrase;
     this.brokerId = brokerId;
     this.markets = markets;
-    this.okexWsChannels = {};
     await this.websocket.init({ url: wssPublic, heartBeat: HEART_BEAT_TIME });
     await this.websocketPrivate.init({
       url: wssPrivate,
@@ -354,6 +352,8 @@ class OkexConnector extends ConnectorBase {
       orderBooks["market"] = instId.replace("-", "").toLowerCase();
       orderBooks["asks"] = data.asks.map((ask) => [ask[0], ask[1]]);
       orderBooks["bids"] = data.bids.map((bid) => [bid[0], bid[1]]);
+
+      if (!this.okexWsChannels["books"]) this.okexWsChannels["books"] = {};
       this.okexWsChannels["books"][instId] = orderBooks;
 
       return new ResponseFormat({
@@ -463,6 +463,7 @@ class OkexConnector extends ConnectorBase {
                 : "down",
           };
         });
+        if (!this.okexWsChannels["trades"]) this.okexWsChannels["trades"] = {};
       this.okexWsChannels["trades"][instId] = payload;
       // this.logger.log(
       //   `---------- [${this.constructor.name}]  getTrades [START] ----------`
@@ -1228,7 +1229,10 @@ class OkexConnector extends ConnectorBase {
           SafeMath.gte(
             SafeMath.div(data.ts, "1000"),
             this.okexWsChannels[channel][instId][0].at
-          ) && !this.okexWsChannels[channel][instId].find((_t) => _t.id === data.tradeId)
+          ) &&
+          !this.okexWsChannels[channel][instId].find(
+            (_t) => _t.id === data.tradeId
+          )
       )
       .sort((a, b) => b.ts - a.ts);
     const formatTrades = filteredTrades.map((data, i) => {
