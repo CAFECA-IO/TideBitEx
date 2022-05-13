@@ -463,7 +463,7 @@ class OkexConnector extends ConnectorBase {
                 : "down",
           };
         });
-      this.trades = payload;
+      this.okexWsChannels["trades"][instId] = payload;
       // this.logger.log(
       //   `---------- [${this.constructor.name}]  getTrades [START] ----------`
       // );
@@ -1221,7 +1221,7 @@ class OkexConnector extends ConnectorBase {
 
   _updateTrades(instId, tradeData) {
     const channel = "trades";
-    // this.okexWsChannels[channel][instId] = tradeData[0];
+
     const market = instId.replace("-", "").toLowerCase();
     const filteredTrades = tradeData
       .filter(
@@ -1251,8 +1251,10 @@ class OkexConnector extends ConnectorBase {
             : "down",
       };
     });
+    this.okexWsChannels[channel][instId] = formatTrades
+      .concat(this.okexWsChannels[channel][instId])
+      .slice(0, 100);
     const timestamp = Date.now();
-
     if (timestamp - this._tradesTimestamp > this._tradesUpdateInterval) {
       this._tradesTimestamp = timestamp;
       EventBus.emit(Events.trades, market, { market, trades: formatTrades });
@@ -1261,14 +1263,19 @@ class OkexConnector extends ConnectorBase {
 
   _updateBooks(instId, data) {
     const channel = "books";
-
     const [updateBooks] = data;
     const market = instId.replace("-", "").toLowerCase();
-    if (this.okexWsChannels["books"][instId]) {
+    if (this.okexWsChannels[channel][instId]) {
       const books = {
         market,
-        asks: this.okexWsChannels["books"][instId].asks.map((ask) => [ask[0], ask[1]]),
-        bids: this.okexWsChannels["books"][instId].bids.map((bid) => [bid[0], bid[1]]),
+        asks: this.okexWsChannels[channel][instId].asks.map((ask) => [
+          ask[0],
+          ask[1],
+        ]),
+        bids: this.okexWsChannels[channel][instId].bids.map((bid) => [
+          bid[0],
+          bid[1],
+        ]),
       };
       updateBooks.asks.forEach((ask) => {
         const updateAsk = [ask[0], ask[1], true];
@@ -1302,13 +1309,13 @@ class OkexConnector extends ConnectorBase {
           }
         }
       });
-      this.okexWsChannels["books"][instId] = {
+      this.okexWsChannels[channel][instId] = {
         market,
         asks: books.asks.sort((a, b) => +a[0] - +b[0]),
         bids: books.bids.sort((a, b) => +b[0] - +a[0]),
       };
     } else {
-      this.okexWsChannels["books"][instId] = {
+      this.okexWsChannels[channel][instId] = {
         market,
         asks:
           updateBooks.asks
@@ -1326,8 +1333,16 @@ class OkexConnector extends ConnectorBase {
         `[TO FRONTEND][OnEvent: ${Events.update}] updateBooks`,
         updateBooks
       );
+      this.logger.log(
+        `[TO FRONTEND][OnEvent: ${Events.update}] this.okexWsChannels[channel][instId]`,
+        this.okexWsChannels[channel][instId]
+      );
       this._booksTimestamp = timestamp;
-      EventBus.emit(Events.update, market, this.books);
+      EventBus.emit(
+        Events.update,
+        market,
+        this.okexWsChannels[channel][instId]
+      );
     }
   }
 
