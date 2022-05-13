@@ -5,6 +5,7 @@ class Middleman {
   constructor() {
     this.communicator = new Communicator();
     this.tickers = [];
+    this.updateTradesQueue = [];
   }
 
   updateSelectedTicker(ticker) {
@@ -142,6 +143,7 @@ class Middleman {
   }
 
   updateBooks(rawBooks) {
+    if (rawBooks.market !== this.selectedTicker.market) return;
     const books = this.handleBooks(rawBooks);
     return books;
   }
@@ -157,19 +159,30 @@ class Middleman {
   }
 
   updateTrades = (updateData) => {
-    this.trades.forEach((trade, index) => {
-      if (trade.update) this.trades[index].update = false;
-    });
+    if (updateData.market !== this.selectedTicker.market) return;
     const updateTrades = updateData.trades;
-    this.trades = updateTrades
-      .map((t) => ({ ...t, update: true }))
-      .concat(this.trades)
-      .slice(0, 100);
-    return this.trades;
+    this.updateTradesQueue = updateTrades.concat(this.updateTradesQueue);
+  };
+
+  getUpdateTrades = () => {
+    let updatedTrades = this.updateTradesQueue.map((t) => ({
+      ...t,
+      update: true,
+    }));
+
+    updatedTrades = updatedTrades.map((t) => {
+      let index = this.updateTradesQueue.findIndex((_t) => _t.tid === t.tid);
+      if (index !== -1) this.updateTradesQueue.splice(index, 1);
+      return { ...t, update: false };
+    });
+    this.trades = updatedTrades.concat(this.trades).slice(0, 100);
+
+    return updatedTrades.concat(this.trades).slice(0, 100);
   };
 
   async getTrades(id, limit, resolution) {
     try {
+      this.updateTradesQueue = [];
       const trades = await this.communicator.trades(id, limit);
       if (trades) {
         this.trades = trades.reduce(

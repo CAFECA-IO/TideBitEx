@@ -1257,17 +1257,18 @@ class OkexConnector extends ConnectorBase {
             : SafeMath.gte(data.px, filteredTrades[i + 1].price)
             ? "up"
             : "down",
+        // update: true,
       };
     });
     this.okexWsChannels[channel][instId] = formatTrades
       .concat(this.okexWsChannels[channel][instId])
       .slice(0, 100);
     this.logger.log(`this.okexWsChannels[${channel}][${instId}]`, formatTrades);
-    const timestamp = Date.now();
-    if (timestamp - this._tradesTimestamp > this._tradesUpdateInterval) {
-      this._tradesTimestamp = timestamp;
-      EventBus.emit(Events.trades, market, { market, trades: formatTrades });
-    }
+    // const timestamp = Date.now();
+    // if (timestamp - this._tradesTimestamp > this._tradesUpdateInterval) {
+    //   this._tradesTimestamp = timestamp;
+    EventBus.emit(Events.trades, market, { market, trades: formatTrades });
+    // }
   }
 
   _updateBooks(instId, data) {
@@ -1414,11 +1415,11 @@ class OkexConnector extends ConnectorBase {
       }
     });
     if (Object.keys(updateTickers).length > 0) {
-      const timestamp = Date.now();
-      if (timestamp - this._tickersTimestamp > this._tickersUpdateInterval) {
-        this._tickersTimestamp = timestamp;
-        EventBus.emit(Events.tickers, updateTickers);
-      }
+      // const timestamp = Date.now();
+      // if (timestamp - this._tickersTimestamp > this._tickersUpdateInterval) {
+      //   this._tickersTimestamp = timestamp;
+      EventBus.emit(Events.tickers, updateTickers);
+      // }
     }
   }
 

@@ -58,7 +58,7 @@ const StoreProvider = (props) => {
       let _tickerTimestamp = 0,
         // _bookTimestamp = 0,
         _accountTimestamp = 0,
-        // _tradeTimestamp = 0,
+        _tradeTimestamp = 0,
         metaData = JSON.parse(msg.data);
       switch (metaData.type) {
         case Events.tickers:
@@ -76,14 +76,13 @@ const StoreProvider = (props) => {
           }
           break;
         case Events.trades:
-          // _tradeTimestamp = new Date().getTime();
-          // if (_tradeTimestamp - +tradeTimestamp > 1000) {
-          //   tradeTimestamp = _tradeTimestamp;
-          const trades = middleman.updateTrades(metaData.data);
-          setTrades(trades);
-          // setCandles({ candles, volumes });
-          // middleman.resetTrades();
-          // }
+          middleman.updateTrades(metaData.data);
+          _tradeTimestamp = new Date().getTime();
+          if (_tradeTimestamp - +tradeTimestamp > 1000) {
+            tradeTimestamp = _tradeTimestamp;
+            const trades = middleman.getUpdateTrades();
+            setTrades(trades);
+          }
           break;
         case Events.update:
           const updateBooks = middleman.updateBooks(metaData.data);
@@ -205,7 +204,7 @@ const StoreProvider = (props) => {
   );
 
   const getTrades = useCallback(
-    async (id, limit=100) => {
+    async (id, limit = 100) => {
       try {
         const { trades, candles, volumes } = await middleman.getTrades(
           id,
