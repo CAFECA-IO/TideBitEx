@@ -1221,10 +1221,6 @@ class OkexConnector extends ConnectorBase {
   _updateTrades(instId, tradeData) {
     const channel = "trades";
     // this.okexWsChannels[channel][instId] = tradeData[0];
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [START] ----------`
-    );
-
     const market = instId.replace("-", "").toLowerCase();
     const filteredTrades = tradeData
       .filter(
@@ -1255,23 +1251,10 @@ class OkexConnector extends ConnectorBase {
       };
     });
     const timestamp = Date.now();
-    this.logger.log(
-      `---------- ${
-        timestamp - this._tradesTimestamp > this._tradesUpdateInterval
-      }[${
-        this.constructor.name
-      }]  _updateTrades instId: ${instId} [START] ----------`
-    );
+
     if (timestamp - this._tradesTimestamp > this._tradesUpdateInterval) {
       this._tradesTimestamp = timestamp;
-      this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.trades}] updateTrades`,
-        formatTrades
-      );
       EventBus.emit(Events.trades, market, { market, trades: formatTrades });
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [END] ----------`
-      );
     }
   }
 
@@ -1316,8 +1299,8 @@ class OkexConnector extends ConnectorBase {
       });
       this.books = {
         market,
-        asks: books.asks.sort((a, b) => +a[0] - +b[0]).slice(0, 100),
-        bids: books.bids.sort((a, b) => +b[0] - +a[0]).slice(0, 100),
+        asks: books.asks.sort((a, b) => +a[0] - +b[0]),
+        bids: books.bids.sort((a, b) => +b[0] - +a[0]),
       };
     } else {
       this.books = {
@@ -1325,13 +1308,11 @@ class OkexConnector extends ConnectorBase {
         asks:
           updateBooks.asks
             ?.map((ask) => [ask[0], ask[1], true])
-            ?.sort((a, b) => +a[0] - +b[0])
-            ?.slice(0, 100) || [],
+            ?.sort((a, b) => +a[0] - +b[0]) || [],
         bids:
           updateBooks.bids
             ?.map((bid) => [bid[0], bid[1], true])
-            ?.sort((a, b) => +b[0] - +a[0])
-            ?.slice(0, 100) || [],
+            ?.sort((a, b) => +b[0] - +a[0]) || [],
       };
     }
     const timestamp = Date.now();

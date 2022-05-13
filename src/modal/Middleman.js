@@ -97,7 +97,9 @@ class Middleman {
       askPx,
       bidPx;
     // asks is increase
-    rawBooks.asks?.forEach((d, i) => {
+    let _asks = rawBooks.asks.splice(0, 100);
+    let _bids = rawBooks.bids.splice(0, 100);
+    _asks?.forEach((d, i) => {
       totalAsks = SafeMath.plus(d[1], totalAsks);
       let ask = {
         price: d[0],
@@ -111,10 +113,10 @@ class Middleman {
         askPx = d[0];
         asks.push(ask);
       }
-      if (rawBooks.asks[i][2]) rawBooks.asks[i].splice(2, 1);
+      if (_asks[i][2]) _asks[i].splice(2, 1);
     });
     // bids is decrease
-    rawBooks.bids?.forEach((d, i) => {
+    _bids?.forEach((d, i) => {
       totalBids = SafeMath.plus(d[1], totalBids);
       let bid = {
         price: d[0],
@@ -128,7 +130,7 @@ class Middleman {
         bidPx = d[0];
         bids.push(bid);
       }
-      if (rawBooks.bids[i][2]) rawBooks.bids[i].splice(2, 1);
+      if (_bids[i][2]) _bids[i].splice(2, 1);
     });
     const updateBooks = {
       asks,
