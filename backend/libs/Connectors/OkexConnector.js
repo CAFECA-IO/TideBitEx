@@ -1234,7 +1234,7 @@ class OkexConnector extends ConnectorBase {
             !this.trades.find((_t) => _t.id === data.tradeId))
       )
       .sort((a, b) => b.ts - a.ts);
-    this.logger.error(`[FROM OKEX] formatTrades`, formatTrades);
+    this.logger.error(`[FROM OKEX] filteredTrades`, filteredTrades);
     const formatTrades = filteredTrades.map((data, i) => {
       return {
         tid: data.tradeId, // [about to decrepted]
