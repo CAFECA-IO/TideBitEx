@@ -1221,13 +1221,14 @@ class OkexConnector extends ConnectorBase {
 
   _updateTrades(instId, tradeData) {
     const channel = "trades";
-
     const market = instId.replace("-", "").toLowerCase();
     const filteredTrades = tradeData
       .filter(
         (data) =>
-          SafeMath.gte(SafeMath.div(data.ts, "1000"), this.trades[0].at) &&
-          !this.trades.find((_t) => _t.id === data.tradeId)
+          SafeMath.gte(
+            SafeMath.div(data.ts, "1000"),
+            this.okexWsChannels[channel][instId][0].at
+          ) && !this.trades.find((_t) => _t.id === data.tradeId)
       )
       .sort((a, b) => b.ts - a.ts);
     const formatTrades = filteredTrades.map((data, i) => {
@@ -1243,7 +1244,10 @@ class OkexConnector extends ConnectorBase {
         at: parseInt(SafeMath.div(data.ts, "1000")),
         side:
           i === filteredTrades.length - 1
-            ? SafeMath.gte(data.px, this.trades[0]?.price)
+            ? SafeMath.gte(
+                data.px,
+                this.okexWsChannels[channel][instId][0]?.price
+              )
               ? "up"
               : "down"
             : SafeMath.gte(data.px, filteredTrades[i + 1].price)
