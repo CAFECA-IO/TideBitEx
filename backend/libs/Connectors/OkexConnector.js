@@ -1259,8 +1259,8 @@ class OkexConnector extends ConnectorBase {
   }
 
   _updateBooks(instId, data) {
-    // const channel = "books";
-    // this.okexWsChannels[channel][instId] = bookData;
+    const channel = "books";
+    // this.okexWsChannels[channel][instId] = data;
     const [updateBooks] = data;
     const market = instId.replace("-", "").toLowerCase();
     if (this.books) {
@@ -1270,28 +1270,32 @@ class OkexConnector extends ConnectorBase {
         bids: this.books.bids.map((bid) => [bid[0], bid[1]]),
       };
       updateBooks.asks.forEach((ask) => {
-        const index = books.asks.findIndex((a) => SafeMath.eq(a[0], ask[0]));
+        const updateAsk = [ask[0], ask[1], true];
+        const index = books.asks.findIndex((a) =>
+          SafeMath.eq(a[0], updateAsk[0])
+        );
         if (index === -1) {
-          if (SafeMath.gt(ask[1], "0")) {
-            books.asks.push([ask[0], ask[1], true]);
+          if (SafeMath.gt(updateAsk[1], "0")) {
+            books.asks.push(updateAsk);
           } else {
-            if (SafeMath.gt(ask[1], "0")) {
-              books.asks[index] = [ask[0], ask[1], true];
-            } else {
+            books.asks[index] = updateAsk;
+            if (SafeMath.lte(updateAsk[1], "0")) {
               books.asks.splice(index, 1);
             }
           }
         }
       });
       updateBooks.bids.forEach((bid) => {
-        const index = books.bids.findIndex((a) => SafeMath.eq(a[0], bid[0]));
+        const updateBid = [bid[0], bid[1], true];
+        const index = books.bids.findIndex((b) =>
+          SafeMath.eq(b[0], updateBid[0])
+        );
         if (index === -1) {
-          if (SafeMath.gt(bid[1], "0")) {
-            books.bids.push([bid[0], bid[1], true]);
+          if (SafeMath.gt(updateBid[1], "0")) {
+            books.bids.push(updateBid);
           } else {
-            if (SafeMath.gt(bid[1], "0")) {
-              books.bids[index] = [bid[0], bid[1], true];
-            } else {
+            books.bids[index] = updateBid;
+            if (SafeMath.lte(updateBid[1], "0")) {
               books.bids.splice(index, 1);
             }
           }
@@ -1317,10 +1321,14 @@ class OkexConnector extends ConnectorBase {
     }
     const timestamp = Date.now();
     if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
-      // this.logger.log(
-      //   `[TO FRONTEND][OnEvent: ${Events.books}] books`,
-      //   this.books
-      // );
+      this.logger.log(
+        `[TO FRONTEND][OnEvent: ${Events.books}] updateBooks`,
+        updateBooks
+      );
+      this.logger.log(
+        `[TO FRONTEND][OnEvent: ${Events.books}] this.books`,
+        this.books
+      );
       this._booksTimestamp = timestamp;
       EventBus.emit(Events.update, market, this.books);
     }
@@ -1571,15 +1579,16 @@ class OkexConnector extends ConnectorBase {
   _subscribeMarket(market, wsId) {
     const instId = this._findInstId(market);
     if (this._findSource(instId) === SupportedExchange.OKEX) {
-      this.books = null;
-      this._booksTimestamp = 0;
-      this._tradesTimestamp = 0;
-
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeMarket [START] ++++++`
       );
       this.logger.log(`_subscribeMarket instId`, instId);
       this.logger.log(`_subscribeMarket market`, market);
+
+      this.books = null;
+      this._booksTimestamp = 0;
+      this._tradesTimestamp = 0;
+
       this._subscribeTrades(instId);
       this._subscribeBook(instId);
       this.logger.log(
