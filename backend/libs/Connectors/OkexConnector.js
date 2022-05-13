@@ -463,6 +463,13 @@ class OkexConnector extends ConnectorBase {
           };
         });
       this.trades = payload;
+      this.logger.log(
+        `---------- [${this.constructor.name}]  getTrades [START] ----------`
+      );
+      this.logger.log(this.trades)
+      this.logger.log(
+        `---------- [${this.constructor.name}]  getTrades [END] ----------`
+      );
       return new ResponseFormat({
         message: "getTrades",
         payload,
@@ -1220,7 +1227,11 @@ class OkexConnector extends ConnectorBase {
     // this.logger.log(`[FROM OKEX] tradeData`, tradeData);
     const market = instId.replace("-", "").toLowerCase();
     const filteredTrades = tradeData
-      .filter((data) => !this.trades.find((_t) => _t.id === data.tradeId))
+      .filter(
+        (data) =>
+          SafeMath.gte(data.at, this.trades[0].at) &&
+          !this.trades.find((_t) => _t.id === data.tradeId)
+      )
       .sort((a, b) => b.ts - a.ts);
     const formatTrades = filteredTrades.map((data, i) => {
       return {
@@ -1235,7 +1246,7 @@ class OkexConnector extends ConnectorBase {
         at: parseInt(SafeMath.div(data.ts, "1000")),
         side:
           i === filteredTrades.length - 1
-            ? SafeMath.gte(data.px, this.trades[0].price)
+            ? SafeMath.gte(data.px, this.trades[0]?.price)
               ? "up"
               : "down"
             : SafeMath.gte(data.px, filteredTrades[i + 1].price)
@@ -1244,6 +1255,13 @@ class OkexConnector extends ConnectorBase {
       };
     });
     const timestamp = Date.now();
+    this.logger.log(
+      `---------- ${
+        timestamp - this._tradesTimestamp > this._tradesUpdateInterval
+      }[${
+        this.constructor.name
+      }]  _updateTrades instId: ${instId} [START] ----------`
+    );
     if (timestamp - this._tradesTimestamp > this._tradesUpdateInterval) {
       this._tradesTimestamp = timestamp;
       this.logger.log(
