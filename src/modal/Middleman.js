@@ -26,7 +26,14 @@ class Middleman {
         updateTickers.push({ ...t, update: true });
       } else {
         const ticker = {
-          ...t[i],
+          ...updateTickers[i],
+          last: t.last,
+          change: t.change,
+          changePct: t.changePct,
+          open: t.open,
+          high: t.high,
+          low: t.low,
+          volume: t.volume,
           update: true,
         };
         updateTickers[i] = ticker;

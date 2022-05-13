@@ -70,7 +70,7 @@ const SelectedTicker = (props) => {
       <div className="ticker__details">
         <div className="tickerItemLabel">
           {`${t("24_volume")}(${
-            storeCtx.selectedTicker?.base_unit.toUpperCase() || "--"
+            storeCtx.selectedTicker?.base_unit?.toUpperCase() || "--"
           })`}
         </div>
         <div className="tickerPriceText">
@@ -81,7 +81,7 @@ const SelectedTicker = (props) => {
       </div>
       <div className="ticker__details">
         <div className="tickerItemLabel">{`${t("24_volume_quote")}(${
-          storeCtx.selectedTicker?.quote_unit.toUpperCase() || "--"
+          storeCtx.selectedTicker?.quote_unit?.toUpperCase() || "--"
         })`}</div>
         <div className="tickerPriceText">
           {!storeCtx.selectedTicker

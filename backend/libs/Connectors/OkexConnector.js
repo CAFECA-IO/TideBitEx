@@ -1224,17 +1224,15 @@ class OkexConnector extends ConnectorBase {
     this.logger.log(
       `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [START] ----------`
     );
-    this.logger.log(`[FROM OKEX] tradeData`, tradeData);
-    this.logger.log(`[FROM OKEX] this.trades[0]`, this.trades[0]);
+
     const market = instId.replace("-", "").toLowerCase();
     const filteredTrades = tradeData
       .filter(
         (data) =>
-          SafeMath.gte(SafeMath.div(data.at, "1000"), this.trades[0].at) &&
+          SafeMath.gte(SafeMath.div(data.ts, "1000"), this.trades[0].at) &&
           !this.trades.find((_t) => _t.id === data.tradeId)
       )
       .sort((a, b) => b.ts - a.ts);
-    this.logger.error(`[FROM OKEX] filteredTrades`, filteredTrades);
     const formatTrades = filteredTrades.map((data, i) => {
       return {
         tid: data.tradeId, // [about to decrepted]
