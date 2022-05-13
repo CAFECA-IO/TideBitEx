@@ -1277,6 +1277,7 @@ class OkexConnector extends ConnectorBase {
   _updateBooks(instId, bookData) {
     const channel = "books";
     this.okexWsChannels[channel][instId] = bookData;
+    const market = instId.replace("-", "").toLowerCase();
     const [books] = bookData;
     let asks = [],
       bids = [];
@@ -1291,7 +1292,7 @@ class OkexConnector extends ConnectorBase {
         bids.push(_updateBid);
       });
       const updateBooks = {
-        market: this.books.market,
+        market,
         asks,
         bids,
       };
@@ -1324,7 +1325,7 @@ class OkexConnector extends ConnectorBase {
         }
       });
       this.books = {
-        market: updateBooks.market,
+        market,
         asks: updateBooks.asks.sort((a, b) => +a[0] - +b[0]).slice(0, 100),
         bids: updateBooks.bids.sort((a, b) => +b[0] - +a[0]).slice(0, 100),
       };
@@ -1340,7 +1341,7 @@ class OkexConnector extends ConnectorBase {
         }
       });
       this.books = {
-        market: instId.replace("-", "").toLowerCase(),
+        market,
         asks,
         bids,
       };
