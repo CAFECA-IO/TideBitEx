@@ -14,8 +14,8 @@ const TideBitLegacyAdapter = require("../TideBitLegacyAdapter");
 class TibeBitConnector extends ConnectorBase {
   _accountsUpdateInterval = 0;
   _tickersUpdateInterval = 0;
-  _booksUpdateInterval = 1000;
-  _tradesUpdateInterval = 1000;
+  _booksUpdateInterval = 500;
+  _tradesUpdateInterval = 500;
 
   _accountsTimestamp = 0;
   _tickersTimestamp = 0;
@@ -284,6 +284,7 @@ class TibeBitConnector extends ConnectorBase {
     if (Object.keys(updateTickers).length > 0) {
       const timestamp = Date.now();
       if (timestamp - this._tickersTimestamp > this._tickersUpdateInterval) {
+        this._tickersTimestamp = timestamp;
         EventBus.emit(Events.tickers, updateTickers);
       }
     }
@@ -562,6 +563,7 @@ class TibeBitConnector extends ConnectorBase {
     this.trades = formatTrades.concat(this.trades).slice(0, 100);
     const timestamp = Date.now();
     if (timestamp - this._tradesTimestamp > this._tradesUpdateInterval) {
+      this._tradesTimestamp = timestamp;
       EventBus.emit(Events.trades, market, { market, trades: formatTrades });
     }
   }

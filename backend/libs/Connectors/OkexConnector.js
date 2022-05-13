@@ -17,8 +17,8 @@ const HEART_BEAT_TIME = 25000;
 
 class OkexConnector extends ConnectorBase {
   _tickersUpdateInterval = 0;
-  _booksUpdateInterval = 1000;
-  _tradesUpdateInterval = 1000;
+  _booksUpdateInterval = 500;
+  _tradesUpdateInterval = 500;
 
   _tickersTimestamp = 0;
   _booksTimestamp = 0;
@@ -1247,14 +1247,18 @@ class OkexConnector extends ConnectorBase {
             : "down",
       };
     });
-    // this.logger.log(
-    //   `[TO FRONTEND][OnEvent: ${Events.trades}] updateTrades`,
-    //   formatTrades
-    // );
-    EventBus.emit(Events.trades, market, { market, trades: formatTrades });
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [END] ----------`
-    // );
+    const timestamp = Date.now();
+    if (timestamp - this._tradesTimestamp > this._tradesUpdateInterval) {
+      this._tradesTimestamp = timestamp;
+      this.logger.log(
+        `[TO FRONTEND][OnEvent: ${Events.trades}] updateTrades`,
+        formatTrades
+      );
+      EventBus.emit(Events.trades, market, { market, trades: formatTrades });
+      this.logger.log(
+        `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [END] ----------`
+      );
+    }
   }
 
   _updateBooks(instId, data) {
@@ -1318,6 +1322,10 @@ class OkexConnector extends ConnectorBase {
     }
     const timestamp = Date.now();
     if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
+      this.logger.log(
+        `[TO FRONTEND][OnEvent: ${Events.books}] books`,
+        this.books
+      );
       this._booksTimestamp = timestamp;
       EventBus.emit(Events.update, market, this.books);
     }
@@ -1390,6 +1398,10 @@ class OkexConnector extends ConnectorBase {
     if (Object.keys(updateTickers).length > 0) {
       const timestamp = Date.now();
       if (timestamp - this._tickersTimestamp > this._tickersUpdateInterval) {
+        this.logger.log(
+          `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
+          updateTickers
+        );
         this._tickersTimestamp = timestamp;
         EventBus.emit(Events.tickers, updateTickers);
       }
