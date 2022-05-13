@@ -60,17 +60,17 @@ class OkexConnector extends ConnectorBase {
   }
 
   async start() {
-    this.okexWsChannels["trades"] = {};
-    this.okexWsChannels["books"] = {};
+    this.okexWsChannels.trades = {};
+    this.okexWsChannels.books = {};
     Object.keys(this.markets).forEach((key) => {
       if (this.markets[key] === "OKEx") {
         const instId = key.replace("tb", "");
         this.instIds.push(instId);
-        this.okexWsChannels["trades"][instId] = {};
-        this.okexWsChannels["books"][instId] = {};
+        this.okexWsChannels.trades[instId] = {};
+        this.okexWsChannels.books[instId] = {};
       }
     });
-
+this.logger.log(`start this.okexWsChannels`, this.okexWsChannels)
     this._okexWsEventListener();
     // this._subscribeInstruments();
     this._subscribeTickers();
