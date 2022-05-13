@@ -480,13 +480,7 @@ class OkexConnector extends ConnectorBase {
           };
         });
       this.okexWsChannels.trades[instId].data = payload;
-      if (!!force) {
-        this.okexWsChannels.trades[instId].update = true;
-        this.logger.log(
-          `!!!!! important getTrades this.okexWsChannels.trades[${instId}]`,
-          this.okexWsChannels.trades[instId]
-        );
-      }
+
       return new ResponseFormat({
         message: "getTrades",
         payload,
@@ -1238,7 +1232,10 @@ class OkexConnector extends ConnectorBase {
   async _updateTrades(instId, tradeData) {
     const channel = "trades";
     const market = instId.replace("-", "").toLowerCase();
-    this.logger.log(`!!!!!! _updateTrades`, this.okexWsChannels[channel][instId])
+    this.logger.log(
+      `!!!!!! _updateTrades`,
+      this.okexWsChannels[channel][instId]
+    );
     if (this.okexWsChannels[channel][instId]["update"]) {
       const filteredTrades = tradeData
         .filter(
@@ -1286,18 +1283,22 @@ class OkexConnector extends ConnectorBase {
       );
       EventBus.emit(Events.trades, market, { market, trades: formatTrades });
     } else {
-      await this.getTrades({
-        query: {
-          instId,
-          limit: 100,
-          force: true,
-        },
-      });
-      EventBus.emit(Events.trades, market, {
-        market,
-        trades: this.okexWsChannels[channel][instId]["data"],
-        updateAll: true,
-      });
+      if (this.okexWsChannels.trades[instId].update === undefined) {
+        this.okexWsChannels.trades[instId].update = false;
+        await this.getTrades({
+          query: {
+            instId,
+            limit: 100,
+            force: true,
+          },
+        });
+        EventBus.emit(Events.trades, market, {
+          market,
+          trades: this.okexWsChannels[channel][instId]["data"],
+          updateAll: true,
+        });
+        this.okexWsChannels.trades[instId].update = true;
+      }
     }
   }
 
