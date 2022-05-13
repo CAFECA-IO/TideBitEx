@@ -51,8 +51,6 @@ class OkexConnector extends ConnectorBase {
     this.passPhrase = passPhrase;
     this.brokerId = brokerId;
     this.markets = markets;
-    this.okexWsChannels["trades"] = {};
-    this.okexWsChannels["books"] = {};
     await this.websocket.init({ url: wssPublic, heartBeat: HEART_BEAT_TIME });
     await this.websocketPrivate.init({
       url: wssPrivate,
@@ -62,8 +60,20 @@ class OkexConnector extends ConnectorBase {
   }
 
   async start() {
+    this.okexWsChannels["trades"] = {};
+    this.okexWsChannels["books"] = {};
+    Object.keys(this.markets).forEach((key) => {
+      if (this.markets[key] === "OKEx") {
+        const instId = key.replace("tb", "");
+        this.instIds.push(instId);
+        this.okexWsChannels["trades"][instId] = {};
+        this.okexWsChannels["books"][instId] = {};
+      }
+    });
+
     this._okexWsEventListener();
-    this._subscribeInstruments();
+    // this._subscribeInstruments();
+    this._subscribeTickers();
     this._wsPrivateLogin();
   }
 
@@ -426,12 +436,8 @@ class OkexConnector extends ConnectorBase {
     const method = "GET";
     const path = "/api/v5/market/trades";
     const { instId, limit, force } = query;
-    if (
-      !force &&
-      Object.keys(this.okexWsChannels.trades).length > 0 &&
-      this.okexWsChannels.trades[instId]?.data.length > 0
-    )
-      return this.okexWsChannels["trades"][instId]["data"];
+    if (!force && this.okexWsChannels.trades[instId]?.update)
+      return this.okexWsChannels.trades[instId]?.data || [];
 
     const arr = [];
     if (instId) arr.push(`instId=${instId}`);
@@ -471,11 +477,8 @@ class OkexConnector extends ConnectorBase {
                 : "down",
           };
         });
-      if (!this.okexWsChannels["trades"]) this.okexWsChannels["trades"] = {};
-      if (!this.okexWsChannels["trades"][instId])
-        this.okexWsChannels["trades"][instId] = {};
-      this.okexWsChannels["trades"][instId]["data"] = payload;
-      if (!!force) this.okexWsChannels["trades"][instId]["update"] = true;
+      this.okexWsChannels.trades[instId].data = payload;
+      if (!!force) this.okexWsChannels.trades[instId].update = true;
       return new ResponseFormat({
         message: "getTrades",
         payload,
