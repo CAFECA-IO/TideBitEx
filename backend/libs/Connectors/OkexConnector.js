@@ -1592,8 +1592,8 @@ class OkexConnector extends ConnectorBase {
   _subscribeMarket(market, resolution) {
     const instId = this._findInstId(market);
     if (this._findSource(instId) === SupportedExchange.OKEX) {
-      this.books = null;
-      this.trades = null;
+      // this.books = null;
+      // this.trades = null;
       this._booksTimestamp = 0;
       this._tradesTimestamp = 0;
 

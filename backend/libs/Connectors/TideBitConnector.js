@@ -1317,8 +1317,8 @@ class TibeBitConnector extends ConnectorBase {
     if (
       this._findSource(this._findInstId(market)) === SupportedExchange.TIDEBIT
     ) {
-      this.books = null;
-      this.trades = [];
+      // this.books = null;
+      // this.trades = null;
       this._booksTimestamp = 0;
       this._tradesTimestamp = 0;
 
