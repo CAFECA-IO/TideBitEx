@@ -1222,7 +1222,7 @@ class OkexConnector extends ConnectorBase {
     const filteredTrades = tradeData
       .filter(
         (data) =>
-          SafeMath.gte(SafeMath.div(data.ts, "1000"), this.trades[0].at) &&
+          SafeMath.gte(SafeMath.div(data.ts, "1000"), this.trades[0]?.at) &&
           !this.trades.find((_t) => _t.id === data.tradeId)
       )
       .sort((a, b) => b.ts - a.ts);
