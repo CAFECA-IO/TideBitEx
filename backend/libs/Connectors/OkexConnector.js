@@ -1413,14 +1413,7 @@ class OkexConnector extends ConnectorBase {
       const timestamp = Date.now();
       if (timestamp - this._tickersTimestamp > this._tickersUpdateInterval) {
         this._tickersTimestamp = timestamp;
-        this.logger.log(
-          `---------- [${this.constructor.name}]  _updateTickers[START] ----------`
-        );
-        this.logger.log(`[FROM OKEX] updateTickers`, updateTickers);
         EventBus.emit(Events.tickers, updateTickers);
-        this.logger.log(
-          `---------- [${this.constructor.name}]  _updateTickers[END] ----------`
-        );
       }
     }
   }
@@ -1597,8 +1590,7 @@ class OkexConnector extends ConnectorBase {
   _subscribeMarket(market, wsId) {
     const instId = this._findInstId(market);
     if (this._findSource(instId) === SupportedExchange.OKEX) {
-      // this.books = null;
-      // this.trades = null;
+      this.books = null;
       this._booksTimestamp = 0;
       this._tradesTimestamp = 0;
 
