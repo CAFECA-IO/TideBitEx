@@ -1274,7 +1274,7 @@ class OkexConnector extends ConnectorBase {
     const [updateBooks] = data;
     const market = instId.replace("-", "").toLowerCase();
 
-    if (this.okexWsChannels[channel][instId]) {
+    if (Object.keys(this.okexWsChannels[channel][instId]).length > 0) {
       this.logger.log(
         `(this.okexWsChannels[channel][instId]`,
         this.okexWsChannels[channel][instId]
