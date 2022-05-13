@@ -1220,11 +1220,7 @@ class OkexConnector extends ConnectorBase {
     // this.logger.log(`[FROM OKEX] tradeData`, tradeData);
     const market = instId.replace("-", "").toLowerCase();
     const filteredTrades = tradeData
-      .filter(
-        (data) =>
-          SafeMath.gte(SafeMath.div(data.ts, "1000"), this.trades[0]?.at) &&
-          !this.trades.find((_t) => _t.id === data.tradeId)
-      )
+      .filter((data) => !this.trades.find((_t) => _t.id === data.tradeId))
       .sort((a, b) => b.ts - a.ts);
     const formatTrades = filteredTrades.map((data, i) => {
       return {
