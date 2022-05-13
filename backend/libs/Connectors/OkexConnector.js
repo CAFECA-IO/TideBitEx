@@ -1273,15 +1273,15 @@ class OkexConnector extends ConnectorBase {
     const channel = "books";
     const [updateBooks] = data;
     const market = instId.replace("-", "").toLowerCase();
-    if (!this.okexWsChannels[channel]) this.okexWsChannels[channel] = {};
+
     if (this.okexWsChannels[channel][instId]) {
       const books = {
         market,
-        asks: this.okexWsChannels[channel][instId].asks.map((ask) => [
+        asks: this.okexWsChannels[channel][instId]["asks"].map((ask) => [
           ask[0],
           ask[1],
         ]),
-        bids: this.okexWsChannels[channel][instId].bids.map((bid) => [
+        bids: this.okexWsChannels[channel][instId]["bids"].map((bid) => [
           bid[0],
           bid[1],
         ]),
@@ -1324,6 +1324,7 @@ class OkexConnector extends ConnectorBase {
         bids: books.bids.sort((a, b) => +b[0] - +a[0]),
       };
     } else {
+      if (!this.okexWsChannels[channel]) this.okexWsChannels[channel] = {};
       this.okexWsChannels[channel][instId] = {
         market,
         asks:
