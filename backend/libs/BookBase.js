@@ -1,66 +1,124 @@
+const SafeMath = require("./SafeMath");
+
 class BookBase {
   constructor() {
-    this._config = { remove: true, add: true };
+    this._config = { remove: true, add: true, update: true };
     return this;
   }
 
-  // this._snapshot = {
-  //   'BTC-USDT': [],
-  //    ...
-  // };
-  // this._difference = {
-  //   'BTC-USDT': [],
-  //    ...
-  // };
-  init({ instIds }) {
-    this.instIds = instIds;
-    this.instIds.forEach((instId) => {
-      this._snapshot[instId] = {};
-      this._difference[instId] = {};
+  // ++ TODO: verify function works properly
+  /**
+   *
+   * @param {Array<Object>} markets
+   */
+  init(markets) {
+    markets.forEach((market) => {
+      this._snapshot[market.instId] = [];
+      this._difference[market.instId] = [];
     });
   }
 
+  /**
+   *
+   * @param {Object} valueA
+   * @param {Object} valueB
+   */
   _compareFunction(valueA, valueB) {
-    throw new Error("need override _compareFunction");
+    return SafeMath.eq(valueA.id, valueB.id);
   }
 
+  /**
+   *
+   * @param {Array<Object>} arrayA
+   * @param {Array<Object>} arrayB
+   * @param {Function} compareFunction
+   * @returns
+   */
+  // ++ TODO: verify function works properly
   _calculateDifference(arrayA, arrayB, compareFunction) {
     const onlyInLeft = (left, right, compareFunction) =>
       left.filter(
         (leftValue) =>
           !right.some((rightValue) => compareFunction(leftValue, rightValue))
       );
-    const onlyInA = onlyInLeft(arrayA, arrayB, compareFunction);
-    const onlyInB = onlyInLeft(arrayB, arrayA, compareFunction);
+    const onlyInA = this._config.remove
+      ? onlyInLeft(arrayA, arrayB, compareFunction)
+      : [];
+    const onlyInB = this._config.add
+      ? onlyInLeft(arrayB, arrayA, compareFunction)
+      : [];
+    const update = this._config.update
+      ? arrayB.filter((leftValue) =>
+          arrayA.some((rightValue) => compareFunction(leftValue, rightValue))
+        )
+      : [];
     return {
       remove: onlyInA,
       add: onlyInB,
+      update,
     };
   }
 
+  /**
+   *
+   * @param {String} instId
+   * @returns {Array<Object>}
+   */
   getSnapshot(instId) {
     return this._snapshot[instId];
   }
 
+  /**
+   *
+   * @param {String} instId
+   * @returns {Array<Object>}
+   */
   getDifference(instId) {
     return this._difference[instId];
   }
 
+  /**
+   * @param {String} str1
+   * @param {String} str2
+   */
+  // ++ TODO: verify function works properly
+  _isEqual(str1, str2) {
+    return SafeMath.isNumber(str1) && SafeMath.isNumber(str2)
+      ? SafeMath.eq(str1, str2)
+      : str1 === str2;
+  }
+
+  /**
+   *
+   * @param {String} instId
+   * @returns {Boolean}
+   */
+  // ++ TODO: verify function works properly
   updateByDifference(instId, difference) {
     let updateSnapshot;
     try {
       if (this._config.remove) {
         updateSnapshot = this._snapshot[instId].filter(
-          (data) => !difference.some((diff) => data.id === diff.id)
+          (data) =>
+            !difference.remove.some((diff) => this._isEqual(data.id, diff.id))
         );
       }
       if (this._config.add) {
-        updateSnapshot = updateSnapshot.concat(difference.add);
+        updateSnapshot = updateSnapshot
+          .filter(
+            (data) =>
+              !difference.add.some((diff) => this._isEqual(data.id, diff.id))
+          )
+          .concat(difference.add);
       }
-      difference.updates.forEach((diff) => {
-        const index = updateSnapshot.findIndex((d) => d.id === diff.id);
-        updateSnapshot[index] = diff;
-      });
+      if (this._config.update) {
+        difference.updates.forEach((diff) => {
+          const index = updateSnapshot.findIndex((data) =>
+            this._isEqual(data.id, diff.id)
+          );
+          updateSnapshot[index] = diff;
+        });
+      }
       this._snapshot[instId] = updateSnapshot;
       this._difference[instId] = difference;
       return {
@@ -73,6 +131,12 @@ class BookBase {
     }
   }
 
+  /**
+   *
+   * @param {String} instId
+   * @returns {Boolean}
+   */
+  // ++ TODO: verify function works properly
   updateAll(instId, data) {
     try {
       this._difference[instId] = this._calculateDiffence(

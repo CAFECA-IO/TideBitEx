@@ -4,43 +4,13 @@ const SafeMath = require("../SafeMath");
 class OrderBook extends BookBase {
   constructor() {
     super();
-    this._config = { remove: true, add: true };
+    this._config = { remove: true, add: true, update: false };
     return this;
   }
 
   /**
-   * @typedef {Object} Book
-   * @property {string} market
-   * @property {Array} asks
-   * @property {Array} bids
-   *
-   * @param {Book} bookObj
-   * @returns {Array<Order>}
-   */
-  _formateBooks(bookObj) {
-    const bookArr = [];
-    bookObj.asks.forEach((ask) => {
-      bookArr.push({
-        id: ask[0],
-        price: ask[0],
-        amount: ask[1],
-        side: "asks",
-      });
-    });
-    bookObj.bids.forEach((bid) => {
-      bookArr.push({
-        id: bid[0],
-        price: bid[0],
-        amount: bid[1],
-        side: "bids",
-      });
-    });
-    return bookArr;
-  }
-
-  /**
    * @typedef {Object} Order
-   * @property {string} id = price time
+   * @property {string} id = price
    * @property {string} price
    * @property {string} amount
    * @property {string} side 'asks' || 'bids'
@@ -66,6 +36,7 @@ class OrderBook extends BookBase {
     return super._calculateDiffence(arrayA, arrayB, this.compareFunction);
   }
 
+  // ++ TODO: verify function works properly
   getSnapshot(instId) {
     const orderBooks = {
       market: instId.replace("-", "").toLowerCase(),
@@ -87,6 +58,7 @@ class OrderBook extends BookBase {
     return super.getDifference(instId);
   }
 
+  // ++ TODO: verify function works properly
   _trim(snapshot) {
     let asks = [];
     let bids = [];
@@ -97,8 +69,8 @@ class OrderBook extends BookBase {
         bids.push(d);
       }
     });
-    asks = asks.sort((a, b) => a.id - b.id).slice(0, 100);
-    bids = bids.sort((a, b) => b.id - a.id).slice(0, 100);
+    asks = asks.sort((a, b) => +a.price - +b.price).slice(0, 100);
+    bids = bids.sort((a, b) => +b.price - +a.price).slice(0, 100);
     return bids.concat(asks);
   }
 
@@ -119,11 +91,12 @@ class OrderBook extends BookBase {
     return success;
   }
 
+  /**
+   * @param {String} instId BTC-USDT
+   * @param {Array<Order>} data
+   */
   updateAll(instId, data) {
-    const { success, snapshot } = super.updateAll(
-      instId,
-      this._formateBooks(data)
-    );
+    const { success, snapshot } = super.updateAll(instId, data);
     if (success) {
       this._snapshot[instId] = this._trim(snapshot);
     }

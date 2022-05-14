@@ -11,6 +11,9 @@ const SafeMath = require("../libs/SafeMath");
 const Utils = require("../libs/Utils");
 const SupportedExchange = require("../constants/SupportedExchange");
 const { order } = require("../constants/Events");
+const OrderBook = require("../libs/Books/OrderBook");
+const TradeBook = require("../libs/Books/TradeBook");
+const TickerBook = require("../libs/Books/TickerBook");
 
 class ExchangeHub extends Bot {
   constructor() {
@@ -22,6 +25,16 @@ class ExchangeHub extends Bot {
     return super
       .init({ config, database, logger, i18n })
       .then(async () => {
+        this.tickerBook = new TickerBook();
+        this.orderBook = new OrderBook();
+        this.tradeBook = new TradeBook();
+        this.tidebitMarkets = this.getTidebitMarkets();
+        this.tickerBook.init(this.tidebitMarkets);
+        this.orderBook.init(this.tidebitMarkets);
+        this.tradeBook.init(this.tidebitMarkets);
+      })
+      .then(async () => {
+        this.currencies = this.tideBitConnector.currencies;
         this.okexConnector = new OkexConnector({ logger });
         await this.okexConnector.init({
           domain: this.config.okex.domain,
@@ -32,6 +45,9 @@ class ExchangeHub extends Bot {
           wssPublic: this.config.okex.wssPublic,
           wssPrivate: this.config.okex.wssPrivate,
           markets: this.config.markets,
+          tickerBook: this.tickerBook,
+          orderBook: this.orderBook,
+          tradeBook: this.tradeBook,
         });
         this.tideBitConnector = new TideBitConnector({ logger });
         await this.tideBitConnector.init({
@@ -47,15 +63,10 @@ class ExchangeHub extends Bot {
           redis: this.config.redis.domain,
           markets: this.config.markets,
           database: database,
+          tickerBook: this.tickerBook,
+          orderBook: this.orderBook,
+          tradeBook: this.tradeBook,
         });
-      })
-      .then(async () => {
-        this.tidebitMarkets = this.getTidebitMarkets();
-        this.currencies = this.tideBitConnector.currencies;
-        // this.logger.log(
-        //   `[${this.constructor.name}] this.currencies`,
-        //   this.currencies
-        // );
         return this;
       });
   }

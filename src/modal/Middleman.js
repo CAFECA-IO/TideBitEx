@@ -182,7 +182,7 @@ class Middleman {
 
   updateUpdatedTradesQueue = (updatedTrades) => {
     let _updatedTrades = updatedTrades.map((t) => {
-      let index = this.updateTradesQueue.findIndex((_t) => _t.tid === t.tid);
+      let index = this.updateTradesQueue.findIndex((_t) => _t.id === t.id);
       if (index !== -1) this.updateTradesQueue.splice(index, 1);
       return { ...t, update: false };
     });
