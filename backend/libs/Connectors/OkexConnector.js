@@ -1,10 +1,13 @@
 const axios = require("axios");
 const crypto = require("crypto");
-const dvalue = require("dvalue");
+// const dvalue = require("dvalue");
 
 const ResponseFormat = require("../ResponseFormat");
 const Codes = require("../../constants/Codes");
 const ConnectorBase = require("../ConnectorBase");
+const OrderBook = require("../Books/OrderBook");
+const TradeBook = require("../Books/TradeBook");
+const TickerBook = require("../Books/TickerBook");
 const WebSocket = require("../WebSocket");
 const EventBus = require("../EventBus");
 const Events = require("../../constants/Events");
