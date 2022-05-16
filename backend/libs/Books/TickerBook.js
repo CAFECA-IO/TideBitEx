@@ -7,8 +7,8 @@ class TickerBook extends BookBase {
     this.name = `TickerBook`;
     this._config = { remove: false, add: false, update: true };
     this.markets.forEach((market) => {
-      this._snapshot[market.instId] = { id: market.id };
-      this._difference[market.instId] = { id: market.id };
+      this._snapshot[market.instId] = null;
+      this._difference[market.instId] = null;
     });
     return this;
   }
@@ -38,12 +38,12 @@ class TickerBook extends BookBase {
    */
   _compareFunction(valueA, valueB) {
     return (
-      SafeMath.eq(valueA.id, valueB.id) &&
-      (!SafeMath.eq(valueA.last, valueB.last) ||
-        !SafeMath.eq(valueA.open, valueB.open24h) ||
-        !SafeMath.eq(valueA.high, valueB.high24h) ||
-        !SafeMath.eq(valueA.low, valueB.low24h) ||
-        !SafeMath.eq(valueA.volume, valueB.vol24h))
+      SafeMath.eq(valueA?.id, valueB.id) &&
+      (!SafeMath.eq(valueA?.last, valueB.last) ||
+        !SafeMath.eq(valueA?.open, valueB.open24h) ||
+        !SafeMath.eq(valueA?.high, valueB.high24h) ||
+        !SafeMath.eq(valueA?.low, valueB.low24h) ||
+        !SafeMath.eq(valueA?.volume, valueB.vol24h))
     );
   }
 
