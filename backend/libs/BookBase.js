@@ -134,7 +134,7 @@ class BookBase {
   // ++ TODO: verify function works properly
   updateAll(instId, data) {
     try {
-      this._difference[instId] = this._calculateDiffence(
+      this._difference[instId] = this._calculateDifference(
         this._snapshot[instId],
         data
       );
