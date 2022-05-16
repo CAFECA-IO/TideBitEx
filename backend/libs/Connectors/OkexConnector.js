@@ -64,7 +64,6 @@ class OkexConnector extends ConnectorBase {
       heartBeat: HEART_BEAT_TIME,
     });
     this.orderBook = orderBook;
-    this.logger.log(` this.orderbook`, this.orderbook);
     this.tickerBook = tickerBook;
     this.tradeBook = tradeBook;
     return this;
@@ -299,7 +298,7 @@ class OkexConnector extends ConnectorBase {
         // orderBooks["market"] = instId.replace("-", "").toLowerCase();
         // orderBooks["asks"] = data.asks.map((ask) => [ask[0], ask[1]]);
         // orderBooks["bids"] = data.bids.map((bid) => [bid[0], bid[1]]);
-        this.orderbook?.updateAll(instId, data);
+        this.orderBook.updateAll(instId, data);
       } catch (error) {
         this.logger.error(error);
         let message = error.message;

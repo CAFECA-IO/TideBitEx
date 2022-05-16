@@ -63,7 +63,7 @@ class TickerBook extends BookBase {
   }
 
   updateAll(tickers) {
-    this.logger.log(`[${this.constructor.name}] updateAll tickers`, tickers);
+    // this.logger.log(`[${this.constructor.name}] updateAll tickers`, tickers);
     try {
       Object.values(tickers).forEach((ticker) => {
         this._snapshot[ticker.instId] = ticker;
