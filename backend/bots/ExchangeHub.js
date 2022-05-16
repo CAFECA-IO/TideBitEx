@@ -34,7 +34,6 @@ class ExchangeHub extends Bot {
         this.tradeBook.init(this.tidebitMarkets);
       })
       .then(async () => {
-        this.currencies = this.tideBitConnector.currencies;
         this.okexConnector = new OkexConnector({ logger });
         await this.okexConnector.init({
           domain: this.config.okex.domain,
@@ -67,6 +66,7 @@ class ExchangeHub extends Bot {
           orderBook: this.orderBook,
           tradeBook: this.tradeBook,
         });
+        this.currencies = this.tideBitConnector.currencies;
         return this;
       });
   }
