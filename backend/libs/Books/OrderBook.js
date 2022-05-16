@@ -95,10 +95,10 @@ class OrderBook extends BookBase {
   }
 
   // ++ TODO: verify function works properly
-  _trim(snapshot) {
+  _trim(data) {
     let asks = [];
     let bids = [];
-    snapshot.forEach((d) => {
+    data.forEach((d) => {
       if (d.side === "asks") {
         asks.push(d);
       } else if (d.side === "bids") {
@@ -119,36 +119,22 @@ class OrderBook extends BookBase {
    * @param {String} instId BTC-USDT
    * @param {Difference} difference
    */
-  updateByDifference(instId, difference) {
-    const { success, snapshot } = super.updateByDifference(instId, difference);
-    if (success) {
-      this._snapshot[instId] = this._trim(snapshot);
-    }
-    return success;
-  }
+  //  updateByDifference(instId, difference) {
+  //   try {
+  //     super.updateByDifference(instId, difference);
+  //     this._snapshot[instId] = this._trim(this._snapshot[instId]);
+  //     return true;
+  //   } catch (error) {
+  //     return false;
+  //   }
+  // }
 
   /**
    * @param {String} instId BTC-USDT
    * @param {Array<Order>} data
    */
   updateAll(instId, data) {
-    this.logger.log(`[${this.constructor.name}] updateAll[${instId}]`);
-    const { success, snapshot } = super.updateAll(
-      instId,
-      this._formateBooks(data)
-    );
-    if (success) {
-      this._snapshot[instId] = this._trim(snapshot);
-    }
-    this.logger.log(
-      `[${this.constructor.name}] updateAll[${instId}]`,
-      this._snapshot[instId]
-    );
-    this.logger.log(
-      `[${this.constructor.name}] updateAll[${instId}]`,
-      this._difference[instId]
-    );
-    return success;
+    return super.updateAll(instId, this._formateBooks(data));
   }
 }
 

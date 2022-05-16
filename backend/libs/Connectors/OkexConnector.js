@@ -400,6 +400,10 @@ class OkexConnector extends ConnectorBase {
         }
         // ++ TODO: verify function works properly
         const trades = res.data.data;
+        this.logger.log(
+          `[${this.constructor.name}] getTrades trades[${instId}]`,
+          trades
+        );
         this.tradeBook.updateAll(instId, trades);
         this.fetchedTrades[instId] = true;
       } catch (error) {

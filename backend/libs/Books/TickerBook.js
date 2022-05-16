@@ -52,14 +52,10 @@ class TickerBook extends BookBase {
       if (this._compareFunction(this._snapshot[instId], ticker)) {
         this._difference[instId] = ticker;
         this._snapshot[instId] = ticker;
-        return {
-          success: true,
-          snapshot: this._snapshot[instId],
-          difference: this._difference[instId],
-        };
+        return true;
       }
     } catch (error) {
-      return { success: false };
+      return false;
     }
   }
 
@@ -74,9 +70,9 @@ class TickerBook extends BookBase {
         `[${this.constructor.name}] updateAll this._snapshot`,
         this._snapshot
       );
-      return { success: true };
+      return true;
     } catch (error) {
-      return { success: false };
+      return false;
     }
   }
 }

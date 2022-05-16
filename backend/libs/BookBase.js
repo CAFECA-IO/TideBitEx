@@ -82,6 +82,9 @@ class BookBase {
       ? SafeMath.eq(str1, str2)
       : str1 === str2;
   }
+  _trim(data) {
+    return data;
+  }
 
   /**
    *
@@ -106,15 +109,11 @@ class BookBase {
           )
           .concat(difference.add);
       }
-      this._snapshot[instId] = updateSnapshot;
+      this._snapshot[instId] = this._trim(updateSnapshot);
       this._difference[instId] = difference;
-      return {
-        success: true,
-        snapshot: this._snapshot[instId],
-        difference: this._difference[instId],
-      };
+      return true;
     } catch (error) {
-      return { success: false };
+      return false;
     }
   }
 
@@ -125,19 +124,32 @@ class BookBase {
    */
   // ++ TODO: verify function works properly
   updateAll(instId, data) {
+    this.logger.log(
+      `[${this.constructor.name}] updateAll[${instId}]`,
+      this._snapshot[instId]
+    );
+    this.logger.log(`[${this.constructor.name}] updateAll[${instId}]`, data);
     try {
       this._difference[instId] = this._calculateDifference(
         this._snapshot[instId],
         data
       );
-      this._snapshot[instId] = data;
-      return {
-        success: true,
-        snapshot: this._snapshot[instId],
-        difference: this._difference[instId],
-      };
+      this.logger.log(
+        `[${this.constructor.name}] updateAll[${instId}]`,
+        this._difference[instId]
+      );
+      this._snapshot[instId] = this._trim(data);
+      this.logger.log(
+        `[${this.constructor.name}] updateAll[${instId}]`,
+        this._snapshot[instId]
+      );
+      // return {
+      //   success: true,
+      //   snapshot: this._snapshot[instId],
+      //   difference: this._difference[instId],
+      // };
     } catch (error) {
-      return { success: false };
+      return false;
     }
   }
 }
