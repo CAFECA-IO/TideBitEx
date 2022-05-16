@@ -144,11 +144,11 @@ class BookBase {
           )
           .concat(difference.add);
       }
-      this.logger.log(
-        `[${this.constructor.name}] updateByDifference[${instId}] updateSnapshot`,
-        updateSnapshot
-      );
       this._snapshot[instId] = this._trim(updateSnapshot);
+      this.logger.log(
+        `[${this.constructor.name}] updateByDifference[${instId}]  this._snapshot[instId]`,
+         this._snapshot[instId]
+      );
       this._difference[instId] = difference;
       return true;
     } catch (error) {
