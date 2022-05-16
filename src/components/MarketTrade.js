@@ -239,7 +239,7 @@ const TradePannel = (props) => {
           )
         ) {
           setBuyErrorMessage(
-            `Available ${selectedTicker?.quote_unit.toUpperCase()} is not enough`
+            `Available ${selectedTicker?.quote_unit?.toUpperCase()} is not enough`
           );
         } else setBuyErrorMessage(null);
       } else {
@@ -273,7 +273,7 @@ const TradePannel = (props) => {
           setSellErrorMessage(`Minimum order size is ${selectedTicker?.minSz}`);
         if (SafeMath.gt(value, baseCcyAvailable)) {
           setSellErrorMessage(
-            `Available ${selectedTicker?.base_unit.toUpperCase()} is not enough`
+            `Available ${selectedTicker?.base_unit?.toUpperCase()} is not enough`
           );
         } else setSellErrorMessage(null);
       } else {
@@ -420,7 +420,7 @@ const TradePannel = (props) => {
     ) {
       let quoteCcyAccount = storeCtx.accounts?.find((account) => {
         return (
-          account.currency === storeCtx.selectedTicker?.quote_unit.toUpperCase()
+          account.currency === storeCtx.selectedTicker?.quote_unit?.toUpperCase()
         );
       });
 
@@ -429,7 +429,7 @@ const TradePannel = (props) => {
       }
       let baseCcyAccount = storeCtx.accounts?.find(
         (account) =>
-          account.currency === storeCtx.selectedTicker?.base_unit.toUpperCase()
+          account.currency === storeCtx.selectedTicker?.base_unit?.toUpperCase()
       );
       if (baseCcyAccount) {
         setBaseCcyAvailable(baseCcyAccount?.balance);

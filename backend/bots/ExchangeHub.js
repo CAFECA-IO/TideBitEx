@@ -10,17 +10,35 @@ const Events = require("../constants/Events");
 const SafeMath = require("../libs/SafeMath");
 const Utils = require("../libs/Utils");
 const SupportedExchange = require("../constants/SupportedExchange");
-const { order } = require("../constants/Events");
+const OrderBook = require("../libs/Books/OrderBook");
+const TradeBook = require("../libs/Books/TradeBook");
+const TickerBook = require("../libs/Books/TickerBook");
 
 class ExchangeHub extends Bot {
   constructor() {
     super();
     this.name = "ExchangeHub";
+    this.fetchedTickers = false;
   }
 
   init({ config, database, logger, i18n }) {
     return super
       .init({ config, database, logger, i18n })
+      .then(async () => {
+        this.tidebitMarkets = this.getTidebitMarkets();
+        this.tickerBook = new TickerBook({
+          logger,
+          markets: this.tidebitMarkets,
+        });
+        this.orderBook = new OrderBook({
+          logger,
+          markets: this.tidebitMarkets,
+        });
+        this.tradeBook = new TradeBook({
+          logger,
+          markets: this.tidebitMarkets,
+        });
+      })
       .then(async () => {
         this.okexConnector = new OkexConnector({ logger });
         await this.okexConnector.init({
@@ -32,6 +50,9 @@ class ExchangeHub extends Bot {
           wssPublic: this.config.okex.wssPublic,
           wssPrivate: this.config.okex.wssPrivate,
           markets: this.config.markets,
+          tickerBook: this.tickerBook,
+          orderBook: this.orderBook,
+          tradeBook: this.tradeBook,
         });
         this.tideBitConnector = new TideBitConnector({ logger });
         await this.tideBitConnector.init({
@@ -47,15 +68,11 @@ class ExchangeHub extends Bot {
           redis: this.config.redis.domain,
           markets: this.config.markets,
           database: database,
+          tickerBook: this.tickerBook,
+          orderBook: this.orderBook,
+          tradeBook: this.tradeBook,
         });
-      })
-      .then(async () => {
-        this.tidebitMarkets = this.getTidebitMarkets();
         this.currencies = this.tideBitConnector.currencies;
-        // this.logger.log(
-        //   `[${this.constructor.name}] this.currencies`,
-        //   this.currencies
-        // );
         return this;
       });
   }
@@ -137,6 +154,7 @@ class ExchangeHub extends Bot {
 
   async getTicker({ params, query }) {
     const instId = this._findInstId(query.id);
+    this.logger.log(`[${this.constructor.name}] getTicker`, instId);
     const index = this.tidebitMarkets.findIndex(
       (market) => instId === market.instId
     );
@@ -170,62 +188,74 @@ class ExchangeHub extends Bot {
   // account api end
   // market api
   async getTickers({ query }) {
-    let filteredOkexTickers,
-      filteredTBTickers = {};
-    this.logger.debug(
-      `*********** [${this.name}] getTickers [START] ************`
-    );
-    try {
-      const okexRes = await this.okexConnector.router("getTickers", {
-        query,
-        optional: { mask: this.tidebitMarkets },
-      });
-      if (okexRes.success) {
-        filteredOkexTickers = okexRes.payload;
-      } else {
-        this.logger.error(okexRes);
+    if (!this.fetchedTickers) {
+      let filteredOkexTickers,
+        filteredTBTickers = {};
+      this.logger.debug(
+        `*********** [${this.name}] getTickers [START] ************`
+      );
+      try {
+        const okexRes = await this.okexConnector.router("getTickers", {
+          query,
+          optional: { mask: this.tidebitMarkets },
+        });
+        if (okexRes.success) {
+          filteredOkexTickers = okexRes.payload;
+        } else {
+          this.logger.error(okexRes);
+          return new ResponseFormat({
+            message: "",
+            code: Codes.API_UNKNOWN_ERROR,
+          });
+        }
+      } catch (error) {
+        this.logger.error(error);
         return new ResponseFormat({
-          message: "",
+          message: error.stack,
           code: Codes.API_UNKNOWN_ERROR,
         });
       }
-    } catch (error) {
-      this.logger.error(error);
-      return new ResponseFormat({
-        message: error.stack,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
-    }
-    // this.logger.log(`this.tidebitMarkets`, this.tidebitMarkets);
-    try {
-      const tideBitOnlyMarkets = Utils.marketFilterExclude(
-        Object.values(filteredOkexTickers),
-        this.tidebitMarkets
-      );
-      // this.logger.log(`tideBitOnlyMarkets`, tideBitOnlyMarkets);
-      const tBTickersRes = await this.tideBitConnector.router("getTickers", {
-        optional: { mask: tideBitOnlyMarkets },
-      });
-      filteredTBTickers = tBTickersRes.payload;
-      // this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
-      // this.logger.log(`filteredTBTickers`, filteredTBTickers);
-      this.logger.debug(
-        `*********** [${this.name}] getTickers [END] ************`
-      );
-    } catch (error) {
-      this.logger.error(error);
-      return new ResponseFormat({
-        message: error.stack,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
+      // this.logger.log(`this.tidebitMarkets`, this.tidebitMarkets);
+      try {
+        const tideBitOnlyMarkets = Utils.marketFilterExclude(
+          Object.values(filteredOkexTickers),
+          this.tidebitMarkets
+        );
+        // this.logger.log(`tideBitOnlyMarkets`, tideBitOnlyMarkets);
+        const tBTickersRes = await this.tideBitConnector.router("getTickers", {
+          optional: { mask: tideBitOnlyMarkets },
+        });
+        if (tBTickersRes.success) {
+          filteredOkexTickers = tBTickersRes.payload;
+        } else {
+          this.logger.error(tBTickersRes);
+          return new ResponseFormat({
+            message: "",
+            code: Codes.API_UNKNOWN_ERROR,
+          });
+        }
+        // this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
+        // this.logger.log(`filteredTBTickers`, filteredTBTickers);
+        this.logger.debug(
+          `*********** [${this.name}] getTickers [END] ************`
+        );
+      } catch (error) {
+        this.logger.error(error);
+        return new ResponseFormat({
+          message: error.stack,
+          code: Codes.API_UNKNOWN_ERROR,
+        });
+      }
+      this.fetchedTickers = true;
     }
     return new ResponseFormat({
       message: "getTickers",
-      payload: { ...filteredOkexTickers, ...filteredTBTickers },
+      payload: this.tickerBook.getSnapshot(),
     });
   }
 
   async getOrderBooks({ header, params, query }) {
+    this.logger.log(`[${this.constructor.name}] getOrderBooks`, query);
     const instId = this._findInstId(query.id);
     switch (this._findSource(instId)) {
       case SupportedExchange.OKEX:

@@ -5,6 +5,7 @@ class Middleman {
   constructor() {
     this.communicator = new Communicator();
     this.tickers = [];
+    this.updateTradesQueue = [];
   }
 
   updateSelectedTicker(ticker) {
@@ -18,16 +19,12 @@ class Middleman {
   }
 
   updateTickers(tickers) {
-    // console.log(`************* updateTickers [START]***************`);
     let updateTicker,
       updateTickers = this.tickers.map((t) => ({ ...t, update: false }));
-    // console.log(`updateTickers`, updateTickers);
     Object.values(tickers).forEach(async (t) => {
       const i = this.tickers.findIndex((ticker) => ticker.instId === t.instId);
       if (i === -1) {
         updateTickers.push({ ...t, update: true });
-        // console.log(`updateTickers.push`, { ...t, update: true });
-        // console.log(`updateTickers`, updateTickers);
       } else {
         const ticker = {
           ...updateTickers[i],
@@ -44,13 +41,9 @@ class Middleman {
         if (!!this.selectedTicker && t.instId === this.selectedTicker?.instId) {
           updateTicker = ticker;
         }
-        // console.log(`updateTickers[i]`, ticker);
-        // console.log(`updateTickers`, updateTickers);
       }
     });
-
     this.tickers = updateTickers;
-    // console.log(`************* updateTickers [END]***************`);
     return {
       updateTicker: updateTicker,
       updateTickers,
@@ -97,50 +90,49 @@ class Middleman {
     return this.tickers;
   }
 
-  handleBooks() {
+  handleBooks(rawBooks) {
     let totalAsks = "0",
       totalBids = "0",
       asks = [],
       bids = [],
       askPx,
       bidPx;
-
-    this.rawBooks.asks
-      ?.sort((a, b) => +a[0] - +b[0])
-      ?.forEach((d, i) => {
-        totalAsks = SafeMath.plus(d[1], totalAsks);
-        let ask = {
-          price: d[0],
-          amount: d[1],
-          total: totalAsks,
-          update: !!d[2],
-        };
-        if (d[0] === askPx) {
-          asks[asks.length - 1] = ask;
-        } else {
-          askPx = d[0];
-          asks.push(ask);
-        }
-        if (this.rawBooks.asks[i][2]) this.rawBooks.asks[i].splice(2, 1);
-      });
-    this.rawBooks.bids
-      ?.sort((a, b) => +b[0] - +a[0])
-      ?.forEach((d, i) => {
-        totalBids = SafeMath.plus(d[1], totalBids);
-        let bid = {
-          price: d[0],
-          amount: d[1],
-          total: totalBids,
-          update: !!d[2],
-        };
-        if (d[0] === bidPx) {
-          bids[bids.length - 1] = bid;
-        } else {
-          bidPx = d[0];
-          bids.push(bid);
-        }
-        if (this.rawBooks.bids[i][2]) this.rawBooks.bids[i].splice(2, 1);
-      });
+    // asks is increase
+    let _asks = rawBooks.asks.splice(0, 100);
+    let _bids = rawBooks.bids.splice(0, 100);
+    _asks?.forEach((d, i) => {
+      totalAsks = SafeMath.plus(d[1], totalAsks);
+      let ask = {
+        price: d[0],
+        amount: d[1],
+        total: totalAsks,
+        update: !!d[2],
+      };
+      if (d[0] === askPx) {
+        asks[asks.length - 1] = ask;
+      } else {
+        askPx = d[0];
+        asks.push(ask);
+      }
+      if (_asks[i][2]) _asks[i].splice(2, 1);
+    });
+    // bids is decrease
+    _bids?.forEach((d, i) => {
+      totalBids = SafeMath.plus(d[1], totalBids);
+      let bid = {
+        price: d[0],
+        amount: d[1],
+        total: totalBids,
+        update: !!d[2],
+      };
+      if (d[0] === bidPx) {
+        bids[bids.length - 1] = bid;
+      } else {
+        bidPx = d[0];
+        bids.push(bid);
+      }
+      if (_bids[i][2]) _bids[i].splice(2, 1);
+    });
     const updateBooks = {
       asks,
       bids,
@@ -150,128 +142,61 @@ class Middleman {
     return updateBooks;
   }
 
-  updateBooks(data) {
-    // console.log(`^^^^^^^^ Events.update ^^^^^^^^`);
-    // console.log(`data`, data);
-    // console.log(`^^^^^^^^ Events.update ^^^^^^^^`);
-    if (data.market !== this.selectedTicker.market) return;
-    if (data.updateAll) {
-      this.rawBooks = {
-        asks: data.asks.map((ask) => [...ask, true]),
-        bids: data.bids.map((bid) => [...bid, true]),
-      };
-      console.log(`updateAll this.rawBooks`, this.rawBooks);
-      this.books = this.handleBooks();
-    } else {
-      const updateRawBooks = {
-        asks: this.rawBooks?.asks
-          ? this.rawBooks.asks.map((ask) => [...ask])
-          : [],
-        bids: this.rawBooks?.bids
-          ? this.rawBooks.bids.map((bid) => [...bid])
-          : [],
-      };
-      data.asks.forEach((ask) => {
-        let index,
-          updateAsk = ask;
-        updateAsk.push(true);
-        index = updateRawBooks.asks.findIndex((d) => SafeMath.eq(d[0], ask[0]));
-        if (index === -1) {
-          if (SafeMath.gt(ask[1], "0")) updateRawBooks.asks.push(updateAsk);
-        } else {
-          if (SafeMath.gt(ask[1], "0")) {
-            updateRawBooks.asks[index] = updateAsk;
-          } else updateRawBooks.asks.splice(index, 1);
-        }
-      });
-      data.bids.forEach((bid) => {
-        let index,
-          updateBid = bid;
-        updateBid.push(true);
-        index = updateRawBooks.bids.findIndex((d) => SafeMath.eq(d[0], bid[0]));
-        if (index === -1) {
-          if (SafeMath.gt(bid[1], "0")) updateRawBooks.bids.push(updateBid);
-        } else {
-          if (SafeMath.gt(bid[1], "0")) {
-            updateRawBooks.bids[index] = updateBid;
-          } else updateRawBooks.bids.splice(index, 1);
-        }
-      });
-      this.rawBooks = updateRawBooks;
-      //  console.log(`updateBooks this.rawBooks`, this.rawBooks);
-      this.books = this.handleBooks();
-    }
-
-    return this.books;
+  updateBooks(rawBooks) {
+    if (rawBooks.market !== this.selectedTicker.market) return;
+    const books = this.handleBooks(rawBooks);
+    return books;
   }
 
   async getBooks(id, sz) {
     try {
       const rawBooks = await this.communicator.books(id, sz);
-      this.rawBooks = rawBooks;
-      // console.log(`getBooks this.rawBooks`, this.rawBooks);
-      this.books = this.handleBooks();
-      return this.books;
+      const books = this.handleBooks(rawBooks);
+      return books;
     } catch (error) {
       throw error;
     }
   }
 
-  updateTrades = (updateData, resolution) => {
-    // console.log(`***********Events.trades************`);
-    // console.log(`updateData`, updateData);
-    // console.log(`resolution`, resolution);
-    // console.log(`***********Events.trades************`);
-    const _updateTrades = updateData
-      .filter((trade) => trade.market === this.selectedTicker.market)
-      .map((trade, i) => ({
-        ...trade,
-        side:
-          i === updateData.length - 1
-            ? !this.trades[0]
-              ? SafeMath.gte(trade.price, this.trades[0].price)
-                ? "up"
-                : "down"
-              : "up"
-            : SafeMath.gte(trade.px, updateData[i + 1].px)
-            ? "up"
-            : "down",
-        update: true,
-      }))
-      .concat(this.trades || []);
-    this.trades = _updateTrades;
-    // console.log(
-    //   `updateTrades _updateTrades[${_updateTrades.length}]`,
-    //   _updateTrades
-    // );
-    const { candles, volumes } = this.updateCandles(_updateTrades, resolution);
-    return { trades: _updateTrades, candles, volumes };
+  updateAllTrades = (updateData) => {
+    this.trades = updateData.trades;
   };
 
-  resetTrades = () => {
-    this.trades = this.trades.map((trade) => ({ ...trade, update: false }));
+  updateTrades = (updateData) => {
+    if (updateData.market !== this.selectedTicker.market) return;
+    const updateTrades = updateData.trades;
+    this.updateTradesQueue = updateTrades.concat(this.updateTradesQueue);
   };
 
-  async getTrades(id, limit, resolution) {
+  getUpdateTrades = () => {
+    let updatedTrades = this.updateTradesQueue.map((t) => ({
+      ...t,
+      update: true,
+    }));
+
+    return {
+      updateTrades: updatedTrades.concat(this.trades).slice(0, 100),
+      updatedTrades,
+    };
+  };
+
+  updateUpdatedTradesQueue = (updatedTrades) => {
+    let _updatedTrades = updatedTrades.map((t) => {
+      let index = this.updateTradesQueue.findIndex((_t) => _t.id === t.id);
+      if (index !== -1) this.updateTradesQueue.splice(index, 1);
+      return { ...t, update: false };
+    });
+    this.trades = _updatedTrades.concat(this.trades).slice(0, 100);
+  };
+
+  async getTrades(id, limit) {
     try {
+      this.updateTradesQueue = [];
       const trades = await this.communicator.trades(id, limit);
       if (trades) {
-        this.trades = trades.reduce(
-          (prev, curr, i) => [
-            ...prev,
-            i === 0
-              ? { ...curr, trend: 1 }
-              : {
-                  ...curr,
-                  trend: SafeMath.gte(curr.px, prev[prev.length - 1].px)
-                    ? 1
-                    : 0,
-                },
-          ],
-          []
-        );
-        const { candles, volumes } = this.updateCandles(trades, resolution);
-        return { trades, candles, volumes };
+        this.trades = trades
+        // const { candles, volumes } = this.updateCandles(trades, resolution);
+        return trades;
       }
     } catch (error) {
       throw error;

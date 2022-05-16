@@ -44,10 +44,10 @@ const MarketHistory = (props) => {
       <ul className="market-history__title flex-row table__header">
         <li>{t("time")}</li>
         <li>{`${t("price")}(${
-          storeCtx?.selectedTicker?.quote_unit.toUpperCase() || "--"
+          storeCtx?.selectedTicker?.quote_unit?.toUpperCase() || "--"
         })`}</li>
         <li>{`${t("amount")}(${
-          storeCtx?.selectedTicker?.base_unit.toUpperCase() || "--"
+          storeCtx?.selectedTicker?.base_unit?.toUpperCase() || "--"
         })`}</li>
       </ul>
       <ul className="market-history__list">

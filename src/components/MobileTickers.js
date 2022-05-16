@@ -13,7 +13,7 @@ const TickerTile = (props) => {
   return (
     <li
       onClick={(_) => {
-        storeCtx.selectTickerHandler(props.ticker);
+        storeCtx.selectTickerHandler(props.ticker.market);
         props.closeDialogHandler();
       }}
       className={`mobile-tickers__tile ${
@@ -29,7 +29,7 @@ const TickerTile = (props) => {
       <div className="mobile-tickers__detail">
         <div className="mobile-tickers__name">{props.ticker.name}</div>
         <div className="mobile-tickers__currency">
-          {t(props.ticker?.base_unit).toUpperCase()}
+          {t(props.ticker?.base_unit)?.toUpperCase()}
         </div>
       </div>
       <div className="mobile-tickers__price">

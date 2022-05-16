@@ -133,9 +133,9 @@ export const AccountList = (props) => {
           storeCtx.accounts
             .filter(
               (account) =>
-                storeCtx.selectedTicker?.base_unit.toUpperCase() ===
+                storeCtx.selectedTicker?.base_unit?.toUpperCase() ===
                   account.currency ||
-                storeCtx.selectedTicker?.quote_unit.toUpperCase() ===
+                storeCtx.selectedTicker?.quote_unit?.toUpperCase() ===
                   account.currency
             )
             .map((account) => <AccountTile account={account} />)}

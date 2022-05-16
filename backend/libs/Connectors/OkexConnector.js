@@ -1,6 +1,6 @@
 const axios = require("axios");
 const crypto = require("crypto");
-const dvalue = require("dvalue");
+// const dvalue = require("dvalue");
 
 const ResponseFormat = require("../ResponseFormat");
 const Codes = require("../../constants/Codes");
@@ -16,14 +16,25 @@ const { waterfallPromise } = require("../Utils");
 const HEART_BEAT_TIME = 25000;
 
 class OkexConnector extends ConnectorBase {
+  _tickersUpdateInterval = 0;
+  _booksUpdateInterval = 300;
+  _tradesUpdateInterval = 300;
+
+  _tickersTimestamp = 0;
+  _booksTimestamp = 0;
+  _tradesTimestamp = 0;
+
+  tickers = {};
+  // okexWsChannels = {};
+  instIds = [];
+
+  fetchedTrades = {};
+  fetchedBook = {};
+
   constructor({ logger }) {
     super({ logger });
     this.websocket = new WebSocket({ logger });
     this.websocketPrivate = new WebSocket({ logger });
-    this.tickers = {};
-    this.trades = [];
-    this.books = null;
-    this.candleChannel = null;
     return this;
   }
 
@@ -36,6 +47,9 @@ class OkexConnector extends ConnectorBase {
     wssPublic,
     wssPrivate,
     markets,
+    tickerBook,
+    orderBook,
+    tradeBook,
   }) {
     await super.init();
     this.domain = domain;
@@ -44,18 +58,27 @@ class OkexConnector extends ConnectorBase {
     this.passPhrase = passPhrase;
     this.brokerId = brokerId;
     this.markets = markets;
-    this.okexWsChannels = {};
     await this.websocket.init({ url: wssPublic, heartBeat: HEART_BEAT_TIME });
     await this.websocketPrivate.init({
       url: wssPrivate,
       heartBeat: HEART_BEAT_TIME,
     });
+    this.orderBook = orderBook;
+    this.tickerBook = tickerBook;
+    this.tradeBook = tradeBook;
     return this;
   }
 
   async start() {
     this._okexWsEventListener();
-    this._subscribeInstruments();
+    // this._subscribeInstruments();
+    Object.keys(this.markets).forEach((key) => {
+      if (this.markets[key] === "OKEx") {
+        const instId = key.replace("tb", "");
+        this.instIds.push(instId);
+      }
+    });
+    this._subscribeTickers(this.instIds);
     this._wsPrivateLogin();
   }
 
@@ -117,7 +140,6 @@ class OkexConnector extends ConnectorBase {
           code: Codes.THIRD_PARTY_API_ERROR,
         });
       }
-      this.logger.log("res.data.data", res.data.data);
       const payload = res.data.data.map((data) => {
         const details = data.details.map((dtl) => {
           return {
@@ -174,42 +196,10 @@ class OkexConnector extends ConnectorBase {
         });
       }
       const [data] = res.data.data;
-      const change = SafeMath.minus(data.last, data.open24h);
-      const changePct = SafeMath.gt(data.open24h, "0")
-        ? SafeMath.div(change, data.open24h)
-        : SafeMath.eq(change, "0")
-        ? "0"
-        : "1";
       const ticker = {};
-      ticker[data.instId.replace("-", "").toLowerCase()] = {
-        market: data.instId.replace("-", "").toLowerCase(),
-        name: data.instId.replace("-", "/"),
-        base_unit: data.instId.split("-")[0].toLowerCase(),
-        quote_unit: data.instId.split("-")[1].toLowerCase(),
-        group: optional.market.group,
-        pricescale: optional.market.price_group_fixed,
-        sell: data.askPx,
-        buy: data.bidPx,
-        instId: data.instId,
-        last: data.last,
-        change,
-        changePct,
-        open: data.open24h,
-        high: data.high24h,
-        low: data.low24h,
-        volume: data.vol24h,
-        at: parseInt(data.ts),
-        source: SupportedExchange.OKEX,
-        ticker: {
-          buy: data.bidPx,
-          sell: data.askPx,
-          low: data.low24h,
-          high: data.high24h,
-          last: data.last,
-          open: data.open24h,
-          vol: data.vol24h,
-        },
-      };
+      ticker[data.instId.replace("-", "").toLowerCase()] =
+        this._formateTicker(data);
+      this.logger.log(`[${this.constructor.name}] getTicker`, ticker);
       return new ResponseFormat({
         message: "getTicker",
         payload: ticker,
@@ -256,54 +246,18 @@ class OkexConnector extends ConnectorBase {
       }
       const defaultObj = {};
       const tickers = res.data.data.reduce((prev, data) => {
-        const change = SafeMath.minus(data.last, data.open24h);
-        const changePct = SafeMath.gt(data.open24h, "0")
-          ? SafeMath.div(change, data.open24h)
-          : SafeMath.eq(change, "0")
-          ? "0"
-          : "1";
-        prev[data.instId.replace("-", "").toLowerCase()] = {
-          market: data.instId.replace("-", "").toLowerCase(),
-          name: data.instId.replace("-", "/"),
-          base_unit: data.instId.split("-")[0].toLowerCase(),
-          quote_unit: data.instId.split("-")[1].toLowerCase(),
-          group:
-            data.instId.split("-")[1].toLowerCase().includes("usd") &&
-            data.instId.split("-")[1].toLowerCase().length > 3
-              ? "usdx"
-              : data.instId.split("-")[1].toLowerCase(),
-          sell: data.askPx,
-          buy: data.bidPx,
-          instId: data.instId,
-          last: data.last,
-          change,
-          changePct,
-          open: data.open24h,
-          high: data.high24h,
-          low: data.low24h,
-          volume: data.vol24h,
-          at: parseInt(data.ts),
-          source: SupportedExchange.OKEX,
-          ticker: {
-            buy: data.bidPx,
-            sell: data.askPx,
-            low: data.low24h,
-            high: data.high24h,
-            last: data.last,
-            open: data.open24h,
-            vol: data.vol24h,
-          },
-        };
+        const id = data.instId.replace("-", "").toLowerCase();
+        prev[id] = this._formateTicker(data);
         return prev;
       }, defaultObj);
-      this.tickers = Utils.tickersFilterInclude(optional.mask, tickers);
-      // this.logger.log(` this.tickers`, this.tickers);
-      // this.logger.log(
-      //   `---------- [${this.constructor.name}]  getTickers [END] ----------`
-      // );
+      const filteredTickers = Utils.tickersFilterInclude(
+        optional.mask,
+        tickers
+      );
+      this.tickerBook.updateAll(filteredTickers);
       return new ResponseFormat({
-        message: "getTickers",
-        payload: this.tickers,
+        message: "getTickers from OKEx",
+        payload: filteredTickers,
       });
     } catch (error) {
       this.logger.error(error);
@@ -318,9 +272,6 @@ class OkexConnector extends ConnectorBase {
   }
 
   async getOrderBooks({ query }) {
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  getOrderBooks [START] ----------`
-    // );
     const method = "GET";
     const path = "/api/v5/market/books";
     const { instId, sz } = query;
@@ -329,45 +280,50 @@ class OkexConnector extends ConnectorBase {
     if (instId) arr.push(`instId=${instId}`);
     if (sz) arr.push(`sz=${sz}`);
     const qs = !!arr.length ? `?${arr.join("&")}` : "";
-
-    try {
-      const res = await axios({
-        method: method.toLocaleLowerCase(),
-        url: `${this.domain}${path}${qs}`,
-        headers: this.getHeaders(false),
-      });
-      if (res.data && res.data.code !== "0") {
-        const message = JSON.stringify(res.data);
-        this.logger.trace(message);
+    this.logger.log(
+      `[${this.constructor.name}] getOrderBooks this.fetchedBook[${instId}]`,
+      this.fetchedBook[instId]
+    );
+    if (!this.fetchedBook[instId]) {
+      try {
+        const res = await axios({
+          method: method.toLocaleLowerCase(),
+          url: `${this.domain}${path}${qs}`,
+          headers: this.getHeaders(false),
+        });
+        if (res.data && res.data.code !== "0") {
+          const message = JSON.stringify(res.data);
+          this.logger.trace(message);
+          return new ResponseFormat({
+            message,
+            code: Codes.THIRD_PARTY_API_ERROR,
+          });
+        }
+        const [data] = res.data.data;
+        // const orderBooks = [];
+        // orderBooks["market"] = instId.replace("-", "").toLowerCase();
+        // orderBooks["asks"] = data.asks.map((ask) => [ask[0], ask[1]]);
+        // orderBooks["bids"] = data.bids.map((bid) => [bid[0], bid[1]]);
+        this.orderBook.updateAll(instId, data);
+      } catch (error) {
+        this.logger.error(error);
+        let message = error.message;
+        if (error.response && error.response.data)
+          message = error.response.data.msg;
         return new ResponseFormat({
           message,
-          code: Codes.THIRD_PARTY_API_ERROR,
+          code: Codes.API_UNKNOWN_ERROR,
         });
       }
-      const [data] = res.data.data;
-      const orderBooks = {};
-      orderBooks["market"] = instId.replace("-", "").toLowerCase();
-      orderBooks["asks"] = data.asks.map((ask) => [ask[0], ask[1]]);
-      orderBooks["bids"] = data.bids.map((bid) => [bid[0], bid[1]]);
-      // this.books = orderBooks;
-      // this.logger.log(orderBooks);
-      // this.logger.log(
-      //   `---------- [${this.constructor.name}]  getOrderBooks [END] ----------`
-      // );
-      return new ResponseFormat({
-        message: "getOrderBooks",
-        payload: orderBooks,
-      });
-    } catch (error) {
-      this.logger.error(error);
-      let message = error.message;
-      if (error.response && error.response.data)
-        message = error.response.data.msg;
-      return new ResponseFormat({
-        message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
     }
+    // this.logger.log(
+    //   `[${this.constructor.name}] getOrderBooks this.orderBook.getSnapshot([${instId}]`,
+    //   this.orderBook.getSnapshot(instId)
+    // );
+    return new ResponseFormat({
+      message: "getOrderBooks",
+      payload: this.orderBook.getSnapshot(instId),
+    });
   }
 
   async getCandlesticks({ query }) {
@@ -419,63 +375,62 @@ class OkexConnector extends ConnectorBase {
   }
 
   async getTrades({ query }) {
-    const method = "GET";
-    const path = "/api/v5/market/trades";
     const { instId, limit } = query;
+    this.logger.log(
+      `[${this.constructor.name}] getTrades this.fetchedTrades[${instId}]`,
+      this.fetchedTrades[instId]
+    );
+    if (!this.fetchedTrades[instId]) {
+      const method = "GET";
+      const path = "/api/v5/market/trades";
 
-    const arr = [];
-    if (instId) arr.push(`instId=${instId}`);
-    if (limit) arr.push(`limit=${limit}`);
-    const qs = !!arr.length ? `?${arr.join("&")}` : "";
+      const arr = [];
+      if (instId) arr.push(`instId=${instId}`);
+      if (limit) arr.push(`limit=${limit}`);
+      const qs = !!arr.length ? `?${arr.join("&")}` : "";
 
-    try {
-      const res = await axios({
-        method: method.toLocaleLowerCase(),
-        url: `${this.domain}${path}${qs}`,
-        headers: this.getHeaders(false),
-      });
-      if (res.data && res.data.code !== "0") {
-        const message = JSON.stringify(res.data);
-        this.logger.trace(message);
+      try {
+        const res = await axios({
+          method: method.toLocaleLowerCase(),
+          url: `${this.domain}${path}${qs}`,
+          headers: this.getHeaders(false),
+        });
+        if (res.data && res.data.code !== "0") {
+          const message = JSON.stringify(res.data);
+          this.logger.trace(message);
+          return new ResponseFormat({
+            message,
+            code: Codes.THIRD_PARTY_API_ERROR,
+          });
+        }
+        // ++ TODO: verify function works properly
+        const market = instId.replace("-", "").toLowerCase();
+        const trades = this._formateTrades(market, res.data.data);
+        // this.logger.log(
+        //   `[${this.constructor.name}] getTrades trades[${instId}]`,
+        //   trades
+        // );
+        this.tradeBook.updateAll(instId, trades);
+        this.fetchedTrades[instId] = true;
+      } catch (error) {
+        this.logger.error(error);
+        let message = error.message;
+        if (error.response && error.response.data)
+          message = error.response.data.msg;
         return new ResponseFormat({
           message,
-          code: Codes.THIRD_PARTY_API_ERROR,
+          code: Codes.API_UNKNOWN_ERROR,
         });
       }
-      const payload = res.data.data
-        // .sort((a, b) => +b.ts - +a.ts)
-        .map((data, i) => {
-          return {
-            id: data.tradeId,
-            price: data.px,
-            volume: data.sz,
-            market: instId.replace("-", "").toLowerCase(),
-            at: parseInt(SafeMath.div(data.ts, "1000")),
-            funds: SafeMath.mult(data.px, data.sz),
-            created_at: new Date(parseInt(data.ts)).toISOString(),
-            side:
-              i === res.data.data.length - 1
-                ? "up"
-                : SafeMath.gte(data.px, res.data.data[i + 1].px)
-                ? "up"
-                : "down",
-          };
-        });
-      this.trades = payload;
-      return new ResponseFormat({
-        message: "getTrades",
-        payload,
-      });
-    } catch (error) {
-      this.logger.error(error);
-      let message = error.message;
-      if (error.response && error.response.data)
-        message = error.response.data.msg;
-      return new ResponseFormat({
-        message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
     }
+    // this.logger.log(
+    //   `[${this.constructor.name}] getTrades this.tradeBook.getSnapshot(${instId})`,
+    //   this.tradeBook.getSnapshot(instId)
+    // );
+    return new ResponseFormat({
+      message: "getTrades",
+      payload: this.tradeBook.getSnapshot(instId),
+    });
   }
 
   formateExAccts(subAcctsBals) {
@@ -1095,11 +1050,11 @@ class OkexConnector extends ConnectorBase {
         // );
         const values = Object.values(arg);
         if (data.event === "subscribe") {
-          this.okexWsChannels[channel] = this.okexWsChannels[channel] || {};
-          this.okexWsChannels[channel][values[0]] =
-            this.okexWsChannels[channel][values[0]] || {};
+          // this.okexWsChannels[channel] = this.okexWsChannels[channel] || {};
+          // this.okexWsChannels[channel][values[0]] =
+          //   this.okexWsChannels[channel][values[0]] || {};
         } else if (data.event === "unsubscribe") {
-          delete this.okexWsChannels[channel][values[0]];
+          // delete this.okexWsChannels[channel][values[0]];
           // ++ TODO ws onClose clean channel
           // if (!Object.keys(this.okexWsChannels[channel]).length) {
           //   delete this.okexWsChannels[channel];
@@ -1210,108 +1165,96 @@ class OkexConnector extends ConnectorBase {
     EventBus.emit(Events.orderDetailUpdate, instType, formatOrders);
   }
 
-  _updateTrades(instId, tradeData) {
-    const channel = "trades";
-    // this.okexWsChannels[channel][instId] = tradeData[0];
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [START] ----------`
-    // );
-    // this.logger.log(`[FROM OKEX] tradeData`, tradeData);
-    const market = instId.replace("-", "").toLowerCase();
-    const filteredTrades = tradeData
-      .filter(
-        (data) =>
-          SafeMath.gte(SafeMath.div(data.ts, "1000"), this.trades[0].at) &&
-          !this.trades.find((_t) => _t.id === data.tradeId)
-      )
-      .sort((a, b) => b.ts - a.ts);
-    const formatTrades = filteredTrades.map((data, i) => {
-      return {
-        tid: data.tradeId, // [about to decrepted]
-        type: data.side, // [about to decrepted]
-        date: parseInt(SafeMath.div(data.ts, "1000")), // [about to decrepted]
-        amount: data.sz, // [about to decrepted]
-        id: data.tradeId,
-        price: data.px,
-        volume: data.sz,
-        market,
-        at: parseInt(SafeMath.div(data.ts, "1000")),
-        side:
-          i === filteredTrades.length - 1
-            ? SafeMath.gte(data.px, this.trades[0].price)
-              ? "up"
-              : "down"
-            : SafeMath.gte(data.px, filteredTrades[i + 1].price)
-            ? "up"
-            : "down",
-      };
-    });
-    // this.logger.log(
-    //   `[TO FRONTEND][OnEvent: ${Events.trades}] updateTrades`,
-    //   formatTrades
-    // );
-    EventBus.emit(Events.trades, market, { market, trades: formatTrades });
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  _updateTrades instId: ${instId} [END] ----------`
-    // );
+  // ++ TODO: verify function works properly
+  _formateTrades(market, trades) {
+    return trades.map((data) => ({
+      tid: data.tradeId, // [about to decrepted]
+      type: data.side, // [about to decrepted]
+      date: parseInt(SafeMath.div(data.ts, "1000")), // [about to decrepted]
+      amount: data.sz, // [about to decrepted]
+      id: data.tradeId,
+      price: data.px,
+      volume: data.sz,
+      market,
+      at: parseInt(SafeMath.div(data.ts, "1000")),
+    }));
   }
 
-  _updateBooks(instId, bookData) {
-    // const channel = "books";
-    // this.okexWsChannels[channel][instId] = bookData;
-    const [books] = bookData;
-    let asks = [],
-      bids = [],
-      formatBooks = {};
-    if (!!this.books) {
-      asks = books.asks
-        .filter((ask) => {
-          const _ask = this.books.asks.find((a) => SafeMath.eq(a[0], ask[0]));
-          return !_ask || (!!_ask && !SafeMath.eq(_ask[1], ask[1]));
-        })
-        .map((ask) => [ask[0], ask[1]]);
-      bids = books.bids
-        .filter((bid) => {
-          const _bid = this.books.bids.find((b) => SafeMath.eq(b[0], bid[0]));
-          return !_bid || (!!_bid && !SafeMath.eq(_bid[1], bid[1]));
-        })
-        .map((bid) => [bid[0], bid[1]]);
-    } else {
-      asks = books.asks.map((ask) => [ask[0], ask[1]]);
-      bids = books.bids.map((bid) => [bid[0], bid[1]]);
-      formatBooks["updateAll"] = true;
+  // ++ TODO: verify function works properly
+  async _updateTrades(instId, newTrades) {
+    try {
+      const market = instId.replace("-", "").toLowerCase();
+      this.tradeBook.updateByDifference(instId, {
+        add: this._formateTrades(market, newTrades),
+      });
+
+      EventBus.emit(Events.trades, market, {
+        market,
+        trades: this.tradeBook.getSnapshot(instId),
+      });
+    } catch (error) {}
+  }
+
+  // ++ TODO: verify function works properly
+  _updateBooks(instId, data) {
+    const [updateBooks] = data;
+    const market = instId.replace("-", "").toLowerCase();
+
+    try {
+      const difference = {
+        updates: [],
+        add: [],
+        remove: [],
+      };
+      updateBooks.asks.forEach((ask) => {
+        if (SafeMath.eq(ask[1], 0)) {
+          difference.remove.push({
+            id: ask[0],
+            price: ask[0],
+            amount: ask[1],
+            side: "asks",
+          });
+        } else {
+          difference.add.push({
+            id: ask[0],
+            price: ask[0],
+            amount: ask[1],
+            side: "asks",
+          });
+        }
+      });
+      updateBooks.bids.forEach((bid) => {
+        if (SafeMath.eq(bid[1], 0)) {
+          difference.remove.push({
+            id: bid[0],
+            price: bid[0],
+            amount: bid[1],
+            side: "bids",
+          });
+        } else {
+          difference.add.push({
+            id: bid[0],
+            price: bid[0],
+            amount: bid[1],
+            side: "bids",
+          });
+        }
+      });
+      this.orderBook.updateByDifference(instId, difference);
+    } catch (error) {
+      // ++
     }
-    formatBooks["asks"] = asks;
-    formatBooks["bids"] = bids;
-    formatBooks["market"] = instId.replace("-", "").toLowerCase();
 
-    if (!this.books) this.books = formatBooks;
-    if (formatBooks["updateAll"])
-      this.logger.log(`*[${formatBooks}]*`, this.books);
-
-    if (formatBooks["asks"].length > 0 || formatBooks["bids"].length > 0) {
-      // this.logger.log(
-      //   `---------- [${this.constructor.name}]  _updateBooks instId: ${instId} [START] ----------`
-      // );
-      // this.logger.log(`[FROM OKEX] bookData`, bookData);
-      // this.logger.log(
-      //   `[TO FRONTEND][OnEvent: ${Events.update}] updateBooks`,
-      //   formatBooks
-      // );
-      EventBus.emit(
-        Events.update,
-        instId.replace("-", "").toLowerCase(),
-        formatBooks
-      );
-      // this.logger.log(
-      //   `---------- [${this.constructor.name}] _updateBooks instId: ${instId} [END] ----------`
-      // );
+    const timestamp = Date.now();
+    if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
+      this._booksTimestamp = timestamp;
+      EventBus.emit(Events.update, market, this.orderBook.getSnapshot(instId));
     }
   }
 
   _updateCandle(instId, channel, candleData) {
-    this.candleChannel = channel;
-    this.okexWsChannels[channel][instId] = candleData;
+    // this.candleChannel = channel;
+    // this.okexWsChannels[channel][instId] = candleData;
     // this.logger.debug(`[${this.constructor.name}]_updateCandle`, instId, candleData);
     const formatCandle = candleData
       .map((data) => ({
@@ -1330,64 +1273,61 @@ class OkexConnector extends ConnectorBase {
     });
   }
 
-  _updateTickers(tickerData) {
-    if (!this.tickers) return;
-    const updateTickers = tickerData
-      .filter((data) => {
-        const id = data.instId.replace("-", "").toLowerCase();
-        return (
-          this.tickers[id] &&
-          (!SafeMath.eq(this.tickers[id]?.last, data.last) ||
-            !SafeMath.eq(this.tickers[id]?.open, data.open24h) ||
-            !SafeMath.eq(this.tickers[id]?.high, data.high24h) ||
-            !SafeMath.eq(this.tickers[id]?.low, data.low24h) ||
-            !SafeMath.eq(this.tickers[id]?.volume, data.vol24h))
-        );
-      })
-      .reduce((prev, data) => {
-        const change = SafeMath.minus(data.last, data.open24h);
-        const changePct = SafeMath.gt(data.open24h, "0")
-          ? SafeMath.div(change, data.open24h)
-          : SafeMath.eq(change, "0")
-          ? "0"
-          : "1";
-        prev[data.instId.replace("-", "/").toLowerCase] = {
-          market: data.instId.replace("-", "/").toLowerCase,
-          instId: data.instId,
-          name: data.instId.replace("-", "/"),
-          base_unit: data.instId.split("-")[0].toLowerCase(),
-          quote_unit: data.instId.split("-")[1].toLowerCase(),
-          group:
-            data.instId.split("-")[1].toLowerCase().includes("usd") &&
-            data.instId.split("-")[1].toLowerCase().length > 3
-              ? "usdx"
-              : data.instId.split("-")[1].toLowerCase(),
-          last: data.last,
-          change,
-          changePct,
-          open: data.open24h,
-          high: data.high24h,
-          low: data.low24h,
-          volume: data.vol24h,
-          at: parseInt(data.ts),
-          source: SupportedExchange.OKEX,
-        };
-        return prev;
-      }, {});
-    if (Object.keys(updateTickers).length > 0) {
-      // this.logger.log(
-      //   `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
-      // );
-      // this.logger.log(`[FROM OKEX] tickerData`, tickerData);
-      // this.logger.log(
-      //   `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
-      //   updateTickers
-      // );
-      EventBus.emit(Events.tickers, updateTickers);
-      // this.logger.log(
-      //   `---------- [${this.constructor.name}]  _updateTickers [END] ----------`
-      // );
-    }
+  // ++ TODO: verify function works properly
+  _formateTicker(data) {
+    const id = data.instId.replace("-", "").toLowerCase();
+    const change = SafeMath.minus(data.last, data.open24h);
+    const changePct = SafeMath.gt(data.open24h, "0")
+      ? SafeMath.div(change, data.open24h)
+      : SafeMath.eq(change, "0")
+      ? "0"
+      : "1";
+    const updateTicker = {
+      id,
+      market: id,
+      instId: data.instId,
+      name: data.instId.replace("-", "/"),
+      base_unit: data.instId.split("-")[0].toLowerCase(),
+      quote_unit: data.instId.split("-")[1].toLowerCase(),
+      group:
+        data.instId.split("-")[1].toLowerCase().includes("usd") &&
+        data.instId.split("-")[1].toLowerCase().length > 3
+          ? "usdx"
+          : data.instId.split("-")[1].toLowerCase(),
+      last: data.last,
+      change,
+      changePct,
+      open: data.open24h,
+      high: data.high24h,
+      low: data.low24h,
+      volume: data.vol24h,
+      at: parseInt(data.ts),
+      source: SupportedExchange.OKEX,
+      sell: data.askPx, // [about to decrepted]
+      buy: data.bidPx, // [about to decrepted]
+      ticker: {
+        // [about to decrepted]
+        buy: data.bidPx,
+        sell: data.askPx,
+        low: data.low24h,
+        high: data.high24h,
+        last: data.last,
+        open: data.open24h,
+        vol: data.vol24h,
+      },
+    };
+    return updateTicker;
+  }
+
+  // ++ TODO: verify function works properly
+  _updateTickers(data) {
+    data.forEach((d) => {
+      const updateTicker = this._formateTicker(d);
+      this.logger.log(`_updateTickers updateTicker`, updateTicker);
+      this.tickerBook.updateByDifference(d.instId, updateTicker);
+    });
+
+    EventBus.emit(Events.tickers, this.tickerBook.getSnapshot());
   }
 
   _subscribeInstruments() {
@@ -1559,7 +1499,7 @@ class OkexConnector extends ConnectorBase {
   // okex ws end
 
   // TideBitEx ws
-  _subscribeMarket(market, resolution) {
+  _subscribeMarket(market, wsId) {
     const instId = this._findInstId(market);
     if (this._findSource(instId) === SupportedExchange.OKEX) {
       this.logger.log(
@@ -1567,10 +1507,12 @@ class OkexConnector extends ConnectorBase {
       );
       this.logger.log(`_subscribeMarket instId`, instId);
       this.logger.log(`_subscribeMarket market`, market);
-      this.logger.log(`_subscribeMarket resolution`, resolution);
+
+      this._booksTimestamp = 0;
+      this._tradesTimestamp = 0;
+
       this._subscribeTrades(instId);
       this._subscribeBook(instId);
-      this._subscribeCandle1m(instId, resolution);
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeMarket [END] ++++++`
       );
@@ -1587,7 +1529,7 @@ class OkexConnector extends ConnectorBase {
       this.logger.log(`_unsubscribeMarket instId`, instId);
       this._unsubscribeTrades(instId);
       this._unsubscribeBook(instId);
-      this._unsubscribeCandle1m(instId);
+      // this._unsubscribeCandle1m(instId);
       this.logger.log(
         `---------- [${this.constructor.name}]  _unsubscribeMarket [END] ----------`
       );

@@ -12,6 +12,16 @@ const Codes = require("../../constants/Codes");
 const TideBitLegacyAdapter = require("../TideBitLegacyAdapter");
 
 class TibeBitConnector extends ConnectorBase {
+  _accountsUpdateInterval = 0;
+  _tickersUpdateInterval = 0;
+  _booksUpdateInterval = 500;
+  _tradesUpdateInterval = 500;
+
+  _accountsTimestamp = 0;
+  _tickersTimestamp = 0;
+  _booksTimestamp = 0;
+  _tradesTimestamp = 0;
+
   isStart = false;
 
   public_pusher = null;
@@ -21,7 +31,10 @@ class TibeBitConnector extends ConnectorBase {
   private_channel = {};
   market_channel = {};
 
-  tickers = {};
+  fetchedTrades = {};
+  fetchedBook = {};
+
+  // tickers = {};
   trades = [];
   books = null;
 
@@ -43,6 +56,9 @@ class TibeBitConnector extends ConnectorBase {
     markets,
     database,
     redis,
+    tickerBook,
+    orderBook,
+    tradeBook,
   }) {
     await super.init();
     this.app = app;
@@ -57,6 +73,9 @@ class TibeBitConnector extends ConnectorBase {
     this.database = database;
     this.redis = redis;
     this.currencies = await this.database.getCurrencies();
+    this.orderBook = orderBook;
+    this.tickerBook = tickerBook;
+    this.tradeBook = tradeBook;
     return this;
   }
 
@@ -190,10 +209,11 @@ class TibeBitConnector extends ConnectorBase {
       };
       return prev;
     }, {});
+    const tickers = {};
     optional.mask.forEach((market) => {
       let ticker = formatTickers[market.id];
       if (ticker)
-        this.tickers[market.id] = {
+        tickers[market.id] = {
           ...ticker,
           group: market.group,
           market: market.id,
@@ -204,7 +224,7 @@ class TibeBitConnector extends ConnectorBase {
         };
       else {
         const instId = this._findInstId(market.id);
-        this.tickers[market.id] = {
+        tickers[market.id] = {
           market: market.id,
           instId,
           name: market.name,
@@ -226,12 +246,37 @@ class TibeBitConnector extends ConnectorBase {
         };
       }
     });
+    // ++ TODO !!! Ticker dataFormate is different
+    this.tickerBook.updateAll(tickers);
     return new ResponseFormat({
-      message: "getTickers",
-      payload: this.tickers,
+      message: "getTickers from TideBit",
+      payload: tickers,
     });
   }
+  // ++ TODO: verify function works properly
+  _formateTicker(data) {
+    // return tickerData.map((data) => {
+    const id = data.instId.replace("/", "").toLowerCase();
+    const change = SafeMath.minus(data.last, data.open24h);
+    const changePct = SafeMath.gt(data.open24h, "0")
+      ? SafeMath.div(change, data.open24h)
+      : SafeMath.eq(change, "0")
+      ? "0"
+      : "1";
+    const updateTicker = {
+      ...data,
+      id,
+      instId: this._findInstId(id),
+      market: id,
+      change,
+      changePct,
+      source: SupportedExchange.TIDEBIT,
+    };
+    return updateTicker;
+    // });
+  }
 
+  // ++ TODO: verify function works properly
   _updateTickers(data) {
     /**
    {
@@ -250,122 +295,95 @@ class TibeBitConnector extends ConnectorBase {
     at: 1649742406
   },}
     */
-    const updateTickers = {};
-    Object.keys(data).forEach((id) => {
-      if (
-        this.tickers[id] &&
-        (!SafeMath.eq(this.tickers[id]?.last, data[id].last) ||
-          !SafeMath.eq(this.tickers[id]?.open, data[id].open) ||
-          !SafeMath.eq(this.tickers[id]?.high, data[id].high) ||
-          !SafeMath.eq(this.tickers[id]?.low, data[id].low) ||
-          !SafeMath.eq(this.tickers[id]?.volume, data[id].volume))
-      ) {
-        const change = SafeMath.minus(data[id].last, data[id].open);
-        const changePct = SafeMath.gt(data[id].open, "0")
-          ? SafeMath.div(change, data[id].open)
-          : SafeMath.eq(change, "0")
-          ? "0"
-          : "1";
-        updateTickers[id] = { ...data[id], change, changePct, market: id };
-      }
+    const updateTickers = this._formateTicker(data);
+    updateTickers.forEach((ticker) => {
+      this.tickerBook.updateByDifference(ticker.instId, ticker);
     });
-
-    if (Object.keys(updateTickers).length > 0) {
-      // this.logger.log(
-      //   `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
-      // );
-      // this.logger.log(`[FROM TideBit] tickerData`, data);
-      // this.logger.log(
-      //   `[TO FRONTEND][OnEvent: ${Events.tickers}] updateTickers`,
-      //   updateTickers
-      // );
-      EventBus.emit(Events.tickers, updateTickers);
-      // this.logger.log(
-      //   `---------- [${this.constructor.name}]  _updateTickers [END] ----------`
-      // );
-    }
+    EventBus.emit(Events.tickers, this.tickerBook.getSnapshot());
   }
 
+  // ++ TODO: verify function works properly
   async getOrderBooks({ query }) {
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  getOrderBooks market: ${query.id} [START] ----------`
-    // );
-    this.market = query.id;
-    try {
-      const tbBooksRes = await axios.get(
-        `${this.peatio}/api/v2/order_book?market=${query.id}`
-      );
-      if (!tbBooksRes || !tbBooksRes.data) {
+    const instId = this._findInstId(query.id);
+    if (!this.fetchedBook[instId]) {
+      try {
+        const tbBooksRes = await axios.get(
+          `${this.peatio}/api/v2/order_book?market=${query.id}`
+        );
+        if (!tbBooksRes || !tbBooksRes.data) {
+          return new ResponseFormat({
+            message: "Something went wrong",
+            code: Codes.API_UNKNOWN_ERROR,
+          });
+        }
+        const tbBooks = tbBooksRes.data;
+        const asks = [];
+        const bids = [];
+        // this.logger.log(`tbBooks query.id`, query.id);
+        tbBooks.asks.forEach((ask) => {
+          if (
+            ask.market === query.id &&
+            ask.ord_type === "limit" &&
+            ask.state === "wait"
+          ) {
+            let index;
+            index = asks.findIndex((_ask) =>
+              SafeMath.eq(_ask[0], ask.price.toString())
+            );
+            if (index !== -1) {
+              let updateAsk = asks[index];
+              updateAsk[1] = SafeMath.plus(updateAsk[1], ask.remaining_volume);
+              asks[index] = updateAsk;
+            } else {
+              let newAsk = [ask.price.toString(), ask.remaining_volume]; // [價格, volume]
+              asks.push(newAsk);
+            }
+          }
+        });
+        tbBooks.bids.forEach((bid) => {
+          if (
+            bid.market === query.id &&
+            bid.ord_type === "limit" &&
+            bid.state === "wait"
+          ) {
+            let index;
+            index = bids.findIndex((_bid) =>
+              SafeMath.eq(_bid[0], bid.price.toString())
+            );
+            if (index !== -1) {
+              let updateBid = bids[index];
+              updateBid[1] = SafeMath.plus(updateBid[1], bid.remaining_volume);
+              bids[index] = updateBid;
+            } else {
+              let newBid = [bid.price.toString(), bid.remaining_volume]; // [價格, volume]
+              bids.push(newBid);
+            }
+          }
+        });
+        const books = { asks, bids, market: query.id };
+
+        this.logger.log(`[FROM TideBit] Response books`, books);
+        this.logger.log(
+          `---------- [${this.constructor.name}]  getOrderBooks market: ${query.id} [END] ----------`
+        );
+        this.orderBook.updateAll(instId, books);
+      } catch (error) {
+        this.logger.error(error);
+        const message = error.message;
         return new ResponseFormat({
-          message: "Something went wrong",
+          message,
           code: Codes.API_UNKNOWN_ERROR,
         });
       }
-      const tbBooks = tbBooksRes.data;
-      const asks = [];
-      const bids = [];
-      // this.logger.log(`tbBooks query.id`, query.id);
-      tbBooks.asks.forEach((ask) => {
-        if (
-          ask.market === query.id &&
-          ask.ord_type === "limit" &&
-          ask.state === "wait"
-        ) {
-          let index;
-          index = asks.findIndex((_ask) =>
-            SafeMath.eq(_ask[0], ask.price.toString())
-          );
-          if (index !== -1) {
-            let updateAsk = asks[index];
-            updateAsk[1] = SafeMath.plus(updateAsk[1], ask.remaining_volume);
-            asks[index] = updateAsk;
-          } else {
-            let newAsk = [ask.price.toString(), ask.remaining_volume]; // [價格, volume]
-            asks.push(newAsk);
-          }
-        }
-      });
-      tbBooks.bids.forEach((bid) => {
-        if (
-          bid.market === query.id &&
-          bid.ord_type === "limit" &&
-          bid.state === "wait"
-        ) {
-          let index;
-          index = bids.findIndex((_bid) =>
-            SafeMath.eq(_bid[0], bid.price.toString())
-          );
-          if (index !== -1) {
-            let updateBid = bids[index];
-            updateBid[1] = SafeMath.plus(updateBid[1], bid.remaining_volume);
-            bids[index] = updateBid;
-          } else {
-            let newBid = [bid.price.toString(), bid.remaining_volume]; // [價格, volume]
-            bids.push(newBid);
-          }
-        }
-      });
-      const books = { asks, bids, market: query.id };
-      // this.books = books;
-      // this.logger.log(`[FROM TideBit] Response books`, books);
-      // this.logger.log(
-      //   `---------- [${this.constructor.name}]  getOrderBooks market: ${query.id} [END] ----------`
-      // );
-      return new ResponseFormat({
-        message: "getOrderBooks",
-        payload: books,
-      });
-    } catch (error) {
-      this.logger.error(error);
-      const message = error.message;
-      return new ResponseFormat({
-        message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
     }
+    return new ResponseFormat({
+      message: "getOrderBooks",
+      payload: this.orderBook.getSnapshot(instId),
+    });
   }
 
-  _updateBooks(market, data) {
+  // ++ TODO: verify function works properly
+  _updateBooks(market, updateBooks) {
     /**
     {
         asks: [
@@ -378,79 +396,55 @@ class TibeBitConnector extends ConnectorBase {
         ]
     }
     */
-    if (
-      this.market !== market ||
-      data.asks.length === 0 ||
-      data.bids.length === 0
-    )
-      return;
-    let index,
-      asks = [],
-      bids = [],
-      formatBooks = {};
-    if (!!this.books) {
-      this.books.asks?.forEach((ask) => {
-        index = data.asks.findIndex((_ask) => SafeMath.eq(_ask[0], ask[0]));
-        if (index === -1) {
-          asks.push([ask[0], "0"]);
-        }
-      });
-      data.asks.forEach((ask) => {
-        index = this.books?.asks?.findIndex((_ask) =>
-          SafeMath.eq(_ask[0], ask[0])
-        );
-        if (
-          index === -1 ||
-          index === undefined ||
-          !SafeMath.eq(this.books.asks[index][1], ask[1])
-        ) {
-          asks.push(ask);
-        }
-      });
-      this.books.bids?.forEach((bid) => {
-        index = data.bids.findIndex((_bid) => SafeMath.eq(_bid[0], bid[0]));
-        if (index === -1) {
-          bids.push([bid[0], "0"]);
-        }
-      });
-      data.bids.forEach((bid) => {
-        index = this.books?.bids?.findIndex((_bid) =>
-          SafeMath.eq(_bid[0], bid[0])
-        );
-        if (
-          index === -1 ||
-          index === undefined ||
-          !SafeMath.eq(this.books.bids[index][1], bid[1])
-        ) {
-          bids.push(bid);
-        }
-      });
-    } else {
-      asks = data.asks;
-      bids = data.bids;
-      formatBooks["updateAll"] = true;
-    }
-    formatBooks["asks"] = asks;
-    formatBooks["bids"] = bids;
-    formatBooks["market"] = market;
 
-    if (!this.books) this.books = formatBooks;
-
-    if (formatBooks["asks"].length > 0 || formatBooks["bids"].length > 0) {
-      // this.logger.log(
-      //   `---------- [${this.constructor.name}]  _updateBooks market: ${market} [START] ----------`
-      // );
-      // this.logger.log(`[FROM TideBit] bookData`, data);
-      // this.logger.log(
-      //   `[TO FRONTEND][OnEvent: ${Events.update}] updateBooks`,
-      //   formatBooks
-      // );
-      EventBus.emit(Events.update, market, formatBooks);
-      // this.logger.log(
-      //   `---------- [${this.constructor.name}]  _updateBooks market: ${market} [END] ----------`
-      // );
+    const instId = this._findInstId(market);
+    const difference = {
+      updates: [],
+      add: [],
+      remove: [],
+    };
+    updateBooks.asks.forEach((ask) => {
+      if (SafeMath.eq(ask[1], 0)) {
+        difference.remove.push({
+          id: ask[0],
+          price: ask[0],
+          amount: ask[1],
+          side: "asks",
+        });
+      } else {
+        difference.add.push({
+          id: ask[0],
+          price: ask[0],
+          amount: ask[1],
+          side: "asks",
+        });
+      }
+    });
+    updateBooks.bids.forEach((bid) => {
+      if (SafeMath.eq(bid[1], 0)) {
+        difference.remove.push({
+          id: bid[0],
+          price: bid[0],
+          amount: bid[1],
+          side: "bids",
+        });
+      } else {
+        difference.add.push({
+          id: bid[0],
+          price: bid[0],
+          amount: bid[1],
+          side: "bids",
+        });
+      }
+    });
+    this.orderBook.updateByDifference(instId, difference);
+    const timestamp = Date.now();
+    if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
+      this._booksTimestamp = timestamp;
+      EventBus.emit(Events.update, market, this.orderBook.getSnapshot(instId));
     }
   }
+
   /**
     [
       {
@@ -466,39 +460,42 @@ class TibeBitConnector extends ConnectorBase {
     ]
     */
   async getTrades({ query }) {
-    try {
-      const tbTradesRes = await axios.get(
-        `${this.peatio}/api/v2/trades?market=${query.id}`
-      );
-      if (!tbTradesRes || !tbTradesRes.data) {
+    const instId = this._findInstId(query.id);
+    if (!this.fetchedTrades[instId]) {
+      try {
+        const tbTradesRes = await axios.get(
+          `${this.peatio}/api/v2/trades?market=${query.id}`
+        );
+        if (!tbTradesRes || !tbTradesRes.data) {
+          return new ResponseFormat({
+            message: "Something went wrong",
+            code: Codes.API_UNKNOWN_ERROR,
+          });
+        }
+        // ++ TODO: verify function works properly
+        this.tradeBook.updateAll(instId, tbTradesRes.data);
+        this.fetchedTrades[instId] = true;
+      } catch (error) {
+        this.logger.error(error);
+        const message = error.message;
         return new ResponseFormat({
-          message: "Something went wrong",
+          message,
           code: Codes.API_UNKNOWN_ERROR,
         });
       }
-      const tbTrades = tbTradesRes.data.sort((a, b) =>
-        query.increase ? a.at - b.at : b.at - a.at
-      );
-      this.trades = tbTrades;
-      return new ResponseFormat({
-        message: "getTrades",
-        payload: tbTrades,
-      });
-    } catch (error) {
-      this.logger.error(error);
-      const message = error.message;
-      return new ResponseFormat({
-        message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
     }
+    return new ResponseFormat({
+      message: "getTrades",
+      payload: this.tradeBook.getSnapshot(instId),
+    });
   }
 
-  _updateTrade(data) {
+  // ++ TODO: verify function works properly
+  _updateTrade(newTrade) {
     this.logger.log(
       `---------- [${this.constructor.name}]  _updateTrade [START] ----------`
     );
-    this.logger.log(`[FROM TideBit] tradeData`, data);
+    this.logger.log(`[FROM TideBit] newTrade`, newTrade);
     /**  {
     at: 1649675739
     id: 6
@@ -507,25 +504,22 @@ class TibeBitConnector extends ConnectorBase {
     price: "105.0"
     volume: "0.1"
     }*/
-    if (
-      SafeMath.gte(data.at, this.trades[0].at) &&
-      !this.trades.find((_t) => _t.id === data.id)
-    ) {
-      const formatTrade = {
-        ...data,
-        side: SafeMath.gte(data.price, this.trades[0].price) ? "up" : "down",
-      };
-      this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.trade}] updateTrade`,
-        formatTrade
-      );
-      EventBus.emit(Events.trade, data.market, formatTrade);
-    }
+    const instId = this._findInstId(newTrade.market);
+    this.tradeBook.updateByDifference(instId, { add: [newTrade] });
+    EventBus.emit(
+      Events.trade,
+      newTrade.market,
+      this.tradeBook
+        .getSnapshot(instId)
+        .find((trade) => trade.id === newTrade.id)
+    );
+
     this.logger.log(
       `---------- [${this.constructor.name}]  _updateTrade [END] ----------`
     );
   }
 
+  // ++ TODO: verify function works properly
   _updateTrades(market, data) {
     /**
     {
@@ -540,44 +534,15 @@ class TibeBitConnector extends ConnectorBase {
        ]
     }
     */
-    const filteredTrades = data.trades
-      .filter(
-        (t) =>
-          SafeMath.gte(t.date, this.trades[0].at) &&
-          !this.trades.find((_t) => _t.id === t.tid)
-      )
-      .sort((a, b) => b.date - a.date);
-    const formatTrades = filteredTrades
-      .map((t, i) => ({
-        ...t,
-        id: t.tid,
-        price: t.price,
-        volume: t.amount,
+    const instId = this._findInstId(market);
+    this.tradeBook.updateByDifference(instId, { add: data.trades });
+    const timestamp = Date.now();
+    if (timestamp - this._tradesTimestamp > this._tradesUpdateInterval) {
+      this._tradesTimestamp = timestamp;
+      EventBus.emit(Events.trade, market, {
         market,
-        at: t.date,
-        side:
-          i === filteredTrades.length - 1
-            ? SafeMath.gte(t.price, this.trades[0].price)
-              ? "up"
-              : "down"
-            : SafeMath.gte(t.price, filteredTrades[i + 1].price)
-            ? "up"
-            : "down",
-      }))
-      .sort((a, b) => b.at - a.at);
-    if (formatTrades.length > 0) {
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _updateTrades market: ${market} [START] ----------`
-      );
-      this.logger.log(`[FROM TideBit] tradesData`, data);
-      this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.trades}] updateTrades`,
-        formatTrades
-      );
-      EventBus.emit(Events.trades, market, { market, trades: formatTrades });
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _updateTrades market: ${market} [END] ----------`
-      );
+        trades: this.tradeBook.getSnapshot(instId),
+      });
     }
   }
 
@@ -1283,7 +1248,7 @@ class TibeBitConnector extends ConnectorBase {
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeUser [START] ++++++`
       );
-      this.logger.error(`_subscribeUser credential`, credential);
+      this.logger.log(`_subscribeUser credential`, credential);
       const memberId = await this.getMemberIdFromRedis(credential.token);
       if (memberId !== -1) {
         const member = await this.database.getMemberById(memberId);
@@ -1329,6 +1294,10 @@ class TibeBitConnector extends ConnectorBase {
     if (
       this._findSource(this._findInstId(market)) === SupportedExchange.TIDEBIT
     ) {
+      this.books = null;
+      this._booksTimestamp = 0;
+      this._tradesTimestamp = 0;
+
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeMarket [START] ++++++`
       );

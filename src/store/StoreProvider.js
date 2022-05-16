@@ -56,8 +56,7 @@ const StoreProvider = (props) => {
   const wsUpdateHandler = useCallback(
     (msg) => {
       let _tickerTimestamp = 0,
-        _bookTimestamp = 0,
-        // _candleTimestamp = 0,
+        // _bookTimestamp = 0,
         _accountTimestamp = 0,
         _tradeTimestamp = 0,
         metaData = JSON.parse(msg.data);
@@ -66,44 +65,37 @@ const StoreProvider = (props) => {
           const { updateTicker, updateTickers } = middleman.updateTickers(
             metaData.data
           );
-          _tickerTimestamp = new Date().getTime();
           if (!!updateTicker) {
-            // console.log(`Events.tickers updateTicker`, updateTicker);
             setSelectedTicker(updateTicker);
             document.title = `${updateTicker.last} ${updateTicker.name}`;
           }
+          _tickerTimestamp = new Date().getTime();
           if (_tickerTimestamp - +tickerTimestamp > 1000) {
-            // console.log(
-            //   `++++++++****+++++ Events.tickers[START] +++++*****+++++`
-            // );
             tickerTimestamp = _tickerTimestamp;
             setTickers(updateTickers);
-            // console.log(`updateTickers`, updateTickers);
-            // console.log(`updateTicker`, updateTicker);
-            // console.log(
-            //   `++++++++****+++++ Events.tickers[END] +++++*****+++++`
-            // );
           }
           break;
         case Events.trades:
+          if (metaData.data.updateAll) {
+            middleman.updateAllTrades(metaData.data);
+            setTrades(metaData.data);
+          }
+          middleman.updateTrades(metaData.data);
+          _tradeTimestamp = new Date().getTime();
           if (_tradeTimestamp - +tradeTimestamp > 1000) {
-            const { trades, candles, volumes } = middleman.updateTrades(
-              metaData.data.trades,
-              resolution
-            );
-            setTrades(trades);
-            setCandles({ candles, volumes });
-            middleman.resetTrades();
+            tradeTimestamp = _tradeTimestamp;
+            const { updateTrades, updatedTrades } = middleman.getUpdateTrades();
+            setTrades(updateTrades);
+            middleman.updateUpdatedTradesQueue(updatedTrades);
           }
           break;
         case Events.update:
           const updateBooks = middleman.updateBooks(metaData.data);
-          _bookTimestamp = new Date().getTime();
-          if (_bookTimestamp - +bookTimestamp > 1000) {
-            // console.log(`updateBooks`, updateBooks);
-            bookTimestamp = _bookTimestamp;
-            setBooks(updateBooks);
-          }
+          // _bookTimestamp = new Date().getTime();
+          // if (_bookTimestamp - +bookTimestamp > 1000) {
+          //   bookTimestamp = _bookTimestamp;
+          setBooks(updateBooks);
+          // }
           break;
         case Events.account:
           const updateAccounts = middleman.updateAccounts(metaData.data);
@@ -125,7 +117,7 @@ const StoreProvider = (props) => {
         default:
       }
     },
-    [middleman, resolution]
+    [middleman]
   );
 
   const getCSRFToken = useCallback(async () => {
@@ -180,11 +172,11 @@ const StoreProvider = (props) => {
     });
     ws.addEventListener("close", async (msg) => {
       clearInterval(interval);
-      await getCSRFToken();
       console.log(
         "Socket is closed. Reconnect will be attempted in 1 second.",
         msg.reason
       );
+      await getCSRFToken();
       setTimeout(function () {
         connectWS();
       }, 1000);
@@ -217,15 +209,15 @@ const StoreProvider = (props) => {
   );
 
   const getTrades = useCallback(
-    async (id, limit) => {
+    async (id, limit = 100) => {
       try {
-        const { trades, candles, volumes } = await middleman.getTrades(
+        const trades = await middleman.getTrades(
           id,
-          limit,
-          resolution
+          limit
+          // resolution
         );
         setTrades(trades);
-        setCandles({ candles, volumes });
+        // setCandles({ candles, volumes });
       } catch (error) {
         enqueueSnackbar(`"getTrades error: ${error?.message}"`, {
           variant: "error",
@@ -233,7 +225,7 @@ const StoreProvider = (props) => {
         });
       }
     },
-    [action, enqueueSnackbar, middleman, resolution]
+    [action, enqueueSnackbar, middleman]
   );
 
   // const getCandles = useCallback(
@@ -329,31 +321,34 @@ const StoreProvider = (props) => {
   );
 
   const selectTickerHandler = useCallback(
-    async (ticker) => {
+    async (market) => {
       // console.log(`selectedTicker`, selectedTicker, !selectedTicker);
       // console.log(`ticker`, ticker, ticker.market !== selectedTicker?.market);
-      if (!selectedTicker || ticker.market !== selectedTicker?.market) {
-        middleman.updateSelectedTicker(ticker);
-        setSelectedTicker(ticker);
-        console.log(`ticker`, ticker);
-        document.title = `${ticker?.last} ${ticker?.name}`;
+      if (!selectedTicker || market !== selectedTicker?.market) {
         history.push({
-          pathname: `/markets/${ticker.market}`,
+          pathname: `/markets/${market}`,
         });
-        await getBooks(ticker.market);
-        await getTrades(ticker.market);
-        if (isLogin) {
-          await getOrderList();
-          await getOrderHistory();
-        }
         connection_resolvers.push(
           JSON.stringify({
             op: "switchMarket",
             args: {
-              market: ticker.market,
+              market,
             },
           })
         );
+        getBooks(market);
+        getTrades(market);
+        let ticker = tickers.find((t) => t.market === market);
+        if (!ticker) ticker = await getTicker(market);
+        middleman.updateSelectedTicker(ticker);
+        setSelectedTicker(ticker);
+        console.log(`ticker`, ticker);
+        document.title = `${ticker?.last} ${ticker?.name}`;
+        if (isLogin) {
+          getOrderList();
+          getOrderHistory();
+        }
+
         // middleman.sendMsg(
         //   "switchMarket",
         //   {
@@ -366,11 +361,12 @@ const StoreProvider = (props) => {
       // console.log(`****^^^^**** selectTickerHandler [END] ****^^^^****`);
     },
     [
-      // resolution,
-      isLogin,
       selectedTicker,
-      history,
+      tickers,
       middleman,
+      history,
+      isLogin,
+      getTicker,
       getBooks,
       getTrades,
       getOrderList,
@@ -603,15 +599,15 @@ const StoreProvider = (props) => {
       const market = location.pathname.includes("/markets/")
         ? location.pathname.replace("/markets/", "")
         : null;
-      const ticker = await getTicker(market);
-      await selectTickerHandler(ticker);
-      await getTickers();
-      await getAccounts();
+      // const ticker = await getTicker(market);
+      selectTickerHandler(market);
+      getTickers();
+      getAccounts();
       // console.log(`******** start [END] ********`);
     }
   }, [
     connectWS,
-    getTicker,
+    // getTicker,
     getAccounts,
     getTickers,
     selectTickerHandler,
