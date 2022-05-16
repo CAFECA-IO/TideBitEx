@@ -60,7 +60,7 @@ class TickerBook extends BookBase {
 
   updateAll(tickers) {
     try {
-      tickers.forEach((ticker) => {
+      Object.values(tickers).forEach((ticker) => {
         this._snapshot[ticker.instId] = ticker;
         this._difference[ticker.instId] = ticker;
       });
