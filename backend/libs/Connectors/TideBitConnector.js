@@ -374,7 +374,7 @@ class TibeBitConnector extends ConnectorBase {
       // );
       return new ResponseFormat({
         message: "getOrderBooks",
-        payload: this.getOrderBook.getSnapshot(this._findInstId(query.id)),
+        payload: this.orderBook.getSnapshot(this._findInstId(query.id)),
       });
     } catch (error) {
       this.logger.error(error);
@@ -1229,7 +1229,7 @@ class TibeBitConnector extends ConnectorBase {
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeUser [START] ++++++`
       );
-      this.logger.error(`_subscribeUser credential`, credential);
+      this.logger.log(`_subscribeUser credential`, credential);
       const memberId = await this.getMemberIdFromRedis(credential.token);
       if (memberId !== -1) {
         const member = await this.database.getMemberById(memberId);
