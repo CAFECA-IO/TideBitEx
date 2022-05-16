@@ -111,6 +111,8 @@ class BookBase {
       : str1 === str2;
   }
 
+  // control data length 
+  // implement in TradeBook & OrderBook
   _trim(data) {
     return data;
   }
