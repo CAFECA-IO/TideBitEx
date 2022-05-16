@@ -30,7 +30,7 @@ class TibeBitConnector extends ConnectorBase {
   global_channel = null;
   private_channel = {};
   market_channel = {};
-  
+
   fetchedTrades = {};
   fetchedBook = {};
 
@@ -404,7 +404,46 @@ class TibeBitConnector extends ConnectorBase {
     */
 
     const instId = this._findInstId(market);
-    this.orderBook.updateAll(instId, updateBooks);
+    const difference = {
+      updates: [],
+      add: [],
+      remove: [],
+    };
+    updateBooks.asks.forEach((ask) => {
+      if (SafeMath.eq(ask[1], 0)) {
+        difference.remove.push({
+          id: ask[0],
+          price: ask[0],
+          amount: ask[1],
+          side: "asks",
+        });
+      } else {
+        difference.add.push({
+          id: ask[0],
+          price: ask[0],
+          amount: ask[1],
+          side: "asks",
+        });
+      }
+    });
+    updateBooks.bids.forEach((bid) => {
+      if (SafeMath.eq(bid[1], 0)) {
+        difference.remove.push({
+          id: bid[0],
+          price: bid[0],
+          amount: bid[1],
+          side: "bids",
+        });
+      } else {
+        difference.add.push({
+          id: bid[0],
+          price: bid[0],
+          amount: bid[1],
+          side: "bids",
+        });
+      }
+    });
+    this.orderBook.updateByDifference(instId, difference);
     const timestamp = Date.now();
     if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
       this._booksTimestamp = timestamp;
@@ -472,7 +511,7 @@ class TibeBitConnector extends ConnectorBase {
     volume: "0.1"
     }*/
     const instId = this._findInstId(newTrade.market);
-    this.tradeBook.updateByDifference(instId, [newTrade]);
+    this.tradeBook.updateByDifference(instId, { add: [newTrade] });
     EventBus.emit(
       Events.trade,
       newTrade.market,
@@ -502,7 +541,7 @@ class TibeBitConnector extends ConnectorBase {
     }
     */
     const instId = this._findInstId(market);
-    this.tradeBook.updateByDifference(instId, data.trades);
+    this.tradeBook.updateByDifference(instId, { add: data.trades });
     const timestamp = Date.now();
     if (timestamp - this._tradesTimestamp > this._tradesUpdateInterval) {
       this._tradesTimestamp = timestamp;

@@ -99,7 +99,7 @@ class BookBase {
       ? SafeMath.eq(str1, str2)
       : str1 === str2;
   }
-  
+
   _trim(data) {
     return data;
   }
@@ -113,7 +113,8 @@ class BookBase {
   updateByDifference(instId, difference) {
     this.logger.log(
       `[${this.constructor.name}] updateByDifference[${instId}] this._config`,
-      this._config
+      this._config,
+      difference
     );
     let updateSnapshot;
     try {
