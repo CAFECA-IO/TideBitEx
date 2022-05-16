@@ -31,7 +31,7 @@ class TibeBitConnector extends ConnectorBase {
   private_channel = {};
   market_channel = {};
 
-  tickers = {};
+  // tickers = {};
   trades = [];
   books = null;
 
@@ -206,10 +206,11 @@ class TibeBitConnector extends ConnectorBase {
       };
       return prev;
     }, {});
+    const tickers = {};
     optional.mask.forEach((market) => {
       let ticker = formatTickers[market.id];
       if (ticker)
-        this.tickers[market.id] = {
+        tickers[market.id] = {
           ...ticker,
           group: market.group,
           market: market.id,
@@ -220,7 +221,7 @@ class TibeBitConnector extends ConnectorBase {
         };
       else {
         const instId = this._findInstId(market.id);
-        this.tickers[market.id] = {
+        tickers[market.id] = {
           market: market.id,
           instId,
           name: market.name,
@@ -243,10 +244,10 @@ class TibeBitConnector extends ConnectorBase {
       }
     });
     // ++ TODO !!! Ticker dataFormate is different
-    // this.tickerBook.updateAll()
+    this.tickerBook.updateAll(tickers);
     return new ResponseFormat({
-      message: "getTickers",
-      payload: this.tickers,
+      message: "getTickers from TideBit",
+      payload: tickers,
     });
   }
   // ++ TODO: verify function works properly
@@ -262,6 +263,7 @@ class TibeBitConnector extends ConnectorBase {
       const updateTicker = {
         ...data,
         id,
+        instId: this._findInstId(id),
         market: id,
         change,
         changePct,
@@ -292,13 +294,13 @@ class TibeBitConnector extends ConnectorBase {
     */
     const updateTickers = this._formateTicker(data);
     updateTickers.forEach((ticker) => {
-      this.tickerBook.updateByDifference(ticker, this.instIds, [ticker]);
+      this.tickerBook.updateByDifference(ticker.instId, ticker);
     });
     if (Object.keys(updateTickers).length > 0) {
       // const timestamp = Date.now();
       // if (timestamp - this._tickersTimestamp > this._tickersUpdateInterval) {
       //   this._tickersTimestamp = timestamp;
-      EventBus.emit(Events.tickers, updateTickers);
+      EventBus.emit(Events.tickers, this.tickerBook.getSnapshot());
       // }
     }
   }

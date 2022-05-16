@@ -12,6 +12,7 @@ class BookBase {
    * @param {Array<Object>} markets
    */
   init(markets) {
+    this.markets = markets;
     markets.forEach((market) => {
       this._snapshot[market.instId] = [];
       this._difference[market.instId] = [];
@@ -35,27 +36,19 @@ class BookBase {
    * @returns
    */
   // ++ TODO: verify function works properly
-  _calculateDifference(arrayA, arrayB, compareFunction) {
-    const onlyInLeft = (left, right, compareFunction) =>
+  _calculateDifference(arrayA, arrayB) {
+    const onlyInLeft = (left, right) =>
       left.filter(
         (leftValue) =>
-          !right.some((rightValue) => compareFunction(leftValue, rightValue))
+          !right.some((rightValue) =>
+            this.compareFunction(leftValue, rightValue)
+          )
       );
-    const onlyInA = this._config.remove
-      ? onlyInLeft(arrayA, arrayB, compareFunction)
-      : [];
-    const onlyInB = this._config.add
-      ? onlyInLeft(arrayB, arrayA, compareFunction)
-      : [];
-    const update = this._config.update
-      ? arrayB.filter((leftValue) =>
-          arrayA.some((rightValue) => compareFunction(leftValue, rightValue))
-        )
-      : [];
+    const onlyInA = this._config.remove ? onlyInLeft(arrayA, arrayB) : [];
+    const onlyInB = this._config.add ? onlyInLeft(arrayB, arrayA) : [];
     return {
       remove: onlyInA,
       add: onlyInB,
-      update,
     };
   }
 
@@ -65,7 +58,8 @@ class BookBase {
    * @returns {Array<Object>}
    */
   getSnapshot(instId) {
-    return this._snapshot[instId];
+    if (instId) return this._snapshot[instId];
+    else return this._snapshot;
   }
 
   /**
@@ -74,7 +68,8 @@ class BookBase {
    * @returns {Array<Object>}
    */
   getDifference(instId) {
-    return this._difference[instId];
+    if (instId) return this._difference[instId];
+    else return this._difference;
   }
 
   /**
@@ -110,14 +105,6 @@ class BookBase {
               !difference.add.some((diff) => this._isEqual(data.id, diff.id))
           )
           .concat(difference.add);
-      }
-      if (this._config.update) {
-        difference.updates.forEach((diff) => {
-          const index = updateSnapshot.findIndex((data) =>
-            this._isEqual(data.id, diff.id)
-          );
-          updateSnapshot[index] = diff;
-        });
       }
       this._snapshot[instId] = updateSnapshot;
       this._difference[instId] = difference;

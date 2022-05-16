@@ -281,56 +281,18 @@ class OkexConnector extends ConnectorBase {
       }
       const defaultObj = {};
       const tickers = res.data.data.reduce((prev, data) => {
-        const change = SafeMath.minus(data.last, data.open24h);
-        const changePct = SafeMath.gt(data.open24h, "0")
-          ? SafeMath.div(change, data.open24h)
-          : SafeMath.eq(change, "0")
-          ? "0"
-          : "1";
-        prev[data.instId.replace("-", "").toLowerCase()] = {
-          market: data.instId.replace("-", "").toLowerCase(),
-          name: data.instId.replace("-", "/"),
-          base_unit: data.instId.split("-")[0].toLowerCase(),
-          quote_unit: data.instId.split("-")[1].toLowerCase(),
-          group:
-            data.instId.split("-")[1].toLowerCase().includes("usd") &&
-            data.instId.split("-")[1].toLowerCase().length > 3
-              ? "usdx"
-              : data.instId.split("-")[1].toLowerCase(),
-          sell: data.askPx,
-          buy: data.bidPx,
-          instId: data.instId,
-          last: data.last,
-          change,
-          changePct,
-          open: data.open24h,
-          high: data.high24h,
-          low: data.low24h,
-          volume: data.vol24h,
-          at: parseInt(data.ts),
-          source: SupportedExchange.OKEX,
-          ticker: {
-            buy: data.bidPx,
-            sell: data.askPx,
-            low: data.low24h,
-            high: data.high24h,
-            last: data.last,
-            open: data.open24h,
-            vol: data.vol24h,
-          },
-        };
+        const id = data.instId.replace("-", "").toLowerCase();
+        prev[id] = this._formateTicker(data);
         return prev;
       }, defaultObj);
-      this.tickers = Utils.tickersFilterInclude(optional.mask, tickers);
-      // this.logger.log(` this.tickers`, this.tickers);
-      // this.logger.log(
-      //   `---------- [${this.constructor.name}]  getTickers [END] ----------`
-      // );
-      // ++ TODO
-      // this.tickerBook.updateAll()˝
+      const filteredTickers = Utils.tickersFilterInclude(
+        optional.mask,
+        tickers
+      );
+      this.tickerBook.updateAll(filteredTickers);
       return new ResponseFormat({
-        message: "getTickers",
-        payload: this.tickers,
+        message: "getTickers from OKEx",
+        payload: filteredTickers,
       });
     } catch (error) {
       this.logger.error(error);
@@ -412,7 +374,7 @@ class OkexConnector extends ConnectorBase {
 
       return new ResponseFormat({
         message: "getOrderBooks",
-        payload: this.orderBook.getSnapshot(instId),
+        payload: this.orderBook.getSnapshot()(instId),
       });
     } catch (error) {
       this.logger.error(error);
@@ -507,7 +469,7 @@ class OkexConnector extends ConnectorBase {
 
       return new ResponseFormat({
         message: "getTrades",
-        payload: this.tradeBook.getSnapshot(instId),
+        payload: this.tradeBook.getSnapshot()(instId),
       });
     } catch (error) {
       this.logger.error(error);
@@ -1276,7 +1238,7 @@ class OkexConnector extends ConnectorBase {
 
       EventBus.emit(Events.trades, market, {
         market,
-        trades: this.tradeBook.getSnapshot(instId),
+        trades: this.tradeBook.getSnapshot()(instId),
       });
     } catch (error) {}
   }
@@ -1334,7 +1296,11 @@ class OkexConnector extends ConnectorBase {
     const timestamp = Date.now();
     if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
       this._booksTimestamp = timestamp;
-      EventBus.emit(Events.update, market, this.orderBook.getSnapshot(instId));
+      EventBus.emit(
+        Events.update,
+        market,
+        this.orderBook.getSnapshot()(instId)
+      );
     }
   }
 
@@ -1360,52 +1326,63 @@ class OkexConnector extends ConnectorBase {
   }
 
   // ++ TODO: verify function works properly
-  _formateTicker(tickerData) {
-    return tickerData.map((data) => {
-      const id = data.instId.replace("-", "").toLowerCase();
-      const change = SafeMath.minus(data.last, data.open24h);
-      const changePct = SafeMath.gt(data.open24h, "0")
-        ? SafeMath.div(change, data.open24h)
-        : SafeMath.eq(change, "0")
-        ? "0"
-        : "1";
-      const updateTicker = {
-        id,
-        market: id,
-        instId: data.instId,
-        name: data.instId.replace("-", "/"),
-        base_unit: data.instId.split("-")[0].toLowerCase(),
-        quote_unit: data.instId.split("-")[1].toLowerCase(),
-        group:
-          data.instId.split("-")[1].toLowerCase().includes("usd") &&
-          data.instId.split("-")[1].toLowerCase().length > 3
-            ? "usdx"
-            : data.instId.split("-")[1].toLowerCase(),
-        last: data.last,
-        change,
-        changePct,
-        open: data.open24h,
-        high: data.high24h,
+  _formateTicker(data) {
+    const id = data.instId.replace("-", "").toLowerCase();
+    const change = SafeMath.minus(data.last, data.open24h);
+    const changePct = SafeMath.gt(data.open24h, "0")
+      ? SafeMath.div(change, data.open24h)
+      : SafeMath.eq(change, "0")
+      ? "0"
+      : "1";
+    const updateTicker = {
+      id,
+      market: id,
+      instId: data.instId,
+      name: data.instId.replace("-", "/"),
+      base_unit: data.instId.split("-")[0].toLowerCase(),
+      quote_unit: data.instId.split("-")[1].toLowerCase(),
+      group:
+        data.instId.split("-")[1].toLowerCase().includes("usd") &&
+        data.instId.split("-")[1].toLowerCase().length > 3
+          ? "usdx"
+          : data.instId.split("-")[1].toLowerCase(),
+      last: data.last,
+      change,
+      changePct,
+      open: data.open24h,
+      high: data.high24h,
+      low: data.low24h,
+      volume: data.vol24h,
+      at: parseInt(data.ts),
+      source: SupportedExchange.OKEX,
+      sell: data.askPx, // [about to decrepted]
+      buy: data.bidPx, // [about to decrepted]
+      ticker: {
+        // [about to decrepted]
+        buy: data.bidPx,
+        sell: data.askPx,
         low: data.low24h,
-        volume: data.vol24h,
-        at: parseInt(data.ts),
-        source: SupportedExchange.OKEX,
-      };
-      return updateTicker;
-    });
+        high: data.high24h,
+        last: data.last,
+        open: data.open24h,
+        vol: data.vol24h,
+      },
+    };
+    return updateTicker;
   }
 
   // ++ TODO: verify function works properly
-  _updateTickers(tickerData) {
-    const updateTickers = this._formateTicker(tickerData);
-    updateTickers.forEach((ticker) => {
-      this.tickerBook.updateByDifference(ticker, this.instIds, [ticker]);
+  _updateTickers(datas) {
+    const updateTickers = datas.forEach((data) => {
+      const updateTicker = this._formateTicker(data);
+      this.tickerBook.updateByDifference(data.instId, updateTicker);
     });
+
     if (Object.keys(updateTickers).length > 0) {
       // const timestamp = Date.now();
       // if (timestamp - this._tickersTimestamp > this._tickersUpdateInterval) {
       //   this._tickersTimestamp = timestamp;
-      EventBus.emit(Events.tickers, updateTickers);
+      EventBus.emit(Events.tickers, this.tickerBook.getSnapshot());
       // }
     }
   }

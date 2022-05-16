@@ -21,7 +21,7 @@ class TradeBook extends BookBase {
    * @param {Trade} valueB
    */
   _compareFunction(valueA, valueB) {
-    return super._compareFunction(valueA.id, valueB.id);
+    return super._compareFunction(valueA, valueB);
   }
 
   /**

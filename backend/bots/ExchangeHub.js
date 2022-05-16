@@ -10,7 +10,6 @@ const Events = require("../constants/Events");
 const SafeMath = require("../libs/SafeMath");
 const Utils = require("../libs/Utils");
 const SupportedExchange = require("../constants/SupportedExchange");
-const { order } = require("../constants/Events");
 const OrderBook = require("../libs/Books/OrderBook");
 const TradeBook = require("../libs/Books/TradeBook");
 const TickerBook = require("../libs/Books/TickerBook");
@@ -217,7 +216,15 @@ class ExchangeHub extends Bot {
       const tBTickersRes = await this.tideBitConnector.router("getTickers", {
         optional: { mask: tideBitOnlyMarkets },
       });
-      filteredTBTickers = tBTickersRes.payload;
+      if (tBTickersRes.success) {
+        filteredOkexTickers = tBTickersRes.payload;
+      } else {
+        this.logger.error(tBTickersRes);
+        return new ResponseFormat({
+          message: "",
+          code: Codes.API_UNKNOWN_ERROR,
+        });
+      }
       // this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
       // this.logger.log(`filteredTBTickers`, filteredTBTickers);
       this.logger.debug(
@@ -232,7 +239,7 @@ class ExchangeHub extends Bot {
     }
     return new ResponseFormat({
       message: "getTickers",
-      payload: { ...filteredOkexTickers, ...filteredTBTickers },
+      payload: this.tickerBook.getSnapshot(),
     });
   }
 

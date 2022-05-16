@@ -9,12 +9,27 @@ class TickerBook extends BookBase {
   }
 
   /**
+   * return need update ticker
    * @typedef {Object} Ticker
-   * @property {string} id = market
+   * @property {String} id = market
+   * @property {String} market
+   * @property {String} instId
+   * @property {String} name
+   * @property {String} base_unit
+   * @property {String} quote_unit
+   * @property {String} group
+   * @property {String} last
+   * @property {String} change
+   * @property {String} changePct
+   * @property {String} open
+   * @property {String} high
+   * @property {String} low
+   * @property {String} volume
+   * @property {Number} at
+   * @property {String} source
 
-
-   * @param {Order} valueA
-   * @param {Order} valueB
+   * @param {Ticker} valueA
+   * @param {Ticker} valueB
    */
   _compareFunction(valueA, valueB) {
     return (
@@ -27,14 +42,32 @@ class TickerBook extends BookBase {
     );
   }
 
-  /**
-   * @param {Array<Trade>} arrayA
-   * @param {Array<Trade>} arrayB
-   * @param {Function} compareFunction
-   * @returns
-   */
-  _calculateDifference(arrayA, arrayB) {
-    return super._calculateDiffence(arrayA, arrayB, this.compareFunction);
+  updateByDifference(instId, ticker) {
+    try {
+      if (this._compareFunction(this._snapshot[instId], ticker)) {
+        this._difference[instId] = ticker;
+        this._snapshot[instId] = ticker;
+        return {
+          success: true,
+          snapshot: this._snapshot[instId],
+          difference: this._difference[instId],
+        };
+      }
+    } catch (error) {
+      return { success: false };
+    }
+  }
+
+  updateAll(tickers) {
+    try {
+      tickers.forEach((ticker) => {
+        this._snapshot[ticker.instId] = ticker;
+        this._difference[ticker.instId] = ticker;
+      });
+      return { success: true };
+    } catch (error) {
+      return { success: false };
+    }
   }
 }
 
