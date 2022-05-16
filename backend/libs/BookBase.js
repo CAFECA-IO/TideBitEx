@@ -1,7 +1,8 @@
 const SafeMath = require("./SafeMath");
 
 class BookBase {
-  constructor() {
+  constructor({ logger }) {
+    this.logger = logger;
     this._config = { remove: true, add: true, update: true };
     this._snapshot = {}
     this._difference = {}
