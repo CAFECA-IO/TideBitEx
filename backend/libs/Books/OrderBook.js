@@ -54,7 +54,7 @@ class OrderBook extends BookBase {
     });
     this.logger.log(
       `[${this.constructor.name}] getSnapshot[${instId}]`,
-      this._snapshot[instId]
+      orderBooks
     );
     return orderBooks;
   }
