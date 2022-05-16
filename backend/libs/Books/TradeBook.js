@@ -78,16 +78,15 @@ class TradeBook extends BookBase {
    * @param {Array<Order>} data
    */
   updateAll(instId, data) {
+    this.logger.log(
+      `[${this.constructor.name}] updateAll[${instId}]`,
+    );
     const { success, snapshot } = super.updateAll(instId, data);
     if (success) {
       this._snapshot[instId] = this._trim(snapshot);
       this.logger.log(
         `[${this.constructor.name}] updateAll[${instId}]`,
         this._snapshot[instId]
-      );
-      this.logger.log(
-        `[${this.constructor.name}] updateAll[${instId}]`,
-        this._difference[instId]
       );
     }
     return success;
