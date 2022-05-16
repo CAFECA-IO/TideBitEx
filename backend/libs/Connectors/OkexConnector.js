@@ -1512,7 +1512,7 @@ class OkexConnector extends ConnectorBase {
       this._tradesTimestamp = 0;
 
       this._subscribeTrades(instId);
-      // this._subscribeBook(instId);
+      this._subscribeBook(instId);
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeMarket [END] ++++++`
       );
