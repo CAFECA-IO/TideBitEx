@@ -87,13 +87,7 @@ class BookBase {
     //   this._snapshot[instId]
     // );
     if (instId) return this._snapshot[instId];
-    else {
-      this.logger.log(
-        `[${this.constructor.name}] getSnapshot(${instId})`,
-        this._snapshot
-      );
-      return this._snapshot;
-    }
+    else return this._snapshot;
   }
 
   /**
