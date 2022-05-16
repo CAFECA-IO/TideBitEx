@@ -132,6 +132,7 @@ class OrderBook extends BookBase {
    * @param {Array<Order>} data
    */
   updateAll(instId, data) {
+    this.logger.log(`[${this.constructor.name}] updateAll[${instId}]`);
     const { success, snapshot } = super.updateAll(
       instId,
       this._formateBooks(data)
