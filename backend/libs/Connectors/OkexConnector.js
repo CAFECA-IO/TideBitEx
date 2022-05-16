@@ -72,6 +72,12 @@ class OkexConnector extends ConnectorBase {
   async start() {
     this._okexWsEventListener();
     // this._subscribeInstruments();
+    Object.keys(this.markets).forEach((key) => {
+      if (this.markets[key] === "OKEx") {
+        const instId = key.replace("tb", "");
+        this.instIds.push(instId);
+      }
+    });
     this._subscribeTickers(this.instIds);
     this._wsPrivateLogin();
   }
@@ -1315,10 +1321,10 @@ class OkexConnector extends ConnectorBase {
 
   // ++ TODO: verify function works properly
   _updateTickers(data) {
-    this.logger.log(`_updateTickers data`, data)
+    this.logger.log(`_updateTickers data`, data);
     const updateTickers = data.forEach((d) => {
       const updateTicker = this._formateTicker(d);
-      this.logger.log(`_updateTickers updateTicker`, updateTicker)
+      this.logger.log(`_updateTickers updateTicker`, updateTicker);
       this.tickerBook.updateByDifference(d.instId, updateTicker);
     });
 
