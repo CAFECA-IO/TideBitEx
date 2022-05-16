@@ -13,7 +13,7 @@ const TickerTile = (props) => {
   return (
     <li
       onClick={(_) => {
-        storeCtx.selectTickerHandler(props.ticker);
+        storeCtx.selectTickerHandler(props.ticker.market);
         props.closeDialogHandler();
       }}
       className={`mobile-tickers__tile ${

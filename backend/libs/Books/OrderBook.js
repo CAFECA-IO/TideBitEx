@@ -52,10 +52,10 @@ class OrderBook extends BookBase {
         orderBooks.bids.push([data.price, data.amount]);
       }
     });
-    this.logger.log(
-      `[${this.constructor.name}] getSnapshot[${instId}]`,
-      orderBooks
-    );
+    // this.logger.log(
+    //   `[${this.constructor.name}] getSnapshot[${instId}]`,
+    //   orderBooks
+    // );
     return orderBooks;
   }
 
