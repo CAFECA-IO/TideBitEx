@@ -256,23 +256,23 @@ class TibeBitConnector extends ConnectorBase {
   // ++ TODO: verify function works properly
   _formateTicker(data) {
     // return tickerData.map((data) => {
-      const id = data.instId.replace("/", "").toLowerCase();
-      const change = SafeMath.minus(data.last, data.open24h);
-      const changePct = SafeMath.gt(data.open24h, "0")
-        ? SafeMath.div(change, data.open24h)
-        : SafeMath.eq(change, "0")
-        ? "0"
-        : "1";
-      const updateTicker = {
-        ...data,
-        id,
-        instId: this._findInstId(id),
-        market: id,
-        change,
-        changePct,
-        source: SupportedExchange.TIDEBIT,
-      };
-      return updateTicker;
+    const id = data.instId.replace("/", "").toLowerCase();
+    const change = SafeMath.minus(data.last, data.open24h);
+    const changePct = SafeMath.gt(data.open24h, "0")
+      ? SafeMath.div(change, data.open24h)
+      : SafeMath.eq(change, "0")
+      ? "0"
+      : "1";
+    const updateTicker = {
+      ...data,
+      id,
+      instId: this._findInstId(id),
+      market: id,
+      change,
+      changePct,
+      source: SupportedExchange.TIDEBIT,
+    };
+    return updateTicker;
     // });
   }
 
@@ -299,13 +299,7 @@ class TibeBitConnector extends ConnectorBase {
     updateTickers.forEach((ticker) => {
       this.tickerBook.updateByDifference(ticker.instId, ticker);
     });
-    if (Object.keys(updateTickers).length > 0) {
-      // const timestamp = Date.now();
-      // if (timestamp - this._tickersTimestamp > this._tickersUpdateInterval) {
-      //   this._tickersTimestamp = timestamp;
-      EventBus.emit(Events.tickers, this.tickerBook.getSnapshot());
-      // }
-    }
+    EventBus.emit(Events.tickers, this.tickerBook.getSnapshot());
   }
 
   // ++ TODO: verify function works properly

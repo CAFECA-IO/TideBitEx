@@ -1322,19 +1322,13 @@ class OkexConnector extends ConnectorBase {
   // ++ TODO: verify function works properly
   _updateTickers(data) {
     this.logger.log(`_updateTickers data`, data);
-    const updateTickers = data.forEach((d) => {
+    data.forEach((d) => {
       const updateTicker = this._formateTicker(d);
       this.logger.log(`_updateTickers updateTicker`, updateTicker);
       this.tickerBook.updateByDifference(d.instId, updateTicker);
     });
 
-    if (Object.keys(updateTickers).length > 0) {
-      // const timestamp = Date.now();
-      // if (timestamp - this._tickersTimestamp > this._tickersUpdateInterval) {
-      //   this._tickersTimestamp = timestamp;
-      EventBus.emit(Events.tickers, this.tickerBook.getSnapshot());
-      // }
-    }
+    EventBus.emit(Events.tickers, this.tickerBook.getSnapshot());
   }
 
   _subscribeInstruments() {
