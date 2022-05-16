@@ -87,7 +87,13 @@ class BookBase {
     //   this._snapshot[instId]
     // );
     if (instId) return this._snapshot[instId];
-    else return this._snapshot;
+    else {
+      this.logger.log(
+        `[${this.constructor.name}] getSnapshot(${instId})`,
+        this._snapshot
+      );
+      return this._snapshot;
+    }
   }
 
   /**
@@ -195,10 +201,7 @@ class BookBase {
       //   difference: this._difference[instId],
       // };
     } catch (error) {
-      this.logger.error(
-        `[${this.constructor.name}] updateAll error`,
-        error
-      );
+      this.logger.error(`[${this.constructor.name}] updateAll error`, error);
       return false;
     }
   }
