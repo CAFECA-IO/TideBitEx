@@ -27,7 +27,9 @@ class OkexConnector extends ConnectorBase {
   tickers = {};
   okexWsChannels = {};
   instIds = [];
+  
   fetchedTrades = {};
+  fetchedBook = {};
 
   constructor({ logger }) {
     super({ logger });

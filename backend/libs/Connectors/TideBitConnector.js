@@ -30,7 +30,9 @@ class TibeBitConnector extends ConnectorBase {
   global_channel = null;
   private_channel = {};
   market_channel = {};
+  
   fetchedTrades = {};
+  fetchedBook = {};
 
   // tickers = {};
   trades = [];
