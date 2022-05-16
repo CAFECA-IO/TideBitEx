@@ -360,7 +360,7 @@ class OkexConnector extends ConnectorBase {
 
       return new ResponseFormat({
         message: "getOrderBooks",
-        payload: this.orderBook.getSnapshot()(instId),
+        payload: this.orderBook.getSnapshot(instId),
       });
     } catch (error) {
       this.logger.error(error);
@@ -464,7 +464,7 @@ class OkexConnector extends ConnectorBase {
     }
     return new ResponseFormat({
       message: "getTrades",
-      payload: this.tradeBook.getSnapshot()(instId),
+      payload: this.tradeBook.getSnapshot(instId),
     });
   }
 
@@ -1223,7 +1223,7 @@ class OkexConnector extends ConnectorBase {
 
       EventBus.emit(Events.trades, market, {
         market,
-        trades: this.tradeBook.getSnapshot()(instId),
+        trades: this.tradeBook.getSnapshot(instId),
       });
     } catch (error) {}
   }
@@ -1284,7 +1284,7 @@ class OkexConnector extends ConnectorBase {
       EventBus.emit(
         Events.update,
         market,
-        this.orderBook.getSnapshot()(instId)
+        this.orderBook.getSnapshot(instId)
       );
     }
   }
