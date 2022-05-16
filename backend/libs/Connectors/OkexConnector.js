@@ -295,83 +295,52 @@ class OkexConnector extends ConnectorBase {
     }
   }
 
-  // /**
-  //  * @typedef {Object} Book
-  //  * @property {string} market
-  //  * @property {Array} asks
-  //  * @property {Array} bids
-  //  *
-  //  * @param {Book} bookObj
-  //  * @returns {Array<Order>}
-  //  */
-  //   // ++ TODO: verify function works properly
-  // _formateBooks(bookObj) {
-  //   const bookArr = [];
-  //   bookObj.asks.forEach((ask) => {
-  //     bookArr.push({
-  //       id: ask[0],
-  //       price: ask[0],
-  //       amount: ask[1],
-  //       side: "asks",
-  //     });
-  //   });
-  //   bookObj.bids.forEach((bid) => {
-  //     bookArr.push({
-  //       id: bid[0],
-  //       price: bid[0],
-  //       amount: bid[1],
-  //       side: "bids",
-  //     });
-  //   });
-  //   return bookArr;
-  // }
-
   async getOrderBooks({ query }) {
     const method = "GET";
     const path = "/api/v5/market/books";
     const { instId, sz } = query;
 
-    // const arr = [];
-    // if (instId) arr.push(`instId=${instId}`);
-    // if (sz) arr.push(`sz=${sz}`);
-    // const qs = !!arr.length ? `?${arr.join("&")}` : "";
+    const arr = [];
+    if (instId) arr.push(`instId=${instId}`);
+    if (sz) arr.push(`sz=${sz}`);
+    const qs = !!arr.length ? `?${arr.join("&")}` : "";
+    if (!this.fetchedBook[instId]) {
+      try {
+        const res = await axios({
+          method: method.toLocaleLowerCase(),
+          url: `${this.domain}${path}${qs}`,
+          headers: this.getHeaders(false),
+        });
+        if (res.data && res.data.code !== "0") {
+          const message = JSON.stringify(res.data);
+          this.logger.trace(message);
+          return new ResponseFormat({
+            message,
+            code: Codes.THIRD_PARTY_API_ERROR,
+          });
+        }
+        const [data] = res.data.data;
+        // const orderBooks = [];
+        // orderBooks["market"] = instId.replace("-", "").toLowerCase();
+        // orderBooks["asks"] = data.asks.map((ask) => [ask[0], ask[1]]);
+        // orderBooks["bids"] = data.bids.map((bid) => [bid[0], bid[1]]);
 
-    try {
-      //   const res = await axios({
-      //     method: method.toLocaleLowerCase(),
-      //     url: `${this.domain}${path}${qs}`,
-      //     headers: this.getHeaders(false),
-      //   });
-      //   if (res.data && res.data.code !== "0") {
-      //     const message = JSON.stringify(res.data);
-      //     this.logger.trace(message);
-      //     return new ResponseFormat({
-      //       message,
-      //       code: Codes.THIRD_PARTY_API_ERROR,
-      //     });
-      //   }
-      //   const [data] = res.data.data;
-      // const orderBooks = [];
-      // orderBooks["market"] = instId.replace("-", "").toLowerCase();
-      // orderBooks["asks"] = data.asks.map((ask) => [ask[0], ask[1]]);
-      // orderBooks["bids"] = data.bids.map((bid) => [bid[0], bid[1]]);
-
-      // this.orderbook.updateAll(instId, this._formateBooks(data));
-
-      return new ResponseFormat({
-        message: "getOrderBooks",
-        payload: this.orderBook.getSnapshot(instId),
-      });
-    } catch (error) {
-      this.logger.error(error);
-      let message = error.message;
-      if (error.response && error.response.data)
-        message = error.response.data.msg;
-      return new ResponseFormat({
-        message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
+        this.orderbook.updateAll(instId, data);
+      } catch (error) {
+        this.logger.error(error);
+        let message = error.message;
+        if (error.response && error.response.data)
+          message = error.response.data.msg;
+        return new ResponseFormat({
+          message,
+          code: Codes.API_UNKNOWN_ERROR,
+        });
+      }
     }
+    return new ResponseFormat({
+      message: "getOrderBooks",
+      payload: this.orderBook.getSnapshot(instId),
+    });
   }
 
   async getCandlesticks({ query }) {
@@ -1281,11 +1250,7 @@ class OkexConnector extends ConnectorBase {
     const timestamp = Date.now();
     if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
       this._booksTimestamp = timestamp;
-      EventBus.emit(
-        Events.update,
-        market,
-        this.orderBook.getSnapshot(instId)
-      );
+      EventBus.emit(Events.update, market, this.orderBook.getSnapshot(instId));
     }
   }
 

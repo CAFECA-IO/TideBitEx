@@ -51,11 +51,46 @@ class OrderBook extends BookBase {
         orderBooks.asks.push(data);
       }
     });
+    this.logger.log(
+      `[${this.constructor.name}] getSnapshot[${instId}]`,
+      this._snapshot[instId]
+    );
     return orderBooks;
   }
 
   getDifference(instId) {
     return super.getDifference(instId);
+  }
+
+  /**
+   * @typedef {Object} Book
+   * @property {string} market
+   * @property {Array} asks
+   * @property {Array} bids
+   *
+   * @param {Book} bookObj
+   * @returns {Array<Order>}
+   */
+  // ++ TODO: verify function works properly
+  _formateBooks(bookObj) {
+    const bookArr = [];
+    bookObj.asks.forEach((ask) => {
+      bookArr.push({
+        id: ask[0],
+        price: ask[0],
+        amount: ask[1],
+        side: "asks",
+      });
+    });
+    bookObj.bids.forEach((bid) => {
+      bookArr.push({
+        id: bid[0],
+        price: bid[0],
+        amount: bid[1],
+        side: "bids",
+      });
+    });
+    return bookArr;
   }
 
   // ++ TODO: verify function works properly
@@ -96,7 +131,10 @@ class OrderBook extends BookBase {
    * @param {Array<Order>} data
    */
   updateAll(instId, data) {
-    const { success, snapshot } = super.updateAll(instId, data);
+    const { success, snapshot } = super.updateAll(
+      instId,
+      this._formateBooks(data)
+    );
     if (success) {
       this._snapshot[instId] = this._trim(snapshot);
     }

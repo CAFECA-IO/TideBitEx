@@ -308,82 +308,82 @@ class TibeBitConnector extends ConnectorBase {
 
   // ++ TODO: verify function works properly
   async getOrderBooks({ query }) {
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  getOrderBooks market: ${query.id} [START] ----------`
-    // );
-    // this.market = query.id;
-    try {
-      // const tbBooksRes = await axios.get(
-      //   `${this.peatio}/api/v2/order_book?market=${query.id}`
-      // );
-      // if (!tbBooksRes || !tbBooksRes.data) {
-      //   return new ResponseFormat({
-      //     message: "Something went wrong",
-      //     code: Codes.API_UNKNOWN_ERROR,
-      //   });
-      // }
-      // const tbBooks = tbBooksRes.data;
-      // const asks = [];
-      // const bids = [];
-      // // this.logger.log(`tbBooks query.id`, query.id);
-      // tbBooks.asks.forEach((ask) => {
-      //   if (
-      //     ask.market === query.id &&
-      //     ask.ord_type === "limit" &&
-      //     ask.state === "wait"
-      //   ) {
-      //     let index;
-      //     index = asks.findIndex((_ask) =>
-      //       SafeMath.eq(_ask[0], ask.price.toString())
-      //     );
-      //     if (index !== -1) {
-      //       let updateAsk = asks[index];
-      //       updateAsk[1] = SafeMath.plus(updateAsk[1], ask.remaining_volume);
-      //       asks[index] = updateAsk;
-      //     } else {
-      //       let newAsk = [ask.price.toString(), ask.remaining_volume]; // [價格, volume]
-      //       asks.push(newAsk);
-      //     }
-      //   }
-      // });
-      // tbBooks.bids.forEach((bid) => {
-      //   if (
-      //     bid.market === query.id &&
-      //     bid.ord_type === "limit" &&
-      //     bid.state === "wait"
-      //   ) {
-      //     let index;
-      //     index = bids.findIndex((_bid) =>
-      //       SafeMath.eq(_bid[0], bid.price.toString())
-      //     );
-      //     if (index !== -1) {
-      //       let updateBid = bids[index];
-      //       updateBid[1] = SafeMath.plus(updateBid[1], bid.remaining_volume);
-      //       bids[index] = updateBid;
-      //     } else {
-      //       let newBid = [bid.price.toString(), bid.remaining_volume]; // [價格, volume]
-      //       bids.push(newBid);
-      //     }
-      //   }
-      // });
-      // const books = { asks, bids, market: query.id };
-      // this.books = books;
-      // this.logger.log(`[FROM TideBit] Response books`, books);
-      // this.logger.log(
-      //   `---------- [${this.constructor.name}]  getOrderBooks market: ${query.id} [END] ----------`
-      // );
-      return new ResponseFormat({
-        message: "getOrderBooks",
-        payload: this.orderBook.getSnapshot(this._findInstId(query.id)),
-      });
-    } catch (error) {
-      this.logger.error(error);
-      const message = error.message;
-      return new ResponseFormat({
-        message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
+    const instId = this._findInstId(query.id);
+    if (!this.fetchedBook[instId]) {
+      try {
+        const tbBooksRes = await axios.get(
+          `${this.peatio}/api/v2/order_book?market=${query.id}`
+        );
+        if (!tbBooksRes || !tbBooksRes.data) {
+          return new ResponseFormat({
+            message: "Something went wrong",
+            code: Codes.API_UNKNOWN_ERROR,
+          });
+        }
+        const tbBooks = tbBooksRes.data;
+        const asks = [];
+        const bids = [];
+        // this.logger.log(`tbBooks query.id`, query.id);
+        tbBooks.asks.forEach((ask) => {
+          if (
+            ask.market === query.id &&
+            ask.ord_type === "limit" &&
+            ask.state === "wait"
+          ) {
+            let index;
+            index = asks.findIndex((_ask) =>
+              SafeMath.eq(_ask[0], ask.price.toString())
+            );
+            if (index !== -1) {
+              let updateAsk = asks[index];
+              updateAsk[1] = SafeMath.plus(updateAsk[1], ask.remaining_volume);
+              asks[index] = updateAsk;
+            } else {
+              let newAsk = [ask.price.toString(), ask.remaining_volume]; // [價格, volume]
+              asks.push(newAsk);
+            }
+          }
+        });
+        tbBooks.bids.forEach((bid) => {
+          if (
+            bid.market === query.id &&
+            bid.ord_type === "limit" &&
+            bid.state === "wait"
+          ) {
+            let index;
+            index = bids.findIndex((_bid) =>
+              SafeMath.eq(_bid[0], bid.price.toString())
+            );
+            if (index !== -1) {
+              let updateBid = bids[index];
+              updateBid[1] = SafeMath.plus(updateBid[1], bid.remaining_volume);
+              bids[index] = updateBid;
+            } else {
+              let newBid = [bid.price.toString(), bid.remaining_volume]; // [價格, volume]
+              bids.push(newBid);
+            }
+          }
+        });
+        const books = { asks, bids, market: query.id };
+
+        this.logger.log(`[FROM TideBit] Response books`, books);
+        this.logger.log(
+          `---------- [${this.constructor.name}]  getOrderBooks market: ${query.id} [END] ----------`
+        );
+        this.orderBook.updateAll(instId, books);
+      } catch (error) {
+        this.logger.error(error);
+        const message = error.message;
+        return new ResponseFormat({
+          message,
+          code: Codes.API_UNKNOWN_ERROR,
+        });
+      }
     }
+    return new ResponseFormat({
+      message: "getOrderBooks",
+      payload: this.orderBook.getSnapshot(instId),
+    });
   }
 
   // ++ TODO: verify function works properly
@@ -400,25 +400,9 @@ class TibeBitConnector extends ConnectorBase {
         ]
     }
     */
-    const _updateBooks = [];
-    updateBooks.asks.forEach((ask) =>
-      _updateBooks.push({
-        id: ask[0],
-        price: ask[0],
-        amount: ask[1],
-        side: "asks",
-      })
-    );
-    updateBooks.bids.forEach((bid) =>
-      _updateBooks.push({
-        id: bid[0],
-        price: bid[0],
-        amount: bid[1],
-        side: "bids",
-      })
-    );
+
     const instId = this._findInstId(market);
-    this.orderBook.updateAll(instId, _updateBooks);
+    this.orderBook.updateAll(instId, updateBooks);
     const timestamp = Date.now();
     if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
       this._booksTimestamp = timestamp;
