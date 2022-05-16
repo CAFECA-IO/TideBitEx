@@ -27,6 +27,7 @@ class OkexConnector extends ConnectorBase {
   tickers = {};
   okexWsChannels = {};
   instIds = [];
+  fetchedTrades = {};
 
   constructor({ logger }) {
     super({ logger });
@@ -437,50 +438,51 @@ class OkexConnector extends ConnectorBase {
   }
 
   async getTrades({ query }) {
-    const method = "GET";
-    const path = "/api/v5/market/trades";
-    const { instId, limit, force } = query;
-    this.logger.log(`!!!!! important getTrades force`, force);
-    if (!force && this.okexWsChannels.trades[instId]?.update)
-      return this.okexWsChannels.trades[instId]?.data || [];
+    const { instId, limit } = query;
+    if (!this.fetchedTrades[instId]) {
+      const method = "GET";
+      const path = "/api/v5/market/trades";
+      if (this.okexWsChannels.trades[instId]?.update)
+        return this.okexWsChannels.trades[instId]?.data || [];
 
-    const arr = [];
-    if (instId) arr.push(`instId=${instId}`);
-    if (limit) arr.push(`limit=${limit}`);
-    const qs = !!arr.length ? `?${arr.join("&")}` : "";
+      const arr = [];
+      if (instId) arr.push(`instId=${instId}`);
+      if (limit) arr.push(`limit=${limit}`);
+      const qs = !!arr.length ? `?${arr.join("&")}` : "";
 
-    try {
-      const res = await axios({
-        method: method.toLocaleLowerCase(),
-        url: `${this.domain}${path}${qs}`,
-        headers: this.getHeaders(false),
-      });
-      if (res.data && res.data.code !== "0") {
-        const message = JSON.stringify(res.data);
-        this.logger.trace(message);
+      try {
+        const res = await axios({
+          method: method.toLocaleLowerCase(),
+          url: `${this.domain}${path}${qs}`,
+          headers: this.getHeaders(false),
+        });
+        if (res.data && res.data.code !== "0") {
+          const message = JSON.stringify(res.data);
+          this.logger.trace(message);
+          return new ResponseFormat({
+            message,
+            code: Codes.THIRD_PARTY_API_ERROR,
+          });
+        }
+        // ++ TODO: verify function works properly
+        const trades = res.data.data;
+        this.tradeBook.updateAll(instId, trades);
+        this.fetchedTrades[instId] = true;
+      } catch (error) {
+        this.logger.error(error);
+        let message = error.message;
+        if (error.response && error.response.data)
+          message = error.response.data.msg;
         return new ResponseFormat({
           message,
-          code: Codes.THIRD_PARTY_API_ERROR,
+          code: Codes.API_UNKNOWN_ERROR,
         });
       }
-      // ++ TODO: verify function works properly
-      const trades = res.data.data;
-      this.tradeBook.updateAll(instId, trades);
-
-      return new ResponseFormat({
-        message: "getTrades",
-        payload: this.tradeBook.getSnapshot()(instId),
-      });
-    } catch (error) {
-      this.logger.error(error);
-      let message = error.message;
-      if (error.response && error.response.data)
-        message = error.response.data.msg;
-      return new ResponseFormat({
-        message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
     }
+    return new ResponseFormat({
+      message: "getTrades",
+      payload: this.tradeBook.getSnapshot()(instId),
+    });
   }
 
   formateExAccts(subAcctsBals) {

@@ -30,6 +30,7 @@ class TibeBitConnector extends ConnectorBase {
   global_channel = null;
   private_channel = {};
   market_channel = {};
+  fetchedTrades = {};
 
   // tickers = {};
   trades = [];
@@ -440,31 +441,34 @@ class TibeBitConnector extends ConnectorBase {
     ]
     */
   async getTrades({ query }) {
-    try {
-      const tbTradesRes = await axios.get(
-        `${this.peatio}/api/v2/trades?market=${query.id}`
-      );
-      if (!tbTradesRes || !tbTradesRes.data) {
+    const instId = this._findInstId(query.id);
+    if (!this.fetchedTrades[instId]) {
+      try {
+        const tbTradesRes = await axios.get(
+          `${this.peatio}/api/v2/trades?market=${query.id}`
+        );
+        if (!tbTradesRes || !tbTradesRes.data) {
+          return new ResponseFormat({
+            message: "Something went wrong",
+            code: Codes.API_UNKNOWN_ERROR,
+          });
+        }
+        // ++ TODO: verify function works properly
+        this.tradeBook.updateAll(instId, tbTradesRes.data);
+        this.fetchedTrades[instId] = true;
+      } catch (error) {
+        this.logger.error(error);
+        const message = error.message;
         return new ResponseFormat({
-          message: "Something went wrong",
+          message,
           code: Codes.API_UNKNOWN_ERROR,
         });
       }
-      // ++ TODO: verify function works properly
-      const instId = this._findInstId(query.id);
-      this.tradeBook.updateAll(instId, tbTradesRes.data);
-      return new ResponseFormat({
-        message: "getTrades",
-        payload: this.tradeBook.getSnapshot(instId),
-      });
-    } catch (error) {
-      this.logger.error(error);
-      const message = error.message;
-      return new ResponseFormat({
-        message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
     }
+    return new ResponseFormat({
+      message: "getTrades",
+      payload: this.tradeBook.getSnapshot(instId),
+    });
   }
 
   // ++ TODO: verify function works properly

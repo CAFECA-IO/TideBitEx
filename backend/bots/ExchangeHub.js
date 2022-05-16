@@ -18,6 +18,7 @@ class ExchangeHub extends Bot {
   constructor() {
     super();
     this.name = "ExchangeHub";
+    this.fetchedTickers = false;
   }
 
   init({ config, database, logger, i18n }) {
@@ -180,62 +181,65 @@ class ExchangeHub extends Bot {
   // account api end
   // market api
   async getTickers({ query }) {
-    let filteredOkexTickers,
-      filteredTBTickers = {};
-    this.logger.debug(
-      `*********** [${this.name}] getTickers [START] ************`
-    );
-    try {
-      const okexRes = await this.okexConnector.router("getTickers", {
-        query,
-        optional: { mask: this.tidebitMarkets },
-      });
-      if (okexRes.success) {
-        filteredOkexTickers = okexRes.payload;
-      } else {
-        this.logger.error(okexRes);
-        return new ResponseFormat({
-          message: "",
-          code: Codes.API_UNKNOWN_ERROR,
-        });
-      }
-    } catch (error) {
-      this.logger.error(error);
-      return new ResponseFormat({
-        message: error.stack,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
-    }
-    // this.logger.log(`this.tidebitMarkets`, this.tidebitMarkets);
-    try {
-      const tideBitOnlyMarkets = Utils.marketFilterExclude(
-        Object.values(filteredOkexTickers),
-        this.tidebitMarkets
-      );
-      // this.logger.log(`tideBitOnlyMarkets`, tideBitOnlyMarkets);
-      const tBTickersRes = await this.tideBitConnector.router("getTickers", {
-        optional: { mask: tideBitOnlyMarkets },
-      });
-      if (tBTickersRes.success) {
-        filteredOkexTickers = tBTickersRes.payload;
-      } else {
-        this.logger.error(tBTickersRes);
-        return new ResponseFormat({
-          message: "",
-          code: Codes.API_UNKNOWN_ERROR,
-        });
-      }
-      // this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
-      // this.logger.log(`filteredTBTickers`, filteredTBTickers);
+    if (!this.fetchedTickers) {
+      let filteredOkexTickers,
+        filteredTBTickers = {};
       this.logger.debug(
-        `*********** [${this.name}] getTickers [END] ************`
+        `*********** [${this.name}] getTickers [START] ************`
       );
-    } catch (error) {
-      this.logger.error(error);
-      return new ResponseFormat({
-        message: error.stack,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
+      try {
+        const okexRes = await this.okexConnector.router("getTickers", {
+          query,
+          optional: { mask: this.tidebitMarkets },
+        });
+        if (okexRes.success) {
+          filteredOkexTickers = okexRes.payload;
+        } else {
+          this.logger.error(okexRes);
+          return new ResponseFormat({
+            message: "",
+            code: Codes.API_UNKNOWN_ERROR,
+          });
+        }
+      } catch (error) {
+        this.logger.error(error);
+        return new ResponseFormat({
+          message: error.stack,
+          code: Codes.API_UNKNOWN_ERROR,
+        });
+      }
+      // this.logger.log(`this.tidebitMarkets`, this.tidebitMarkets);
+      try {
+        const tideBitOnlyMarkets = Utils.marketFilterExclude(
+          Object.values(filteredOkexTickers),
+          this.tidebitMarkets
+        );
+        // this.logger.log(`tideBitOnlyMarkets`, tideBitOnlyMarkets);
+        const tBTickersRes = await this.tideBitConnector.router("getTickers", {
+          optional: { mask: tideBitOnlyMarkets },
+        });
+        if (tBTickersRes.success) {
+          filteredOkexTickers = tBTickersRes.payload;
+        } else {
+          this.logger.error(tBTickersRes);
+          return new ResponseFormat({
+            message: "",
+            code: Codes.API_UNKNOWN_ERROR,
+          });
+        }
+        // this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
+        // this.logger.log(`filteredTBTickers`, filteredTBTickers);
+        this.logger.debug(
+          `*********** [${this.name}] getTickers [END] ************`
+        );
+      } catch (error) {
+        this.logger.error(error);
+        return new ResponseFormat({
+          message: error.stack,
+          code: Codes.API_UNKNOWN_ERROR,
+        });
+      }
+      this.fetchedTickers = true;
     }
     return new ResponseFormat({
       message: "getTickers",
