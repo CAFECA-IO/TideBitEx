@@ -2,8 +2,8 @@ const BookBase = require("../BookBase");
 const SafeMath = require("../SafeMath");
 
 class OrderBook extends BookBase {
-  constructor({ logger }) {
-    super({ logger });
+  constructor({ logger, markets }) {
+    super({ logger, markets });
     this._config = { remove: true, add: true, update: false };
     this.name = `OrderBook`;
     return this;

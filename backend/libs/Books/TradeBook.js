@@ -2,8 +2,8 @@ const BookBase = require("../BookBase");
 const SafeMath = require("../SafeMath");
 
 class TradeBook extends BookBase {
-  constructor({ logger }) {
-    super({ logger });
+  constructor({ logger, markets }) {
+    super({ logger, markets });
     this.name = `TradeBook`;
     this._config = { remove: false, add: true, update: false };
     return this;
@@ -78,9 +78,7 @@ class TradeBook extends BookBase {
    * @param {Array<Order>} data
    */
   updateAll(instId, data) {
-    this.logger.log(
-      `[${this.constructor.name}] updateAll[${instId}]`,
-    );
+    this.logger.log(`[${this.constructor.name}] updateAll[${instId}]`);
     const { success, snapshot } = super.updateAll(instId, data);
     if (success) {
       this._snapshot[instId] = this._trim(snapshot);

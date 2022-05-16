@@ -25,13 +25,19 @@ class ExchangeHub extends Bot {
     return super
       .init({ config, database, logger, i18n })
       .then(async () => {
-        this.tickerBook = new TickerBook({ logger });
-        this.orderBook = new OrderBook({ logger });
-        this.tradeBook = new TradeBook({ logger });
         this.tidebitMarkets = this.getTidebitMarkets();
-        this.tickerBook.init(this.tidebitMarkets);
-        this.orderBook.init(this.tidebitMarkets);
-        this.tradeBook.init(this.tidebitMarkets);
+        this.tickerBook = new TickerBook({
+          logger,
+          markets: this.tidebitMarkets,
+        });
+        this.orderBook = new OrderBook({
+          logger,
+          markets: this.tidebitMarkets,
+        });
+        this.tradeBook = new TradeBook({
+          logger,
+          markets: this.tidebitMarkets,
+        });
       })
       .then(async () => {
         this.okexConnector = new OkexConnector({ logger });
@@ -148,7 +154,7 @@ class ExchangeHub extends Bot {
 
   async getTicker({ params, query }) {
     const instId = this._findInstId(query.id);
-    this.logger.log(`[${this.constructor.name}] getTicker`, instId)
+    this.logger.log(`[${this.constructor.name}] getTicker`, instId);
     const index = this.tidebitMarkets.findIndex(
       (market) => instId === market.instId
     );
@@ -249,7 +255,7 @@ class ExchangeHub extends Bot {
   }
 
   async getOrderBooks({ header, params, query }) {
-    this.logger.log(`[${this.constructor.name}] getOrderBooks`, query)
+    this.logger.log(`[${this.constructor.name}] getOrderBooks`, query);
     const instId = this._findInstId(query.id);
     switch (this._findSource(instId)) {
       case SupportedExchange.OKEX:

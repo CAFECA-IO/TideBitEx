@@ -1,26 +1,18 @@
 const SafeMath = require("./SafeMath");
 
 class BookBase {
-  constructor({ logger }) {
+  constructor({ logger, markets }) {
     this.logger = logger;
     this._config = { remove: true, add: true, update: true };
     this.name = `BookBase`;
     this._snapshot = {};
     this._difference = {};
-    return this;
-  }
-
-  // ++ TODO: verify function works properly
-  /**
-   *
-   * @param {Array<Object>} markets
-   */
-  init(markets) {
     this.markets = markets;
-    markets.forEach((market) => {
+    this.markets.forEach((market) => {
       this._snapshot[market.instId] = [];
       this._difference[market.instId] = [];
     });
+    return this;
   }
 
   /**
