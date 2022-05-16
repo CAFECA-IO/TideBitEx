@@ -58,6 +58,7 @@ class TickerBook extends BookBase {
         return true;
       }
     } catch (error) {
+      this.logger.error(`[${this.constructor.name}] error`, error);
       return false;
     }
   }
