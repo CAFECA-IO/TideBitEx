@@ -84,6 +84,10 @@ class TradeBook extends BookBase {
         `[${this.constructor.name}] updateAll[${instId}]`,
         this._snapshot[instId]
       );
+      this.logger.log(
+        `[${this.constructor.name}] updateAll[${instId}]`,
+        this._difference[instId]
+      );
     }
     return success;
   }

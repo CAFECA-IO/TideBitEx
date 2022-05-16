@@ -100,6 +100,14 @@ class OrderBook extends BookBase {
     if (success) {
       this._snapshot[instId] = this._trim(snapshot);
     }
+    this.logger.log(
+      `[${this.constructor.name}] updateAll[${instId}]`,
+      this._snapshot[instId]
+    );
+    this.logger.log(
+      `[${this.constructor.name}] updateAll[${instId}]`,
+      this._difference[instId]
+    );
     return success;
   }
 }
