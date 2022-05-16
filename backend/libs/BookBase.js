@@ -3,6 +3,8 @@ const SafeMath = require("./SafeMath");
 class BookBase {
   constructor() {
     this._config = { remove: true, add: true, update: true };
+    this._snapshot = {}
+    this._difference = {}
     return this;
   }
 
