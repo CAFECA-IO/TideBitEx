@@ -1321,7 +1321,6 @@ class OkexConnector extends ConnectorBase {
 
   // ++ TODO: verify function works properly
   _updateTickers(data) {
-    this.logger.log(`_updateTickers data`, data);
     data.forEach((d) => {
       const updateTicker = this._formateTicker(d);
       this.logger.log(`_updateTickers updateTicker`, updateTicker);
