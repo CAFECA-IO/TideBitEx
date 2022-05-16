@@ -4,6 +4,7 @@ const SafeMath = require("../SafeMath");
 class TradeBook extends BookBase {
   constructor({ logger }) {
     super({ logger });
+    this.name = `TradeBook`;
     this._config = { remove: false, add: true, update: false };
     return this;
   }

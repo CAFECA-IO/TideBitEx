@@ -27,7 +27,7 @@ class OkexConnector extends ConnectorBase {
   tickers = {};
   okexWsChannels = {};
   instIds = [];
-  
+
   fetchedTrades = {};
   fetchedBook = {};
 
@@ -190,42 +190,10 @@ class OkexConnector extends ConnectorBase {
         });
       }
       const [data] = res.data.data;
-      const change = SafeMath.minus(data.last, data.open24h);
-      const changePct = SafeMath.gt(data.open24h, "0")
-        ? SafeMath.div(change, data.open24h)
-        : SafeMath.eq(change, "0")
-        ? "0"
-        : "1";
       const ticker = {};
-      ticker[data.instId.replace("-", "").toLowerCase()] = {
-        market: data.instId.replace("-", "").toLowerCase(),
-        name: data.instId.replace("-", "/"),
-        base_unit: data.instId.split("-")[0].toLowerCase(),
-        quote_unit: data.instId.split("-")[1].toLowerCase(),
-        group: optional.market.group,
-        pricescale: optional.market.price_group_fixed,
-        sell: data.askPx,
-        buy: data.bidPx,
-        instId: data.instId,
-        last: data.last,
-        change,
-        changePct,
-        open: data.open24h,
-        high: data.high24h,
-        low: data.low24h,
-        volume: data.vol24h,
-        at: parseInt(data.ts),
-        source: SupportedExchange.OKEX,
-        ticker: {
-          buy: data.bidPx,
-          sell: data.askPx,
-          low: data.low24h,
-          high: data.high24h,
-          last: data.last,
-          open: data.open24h,
-          vol: data.vol24h,
-        },
-      };
+      ticker[data.instId.replace("-", "").toLowerCase()] =
+        this._formateTicker(data);
+      this.logger.log(`[${this.constructor.name}] getTicker`, ticker);
       return new ResponseFormat({
         message: "getTicker",
         payload: ticker,
@@ -306,6 +274,10 @@ class OkexConnector extends ConnectorBase {
     if (instId) arr.push(`instId=${instId}`);
     if (sz) arr.push(`sz=${sz}`);
     const qs = !!arr.length ? `?${arr.join("&")}` : "";
+    this.logger.log(
+      `[${this.constructor.name}] getOrderBooks this.fetchedBook[${instId}]`,
+      this.fetchedBook[instId]
+    );
     if (!this.fetchedBook[instId]) {
       try {
         const res = await axios({
@@ -339,6 +311,10 @@ class OkexConnector extends ConnectorBase {
         });
       }
     }
+    this.logger.log(
+      `[${this.constructor.name}] getOrderBooks this.orderBook.getSnapshot([${instId}]`,
+      this.orderBook.getSnapshot(instId)
+    );
     return new ResponseFormat({
       message: "getOrderBooks",
       payload: this.orderBook.getSnapshot(instId),
@@ -395,6 +371,10 @@ class OkexConnector extends ConnectorBase {
 
   async getTrades({ query }) {
     const { instId, limit } = query;
+    this.logger.log(
+      `[${this.constructor.name}] getTrades this.fetchedTrades[${instId}]`,
+      this.fetchedTrades[instId]
+    );
     if (!this.fetchedTrades[instId]) {
       const method = "GET";
       const path = "/api/v5/market/trades";
@@ -433,6 +413,10 @@ class OkexConnector extends ConnectorBase {
         });
       }
     }
+    this.logger.log(
+      `[${this.constructor.name}] getTrades this.tradeBook.getSnapshot(${instId})`,
+      this.tradeBook.getSnapshot(instId)
+    );
     return new ResponseFormat({
       message: "getTrades",
       payload: this.tradeBook.getSnapshot(instId),

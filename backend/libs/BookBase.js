@@ -4,8 +4,9 @@ class BookBase {
   constructor({ logger }) {
     this.logger = logger;
     this._config = { remove: true, add: true, update: true };
-    this._snapshot = {}
-    this._difference = {}
+    this.name = `BookBase`;
+    this._snapshot = {};
+    this._difference = {};
     return this;
   }
 
@@ -61,6 +62,10 @@ class BookBase {
    * @returns {Array<Object>}
    */
   getSnapshot(instId) {
+    this.logger.log(
+      `[${this.constructor.name}] getSnapshot(${instId})`,
+      this._snapshot[instId]
+    );
     if (instId) return this._snapshot[instId];
     else return this._snapshot;
   }

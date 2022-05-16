@@ -148,6 +148,7 @@ class ExchangeHub extends Bot {
 
   async getTicker({ params, query }) {
     const instId = this._findInstId(query.id);
+    this.logger.log(`[${this.constructor.name}] getTicker`, instId)
     const index = this.tidebitMarkets.findIndex(
       (market) => instId === market.instId
     );
@@ -248,6 +249,7 @@ class ExchangeHub extends Bot {
   }
 
   async getOrderBooks({ header, params, query }) {
+    this.logger.log(`[${this.constructor.name}] getOrderBooks`, query)
     const instId = this._findInstId(query.id);
     switch (this._findSource(instId)) {
       case SupportedExchange.OKEX:

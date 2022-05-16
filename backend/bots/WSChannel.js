@@ -91,6 +91,7 @@ class WSChannel extends Bot {
                 this._onOpStatusUpdate(req.headers, ws, args);
                 break;
               case "switchMarket":
+                this.logger.log(`[${this.construct.name} _onOpSwitchMarket]`, args)
                 this._onOpSwitchMarket(ws, args);
                 break;
               default:
