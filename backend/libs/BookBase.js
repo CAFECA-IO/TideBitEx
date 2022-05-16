@@ -34,14 +34,14 @@ class BookBase {
   // ++ TODO: verify function works properly
   _calculateDifference(arrayA, arrayB) {
     try {
-      this.logger.log(
-        `[${this.constructor.name}] _calculateDifference arrayA`,
-        arrayA
-      );
-      this.logger.log(
-        `[${this.constructor.name}] _calculateDifference arrayB`,
-        arrayB
-      );
+      // this.logger.log(
+      //   `[${this.constructor.name}] _calculateDifference arrayA`,
+      //   arrayA
+      // );
+      // this.logger.log(
+      //   `[${this.constructor.name}] _calculateDifference arrayB`,
+      //   arrayB
+      // );
       const onlyInLeft = (left, right) =>
         left.filter(
           (leftValue) =>
@@ -52,14 +52,14 @@ class BookBase {
 
       const onlyInA = this._config.remove ? onlyInLeft(arrayA, arrayB) : [];
       const onlyInB = this._config.add ? onlyInLeft(arrayB, arrayA) : [];
-      this.logger.log(
-        `[${this.constructor.name}] _calculateDifference onlyInA`,
-        onlyInA
-      );
-      this.logger.log(
-        `[${this.constructor.name}] _calculateDifference onlyInB`,
-        onlyInB
-      );
+      // this.logger.log(
+      //   `[${this.constructor.name}] _calculateDifference onlyInA`,
+      //   onlyInA
+      // );
+      // this.logger.log(
+      //   `[${this.constructor.name}] _calculateDifference onlyInB`,
+      //   onlyInB
+      // );
       return {
         remove: onlyInA,
         add: onlyInB,
@@ -82,10 +82,10 @@ class BookBase {
    * @returns {Array<Object>}
    */
   getSnapshot(instId) {
-    this.logger.log(
-      `[${this.constructor.name}] getSnapshot(${instId})`,
-      this._snapshot[instId]
-    );
+    // this.logger.log(
+    //   `[${this.constructor.name}] getSnapshot(${instId})`,
+    //   this._snapshot[instId]
+    // );
     if (instId) return this._snapshot[instId];
     else return this._snapshot;
   }
@@ -122,12 +122,12 @@ class BookBase {
    */
   // ++ TODO: verify function works properly
   updateByDifference(instId, difference) {
-    this.logger.log(
-      `[${this.constructor.name}] updateByDifference[${instId}] this._config`,
-      this._config,
-      `difference`,
-      difference
-    );
+    // this.logger.log(
+    //   `[${this.constructor.name}] updateByDifference[${instId}] this._config`,
+    //   this._config,
+    //   `difference`,
+    //   difference
+    // );
     let updateSnapshot;
     try {
       if (this._config.remove) {
@@ -145,10 +145,10 @@ class BookBase {
           .concat(difference.add);
       }
       this._snapshot[instId] = this._trim(updateSnapshot);
-      this.logger.log(
-        `[${this.constructor.name}] updateByDifference[${instId}]  this._snapshot[instId]`,
-         this._snapshot[instId]
-      );
+      // this.logger.log(
+      //   `[${this.constructor.name}] updateByDifference[${instId}]  this._snapshot[instId]`,
+      //    this._snapshot[instId]
+      // );
       this._difference[instId] = difference;
       return true;
     } catch (error) {
@@ -180,15 +180,15 @@ class BookBase {
         this._snapshot[instId],
         data
       );
-      this.logger.log(
-        `[${this.constructor.name}] updateAll this._difference[${instId}]`,
-        this._difference[instId]
-      );
+      // this.logger.log(
+      //   `[${this.constructor.name}] updateAll this._difference[${instId}]`,
+      //   this._difference[instId]
+      // );
       this._snapshot[instId] = this._trim(data);
-      this.logger.log(
-        `[${this.constructor.name}] updateAll this._snapshot[${instId}]`,
-        this._snapshot[instId]
-      );
+      // this.logger.log(
+      //   `[${this.constructor.name}] updateAll this._snapshot[${instId}]`,
+      //   this._snapshot[instId]
+      // );
       // return {
       //   success: true,
       //   snapshot: this._snapshot[instId],

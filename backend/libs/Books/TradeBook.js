@@ -65,15 +65,12 @@ class TradeBook extends BookBase {
    * @param {String} instId BTC-USDT
    * @param {Difference} difference
    */
-  // updateByDifference(instId, difference) {
-  //   try {
-  //     super.updateByDifference(instId, difference);
-  //     this._snapshot[instId] = this._trim(this._snapshot[instId]);
-  //     return true;
-  //   } catch (error) {
-  //     return false;
-  //   }
-  // }
+  updateByDifference(instId, difference) {
+    const add = difference.add.filter(
+      (diff) => !this._snapshot[instId].some((trade) => trade.id === diff.id)
+    );
+    return super.updateByDifference(instId, { add });
+  }
 
   /**
    * @param {String} instId BTC-USDT
