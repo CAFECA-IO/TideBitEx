@@ -114,6 +114,7 @@ class BookBase {
     this.logger.log(
       `[${this.constructor.name}] updateByDifference[${instId}] this._config`,
       this._config,
+      `difference`,
       difference
     );
     let updateSnapshot;
@@ -132,6 +133,10 @@ class BookBase {
           )
           .concat(difference.add);
       }
+      this.logger.log(
+        `[${this.constructor.name}] updateByDifference[${instId}] updateSnapshot`,
+        updateSnapshot
+      );
       this._snapshot[instId] = this._trim(updateSnapshot);
       this._difference[instId] = difference;
       return true;
@@ -147,14 +152,14 @@ class BookBase {
    */
   // ++ TODO: verify function works properly
   updateAll(instId, data) {
-    this.logger.log(
-      `[${this.constructor.name}] updateAll[${instId}] this._snapshot[instId]`,
-      this._snapshot[instId]
-    );
-    this.logger.log(
-      `[${this.constructor.name}] updateAll[${instId}] data`,
-      data
-    );
+    // this.logger.log(
+    //   `[${this.constructor.name}] updateAll[${instId}] this._snapshot[instId]`,
+    //   this._snapshot[instId]
+    // );
+    // this.logger.log(
+    //   `[${this.constructor.name}] updateAll[${instId}] data`,
+    //   data
+    // );
     try {
       this._difference[instId] = this._calculateDifference(
         this._snapshot[instId],
