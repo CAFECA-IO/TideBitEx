@@ -1,5 +1,6 @@
-const { default: SafeMath } = require("../../../src/utils/SafeMath");
+
 const BookBase = require("../BookBase");
+const SafeMath = require("../SafeMath");
 
 class TradeBook extends BookBase {
   constructor() {

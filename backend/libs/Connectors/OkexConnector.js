@@ -68,17 +68,6 @@ class OkexConnector extends ConnectorBase {
   }
 
   async start() {
-    this.okexWsChannels.trades = {};
-    this.okexWsChannels.books = {};
-    Object.keys(this.markets).forEach((key) => {
-      if (this.markets[key] === "OKEx") {
-        const instId = key.replace("tb", "");
-        this.instIds.push(instId);
-        this.okexWsChannels.trades[instId] = {};
-        this.okexWsChannels.books[instId] = {};
-      }
-    });
-    this.logger.log(`start this.okexWsChannels`, this.okexWsChannels);
     this._okexWsEventListener();
     // this._subscribeInstruments();
     this._subscribeTickers(this.instIds);
@@ -143,7 +132,6 @@ class OkexConnector extends ConnectorBase {
           code: Codes.THIRD_PARTY_API_ERROR,
         });
       }
-      this.logger.log("res.data.data", res.data.data);
       const payload = res.data.data.map((data) => {
         const details = data.details.map((dtl) => {
           return {
@@ -370,9 +358,6 @@ class OkexConnector extends ConnectorBase {
 
       // this.orderbook.updateAll(instId, this._formateBooks(data));
 
-      // if (!this.okexWsChannels["books"]) this.okexWsChannels["books"] = {};
-      // this.okexWsChannels["books"][instId] = orderBooks;
-
       return new ResponseFormat({
         message: "getOrderBooks",
         payload: this.orderBook.getSnapshot()(instId),
@@ -442,8 +427,6 @@ class OkexConnector extends ConnectorBase {
     if (!this.fetchedTrades[instId]) {
       const method = "GET";
       const path = "/api/v5/market/trades";
-      if (this.okexWsChannels.trades[instId]?.update)
-        return this.okexWsChannels.trades[instId]?.data || [];
 
       const arr = [];
       if (instId) arr.push(`instId=${instId}`);
