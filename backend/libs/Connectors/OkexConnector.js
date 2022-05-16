@@ -1315,10 +1315,12 @@ class OkexConnector extends ConnectorBase {
   }
 
   // ++ TODO: verify function works properly
-  _updateTickers(datas) {
-    const updateTickers = datas.forEach((data) => {
-      const updateTicker = this._formateTicker(data);
-      this.tickerBook.updateByDifference(data.instId, updateTicker);
+  _updateTickers(data) {
+    this.logger.log(`_updateTickers data`, data)
+    const updateTickers = data.forEach((d) => {
+      const updateTicker = this._formateTicker(d);
+      this.logger.log(`_updateTickers updateTicker`, updateTicker)
+      this.tickerBook.updateByDifference(d.instId, updateTicker);
     });
 
     if (Object.keys(updateTickers).length > 0) {
