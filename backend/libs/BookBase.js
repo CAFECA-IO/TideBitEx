@@ -33,6 +33,14 @@ class BookBase {
    */
   // ++ TODO: verify function works properly
   _calculateDifference(arrayA, arrayB) {
+    this.logger.log(
+      `[${this.constructor.name}] _calculateDifference arrayA`,
+      arrayA
+    );
+    this.logger.log(
+      `[${this.constructor.name}] _calculateDifference arrayB`,
+      arrayB
+    );
     const onlyInLeft = (left, right) =>
       left.filter(
         (leftValue) =>
@@ -40,8 +48,17 @@ class BookBase {
             this.compareFunction(leftValue, rightValue)
           )
       );
+
     const onlyInA = this._config.remove ? onlyInLeft(arrayA, arrayB) : [];
     const onlyInB = this._config.add ? onlyInLeft(arrayB, arrayA) : [];
+    this.logger.log(
+      `[${this.constructor.name}] _calculateDifference onlyInA`,
+      onlyInA
+    );
+    this.logger.log(
+      `[${this.constructor.name}] _calculateDifference onlyInB`,
+      onlyInB
+    );
     return {
       remove: onlyInA,
       add: onlyInB,
@@ -82,6 +99,7 @@ class BookBase {
       ? SafeMath.eq(str1, str2)
       : str1 === str2;
   }
+  
   _trim(data) {
     return data;
   }
@@ -93,6 +111,10 @@ class BookBase {
    */
   // ++ TODO: verify function works properly
   updateByDifference(instId, difference) {
+    this.logger.log(
+      `[${this.constructor.name}] updateByDifference[${instId}] this._config`,
+      this._config
+    );
     let updateSnapshot;
     try {
       if (this._config.remove) {
@@ -125,22 +147,25 @@ class BookBase {
   // ++ TODO: verify function works properly
   updateAll(instId, data) {
     this.logger.log(
-      `[${this.constructor.name}] updateAll[${instId}]`,
+      `[${this.constructor.name}] updateAll[${instId}] this._snapshot[instId]`,
       this._snapshot[instId]
     );
-    this.logger.log(`[${this.constructor.name}] updateAll[${instId}]`, data);
+    this.logger.log(
+      `[${this.constructor.name}] updateAll[${instId}] data`,
+      data
+    );
     try {
       this._difference[instId] = this._calculateDifference(
         this._snapshot[instId],
         data
       );
       this.logger.log(
-        `[${this.constructor.name}] updateAll[${instId}]`,
+        `[${this.constructor.name}] updateAll this._difference[${instId}]`,
         this._difference[instId]
       );
       this._snapshot[instId] = this._trim(data);
       this.logger.log(
-        `[${this.constructor.name}] updateAll[${instId}]`,
+        `[${this.constructor.name}] updateAll this._snapshot[${instId}]`,
         this._snapshot[instId]
       );
       // return {

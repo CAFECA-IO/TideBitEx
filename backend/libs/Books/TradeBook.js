@@ -36,8 +36,8 @@ class TradeBook extends BookBase {
   }
 
   // ++ TODO: verify function works properly
-  _trim(snapshot) {
-    const trimed = snapshot
+  _trim(data) {
+    const trimed = data
       .sort((a, b) => +b.at - +a.at)
       .slice(0, 100)
       .map((trade, i) =>
@@ -45,9 +45,9 @@ class TradeBook extends BookBase {
           ? {
               ...trade,
               side:
-                i === snapshot.length - 1
+                i === data.length - 1
                   ? "up"
-                  : SafeMath.gte(trade.price, snapshot[i + 1].price)
+                  : SafeMath.gte(trade.price, data[i + 1].price)
                   ? "up"
                   : "down",
             }
