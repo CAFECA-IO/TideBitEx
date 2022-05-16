@@ -21,9 +21,9 @@ class TradeBook extends BookBase {
    * @param {Trade} valueA
    * @param {Trade} valueB
    */
-  _compareFunction(valueA, valueB) {
-    return super._compareFunction(valueA, valueB);
-  }
+  // _compareFunction(valueA, valueB) {
+  //   return super._compareFunction(valueA, valueB);
+  // }
 
   /**
    * @param {Array<Trade>} arrayA
@@ -31,9 +31,9 @@ class TradeBook extends BookBase {
    * @param {Function} compareFunction
    * @returns
    */
-  _calculateDifference(arrayA, arrayB) {
-    return super._calculateDiffence(arrayA, arrayB, this.compareFunction);
-  }
+  //  _calculateDifference(arrayA, arrayB) {
+  //   return super._calculateDifference(arrayA, arrayB);
+  // }
 
   // ++ TODO: verify function works properly
   _trim(data) {

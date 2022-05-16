@@ -33,9 +33,9 @@ class OrderBook extends BookBase {
    * @param {Function} compareFunction
    * @returns
    */
-  _calculateDifference(arrayA, arrayB) {
-    return super._calculateDiffence(arrayA, arrayB, this.compareFunction);
-  }
+  // _calculateDifference(arrayA, arrayB) {
+  //   return super._calculateDiffence(arrayA, arrayB);
+  // }
 
   // ++ TODO: verify function works properly
   getSnapshot(instId) {
@@ -59,9 +59,9 @@ class OrderBook extends BookBase {
     return orderBooks;
   }
 
-  getDifference(instId) {
-    return super.getDifference(instId);
-  }
+  // getDifference(instId) {
+  //   return super.getDifference(instId);
+  // }
 
   /**
    * @typedef {Object} Book
