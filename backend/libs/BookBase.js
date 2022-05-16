@@ -33,36 +33,47 @@ class BookBase {
    */
   // ++ TODO: verify function works properly
   _calculateDifference(arrayA, arrayB) {
-    this.logger.log(
-      `[${this.constructor.name}] _calculateDifference arrayA`,
-      arrayA
-    );
-    this.logger.log(
-      `[${this.constructor.name}] _calculateDifference arrayB`,
-      arrayB
-    );
-    const onlyInLeft = (left, right) =>
-      left.filter(
-        (leftValue) =>
-          !right.some((rightValue) =>
-            this.compareFunction(leftValue, rightValue)
-          )
+    try {
+      this.logger.log(
+        `[${this.constructor.name}] _calculateDifference arrayA`,
+        arrayA
       );
+      this.logger.log(
+        `[${this.constructor.name}] _calculateDifference arrayB`,
+        arrayB
+      );
+      const onlyInLeft = (left, right) =>
+        left.filter(
+          (leftValue) =>
+            !right.some((rightValue) =>
+              this.compareFunction(leftValue, rightValue)
+            )
+        );
 
-    const onlyInA = this._config.remove ? onlyInLeft(arrayA, arrayB) : [];
-    const onlyInB = this._config.add ? onlyInLeft(arrayB, arrayA) : [];
-    this.logger.log(
-      `[${this.constructor.name}] _calculateDifference onlyInA`,
-      onlyInA
-    );
-    this.logger.log(
-      `[${this.constructor.name}] _calculateDifference onlyInB`,
-      onlyInB
-    );
-    return {
-      remove: onlyInA,
-      add: onlyInB,
-    };
+      const onlyInA = this._config.remove ? onlyInLeft(arrayA, arrayB) : [];
+      const onlyInB = this._config.add ? onlyInLeft(arrayB, arrayA) : [];
+      this.logger.log(
+        `[${this.constructor.name}] _calculateDifference onlyInA`,
+        onlyInA
+      );
+      this.logger.log(
+        `[${this.constructor.name}] _calculateDifference onlyInB`,
+        onlyInB
+      );
+      return {
+        remove: onlyInA,
+        add: onlyInB,
+      };
+    } catch (error) {
+      this.logger.log(
+        `[${this.constructor.name}] _calculateDifference error`,
+        error
+      );
+      return {
+        remove: [],
+        add: [],
+      };
+    }
   }
 
   /**
@@ -126,7 +137,7 @@ class BookBase {
         );
       }
       if (this._config.add) {
-        updateSnapshot = updateSnapshot
+        updateSnapshot = this._snapshot[instId]
           .filter(
             (data) =>
               !difference.add.some((diff) => this._isEqual(data.id, diff.id))
@@ -141,6 +152,10 @@ class BookBase {
       this._difference[instId] = difference;
       return true;
     } catch (error) {
+      this.logger.log(
+        `[${this.constructor.name}] updateByDifference[${instId}] error`,
+        error
+      );
       return false;
     }
   }
@@ -180,6 +195,10 @@ class BookBase {
       //   difference: this._difference[instId],
       // };
     } catch (error) {
+      this.logger.log(
+        `[${this.constructor.name}] updateAll error`,
+        error
+      );
       return false;
     }
   }
