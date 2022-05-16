@@ -46,10 +46,10 @@ class OrderBook extends BookBase {
     };
     this._snapshot[instId].forEach((data) => {
       if (data.side === "asks") {
-        orderBooks.asks.push(data);
+        orderBooks.asks.push([data.price, data.amount]);
       }
       if (data.side === "bids") {
-        orderBooks.asks.push(data);
+        orderBooks.bids.push([data.price, data.amount]);
       }
     });
     this.logger.log(
