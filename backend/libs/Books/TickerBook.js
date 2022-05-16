@@ -6,6 +6,10 @@ class TickerBook extends BookBase {
     super({ logger, markets });
     this.name = `TickerBook`;
     this._config = { remove: false, add: false, update: true };
+    this.markets.forEach((market) => {
+      this._snapshot[market.instId] = { id: market.id };
+      this._difference[market.instId] = { id: market.id };
+    });
     return this;
   }
 
