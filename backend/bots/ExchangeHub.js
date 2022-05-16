@@ -25,9 +25,9 @@ class ExchangeHub extends Bot {
     return super
       .init({ config, database, logger, i18n })
       .then(async () => {
-        this.tickerBook = new TickerBook();
-        this.orderBook = new OrderBook();
-        this.tradeBook = new TradeBook();
+        this.tickerBook = new TickerBook({ logger });
+        this.orderBook = new OrderBook({ logger });
+        this.tradeBook = new TradeBook({ logger });
         this.tidebitMarkets = this.getTidebitMarkets();
         this.tickerBook.init(this.tidebitMarkets);
         this.orderBook.init(this.tidebitMarkets);
