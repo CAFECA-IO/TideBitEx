@@ -46,7 +46,7 @@ class BookBase {
         left.filter(
           (leftValue) =>
             !right.some((rightValue) =>
-              this.compareFunction(leftValue, rightValue)
+              this._compareFunction(leftValue, rightValue)
             )
         );
 
@@ -65,7 +65,7 @@ class BookBase {
         add: onlyInB,
       };
     } catch (error) {
-      this.logger.log(
+      this.logger.error(
         `[${this.constructor.name}] _calculateDifference error`,
         error
       );
@@ -152,7 +152,7 @@ class BookBase {
       this._difference[instId] = difference;
       return true;
     } catch (error) {
-      this.logger.log(
+      this.logger.error(
         `[${this.constructor.name}] updateByDifference[${instId}] error`,
         error
       );
@@ -195,7 +195,7 @@ class BookBase {
       //   difference: this._difference[instId],
       // };
     } catch (error) {
-      this.logger.log(
+      this.logger.error(
         `[${this.constructor.name}] updateAll error`,
         error
       );
