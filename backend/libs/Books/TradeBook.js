@@ -1,4 +1,3 @@
-
 const BookBase = require("../BookBase");
 const SafeMath = require("../SafeMath");
 
@@ -81,6 +80,10 @@ class TradeBook extends BookBase {
     const { success, snapshot } = super.updateAll(instId, data);
     if (success) {
       this._snapshot[instId] = this._trim(snapshot);
+      this.logger.log(
+        `[${this.constructor.name}] updateAll[${instId}]`,
+        this._snapshot[instId]
+      );
     }
     return success;
   }
