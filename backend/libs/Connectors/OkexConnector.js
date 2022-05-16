@@ -299,7 +299,7 @@ class OkexConnector extends ConnectorBase {
         // orderBooks["market"] = instId.replace("-", "").toLowerCase();
         // orderBooks["asks"] = data.asks.map((ask) => [ask[0], ask[1]]);
         // orderBooks["bids"] = data.bids.map((bid) => [bid[0], bid[1]]);
-        this.orderbook.updateAll(instId, data);
+        this.orderbook?.updateAll(instId, data);
       } catch (error) {
         this.logger.error(error);
         let message = error.message;
@@ -311,10 +311,10 @@ class OkexConnector extends ConnectorBase {
         });
       }
     }
-    this.logger.log(
-      `[${this.constructor.name}] getOrderBooks this.orderBook.getSnapshot([${instId}]`,
-      this.orderBook.getSnapshot(instId)
-    );
+    // this.logger.log(
+    //   `[${this.constructor.name}] getOrderBooks this.orderBook.getSnapshot([${instId}]`,
+    //   this.orderBook.getSnapshot(instId)
+    // );
     return new ResponseFormat({
       message: "getOrderBooks",
       payload: this.orderBook.getSnapshot(instId),
