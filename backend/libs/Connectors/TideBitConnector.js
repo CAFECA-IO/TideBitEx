@@ -254,8 +254,8 @@ class TibeBitConnector extends ConnectorBase {
     });
   }
   // ++ TODO: verify function works properly
-  _formateTicker(tickerData) {
-    return tickerData.map((data) => {
+  _formateTicker(data) {
+    // return tickerData.map((data) => {
       const id = data.instId.replace("/", "").toLowerCase();
       const change = SafeMath.minus(data.last, data.open24h);
       const changePct = SafeMath.gt(data.open24h, "0")
@@ -273,7 +273,7 @@ class TibeBitConnector extends ConnectorBase {
         source: SupportedExchange.TIDEBIT,
       };
       return updateTicker;
-    });
+    // });
   }
 
   // ++ TODO: verify function works properly
