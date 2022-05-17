@@ -295,7 +295,9 @@ class TibeBitConnector extends ConnectorBase {
     at: 1649742406
   },}
     */
-    const updateTickers = this._formateTicker(data);
+    const updateTickers = Object.values(data).map((d) =>
+      this._formateTicker(d)
+    );
     updateTickers.forEach((ticker) => {
       this.tickerBook.updateByDifference(ticker.instId, ticker);
     });
@@ -617,7 +619,10 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async getAccounts({ memberId }) {
-    this.logger.log(`[${this.constructor.name}] getAccounts memberId`, memberId)
+    this.logger.log(
+      `[${this.constructor.name}] getAccounts memberId`,
+      memberId
+    );
     try {
       const _accounts = await this.database.getAccountsByMemberId(memberId);
       const accounts = _accounts.map((account) => ({
