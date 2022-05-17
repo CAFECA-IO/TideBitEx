@@ -37,31 +37,32 @@ class DepthBook extends BookBase {
   //   return super._calculateDiffence(arrayA, arrayB);
   // }
 
+  // !!!! IMPORTANT 要遵守 tideLegacy 的資料格式
   // ++ TODO: verify function works properly
-  // getSnapshot(instId) {
-  //   const depthBooks = {
-  //     market: instId.replace("-", "").toLowerCase(),
-  //     asks: [],
-  //     bids: [],
-  //   };
-  //   this._snapshot[instId].forEach((data) => {
-  //     if (data.side === "asks") {
-  //       depthBooks.asks.push([data.price, data.amount]);
-  //     }
-  //     if (data.side === "bids") {
-  //       depthBooks.bids.push([data.price, data.amount]);
-  //     }
-  //   });
-  // this.logger.log(
-  //   `[${this.constructor.name}] getSnapshot[${instId}]`,
-  //   depthBooks
-  // );
-  //   return depthBooks;
-  // }
+  getSnapshot(instId) {
+    const depthBooks = {
+      market: instId.replace("-", "").toLowerCase(),
+      asks: [],
+      bids: [],
+    };
+    this._snapshot[instId].forEach((data) => {
+      if (data.side === "asks") {
+        depthBooks.asks.push([data.price, data.amount, data.total]);
+      }
+      if (data.side === "bids") {
+        depthBooks.bids.push([data.price, data.amount, data.total]);
+      }
+    });
+  this.logger.log(
+    `[${this.constructor.name}] getSnapshot[${instId}]`,
+    depthBooks
+  );
+    return depthBooks;
+  }
 
-  // getDifference(instId) {
-  //   return super.getDifference(instId);
-  // }
+  getDifference(instId) {
+    return super.getDifference(instId);
+  }
 
   /**
    * @typedef {Object} Book
