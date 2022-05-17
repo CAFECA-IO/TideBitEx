@@ -63,14 +63,14 @@ const DepthBook = (props) => {
         <ul className="order-book__panel">
           {storeCtx?.selectedTicker &&
             storeCtx.books?.bids &&
-            storeCtx.books.bids.map((book, index) => (
+            storeCtx.books.bids.map((book) => (
               <BookTile
                 onClick={() => {
                   storeCtx.depthBookHandler(book.price, book.amount);
                 }}
                 type="bids"
                 book={book}
-                key={`bids-${storeCtx.selectedTicker.instId}-${index}`}
+                key={`bids-${storeCtx.selectedTicker.instId}-${book.id}`}
                 dataWidth={`${parseFloat(
                   SafeMath.mult(
                     SafeMath.div(book.total, storeCtx.books.total),
@@ -90,14 +90,14 @@ const DepthBook = (props) => {
         <ul className="order-book__panel">
           {storeCtx?.selectedTicker &&
             storeCtx.books?.asks &&
-            storeCtx.books.asks.map((book, index) => (
+            storeCtx.books.asks.map((book) => (
               <BookTile
                 type="asks"
                 onClick={() => {
                   storeCtx.depthBookHandler(book.price, book.amount);
                 }}
                 book={book}
-                key={`asks-${storeCtx.selectedTicker.instId}-${index}`}
+                key={`asks-${storeCtx.selectedTicker.instId}-${book.id}`}
                 dataWidth={`${parseFloat(
                   SafeMath.mult(
                     SafeMath.div(book.total, storeCtx.books.total),

@@ -38,26 +38,26 @@ class DepthBook extends BookBase {
   // }
 
   // ++ TODO: verify function works properly
-  getSnapshot(instId) {
-    const depthBooks = {
-      market: instId.replace("-", "").toLowerCase(),
-      asks: [],
-      bids: [],
-    };
-    this._snapshot[instId].forEach((data) => {
-      if (data.side === "asks") {
-        depthBooks.asks.push([data.price, data.amount]);
-      }
-      if (data.side === "bids") {
-        depthBooks.bids.push([data.price, data.amount]);
-      }
-    });
-    // this.logger.log(
-    //   `[${this.constructor.name}] getSnapshot[${instId}]`,
-    //   depthBooks
-    // );
-    return depthBooks;
-  }
+  // getSnapshot(instId) {
+  //   const depthBooks = {
+  //     market: instId.replace("-", "").toLowerCase(),
+  //     asks: [],
+  //     bids: [],
+  //   };
+  //   this._snapshot[instId].forEach((data) => {
+  //     if (data.side === "asks") {
+  //       depthBooks.asks.push([data.price, data.amount]);
+  //     }
+  //     if (data.side === "bids") {
+  //       depthBooks.bids.push([data.price, data.amount]);
+  //     }
+  //   });
+  // this.logger.log(
+  //   `[${this.constructor.name}] getSnapshot[${instId}]`,
+  //   depthBooks
+  // );
+  //   return depthBooks;
+  // }
 
   // getDifference(instId) {
   //   return super.getDifference(instId);
@@ -96,8 +96,10 @@ class DepthBook extends BookBase {
 
   // ++ TODO: verify function works properly
   _trim(data) {
-    let asks = [];
-    let bids = [];
+    let sumAskAmount = "0",
+      sumBidAmount = "0",
+      asks = [],
+      bids = [];
     data.forEach((d) => {
       if (d.side === "asks") {
         asks.push(d);
@@ -105,8 +107,20 @@ class DepthBook extends BookBase {
         bids.push(d);
       }
     });
-    asks = asks.sort((a, b) => +a.price - +b.price).slice(0, 100);
-    bids = bids.sort((a, b) => +b.price - +a.price).slice(0, 100);
+    asks = asks
+      .sort((a, b) => +a.price - +b.price)
+      .slice(0, 100)
+      .map((ask) => {
+        sumAskAmount = SafeMath.plus(ask.amount, sumAskAmount);
+        return { ...ask, total: sumAskAmount };
+      });
+    bids = bids
+      .sort((a, b) => +b.price - +a.price)
+      .slice(0, 100)
+      .map((bid) => {
+        sumBidAmount = SafeMath.plus(bid.amount, sumBidAmount);
+        return { ...bid, total: sumBidAmount };
+      });
     return bids.concat(asks);
   }
 

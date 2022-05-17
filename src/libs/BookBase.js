@@ -151,4 +151,4 @@ class BookBase {
   }
 }
 
-module.exports = BookBase;
+export default BookBase;

@@ -1,14 +1,21 @@
-const BookBase = require("../BookBase");
-const SafeMath = require("../SafeMath");
+import SafeMath from "../../utils/SafeMath";
+import BookBase from "../BookBase";
 
 class TickerBook extends BookBase {
   constructor() {
     super();
     this.name = `TickerBook`;
     this._config = { remove: false, add: false, update: true };
-
+    this._difference = {};
+    this._snapshot = {};
+    this._currentMarket = null;
+    this._currentTicker = null;
     return this;
   }
+
+  // TODO getSnapshot(){
+// compare difference and snapshot get updatetickers and compare currentTicker to get active ticker
+  // }
 
   /**
    * return need update ticker
@@ -45,14 +52,21 @@ class TickerBook extends BookBase {
     );
   }
 
-  updateByDifference(instId, ticker) {
+  getCurrentTicker() {
+    this._currentTicker = this._snapshot[this._currentMarket];
+    return this._currentTicker;
+  }
+
+  setCurrentMarket(market) {
+    this._currentMarket = market;
+  }
+
+  updateByDifference(market, ticker) {
     this._difference = {};
     try {
-      if (this._compareFunction(this._snapshot[instId], ticker)) {
-        this._difference[instId] = ticker;
-        this._snapshot[instId] = ticker;
-        return true;
-      }
+      this._difference[market] = ticker;
+      this._snapshot[market] = ticker;
+      return true;
     } catch (error) {
       console.error(`[${this.constructor.name}] error`, error);
       return false;
@@ -63,8 +77,10 @@ class TickerBook extends BookBase {
     this._difference = {};
     try {
       Object.values(tickers).forEach((ticker) => {
-        this._snapshot[ticker.instId] = ticker;
-        this._difference[ticker.instId] = ticker;
+        if (this._compareFunction(this._snapshot[ticker.market], ticker)) {
+          this._difference[ticker.market] = ticker;
+        }
+        this._snapshot[ticker.market] = ticker;
       });
       return true;
     } catch (error) {
@@ -73,4 +89,4 @@ class TickerBook extends BookBase {
   }
 }
 
-module.exports = TickerBook;
+export default TickerBook;

@@ -143,7 +143,10 @@ class ExchangeHub extends Bot {
 
   // account api
   async getAccounts({ memberId }) {
-    this.logger.log(`[${this.constructor.name}] getAccounts memberId`, memberId)
+    this.logger.log(
+      `[${this.constructor.name}] getAccounts memberId`,
+      memberId
+    );
     if (memberId === -1) {
       return new ResponseFormat({
         message: "getAccounts",
@@ -469,6 +472,7 @@ class ExchangeHub extends Bot {
     }
   }
 
+  // TODO integrate getOrderList and getOrderHistory into one
   async getOrderList({ params, query, memberId }) {
     if (memberId === -1) {
       return new ResponseFormat({

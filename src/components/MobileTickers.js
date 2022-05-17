@@ -8,22 +8,18 @@ import { ImCross } from "react-icons/im";
 import { IoMdArrowDropdown } from "react-icons/io";
 
 const TickerTile = (props) => {
-  const storeCtx = useContext(StoreContext);
   const { t } = useTranslation();
   return (
     <li
-      onClick={(_) => {
-        storeCtx.selectTickerHandler(props.ticker.market);
-        props.closeDialogHandler();
-      }}
-      className={`mobile-tickers__tile ${
-        props.ticker.instId === storeCtx?.selectedTicker?.instId ? "active" : ""
-      } ${props.ticker.update ? "update" : ""}`}
+      onClick={props.onClick}
+      className={`mobile-tickers__tile ${props.active ? "active" : ""} ${
+        props.update ? "update" : ""
+      }`}
     >
       <div className="mobile-tickers__icon">
         <img
           src={`/icons/${props.ticker.base_unit}.png`}
-          alt={props.ticker?.base_unit}
+          alt={props.ticker.base_unit}
         />
       </div>
       <div className="mobile-tickers__detail">
@@ -53,14 +49,19 @@ const TickerTile = (props) => {
 };
 
 const TickerList = (props) => {
+  const storeCtx = useContext(StoreContext);
   return (
     <ul className="mobile-tickers__list">
-      {props.tickers.map((ticker, index) => (
+      {props.tickers.map((ticker) => (
         <TickerTile
+          key={`${ticker.market}`}
           ticker={ticker}
-          index={index}
-          key={`${ticker.instId}-${ticker.instType}-${index}-star`}
-          closeDialogHandler={props.closeDialogHandler}
+          active={ticker.active}
+          update={ticker.update}
+          onClick={() => {
+            storeCtx.selectMarket(ticker.market);
+            props.closeDialogHandler();
+          }}
         />
       ))}
     </ul>
@@ -68,8 +69,6 @@ const TickerList = (props) => {
 };
 
 const quoteCcies = {
-  // BTC: ["BTC"],
-  // ETH: ["ETH"],
   HKD: ["HKD"],
   USDX: ["USDC", "USDT", "USDK"],
   INNO: ["INNO"],
@@ -77,7 +76,7 @@ const quoteCcies = {
   ALTS: ["USX"],
 };
 
-const TickerDropdown = (props) => {
+const MobileTickers = (props) => {
   const { t } = useTranslation();
   const [openDialog, setOpenDialog] = useState(false);
   const storeCtx = useContext(StoreContext);
@@ -149,4 +148,4 @@ const TickerDropdown = (props) => {
   );
 };
 
-export default TickerDropdown;
+export default MobileTickers;

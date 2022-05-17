@@ -1,21 +1,33 @@
+import AccountBook from "../libs/books/AccountBook";
+import DepthBook from "../libs/books/DepthBook";
+import OrderBook from "../libs/books/OrderBook";
+import TickerBook from "../libs/books/TickerBook";
+import TradeBook from "../libs/books/TradeBook";
 import SafeMath from "../utils/SafeMath";
 import Communicator from "./Communicator";
+import WebSocket from "./WebSocket";
 
 class Middleman {
   constructor() {
+    this.name = "Middleman";
+    this.accountBook = new AccountBook();
+    this.depthBook = new DepthBook();
+    this.orderBook = new OrderBook();
+    this.tickerBook = new TickerBook();
+    this.tradeBook = new TradeBook();
+    this.websocket = new WebSocket({
+      accountBook: this.accountBook,
+      depthBook: this.depthBook,
+      orderBook: this.orderBook,
+      tickerBook: this.tickerBook,
+      tradeBook: this.tradeBook,
+    });
     this.communicator = new Communicator();
-    this.tickers = [];
-    this.updateTradesQueue = [];
   }
 
   updateSelectedTicker(ticker) {
     this.selectedTicker = ticker;
     return this.selectedTicker;
-  }
-
-  async getTicker(market) {
-    const ticker = await this.communicator.ticker(market);
-    return ticker[market];
   }
 
   updateTickers(tickers) {
@@ -66,28 +78,6 @@ class Middleman {
       // this.instruments = [];
       throw error;
     }
-  }
-
-  async getTickers(instType, from, limit) {
-    let instruments, rawTickers;
-    try {
-      instruments = await this.communicator.instruments(instType);
-    } catch (error) {
-      console.error(`get instruments error`, error);
-      throw error;
-    }
-    try {
-      rawTickers = await this.communicator.tickers(instType, from, limit);
-      this.rawTickers = rawTickers;
-      this.tickers = Object.values(rawTickers).map((t) => {
-        let instrument = instruments.find((i) => i.instId === t.instId);
-        return { ...t, minSz: instrument?.minSz || "0.001" };
-      });
-    } catch (error) {
-      console.error(`get tickers error`, error);
-      throw error;
-    }
-    return this.tickers;
   }
 
   handleBooks(rawBooks) {
@@ -148,16 +138,6 @@ class Middleman {
     return books;
   }
 
-  async getBooks(id, sz) {
-    try {
-      const rawBooks = await this.communicator.books(id, sz);
-      const books = this.handleBooks(rawBooks);
-      return books;
-    } catch (error) {
-      throw error;
-    }
-  }
-
   updateAllTrades = (updateData) => {
     this.trades = updateData.trades;
   };
@@ -188,20 +168,6 @@ class Middleman {
     });
     this.trades = _updatedTrades.concat(this.trades).slice(0, 100);
   };
-
-  async getTrades(id, limit) {
-    try {
-      this.updateTradesQueue = [];
-      const trades = await this.communicator.trades(id, limit);
-      if (trades) {
-        this.trades = trades
-        // const { candles, volumes } = this.updateCandles(trades, resolution);
-        return trades;
-      }
-    } catch (error) {
-      throw error;
-    }
-  }
 
   updateCandles(trades, resolution) {
     const candlesData = this.transformTradesToCandle(trades, resolution);
@@ -356,28 +322,6 @@ class Middleman {
     };
   }
 
-  async getOrderList(options) {
-    if (this.isLogin) {
-      const orders = await this.communicator.getOrderList({
-        ...options,
-        instId: this.selectedTicker?.instId,
-      });
-      this.pendingOrders = orders;
-      return this.pendingOrders;
-    }
-  }
-
-  async getOrderHistory(options) {
-    if (this.isLogin) {
-      const orders = await this.communicator.getOrderHistory({
-        ...options,
-        instId: this.selectedTicker?.instId,
-      });
-      this.closeOrders = orders;
-      return this.closeOrders;
-    }
-  }
-
   updateAccounts(data) {
     const updateAccounts = this.accounts.map((account) => ({ ...account }));
     const index = updateAccounts.findIndex(
@@ -389,18 +333,6 @@ class Middleman {
 
     this.accounts = updateAccounts;
     return this.accounts;
-  }
-
-  async getAccounts() {
-    try {
-      const result = await this.communicator.getAccounts(
-        this.selectedTicker?.instId?.replace("-", ",")
-      );
-      this.accounts = result;
-      if (this.accounts) this.isLogin = true;
-    } catch (error) {
-      this.isLogin = false;
-    }
   }
 
   async postOrder(order) {
@@ -417,10 +349,6 @@ class Middleman {
     }
   }
 
-  async getCSRTToken() {
-    return await this.communicator.CSRFTokenRenew();
-  }
-
   async getExAccounts(exchange) {
     return await this.communicator.getExAccounts(exchange);
   }
@@ -429,13 +357,143 @@ class Middleman {
     return await this.communicator.getUsersAccounts(exchange);
   }
 
-  // connectWS(callback){
-  //   return this.communicator.connectWS(callback)
-  // }
+  async getOrderList(market, options = {}) {
+    if (this.isLogin) {
+      const orders = await this.communicator.getOrderList({
+        ...options,
+        market,
+      });
+      this.pendingOrders = orders;
+      // TODO this.orderBook.updateAll(orders)
+      return this.pendingOrders;
+    }
+  }
 
-  // sendMsg(op, args, needAuth){
-  //   return this.sendMsg(op, args, needAuth)
-  // }
+  async getOrderHistory(market, options = {}) {
+    if (this.isLogin) {
+      const orders = await this.communicator.getOrderHistory({
+        ...options,
+        market,
+      });
+      this.closeOrders = orders;
+      // TODO this.orderBook.updateAll(orders)
+      return this.closeOrders;
+    }
+  }
+
+  getTickers() {
+    return Object.values(this.tickerBook.getSnapshot());
+  }
+
+  async _getTickers(instType, from, limit) {
+    let instruments,
+      rawTickers,
+      tickers = {};
+    try {
+      instruments = await this.communicator.instruments(instType);
+    } catch (error) {
+      console.error(`get instruments error`, error);
+      throw error;
+    }
+    try {
+      rawTickers = await this.communicator.tickers(instType, from, limit);
+      Object.values(rawTickers).forEach((t) => {
+        let instrument = instruments.find((i) => i.instId === t.instId);
+        const ticker = { ...t, minSz: instrument?.minSz || "0.001" };
+        tickers[ticker.instId] = ticker;
+      });
+      this.tickerBook.updateAll(tickers);
+    } catch (error) {
+      console.error(`get tickers error`, error);
+      throw error;
+    }
+    return this.tickers;
+  }
+
+  async getTrades(instId) {
+    if (!instId) instId = this.tickerBook.getCurrentTicker()?.instId;
+    return this.tradeBook.getSnapshot(instId);
+  }
+
+  async _getTrades(id, limit) {
+    try {
+      const trades = await this.communicator.trades(id, limit);
+      this.tradeBook.updateAll(trades);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getBooks(instId) {
+    if (!instId) instId = this.tickerBook.getCurrentTicker()?.instId;
+    return this.depthBook.getSnapshot(instId);
+  }
+
+  async _getBooks(id, sz) {
+    try {
+      const depthBook = await this.communicator.books(id, sz);
+      this.depthBook.updateAll(depthBook);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  getTicker() {
+    return this.tickerBook.getCurrentTicker();
+  }
+
+  async _getTicker(market) {
+    const ticker = await this.communicator.ticker(market);
+    this.tickerBook.updateByDifference(market, ticker[market]);
+  }
+
+  async _getAccounts() {
+    try {
+      const accounts = await this.communicator
+        .getAccounts
+        // this.selectedTicker?.instId?.replace("-", ",")
+        ();
+      if (accounts) {
+        this.isLogin = true;
+        this.accountBook.updateAll(accounts);
+        const token = await this.communicator.CSRFTokenRenew();
+        this.websocket.setCurrentUser(token);
+      }
+    } catch (error) {
+      this.isLogin = false;
+    }
+  }
+
+  getAccounts(instId) {
+    return this.accountBook.getSnapshot(instId);
+  }
+
+  async selectMarket(market) {
+    this.websocket.setCurrentMarket(market);
+    this.tickerBook.setCurrentMarket(market);
+    if (!this.tickerBook.getCurrentTicker()) await this._getTicker(market);
+    await this._getBooks(market);
+    await this._getTrades(market);
+    if (this.isLogin) {
+      // TODO to verify if user is not login would be a problem
+      // TODO integrate getOrderList and getOrderHistory into one
+      // TODO Books library orderBook
+      await this.getOrderList(market);
+      await this.getOrderHistory(market);
+    }
+  }
+
+  async start(market) {
+    // TODO to verify websocket connection is working and can receive update message
+    this.websocket.wsConnector();
+    await this._getAccounts();
+    await this.selectMarket(market);
+    await this._getTickers();
+  }
+
+  stop() {
+    // TODO stop ws
+  }
 }
 
 export default Middleman;

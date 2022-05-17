@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import StoreContext from "../store/store-context";
 import SafeMath from "../utils/SafeMath";
 import { formateDecimal } from "../utils/Utils";
-import MarketTickers from "./MarketTickers";
+import DesktopTickers from "./DesktopTickers";
 import { useTranslation } from "react-i18next";
 
 const SelectedTicker = (props) => {
@@ -14,7 +14,7 @@ const SelectedTicker = (props) => {
         <div className="selectedTicker">
           {storeCtx.selectedTicker?.name || "--"}
         </div>
-        <MarketTickers />
+        <DesktopTickers />
       </div>
       <div className="ticker__details">
         <div

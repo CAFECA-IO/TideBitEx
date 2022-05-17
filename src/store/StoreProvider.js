@@ -1,21 +1,23 @@
 import React, { useEffect, useCallback, useMemo, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import { useSnackbar } from "notistack";
-import { Config } from "../constant/Config";
+// import { Config } from "../constant/Config";
 import Middleman from "../modal/Middleman";
 import StoreContext from "./store-context";
 import SafeMath from "../utils/SafeMath";
 // import { getToken } from "../utils/Token";
-import Events from "../constant/Events";
+// import Events from "../constant/Events";
 
 // const wsServer = "wss://exchange.tidebit.network/ws/v1";
 // const wsServer = "ws://127.0.0.1";
 
-let tickerTimestamp = 0,
-  bookTimestamp = 0,
-  accountTimestamp = 0,
-  tradeTimestamp = 0,
-  connection_resolvers = [];
+// let tickerTimestamp = 0,
+//   bookTimestamp = 0,
+//   accountTimestamp = 0,
+//   tradeTimestamp = 0,
+//   connection_resolvers = [];
+
+let interval;
 
 const StoreProvider = (props) => {
   const middleman = useMemo(() => new Middleman(), []);
@@ -25,8 +27,6 @@ const StoreProvider = (props) => {
   const [tickers, setTickers] = useState([]);
   const [books, setBooks] = useState(null);
   const [trades, setTrades] = useState([]);
-  const [candles, setCandles] = useState(null);
-  const [resolution, setResolution] = useState("1D");
   const [pendingOrders, setPendingOrders] = useState([]);
   const [closeOrders, setCloseOrders] = useState([]);
   const [orderHistories, setOrderHistories] = useState([]);
@@ -53,6 +53,7 @@ const StoreProvider = (props) => {
     [closeSnackbar]
   );
 
+  /*
   const wsUpdateHandler = useCallback(
     (msg) => {
       let _tickerTimestamp = 0,
@@ -119,7 +120,8 @@ const StoreProvider = (props) => {
     },
     [middleman]
   );
-
+  */
+  /*
   const getCSRFToken = useCallback(async () => {
     const XSRF = document.cookie
       .split(";")
@@ -157,7 +159,8 @@ const StoreProvider = (props) => {
       console.error(`etToken error`, error);
     }
   }, [location.pathname, middleman]);
-
+  */
+  /*
   const connectWS = useCallback(() => {
     const ws = new WebSocket(Config[Config.status].websocket);
     let interval;
@@ -187,11 +190,13 @@ const StoreProvider = (props) => {
     });
     // middleman.connectWS(wsUpdateHandler);
   }, [getCSRFToken, wsUpdateHandler]);
+  */
 
   const depthBookHandler = useCallback((price, amount) => {
     setDepthbook({ price, amount });
   }, []);
 
+  /*
   const getBooks = useCallback(
     async (id, sz = 100) => {
       try {
@@ -207,7 +212,8 @@ const StoreProvider = (props) => {
     },
     [action, enqueueSnackbar, middleman]
   );
-
+  */
+  /*
   const getTrades = useCallback(
     async (id, limit = 100) => {
       try {
@@ -227,6 +233,7 @@ const StoreProvider = (props) => {
     },
     [action, enqueueSnackbar, middleman]
   );
+  */
 
   // const getCandles = useCallback(
   //   async (instId, bar, after, before, limit) => {
@@ -249,20 +256,7 @@ const StoreProvider = (props) => {
   //   [enqueueSnackbar, middleman]
   // );
 
-  const resolutionHandler = useCallback(
-    async (newResolution) => {
-      if (newResolution !== resolution) {
-        setResolution(newResolution);
-        const { candles, volumes } = middleman.updateCandles(
-          trades,
-          newResolution
-        );
-        setCandles({ candles, volumes });
-      }
-    },
-    [middleman, resolution, trades]
-  );
-
+  /*
   const findTicker = useCallback(
     async (id) => {
       const ticker = middleman.findTicker(id);
@@ -270,7 +264,9 @@ const StoreProvider = (props) => {
     },
     [middleman]
   );
+  */
 
+  // TODO when orderBook is complete this function will be remove
   const getOrderList = useCallback(
     async (options) => {
       try {
@@ -304,7 +300,7 @@ const StoreProvider = (props) => {
     },
     [action, enqueueSnackbar, middleman]
   );
-
+  /*
   const getTicker = useCallback(
     async (market) => {
       try {
@@ -319,8 +315,8 @@ const StoreProvider = (props) => {
     },
     [action, enqueueSnackbar, middleman]
   );
-
-  const selectTickerHandler = useCallback(
+*/
+  const selectMarket = useCallback(
     async (market) => {
       // console.log(`selectedTicker`, selectedTicker, !selectedTicker);
       // console.log(`ticker`, ticker, ticker.market !== selectedTicker?.market);
@@ -328,6 +324,8 @@ const StoreProvider = (props) => {
         history.push({
           pathname: `/markets/${market}`,
         });
+        await middleman.selectMarket(market);
+        /*
         connection_resolvers.push(
           JSON.stringify({
             op: "switchMarket",
@@ -348,7 +346,7 @@ const StoreProvider = (props) => {
           getOrderList();
           getOrderHistory();
         }
-
+*/
         // middleman.sendMsg(
         //   "switchMarket",
         //   {
@@ -360,20 +358,9 @@ const StoreProvider = (props) => {
       }
       // console.log(`****^^^^**** selectTickerHandler [END] ****^^^^****`);
     },
-    [
-      selectedTicker,
-      tickers,
-      middleman,
-      history,
-      isLogin,
-      getTicker,
-      getBooks,
-      getTrades,
-      getOrderList,
-      getOrderHistory,
-    ]
+    [selectedTicker, history, middleman]
   );
-
+  /*
   const getTickers = useCallback(
     async (instType = "SPOT", from = 0, limit = 100) => {
       try {
@@ -388,7 +375,8 @@ const StoreProvider = (props) => {
     },
     [action, enqueueSnackbar, middleman]
   );
-
+   */
+  /*
   const getAccounts = useCallback(async () => {
     await middleman.getAccounts();
     // console.log(`getAccounts accounts`, middleman.accounts)
@@ -399,7 +387,7 @@ const StoreProvider = (props) => {
       await getOrderHistory();
     }
   }, [getCSRFToken, getOrderHistory, getOrderList, middleman]);
-
+  */
   const getExAccounts = useCallback(
     async (exchange) => {
       let exAccounts = {};
@@ -423,6 +411,7 @@ const StoreProvider = (props) => {
     return usersAccounts;
   }, [middleman]);
 
+  // TODO get latest snapshot of orders, trades, accounts
   const postOrder = useCallback(
     async (order) => {
       const _order = {
@@ -509,6 +498,7 @@ const StoreProvider = (props) => {
     ]
   );
 
+  // TODO get latest snapshot of orders, trades, accounts
   const cancelOrder = useCallback(
     async (order) => {
       const _order = {
@@ -560,6 +550,7 @@ const StoreProvider = (props) => {
     // [action, enqueueSnackbar, middleman, token]
   );
 
+  // TODO get latest snapshot of orders, trades, accounts
   const cancelOrders = useCallback(
     async (type) => {
       const _options = {
@@ -592,9 +583,60 @@ const StoreProvider = (props) => {
     setActivePage(page);
   };
 
+  // ++ TODO1: verify function works properly
+  const sync = useCallback(() => {
+    let accountInterval = 300,
+      accountTs = 0,
+      depthInterval = 100,
+      depthTs = 0,
+      orderInterval = 300,
+      orderTs = 0,
+      tradeInterval = 300,
+      tradeTs = 0,
+      tickerInterval = 100,
+      tickerTs = 0,
+      tickersInterval = 1000,
+      tickersTs = 0;
+
+    const time = Date.now();
+    const _sync = () => {
+      if (time - accountTs > accountInterval) {
+        setAccounts(middleman.getAccounts());
+      }
+      if (time - tickerTs > tickerInterval) {
+        setSelectedTicker(middleman.getTicker());
+      }
+      if (time - depthTs > depthInterval) {
+        setBooks(middleman.getBooks());
+      }
+      if (time - tradeTs > tradeInterval) {
+        setTrades(middleman.getTrades());
+      }
+      if (time - tickersTs > tickersInterval) {
+        // TODO getSnapshot is not finished
+        setTickers(middleman.getTickers());
+      }
+      // TODO orderBook is not completed
+      // if (time - orderTs > orderInterval) {
+      //   setOrderHistories(middleman.getOrderHistory());
+      // }
+    };
+    interval = setInterval(() => {
+      _sync();
+    }, 100);
+  }, [middleman]);
+
   const start = useCallback(async () => {
     if (location.pathname.includes("/markets")) {
-      // console.log(`******** start [START] ********`);
+      const market = location.pathname.includes("/markets/")
+        ? location.pathname.replace("/markets/", "")
+        : null;
+      // ++ TODO: verify function works properly
+      await middleman.start(market);
+      // TODO: need OP
+      setIsLogin(middleman.isLogin);
+      sync();
+      /**
       connectWS();
       const market = location.pathname.includes("/markets/")
         ? location.pathname.replace("/markets/", "")
@@ -603,20 +645,16 @@ const StoreProvider = (props) => {
       selectTickerHandler(market);
       getTickers();
       getAccounts();
-      // console.log(`******** start [END] ********`);
+      console.log(`******** start [END] ********`);
+      */
     }
-  }, [
-    connectWS,
-    // getTicker,
-    getAccounts,
-    getTickers,
-    selectTickerHandler,
-    location.pathname,
-  ]);
+  }, [location.pathname, middleman, sync]);
 
   useEffect(() => {
     start();
-    return () => {};
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
   return (
@@ -626,8 +664,6 @@ const StoreProvider = (props) => {
         tickers,
         books,
         trades,
-        candles,
-        resolution,
         pendingOrders,
         closeOrders,
         orderHistories,
@@ -638,16 +674,13 @@ const StoreProvider = (props) => {
         languageKey,
         depthBookHandler,
         setLanguageKey,
-        findTicker,
-        selectTickerHandler,
-        getTickers,
-        getBooks,
-        getTrades,
-        // getCandles,
-        resolutionHandler,
+        selectMarket,
+        // getTickers,
+        // getBooks,
+        // getTrades,
         getOrderList,
         getOrderHistory,
-        getAccounts,
+        // getAccounts,
         postOrder,
         cancelOrder,
         cancelOrders,
