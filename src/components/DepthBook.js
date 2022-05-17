@@ -48,7 +48,7 @@ const BookTile = (props) => {
   );
 };
 
-const OrderBook = (props) => {
+const DepthBook = (props) => {
   const storeCtx = useContext(StoreContext);
   const { t } = useTranslation();
 
@@ -66,7 +66,7 @@ const OrderBook = (props) => {
             storeCtx.books.bids.map((book, index) => (
               <BookTile
                 onClick={() => {
-                  storeCtx.orderBookHandler(book.price, book.amount);
+                  storeCtx.depthBookHandler(book.price, book.amount);
                 }}
                 type="bids"
                 book={book}
@@ -94,7 +94,7 @@ const OrderBook = (props) => {
               <BookTile
                 type="asks"
                 onClick={() => {
-                  storeCtx.orderBookHandler(book.price, book.amount);
+                  storeCtx.depthBookHandler(book.price, book.amount);
                 }}
                 book={book}
                 key={`asks-${storeCtx.selectedTicker.instId}-${index}`}
@@ -112,4 +112,4 @@ const OrderBook = (props) => {
   );
 };
 
-export default OrderBook;
+export default DepthBook;

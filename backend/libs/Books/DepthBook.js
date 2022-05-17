@@ -1,23 +1,23 @@
 const BookBase = require("../BookBase");
 const SafeMath = require("../SafeMath");
 
-class OrderBook extends BookBase {
+class DepthBook extends BookBase {
   constructor({ logger, markets }) {
     super({ logger, markets });
     this._config = { remove: true, add: true, update: false };
-    this.name = `OrderBook`;
+    this.name = `DepthBook`;
     return this;
   }
 
   /**
-   * @typedef {Object} Order
+   * @typedef {Object} Depth
    * @property {string} id = price
    * @property {string} price
    * @property {string} amount
    * @property {string} side 'asks' || 'bids'
 
-   * @param {Order} valueA
-   * @param {Order} valueB
+   * @param {Depth} valueA
+   * @param {Depth} valueB
    */
   _compareFunction(valueA, valueB) {
     return (
@@ -28,8 +28,8 @@ class OrderBook extends BookBase {
   }
 
   /**
-   * @param {Array<Order>} arrayA
-   * @param {Array<Order>} arrayB
+   * @param {Array<Depth>} arrayA
+   * @param {Array<Depth>} arrayB
    * @param {Function} compareFunction
    * @returns
    */
@@ -39,24 +39,24 @@ class OrderBook extends BookBase {
 
   // ++ TODO: verify function works properly
   getSnapshot(instId) {
-    const orderBooks = {
+    const depthBooks = {
       market: instId.replace("-", "").toLowerCase(),
       asks: [],
       bids: [],
     };
     this._snapshot[instId].forEach((data) => {
       if (data.side === "asks") {
-        orderBooks.asks.push([data.price, data.amount]);
+        depthBooks.asks.push([data.price, data.amount]);
       }
       if (data.side === "bids") {
-        orderBooks.bids.push([data.price, data.amount]);
+        depthBooks.bids.push([data.price, data.amount]);
       }
     });
     // this.logger.log(
     //   `[${this.constructor.name}] getSnapshot[${instId}]`,
-    //   orderBooks
+    //   depthBooks
     // );
-    return orderBooks;
+    return depthBooks;
   }
 
   // getDifference(instId) {
@@ -70,7 +70,7 @@ class OrderBook extends BookBase {
    * @property {Array} bids
    *
    * @param {Book} bookObj
-   * @returns {Array<Order>}
+   * @returns {Array<Depth>}
    */
   // ++ TODO: verify function works properly
   _formateBooks(bookObj) {
@@ -112,9 +112,9 @@ class OrderBook extends BookBase {
 
   /**
    * @typedef {Object} Difference
-   * @property {Arrary<Order>} updates
-   * @property {Arrary<Order>} add
-   * @property {Arrary<Order>} remove
+   * @property {Arrary<Depth>} updates
+   * @property {Arrary<Depth>} add
+   * @property {Arrary<Depth>} remove
    *
    * @param {String} instId BTC-USDT
    * @param {Difference} difference
@@ -131,11 +131,11 @@ class OrderBook extends BookBase {
 
   /**
    * @param {String} instId BTC-USDT
-   * @param {Array<Order>} data
+   * @param {Array<Depth>} data
    */
   updateAll(instId, data) {
     return super.updateAll(instId, this._formateBooks(data));
   }
 }
 
-module.exports = OrderBook;
+module.exports = DepthBook;

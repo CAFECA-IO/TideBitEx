@@ -395,18 +395,18 @@ const TradePannel = (props) => {
 
   useEffect(() => {
     if (
-      storeCtx.orderbook !== null &&
-      storeCtx.orderbook?.price &&
-      storeCtx.orderbook?.amount
+      storeCtx.depthBook !== null &&
+      storeCtx.depthBook?.price &&
+      storeCtx.depthBook?.amount
     ) {
-      console.log(`TradePannel useEffect orderbook`, storeCtx.orderbook);
-      limitBuyPxHandler(storeCtx.orderbook.price);
-      limitSellPxHandler(storeCtx.orderbook.price);
-      buySzHandler("market", storeCtx.orderbook.amount);
-      sellSzHandler("market", storeCtx.orderbook.amount);
-      buySzHandler("limit", storeCtx.orderbook.amount);
-      sellSzHandler("limit", storeCtx.orderbook.amount);
-      storeCtx.orderBookHandler(null);
+      console.log(`TradePannel useEffect depthBook`, storeCtx.depthBook);
+      limitBuyPxHandler(storeCtx.depthBook.price);
+      limitSellPxHandler(storeCtx.depthBook.price);
+      buySzHandler("market", storeCtx.depthBook.amount);
+      sellSzHandler("market", storeCtx.depthBook.amount);
+      buySzHandler("limit", storeCtx.depthBook.amount);
+      sellSzHandler("limit", storeCtx.depthBook.amount);
+      storeCtx.depthBookHandler(null);
     }
   }, [buySzHandler, sellSzHandler, storeCtx]);
 

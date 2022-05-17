@@ -57,7 +57,7 @@ class TibeBitConnector extends ConnectorBase {
     database,
     redis,
     tickerBook,
-    orderBook,
+    depthBook,
     tradeBook,
   }) {
     await super.init();
@@ -73,7 +73,7 @@ class TibeBitConnector extends ConnectorBase {
     this.database = database;
     this.redis = redis;
     this.currencies = await this.database.getCurrencies();
-    this.orderBook = orderBook;
+    this.depthBook = depthBook;
     this.tickerBook = tickerBook;
     this.tradeBook = tradeBook;
     return this;
@@ -305,7 +305,7 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   // ++ TODO: verify function works properly
-  async getOrderBooks({ query }) {
+  async getDepthBook({ query }) {
     const instId = this._findInstId(query.id);
     if (!this.fetchedBook[instId]) {
       try {
@@ -366,9 +366,9 @@ class TibeBitConnector extends ConnectorBase {
 
         this.logger.log(`[FROM TideBit] Response books`, books);
         this.logger.log(
-          `---------- [${this.constructor.name}]  getOrderBooks market: ${query.id} [END] ----------`
+          `---------- [${this.constructor.name}]  DepthBook market: ${query.id} [END] ----------`
         );
-        this.orderBook.updateAll(instId, books);
+        this.depthBook.updateAll(instId, books);
       } catch (error) {
         this.logger.error(error);
         const message = error.message;
@@ -379,8 +379,8 @@ class TibeBitConnector extends ConnectorBase {
       }
     }
     return new ResponseFormat({
-      message: "getOrderBooks",
-      payload: this.orderBook.getSnapshot(instId),
+      message: "DepthBook",
+      payload: this.depthBook.getSnapshot(instId),
     });
   }
 
@@ -439,11 +439,11 @@ class TibeBitConnector extends ConnectorBase {
         });
       }
     });
-    this.orderBook.updateByDifference(instId, difference);
+    this.depthBook.updateByDifference(instId, difference);
     const timestamp = Date.now();
     if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
       this._booksTimestamp = timestamp;
-      EventBus.emit(Events.update, market, this.orderBook.getSnapshot(instId));
+      EventBus.emit(Events.update, market, this.depthBook.getSnapshot(instId));
     }
   }
 

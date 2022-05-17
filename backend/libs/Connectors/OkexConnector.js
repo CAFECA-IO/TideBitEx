@@ -48,7 +48,7 @@ class OkexConnector extends ConnectorBase {
     wssPrivate,
     markets,
     tickerBook,
-    orderBook,
+    depthBook,
     tradeBook,
   }) {
     await super.init();
@@ -63,7 +63,7 @@ class OkexConnector extends ConnectorBase {
       url: wssPrivate,
       heartBeat: HEART_BEAT_TIME,
     });
-    this.orderBook = orderBook;
+    this.depthBook = depthBook;
     this.tickerBook = tickerBook;
     this.tradeBook = tradeBook;
     return this;
@@ -271,7 +271,7 @@ class OkexConnector extends ConnectorBase {
     }
   }
 
-  async getOrderBooks({ query }) {
+  async getDepthBooks({ query }) {
     const method = "GET";
     const path = "/api/v5/market/books";
     const { instId, sz } = query;
@@ -281,7 +281,7 @@ class OkexConnector extends ConnectorBase {
     if (sz) arr.push(`sz=${sz}`);
     const qs = !!arr.length ? `?${arr.join("&")}` : "";
     this.logger.log(
-      `[${this.constructor.name}] getOrderBooks this.fetchedBook[${instId}]`,
+      `[${this.constructor.name}] getDepthBooks this.fetchedBook[${instId}]`,
       this.fetchedBook[instId]
     );
     if (!this.fetchedBook[instId]) {
@@ -300,11 +300,11 @@ class OkexConnector extends ConnectorBase {
           });
         }
         const [data] = res.data.data;
-        // const orderBooks = [];
-        // orderBooks["market"] = instId.replace("-", "").toLowerCase();
-        // orderBooks["asks"] = data.asks.map((ask) => [ask[0], ask[1]]);
-        // orderBooks["bids"] = data.bids.map((bid) => [bid[0], bid[1]]);
-        this.orderBook.updateAll(instId, data);
+        // const depthBooks = [];
+        // depthBooks["market"] = instId.replace("-", "").toLowerCase();
+        // depthBooks["asks"] = data.asks.map((ask) => [ask[0], ask[1]]);
+        // depthBooks["bids"] = data.bids.map((bid) => [bid[0], bid[1]]);
+        this.depthBook.updateAll(instId, data);
       } catch (error) {
         this.logger.error(error);
         let message = error.message;
@@ -317,12 +317,12 @@ class OkexConnector extends ConnectorBase {
       }
     }
     // this.logger.log(
-    //   `[${this.constructor.name}] getOrderBooks this.orderBook.getSnapshot([${instId}]`,
-    //   this.orderBook.getSnapshot(instId)
+    //   `[${this.constructor.name}] getDepthBooks this.depthBook.getSnapshot([${instId}]`,
+    //   this.depthBook.getSnapshot(instId)
     // );
     return new ResponseFormat({
-      message: "getOrderBooks",
-      payload: this.orderBook.getSnapshot(instId),
+      message: "getDepthBooks",
+      payload: this.depthBook.getSnapshot(instId),
     });
   }
 
@@ -1240,7 +1240,7 @@ class OkexConnector extends ConnectorBase {
           });
         }
       });
-      this.orderBook.updateByDifference(instId, difference);
+      this.depthBook.updateByDifference(instId, difference);
     } catch (error) {
       // ++
     }
@@ -1248,7 +1248,7 @@ class OkexConnector extends ConnectorBase {
     const timestamp = Date.now();
     if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
       this._booksTimestamp = timestamp;
-      EventBus.emit(Events.update, market, this.orderBook.getSnapshot(instId));
+      EventBus.emit(Events.update, market, this.depthBook.getSnapshot(instId));
     }
   }
 

@@ -10,7 +10,7 @@ const Events = require("../constants/Events");
 const SafeMath = require("../libs/SafeMath");
 const Utils = require("../libs/Utils");
 const SupportedExchange = require("../constants/SupportedExchange");
-const OrderBook = require("../libs/Books/OrderBook");
+const DepthBook = require("../libs/Books/DepthBook");
 const TradeBook = require("../libs/Books/TradeBook");
 const TickerBook = require("../libs/Books/TickerBook");
 
@@ -30,7 +30,7 @@ class ExchangeHub extends Bot {
           logger,
           markets: this.tidebitMarkets,
         });
-        this.orderBook = new OrderBook({
+        this.depthBook = new DepthBook({
           logger,
           markets: this.tidebitMarkets,
         });
@@ -51,7 +51,7 @@ class ExchangeHub extends Bot {
           wssPrivate: this.config.okex.wssPrivate,
           markets: this.config.markets,
           tickerBook: this.tickerBook,
-          orderBook: this.orderBook,
+          depthBook: this.depthBook,
           tradeBook: this.tradeBook,
         });
         this.tideBitConnector = new TideBitConnector({ logger });
@@ -69,7 +69,7 @@ class ExchangeHub extends Bot {
           markets: this.config.markets,
           database: database,
           tickerBook: this.tickerBook,
-          orderBook: this.orderBook,
+          depthBook: this.depthBook,
           tradeBook: this.tradeBook,
         });
         this.currencies = this.tideBitConnector.currencies;
@@ -255,22 +255,22 @@ class ExchangeHub extends Bot {
     });
   }
 
-  async getOrderBooks({ header, params, query }) {
-    this.logger.log(`[${this.constructor.name}] getOrderBooks`, query);
+  async getDepthBooks({ header, params, query }) {
+    this.logger.log(`[${this.constructor.name}] getDepthBooks`, query);
     const instId = this._findInstId(query.id);
     switch (this._findSource(instId)) {
       case SupportedExchange.OKEX:
-        return this.okexConnector.router("getOrderBooks", {
+        return this.okexConnector.router("getDepthBooks", {
           params,
           query: { ...query, instId },
         });
       case SupportedExchange.TIDEBIT:
-        return this.tideBitConnector.router("getOrderBooks", {
+        return this.tideBitConnector.router("getDepthBooks", {
           query,
         });
       default:
         return new ResponseFormat({
-          message: "getOrderBooks",
+          message: "getDepthBooks",
           payload: {},
         });
     }
@@ -902,7 +902,7 @@ class ExchangeHub extends Bot {
       });
     });
 
-    // orderBooksOnUpdate
+    // depthBooksOnUpdate
     EventBus.on(Events.update, (market, booksData) => {
       // this.logger.debug(
       //   `[${this.name}]_updateBooks booksData`,

@@ -34,7 +34,7 @@ const StoreProvider = (props) => {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [selectedTicker, setSelectedTicker] = useState(null);
   const [activePage, setActivePage] = useState("market");
-  const [orderbook, setOrderbook] = useState(null);
+  const [depthBook, setDepthbook] = useState(null);
   const [token, setToken] = useState(null);
   const [languageKey, setLanguageKey] = useState("en");
 
@@ -188,8 +188,8 @@ const StoreProvider = (props) => {
     // middleman.connectWS(wsUpdateHandler);
   }, [getCSRFToken, wsUpdateHandler]);
 
-  const orderBookHandler = useCallback((price, amount) => {
-    setOrderbook({ price, amount });
+  const depthBookHandler = useCallback((price, amount) => {
+    setDepthbook({ price, amount });
   }, []);
 
   const getBooks = useCallback(
@@ -634,9 +634,9 @@ const StoreProvider = (props) => {
         accounts,
         selectedTicker,
         activePage,
-        orderbook,
+        depthBook,
         languageKey,
-        orderBookHandler,
+        depthBookHandler,
         setLanguageKey,
         findTicker,
         selectTickerHandler,

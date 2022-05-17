@@ -14,11 +14,11 @@ const StoreContext = React.createContext({
   orderHistories: [],
   accounts: [],
   activePage: null,
-  orderbook: null,
+  depthBook: null,
   // sellPx: null,
   orderType: null,
   orderTypeHandler: (orderType) => {},
-  orderBookHandler: (price, amount) => {},
+  depthBookHandler: (price, amount) => {},
   // sellHandler: (price, amount) => {},
   setLanguageKey: (key) => {},
   /**
