@@ -617,6 +617,7 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async getAccounts({ memberId }) {
+    this.logger.log(`[${this.constructor.name}] getAccounts memberId`, memberId)
     try {
       const _accounts = await this.database.getAccountsByMemberId(memberId);
       const accounts = _accounts.map((account) => ({
@@ -637,7 +638,7 @@ class TibeBitConnector extends ConnectorBase {
       const message = error.message;
       return new ResponseFormat({
         message,
-        code: Codes.API_UNKNOWN_ERROR,
+        code: Codes.MEMBER_ID_NOT_FOUND,
       });
     }
   }

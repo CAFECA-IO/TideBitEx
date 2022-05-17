@@ -143,6 +143,7 @@ class ExchangeHub extends Bot {
 
   // account api
   async getAccounts({ memberId }) {
+    this.logger.log(`[${this.constructor.name}] getAccounts memberId`, memberId)
     if (memberId === -1) {
       return new ResponseFormat({
         message: "getAccounts",
