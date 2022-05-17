@@ -28,7 +28,7 @@ class TideBitLegacyAdapter {
       TideBitLegacyAdapter.usersGC();
     }
     const peatioToken = Utils.peatioToken(ctx.header);
-    console.log(`parseMemberId peatioToken`, peatioToken);
+    // console.log(`parseMemberId peatioToken`, peatioToken);
     if (!peatioToken) {
       ctx.memberId = -1;
     } else {
@@ -47,7 +47,7 @@ class TideBitLegacyAdapter {
           ctx.memberId = -1;
         }
       }
-      console.log(`parseMemberId ctx.memberId`, ctx.memberId);
+      // console.log(`parseMemberId ctx.memberId`, ctx.memberId);
     }
     return next();
   }

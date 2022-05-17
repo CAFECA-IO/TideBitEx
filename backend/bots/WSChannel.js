@@ -147,7 +147,6 @@ class WSChannel extends Bot {
   // TODO SPA LOGIN
   // ++ CURRENT_USER UNSAVED
   _onOpStatusUpdate(headers, ws, args) {
-    this.logger.debug(`_onOpStatusUpdate args`, args)
     const findClient = this._client[ws.id];
     const token = Utils.peatioToken(headers);
     if (!findClient.isStart) {
