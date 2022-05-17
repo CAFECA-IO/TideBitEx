@@ -1323,7 +1323,7 @@ class OkexConnector extends ConnectorBase {
   _updateTickers(data) {
     data.forEach((d) => {
       const updateTicker = this._formateTicker(d);
-      this.logger.log(`_updateTickers updateTicker`, updateTicker);
+      // this.logger.log(`_updateTickers updateTicker`, updateTicker);
       this.tickerBook.updateByDifference(d.instId, updateTicker);
     });
 

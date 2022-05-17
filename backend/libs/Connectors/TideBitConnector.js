@@ -256,7 +256,7 @@ class TibeBitConnector extends ConnectorBase {
   // ++ TODO: verify function works properly
   _formateTicker(data) {
     // return tickerData.map((data) => {
-    const id = data.instId.replace("/", "").toLowerCase();
+    const id = data.name.replace("/", "").toLowerCase();
     const change = SafeMath.minus(data.last, data.open24h);
     const changePct = SafeMath.gt(data.open24h, "0")
       ? SafeMath.div(change, data.open24h)
