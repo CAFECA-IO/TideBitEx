@@ -742,6 +742,7 @@ class ExchangeHub extends Bot {
     try {
       switch (source) {
         case SupportedExchange.OKEX:
+            // get pending orders by snapshot
           const _orders = await this.tideBitConnector.tbGetOrderList({
             ...body,
             market: this._findMarket(body.instId),

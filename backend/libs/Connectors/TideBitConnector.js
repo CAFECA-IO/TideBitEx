@@ -639,7 +639,7 @@ class TibeBitConnector extends ConnectorBase {
       }));
 
       // this.accounts = accounts;
-      this.accountBook.updateAll(accounts);
+      this.accountBook.updateAll(memberId, accounts);
     } catch (error) {
       this.logger.error(error);
       const message = error.message;

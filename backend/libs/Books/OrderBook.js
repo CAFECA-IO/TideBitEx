@@ -43,6 +43,7 @@ class OrderBook extends BookBase {
         )
           historyOrders.push(d);
       });
+    return pendingOrders.concat(historyOrders);
   }
 
   // ++ TODO: verify function works properly

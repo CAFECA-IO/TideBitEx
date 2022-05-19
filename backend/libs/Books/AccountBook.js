@@ -4,7 +4,7 @@ const SafeMath = require("../SafeMath");
 class AccountBook extends BookBase {
   constructor({ logger, markets }) {
     super({ logger, markets });
-    this._config = { remove: true, add: true, update: false };
+    this._config = { remove: false, add: false, update: true };
     this.name = `AccountBook`;
     return this;
   }
@@ -38,10 +38,9 @@ class AccountBook extends BookBase {
    */
   _compareFunction(valueA, valueB) {
     return (
-      !valueA ||
-      (valueA?.currency === valueB.currency &&
-        (!SafeMath.eq(valueA?.balance, valueB.balance) ||
-          !SafeMath.eq(valueA?.locked, valueB.locked)))
+      valueA?.currency === valueB.currency &&
+      (!SafeMath.eq(valueA?.balance, valueB.balance) ||
+        !SafeMath.eq(valueA?.locked, valueB.locked))
     );
   }
 
@@ -77,14 +76,7 @@ class AccountBook extends BookBase {
     if (!this._snapshot[memberId]) this._snapshot[memberId] = {};
     try {
       accounts.forEach((account) => {
-        if (
-          this._compareFunction(
-            this._snapshot[memberId][account.currency],
-            account
-          )
-        ) {
-          this._difference[memberId][account.currency] = account;
-        }
+        this._difference[memberId][account.currency] = account;
         this._snapshot[memberId][account.currency] = account;
       });
       return true;

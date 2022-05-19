@@ -648,7 +648,7 @@ const StoreProvider = (props) => {
       console.log(`******** start [END] ********`);
       */
     }else{
-      
+      // ++ TODO add default market: ethhkd
     }
   }, [location.pathname, middleman, sync]);
 
