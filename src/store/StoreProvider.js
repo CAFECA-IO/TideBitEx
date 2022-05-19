@@ -650,12 +650,16 @@ const StoreProvider = (props) => {
     }
   }, [location.pathname, middleman, sync]);
 
-  useEffect(() => {
-    start();
-    return () => {
-      clearInterval(interval);
-    };
+  const stop = useCallback(() => {
+    clearInterval(interval);
   }, []);
+
+  // useEffect(() => {
+  //   start();
+  //   return () => {
+  //     clearInterval(interval);
+  //   };
+  // }, []);
 
   return (
     <StoreContext.Provider
@@ -672,14 +676,16 @@ const StoreProvider = (props) => {
         activePage,
         depthBook,
         languageKey,
+        start,
+        stop,
         depthBookHandler,
         setLanguageKey,
         selectMarket,
         // getTickers,
         // getBooks,
         // getTrades,
-        getOrderList,
-        getOrderHistory,
+        // getOrderList,
+        // getOrderHistory,
         // getAccounts,
         postOrder,
         cancelOrder,

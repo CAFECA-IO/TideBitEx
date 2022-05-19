@@ -485,7 +485,7 @@ class Middleman {
 
   async start(market) {
     // TODO to verify websocket connection is working and can receive update message
-    this.websocket.wsConnector();
+    this.websocket.connect();
     await this._getAccounts();
     await this.selectMarket(market);
     await this._getTickers();

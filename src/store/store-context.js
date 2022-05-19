@@ -17,7 +17,9 @@ const StoreContext = React.createContext({
   depthBook: null,
   // sellPx: null,
   orderType: null,
-  orderTypeHandler: (orderType) => {},
+  // orderTypeHandler: (orderType) => {},
+  start: () => {},
+  stop: () => {},
   depthBookHandler: (price, amount) => {},
   // sellHandler: (price, amount) => {},
   setLanguageKey: (key) => {},
@@ -46,7 +48,7 @@ const StoreContext = React.createContext({
    * @param {String} market
    * @returns null
    */
-   selectMarket: (market) => {},
+  selectMarket: (market) => {},
   /**
    * @param {String} instType SPOT,MARGIN,SWAP,FUTURES,OPTION
    * @param {String} from
@@ -57,8 +59,8 @@ const StoreContext = React.createContext({
    * @param {String} id
    * @returns {Ticker} ticker
    */
-  findTicker: (id) => {},
-  getTickers: async (instType, from, limit) => {},
+  // findTicker: (id) => {},
+  // getTickers: async (instType, from, limit) => {},
   /**
    * @typedef {Object} Book
    * @property {Array} asks
@@ -70,7 +72,7 @@ const StoreContext = React.createContext({
    * @param {String} sz defalt 1, max 400
    * @returns {Promise<Array<Book>>}
    */
-  getBooks: async (instId, sz) => {},
+  // getBooks: async (instId, sz) => {},
   /**
    * @typedef {Object} Trade
    * @property instId
@@ -85,7 +87,7 @@ const StoreContext = React.createContext({
    * @param {String} limit max 500, default 100
    * @returns {Promise<Array<Trade>>}
    */
-  getTrades: async (instId, limit) => {},
+  // getTrades: async (instId, limit) => {},
   /**
    * @param {String} instId BTC-USDT
    * @param {String} bar 1m/3m/5m/15m/30m/1H/2H/4H/6H/12H/1D/1W/1M/3M/6M/1Y, default 1m
@@ -94,7 +96,7 @@ const StoreContext = React.createContext({
    * @param {String} limit The maximum is 300. The default is 100.
    * @returns {Promise<Array<Array<String>>>}
    */
-  resolutionHandler: async (resolution) => {},
+  // resolutionHandler: async (resolution) => {},
   /**
    * @typedef {Object} PendingOrder
    * @property {string} accFillSz
@@ -150,8 +152,8 @@ const StoreContext = React.createContext({
    * @param {OrderRequestOptions} options
    * @returns {Promise<Array<PendingOrder>>}
    */
-  getOrderList: async (options) => {},
-  getCloseOrders: async (options) => {},
+  // getOrderList: async (options) => {},
+  // getCloseOrders: async (options) => {},
   /**
    * @typedef {Object} BalanceDetail
    * @property {string} availBal 可用余额
@@ -197,7 +199,7 @@ const StoreContext = React.createContext({
    * @param {String} ccy ex: "BTC,ETH"
    * @returns {Promise<Balance>}
    */
-  getAccounts: async (ccy) => {},
+  // getAccounts: async (ccy) => {},
   /**
    * @typedef {Object} Order
    * @property {string} instId 產品Id
@@ -229,8 +231,8 @@ const StoreContext = React.createContext({
   cancelOrder: async (order) => {},
   cancelOrders: async (type) => {},
   activePageHandler: () => {},
-  getExAccounts: async(exchange) => {},
-  getUsersAccounts: async() => {},
+  getExAccounts: async (exchange) => {},
+  getUsersAccounts: async () => {},
 });
 
 export default StoreContext;

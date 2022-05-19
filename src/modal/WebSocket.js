@@ -34,7 +34,7 @@ class WebSocket {
     );
   }
 
-  wsUpdateHandler(msg) {
+  messageHandler(msg) {
     let metaData = JSON.parse(msg.data);
     switch (metaData.type) {
       case Events.account:
@@ -59,7 +59,7 @@ class WebSocket {
     }
   }
 
-  wsConnector() {
+  connect() {
     // return new Promise((resolve, reject) => {
     const ws = new WebSocket(Config[Config.status].websocket);
     let interval;
@@ -80,11 +80,11 @@ class WebSocket {
         msg.reason
       );
       setTimeout(function () {
-        this.wsConnector();
+        this.connect();
       }, 1000);
     });
     ws.addEventListener("message", (msg) => {
-      this.wsUpdateHandler(msg);
+      this.messageHandler(msg);
     });
     // });
   }
