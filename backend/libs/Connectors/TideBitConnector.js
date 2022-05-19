@@ -33,6 +33,7 @@ class TibeBitConnector extends ConnectorBase {
 
   fetchedTrades = {};
   fetchedBook = {};
+  fetchedOrders = {};
 
   // tickers = {};
   trades = [];
@@ -59,6 +60,8 @@ class TibeBitConnector extends ConnectorBase {
     tickerBook,
     depthBook,
     tradeBook,
+    accountBook,
+    orderBook,
   }) {
     await super.init();
     this.app = app;
@@ -76,6 +79,8 @@ class TibeBitConnector extends ConnectorBase {
     this.depthBook = depthBook;
     this.tickerBook = tickerBook;
     this.tradeBook = tradeBook;
+    this.accountBook = accountBook;
+    this.orderBook = orderBook;
     return this;
   }
 
@@ -633,11 +638,8 @@ class TibeBitConnector extends ConnectorBase {
         locked: Utils.removeZeroEnd(account.locked),
       }));
 
-      this.accounts = accounts;
-      return new ResponseFormat({
-        message: "getAccounts",
-        payload: accounts,
-      });
+      // this.accounts = accounts;
+      this.accountBook.updateAll(accounts);
     } catch (error) {
       this.logger.error(error);
       const message = error.message;
@@ -646,9 +648,13 @@ class TibeBitConnector extends ConnectorBase {
         code: Codes.MEMBER_ID_NOT_FOUND,
       });
     }
+    return new ResponseFormat({
+      message: "getAccounts",
+      payload: this.accountBook.getSnapshot(),
+    });
   }
 
-  _updateAccount(data) {
+  _updateAccount(memberId, data) {
     /**
     {
         balance: '386.8739', 
@@ -656,32 +662,13 @@ class TibeBitConnector extends ConnectorBase {
         currency: 'hkd'
     }
     */
-    const account = this.accounts.find(
-      (account) => data.currency.toUpperCase() === account.currency
-    );
-    if (
-      !account ||
-      SafeMath.eq(account.balance, data.balance) ||
-      SafeMath.eq(account.locked, data.locked)
-    )
-      return;
-    const formatAccount = {
+    const account = {
       ...data,
       currency: data.currency.toUpperCase(),
       total: SafeMath.plus(data.balance, data.locked),
     };
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _updateAccount [START] ----------`
-    );
-    this.logger.log(`[FROM TideBit] accountData`, data);
-    this.logger.log(
-      `[TO FRONTEND][OnEvent: ${Events.account}] updateAccount`,
-      formatAccount
-    );
-    EventBus.emit(Events.account, formatAccount);
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _updateAccount [END] ----------`
-    );
+    this.accountBook.updateByDifference(memberId, account);
+    EventBus.emit(Events.account, this.accountBook.getDifference(memberId));
   }
 
   async tbGetOrderList(query) {
@@ -701,116 +688,138 @@ class TibeBitConnector extends ConnectorBase {
       throw new Error(`ask not found${query.market.base_unit}`);
     }
     let orderList;
-    if (query.memberId) {
-      orderList = await this.database.getOrderList({
-        quoteCcy: bid,
-        baseCcy: ask,
-        state: query.state,
-        memberId: query.memberId,
-        orderType: query.orderType,
-      });
-    } else {
-      orderList = await this.database.getOrderList({
-        quoteCcy: bid,
-        baseCcy: ask,
-        state: query.state,
-        orderType: query.orderType,
-      });
-    }
-    const orders = orderList.map((order) => ({
-      id: order.id,
-      at: parseInt(SafeMath.div(new Date(order.updated_at).getTime(), "1000")),
-      market: query.instId.replace("-", "").toLowerCase(),
-      kind: order.type === "OrderAsk" ? "ask" : "bid",
-      price: Utils.removeZeroEnd(order.price),
-      origin_volume: Utils.removeZeroEnd(order.origin_volume),
-      volume: Utils.removeZeroEnd(order.volume),
-      state:
-        query.state === this.database.ORDER_STATE.CANCEL
-          ? "canceled"
-          : query.state === this.database.ORDER_STATE.DONE
-          ? "done"
-          : "wait",
-      state_text:
-        query.state === this.database.ORDER_STATE.CANCEL
-          ? "Canceled"
-          : query.state === this.database.ORDER_STATE.DONE
-          ? "Done"
-          : "Waiting",
-      clOrdId: order.id,
-      instId: query.instId,
-      ordType: order.ord_type,
-      filled: order.volume !== order.origin_volume,
-    }));
+    // if (query.memberId) {
+    orderList = await this.database.getOrderList({
+      quoteCcy: bid,
+      baseCcy: ask,
+      // state: query.state,
+      memberId: query.memberId,
+      // orderType: query.orderType,
+    });
+    /*
+    const vouchers = await this.database.getVouchers({
+      memberId: query.memberId,
+      ask: query.market.base_unit,
+      bid: query.market.quote_unit,
+    });
+    */
+    // } else {
+    //   orderList = await this.database.getOrderList({
+    //     quoteCcy: bid,
+    //     baseCcy: ask,
+    //     state: query.state,
+    //     orderType: query.orderType,
+    //   });
+    // }
+    const orders = orderList.map((order) => {
+      /*
+      if (order.state === this.database.ORDER_STATE.DONE) {
+        return {
+          id: order.id,
+          at: parseInt(
+            SafeMath.div(new Date(order.updated_at).getTime(), "1000")
+          ),
+          market: query.instId.replace("-", "").toLowerCase(),
+          kind: order.type === "OrderAsk" ? "ask" : "bid",
+          price:
+            order.ordType === "market"
+              ? Utils.removeZeroEnd(
+                  vouchers?.find((voucher) => voucher.order_id === order.id)
+                    ?.price
+                )
+              : Utils.removeZeroEnd(order.price),
+          origin_volume: Utils.removeZeroEnd(order.origin_volume),
+          volume: Utils.removeZeroEnd(order.volume),
+          state: "done",
+          state_text: "Done",
+          clOrdId: order.id,
+          instId: query.instId,
+          ordType: order.ord_type,
+          filled: order.volume !== order.origin_volume,
+        };
+      } else {
+        */
+      return {
+        id: order.id,
+        at: parseInt(
+          SafeMath.div(new Date(order.updated_at).getTime(), "1000")
+        ),
+        market: query.instId.replace("-", "").toLowerCase(),
+        kind: order.type === "OrderAsk" ? "ask" : "bid",
+        price: Utils.removeZeroEnd(order.price),
+        origin_volume: Utils.removeZeroEnd(order.origin_volume),
+        volume: Utils.removeZeroEnd(order.volume),
+        state:
+          query.state === this.database.ORDER_STATE.CANCEL
+            ? "canceled"
+            : query.state === this.database.ORDER_STATE.WAIT
+            ? "wait"
+            : "unknown",
+        state_text:
+          query.state === this.database.ORDER_STATE.CANCEL
+            ? "Canceled"
+            : query.state === this.database.ORDER_STATE.WAIT
+            ? "Waiting"
+            : "Unknown",
+        clOrdId: order.id,
+        instId: query.instId,
+        ordType: order.ord_type,
+        filled: order.volume !== order.origin_volume,
+      };
+      /*
+      }
+      */
+    });
     return orders;
   }
 
   async getOrderList({ query }) {
-    try {
-      const orders = await this.tbGetOrderList({
-        ...query,
-        state: this.database.ORDER_STATE.WAIT,
-      });
-      return new ResponseFormat({
-        message: "getOrderList",
-        payload: orders.sort((a, b) => b.at - a.at),
-      });
-    } catch (error) {
-      this.logger.error(error);
-      const message = error.message;
-      return new ResponseFormat({
-        message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
+    const { instId, memberId } = query;
+    if (!this.fetchedOrders[memberId].some((_instId) => _instId === instId)) {
+      try {
+        const orders = await this.tbGetOrderList(query);
+        this.orderBook.updateAll(memberId, instId, orders);
+        this.fetchedOrders[memberId] = [];
+        this.fetchedOrders[memberId].push(instId);
+      } catch (error) {
+        this.logger.error(error);
+        const message = error.message;
+        return new ResponseFormat({
+          message,
+          code: Codes.API_UNKNOWN_ERROR,
+        });
+      }
     }
+    return new ResponseFormat({
+      message: "getOrderList",
+      payload: this.orderBook.getSnapshot(memberId, instId, "pending"),
+    });
   }
 
   async getOrderHistory({ query }) {
-    try {
-      const cancelOrders = await this.tbGetOrderList({
-        ...query,
-        state: this.database.ORDER_STATE.CANCEL,
-      });
-      const doneOrders = await this.tbGetOrderList({
-        ...query,
-        state: this.database.ORDER_STATE.DONE,
-      });
-      const vouchers = await this.database.getVouchers({
-        memberId: query.memberId,
-        ask: query.market.base_unit,
-        bid: query.market.quote_unit,
-      });
-      const orders = doneOrders
-        .map((order) => {
-          if (order.ordType === "market") {
-            return {
-              ...order,
-              price: Utils.removeZeroEnd(
-                vouchers?.find((voucher) => voucher.order_id === order.id)
-                  ?.price
-              ),
-            };
-          } else {
-            return order;
-          }
-        })
-        .concat(cancelOrders)
-        .sort((a, b) => b.at - a.at);
-      return new ResponseFormat({
-        message: "getOrderHistory",
-        payload: orders,
-      });
-    } catch (error) {
-      this.logger.error(error);
-      const message = error.message;
-      return new ResponseFormat({
-        message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
+    const { instId, memberId } = query;
+    if (!this.fetchedOrders[memberId].some((_instId) => _instId === instId)) {
+      try {
+        const orders = await this.tbGetOrderList(query);
+        this.orderBook.updateAll(memberId, instId, orders);
+        this.fetchedOrders[memberId] = [];
+        this.fetchedOrders[memberId].push(instId);
+      } catch (error) {
+        this.logger.error(error);
+        const message = error.message;
+        return new ResponseFormat({
+          message,
+          code: Codes.API_UNKNOWN_ERROR,
+        });
+      }
     }
+    return new ResponseFormat({
+      message: "getOrderHistory",
+      payload: this.orderBook.getSnapshot(memberId, instId, "history"),
+    });
   }
 
-  _updateOrder(data) {
+  _updateOrder(memberId, data) {
     /**
     {
         id: 86, 
@@ -833,12 +842,13 @@ class TibeBitConnector extends ConnectorBase {
     );
     this.logger.log(` this.market: ${this.market}`);
     this.logger.log(`[FROM TideBit] orderData`, data);
+    let instId = this._findInstId(data.market);
     if (data.market === this.market) {
       const formatOrder = {
         ...data,
         // ordId: data.id,
         clOrdId: data.id,
-        instId: this._findInstId(data.market),
+        instId,
         ordType: data.price === undefined ? "market" : "limit",
         // px: data.price,
         // side: data.kind === "bid" ? "buy" : "sell",
@@ -857,7 +867,14 @@ class TibeBitConnector extends ConnectorBase {
         `[TO FRONTEND][OnEvent: ${Events.order}] updateOrder`,
         formatOrder
       );
-      EventBus.emit(Events.order, data.market, formatOrder);
+      this.orderBook.updateByDifference(memberId, instId, {
+        add: [formatOrder],
+      });
+      EventBus.emit(
+        Events.order,
+        data.market,
+        this.orderBook.getDifference(memberId, instId)
+      );
       this.logger.log(
         `---------- [${this.constructor.name}]  _updateOrder market: ${data.market} [END] ----------`
       );
@@ -1023,7 +1040,7 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
-  async _registerPrivateChannel(wsId, sn) {
+  async _registerPrivateChannel(wsId, memberId, sn) {
     try {
       if (!this.private_channel[wsId]) {
         this.private_channel[wsId] = {};
@@ -1032,13 +1049,13 @@ class TibeBitConnector extends ConnectorBase {
           wsId
         ].subscribe(`private-${sn}`);
         this.private_channel[wsId]["channel"].bind("account", (data) =>
-          this._updateAccount(data)
+          this._updateAccount(memberId, data)
         );
         this.private_channel[wsId]["channel"].bind("order", (data) =>
-          this._updateOrder(data)
+          this._updateOrder(memberId, data)
         );
         this.private_channel[wsId]["channel"].bind("trade", (data) => {
-          this._updateTrade(data);
+          this._updateTrade(memberId, data);
         });
       }
     } catch (error) {
@@ -1259,7 +1276,11 @@ class TibeBitConnector extends ConnectorBase {
       if (memberId !== -1) {
         const member = await this.database.getMemberById(memberId);
         this._startPusherWithLoginToken(credential.headers, credential.wsId);
-        await this._registerPrivateChannel(credential.wsId, member.sn);
+        await this._registerPrivateChannel(
+          credential.wsId,
+          memberId,
+          member.sn
+        );
       }
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeUser [END] ++++++`

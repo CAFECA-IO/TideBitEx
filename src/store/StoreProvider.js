@@ -647,6 +647,8 @@ const StoreProvider = (props) => {
       getAccounts();
       console.log(`******** start [END] ********`);
       */
+    }else{
+      
     }
   }, [location.pathname, middleman, sync]);
 

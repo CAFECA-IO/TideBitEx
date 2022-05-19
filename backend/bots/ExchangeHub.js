@@ -13,6 +13,8 @@ const SupportedExchange = require("../constants/SupportedExchange");
 const DepthBook = require("../libs/Books/DepthBook");
 const TradeBook = require("../libs/Books/TradeBook");
 const TickerBook = require("../libs/Books/TickerBook");
+const OrderBook = require("../libs/Books/OrderBook");
+const AccountBook = require("../libs/Books/AccountBook");
 
 class ExchangeHub extends Bot {
   constructor() {
@@ -38,6 +40,14 @@ class ExchangeHub extends Bot {
           logger,
           markets: this.tidebitMarkets,
         });
+        this.orderBook = new OrderBook({
+          logger,
+          markets: this.tidebitMarkets,
+        });
+        this.accountBook = new AccountBook({
+          logger,
+          markets: this.tidebitMarkets,
+        });
       })
       .then(async () => {
         this.okexConnector = new OkexConnector({ logger });
@@ -53,6 +63,8 @@ class ExchangeHub extends Bot {
           tickerBook: this.tickerBook,
           depthBook: this.depthBook,
           tradeBook: this.tradeBook,
+          orderBook: this.orderBook,
+          accountBook: this.accountBook,
         });
         this.tideBitConnector = new TideBitConnector({ logger });
         await this.tideBitConnector.init({
@@ -71,6 +83,8 @@ class ExchangeHub extends Bot {
           tickerBook: this.tickerBook,
           depthBook: this.depthBook,
           tradeBook: this.tradeBook,
+          orderBook: this.orderBook,
+          accountBook: this.accountBook,
         });
         this.currencies = this.tideBitConnector.currencies;
         return this;
@@ -426,7 +440,15 @@ class ExchangeHub extends Bot {
               state_text: "Waiting",
               volume: body.volume,
             };
-            EventBus.emit(Events.order, body.market, _updateOrder);
+            this.orderBook.updateByDifference(memberId, body.instId, {
+              add: [_updateOrder],
+            });
+            // ++ TODO: verify function works properly
+            EventBus.emit(
+              Events.order,
+              body.market,
+              this.orderBook.getDifference(memberId, body.instId)
+            );
             this.logger.log(
               `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] _updateOrder ln:409`,
               _updateOrder
@@ -442,7 +464,11 @@ class ExchangeHub extends Bot {
                 SafeMath.plus(account.locked, locked)
               ),
             };
-            EventBus.emit(Events.account, _updateAccount);
+            this.accountBook.updateByDifference(memberId, _updateAccount);
+            EventBus.emit(
+              Events.account,
+              this.accountBook.getDifference(memberId)
+            );
             this.logger.log(
               `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:425`,
               _updateAccount
@@ -473,7 +499,9 @@ class ExchangeHub extends Bot {
   }
 
   // TODO integrate getOrderList and getOrderHistory into one
-  async getOrderList({ params, query, memberId }) {
+  async getOrderList({ query, memberId }) {
+    const instId = this._findInstId(query.market);
+    const market = this._findMarket(instId);
     if (memberId === -1) {
       return new ResponseFormat({
         message: "member_id not found",
@@ -483,8 +511,12 @@ class ExchangeHub extends Bot {
     switch (this._findSource(query.instId)) {
       case SupportedExchange.OKEX:
         const res = await this.okexConnector.router("getOrderList", {
-          params,
-          query,
+          query: {
+            ...query,
+            instId,
+            // market,
+            memberId,
+          },
         });
         const list = res.payload;
         if (Array.isArray(list)) {
@@ -498,7 +530,8 @@ class ExchangeHub extends Bot {
         return await this.tideBitConnector.router("getOrderList", {
           query: {
             ...query,
-            market: this._findMarket(query.instId),
+            instId,
+            market,
             memberId,
           },
         });
@@ -510,7 +543,9 @@ class ExchangeHub extends Bot {
     }
   }
 
-  async getOrderHistory({ params, query, memberId }) {
+  async getOrderHistory({ query, memberId }) {
+    const instId = this._findInstId(query.market);
+    const market = this._findMarket(instId);
     if (memberId === -1) {
       return new ResponseFormat({
         message: "member_id not found",
@@ -520,8 +555,12 @@ class ExchangeHub extends Bot {
     switch (this._findSource(query.instId)) {
       case SupportedExchange.OKEX:
         const res = await this.okexConnector.router("getOrderHistory", {
-          params,
-          query,
+          query: {
+            ...query,
+            instId,
+            // market,
+            memberId,
+          },
         });
         const list = res.payload;
         if (Array.isArray(list)) {
@@ -535,7 +574,8 @@ class ExchangeHub extends Bot {
         return await this.tideBitConnector.router("getOrderHistory", {
           query: {
             ...query,
-            market: this._findMarket(query.instId),
+            instId,
+            market,
             memberId,
           },
         });
@@ -593,7 +633,15 @@ class ExchangeHub extends Bot {
       `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] updateOrder ln:1092`,
       _updateOrder
     );
-    EventBus.emit(Events.order, orderData.market, _updateOrder);
+    this.orderBook.updateByDifference(memberId, _updateOrder.instId, {
+      add: [_updateOrder],
+    });
+    // ++ TODO: verify function works properly
+    EventBus.emit(
+      Events.order,
+      _updateOrder.market,
+      this.orderBook.getDifference(memberId, _updateOrder.instId)
+    );
 
     try {
       await this.database.updateOrder(newOrder, { dbTransaction: t });
@@ -608,7 +656,8 @@ class ExchangeHub extends Bot {
             SafeMath.plus(account.locked, locked)
           ),
         };
-        EventBus.emit(Events.account, _updateAccount);
+        this.accountBook.updateByDifference(memberId, _updateAccount);
+        EventBus.emit(Events.account, this.accountBook.getDifference(memberId));
         this.logger.log(
           `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:425`,
           _updateAccount
@@ -686,6 +735,8 @@ class ExchangeHub extends Bot {
     }
   }
 
+  // ++ TODO
+  // get pending orders by snapshot
   async cancelOrders({ header, body, memberId }) {
     const source = this._findSource(body.instId);
     try {
@@ -695,8 +746,8 @@ class ExchangeHub extends Bot {
             ...body,
             market: this._findMarket(body.instId),
             memberId,
-            state: this.database.ORDER_STATE.WAIT,
-            orderType: "limit",
+            // state: this.database.ORDER_STATE.WAIT,
+            // orderType: "limit",
           });
 
           const orders = _orders
@@ -1130,10 +1181,14 @@ class ExchangeHub extends Bot {
         `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] updateOrder ln:1092`,
         _updateOrder
       );
+      // ++ TODO: verify function works properly
+      this.orderBook.updateByDifference(memberId, instId, {
+        add: [_updateOrder],
+      });
       EventBus.emit(
         Events.order,
         instId.replace("-", "").toLowerCase(),
-        _updateOrder
+        this.orderBook.getDifference(memberId, instId)
       );
 
       await this._updateAccount(
@@ -1160,7 +1215,9 @@ class ExchangeHub extends Bot {
           SafeMath.plus(accountAsk.balance, lockedA)
         ),
       };
-      EventBus.emit(Events.account, _updateAcc);
+      this.accountBook.updateByDifference(memberId, _updateAcc);
+      EventBus.emit(Events.account, this.accountBook.getDifference(memberId));
+
       this.logger.log(
         `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAcc ln:1057`,
         _updateAcc
@@ -1189,7 +1246,9 @@ class ExchangeHub extends Bot {
           SafeMath.plus(accountBid.balance, lockedB)
         ),
       };
-      EventBus.emit(Events.account, _updateAcc);
+      this.accountBook.updateByDifference(memberId, _updateAcc);
+      EventBus.emit(Events.account, this.accountBook.getDifference(memberId));
+
       this.logger.log(
         `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAcc ln:1086`,
         _updateAcc
@@ -1223,7 +1282,11 @@ class ExchangeHub extends Bot {
               SafeMath.plus(accountAsk.balance, changeBalance)
             ),
           };
-          EventBus.emit(Events.account, _updateAcc);
+          this.accountBook.updateByDifference(memberId, _updateAcc);
+          EventBus.emit(
+            Events.account,
+            this.accountBook.getDifference(memberId)
+          );
           this.logger.log(
             `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAcc ln:1120`,
             _updateAcc
@@ -1252,7 +1315,11 @@ class ExchangeHub extends Bot {
               SafeMath.plus(accountBid.balance, changeBalance)
             ),
           };
-          EventBus.emit(Events.account, _updateAcc);
+          this.accountBook.updateByDifference(memberId, _updateAcc);
+          EventBus.emit(
+            Events.account,
+            this.accountBook.getDifference(memberId)
+          );
           this.logger.log(
             `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAcc ln:1149`,
             _updateAcc

@@ -50,6 +50,8 @@ class OkexConnector extends ConnectorBase {
     tickerBook,
     depthBook,
     tradeBook,
+    accountBook,
+    orderBook,
   }) {
     await super.init();
     this.domain = domain;
@@ -66,6 +68,8 @@ class OkexConnector extends ConnectorBase {
     this.depthBook = depthBook;
     this.tickerBook = tickerBook;
     this.tradeBook = tradeBook;
+    this.accountBook = accountBook;
+    this.orderBook = orderBook;
     return this;
   }
 
@@ -709,93 +713,112 @@ class OkexConnector extends ConnectorBase {
   }
 
   async getOrderList({ query }) {
-    const method = "GET";
-    const path = "/api/v5/trade/orders-pending";
-    const { instType, uly, instId, ordType, state, after, before, limit } =
-      query;
+    const {
+      instType,
+      uly,
+      instId,
+      ordType,
+      state,
+      after,
+      before,
+      limit,
+      memberId,
+    } = query;
+    if (
+      !this.fetchedOrders[memberId].some(
+        (order) => order.pending && order.instId === instId
+      )
+    ) {
+      const method = "GET";
+      const path = "/api/v5/trade/orders-pending";
+      const arr = [];
+      if (instType) arr.push(`instType=${instType}`);
+      if (uly) arr.push(`uly=${uly}`);
+      if (instId) arr.push(`instId=${instId}`);
+      if (ordType) arr.push(`ordType=${ordType}`);
+      if (state) arr.push(`state=${state}`);
+      if (after) arr.push(`after=${after}`);
+      if (before) arr.push(`before=${before}`);
+      if (limit) arr.push(`limit=${limit}`);
 
-    const arr = [];
-    if (instType) arr.push(`instType=${instType}`);
-    if (uly) arr.push(`uly=${uly}`);
-    if (instId) arr.push(`instId=${instId}`);
-    if (ordType) arr.push(`ordType=${ordType}`);
-    if (state) arr.push(`state=${state}`);
-    if (after) arr.push(`after=${after}`);
-    if (before) arr.push(`before=${before}`);
-    if (limit) arr.push(`limit=${limit}`);
+      const qs = !!arr.length ? `?${arr.join("&")}` : "";
 
-    const qs = !!arr.length ? `?${arr.join("&")}` : "";
+      const timeString = new Date().toISOString();
 
-    const timeString = new Date().toISOString();
-
-    const okAccessSign = await this.okAccessSign({
-      timeString,
-      method,
-      path: `${path}${qs}`,
-    });
-
-    try {
-      const res = await axios({
-        method: method.toLocaleLowerCase(),
-        url: `${this.domain}${path}${qs}`,
-        headers: this.getHeaders(true, { timeString, okAccessSign }),
+      const okAccessSign = await this.okAccessSign({
+        timeString,
+        method,
+        path: `${path}${qs}`,
       });
-      this.logger.debug(res.data);
-      if (res.data && res.data.code !== "0") {
-        const message = JSON.stringify(res.data);
-        this.logger.trace(message);
+
+      try {
+        const res = await axios({
+          method: method.toLocaleLowerCase(),
+          url: `${this.domain}${path}${qs}`,
+          headers: this.getHeaders(true, { timeString, okAccessSign }),
+        });
+        this.logger.debug(res.data);
+        if (res.data && res.data.code !== "0") {
+          const message = JSON.stringify(res.data);
+          this.logger.trace(message);
+          return new ResponseFormat({
+            message,
+            code: Codes.THIRD_PARTY_API_ERROR,
+          });
+        }
+
+        const orders = res.data.data.map((data) => {
+          return {
+            instId,
+            market: instId.replace("-", "").toLowerCase(),
+            clOrdId: data.clOrdId,
+            id: data.ordId,
+            ordType: data.ordType,
+            price: data.px,
+            kind: data.side === "buy" ? "bid" : "ask",
+            volume: SafeMath.minus(data.sz, data.fillSz),
+            origin_volume: data.sz,
+            filled: data.state === "filled",
+            state:
+              data.state === "canceled"
+                ? "canceled"
+                : state === "filled"
+                ? "done"
+                : "wait",
+            state_text:
+              data.state === "canceled"
+                ? "Canceled"
+                : state === "filled"
+                ? "Done"
+                : "Waiting",
+            at: parseInt(SafeMath.div(data.uTime, "1000")),
+          };
+        });
+        this.orderBook.updateAll(memberId, instId, orders);
+        this.fetchedOrders[memberId] = [];
+        this.fetchedOrders[memberId].push({ instId, pending: true });
+        // return new ResponseFormat({
+        //   message: "getOrderList",
+        //   payload,
+        // });
+      } catch (error) {
+        this.logger.error(error);
+        let message = error.message;
+        if (error.response && error.response.data)
+          message = error.response.data.msg;
         return new ResponseFormat({
           message,
-          code: Codes.THIRD_PARTY_API_ERROR,
+          code: Codes.API_UNKNOWN_ERROR,
         });
       }
-
-      const payload = res.data.data.map((data) => {
-        return {
-          instId,
-          market: instId.replace("-", "").toLowerCase(),
-          clOrdId: data.clOrdId,
-          id: data.ordId,
-          ordType: data.ordType,
-          price: data.px,
-          kind: data.side === "buy" ? "bid" : "ask",
-          volume: SafeMath.minus(data.sz, data.fillSz),
-          origin_volume: data.sz,
-          filled: data.state === "filled",
-          state:
-            data.state === "canceled"
-              ? "canceled"
-              : state === "filled"
-              ? "done"
-              : "wait",
-          state_text:
-            data.state === "canceled"
-              ? "Canceled"
-              : state === "filled"
-              ? "Done"
-              : "Waiting",
-          at: parseInt(SafeMath.div(data.uTime, "1000")),
-        };
-      });
-      return new ResponseFormat({
-        message: "getOrderList",
-        payload,
-      });
-    } catch (error) {
-      this.logger.error(error);
-      let message = error.message;
-      if (error.response && error.response.data)
-        message = error.response.data.msg;
-      return new ResponseFormat({
-        message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
     }
+    return new ResponseFormat({
+      message: "getOrderList",
+      payload: this.orderBook.getSnapshot(memberId, instId, "pending"),
+    });
   }
 
   async getOrderHistory({ query }) {
-    const method = "GET";
-    const path = "/api/v5/trade/orders-history";
     const {
       instType,
       uly,
@@ -806,86 +829,98 @@ class OkexConnector extends ConnectorBase {
       after,
       before,
       limit,
+      memberId,
     } = query;
+    if (
+      !this.fetchedOrders[memberId].some(
+        (order) => order.history && order.instId === instId
+      )
+    ) {
+      const method = "GET";
+      const path = "/api/v5/trade/orders-history";
 
-    const arr = [];
-    if (instType) arr.push(`instType=${instType}`);
-    if (uly) arr.push(`uly=${uly}`);
-    if (instId) arr.push(`instId=${instId}`);
-    if (ordType) arr.push(`ordType=${ordType}`);
-    if (state) arr.push(`state=${state}`);
-    if (category) arr.push(`category=${category}`);
-    if (after) arr.push(`after=${after}`);
-    if (before) arr.push(`before=${before}`);
-    if (limit) arr.push(`limit=${limit}`);
+      const arr = [];
+      if (instType) arr.push(`instType=${instType}`);
+      if (uly) arr.push(`uly=${uly}`);
+      if (instId) arr.push(`instId=${instId}`);
+      if (ordType) arr.push(`ordType=${ordType}`);
+      if (state) arr.push(`state=${state}`);
+      if (category) arr.push(`category=${category}`);
+      if (after) arr.push(`after=${after}`);
+      if (before) arr.push(`before=${before}`);
+      if (limit) arr.push(`limit=${limit}`);
 
-    const qs = !!arr.length ? `?${arr.join("&")}` : "";
+      const qs = !!arr.length ? `?${arr.join("&")}` : "";
 
-    const timeString = new Date().toISOString();
+      const timeString = new Date().toISOString();
 
-    const okAccessSign = await this.okAccessSign({
-      timeString,
-      method,
-      path: `${path}${qs}`,
-    });
-
-    try {
-      const res = await axios({
-        method: method.toLocaleLowerCase(),
-        url: `${this.domain}${path}${qs}`,
-        headers: this.getHeaders(true, { timeString, okAccessSign }),
+      const okAccessSign = await this.okAccessSign({
+        timeString,
+        method,
+        path: `${path}${qs}`,
       });
-      this.logger.debug(res.data);
-      if (res.data && res.data.code !== "0") {
-        const message = JSON.stringify(res.data);
-        this.logger.trace(message);
+
+      try {
+        const res = await axios({
+          method: method.toLocaleLowerCase(),
+          url: `${this.domain}${path}${qs}`,
+          headers: this.getHeaders(true, { timeString, okAccessSign }),
+        });
+        this.logger.debug(res.data);
+        if (res.data && res.data.code !== "0") {
+          const message = JSON.stringify(res.data);
+          this.logger.trace(message);
+          return new ResponseFormat({
+            message,
+            code: Codes.THIRD_PARTY_API_ERROR,
+          });
+        }
+
+        const orders = res.data.data.map((data) => {
+          return {
+            instId,
+            market: instId.replace("-", "").toLowerCase(),
+            clOrdId: data.clOrdId,
+            id: data.ordId,
+            ordType: data.ordType,
+            price: data.px,
+            kind: data.side === "buy" ? "bid" : "ask",
+            volume: SafeMath.minus(data.sz, data.fillSz),
+            origin_volume: data.sz,
+            filled: data.state === "filled",
+            state:
+              data.state === "canceled"
+                ? "canceled"
+                : state === "filled"
+                ? "done"
+                : "wait",
+            state_text:
+              data.state === "canceled"
+                ? "Canceled"
+                : state === "filled"
+                ? "Done"
+                : "Waiting",
+            at: parseInt(SafeMath.div(data.uTime, "1000")),
+          };
+        });
+        this.orderBook.updateAll(memberId, instId, orders);
+        this.fetchedOrders[memberId] = [];
+        this.fetchedOrders[memberId].push({ instId, history: true });
+      } catch (error) {
+        this.logger.error(error);
+        let message = error.message;
+        if (error.response && error.response.data)
+          message = error.response.data.msg;
         return new ResponseFormat({
           message,
-          code: Codes.THIRD_PARTY_API_ERROR,
+          code: Codes.API_UNKNOWN_ERROR,
         });
       }
-
-      const payload = res.data.data.map((data) => {
-        return {
-          instId,
-          market: instId.replace("-", "").toLowerCase(),
-          clOrdId: data.clOrdId,
-          id: data.ordId,
-          ordType: data.ordType,
-          price: data.px,
-          kind: data.side === "buy" ? "bid" : "ask",
-          volume: SafeMath.minus(data.sz, data.fillSz),
-          origin_volume: data.sz,
-          filled: data.state === "filled",
-          state:
-            data.state === "canceled"
-              ? "canceled"
-              : state === "filled"
-              ? "done"
-              : "wait",
-          state_text:
-            data.state === "canceled"
-              ? "Canceled"
-              : state === "filled"
-              ? "Done"
-              : "Waiting",
-          at: parseInt(SafeMath.div(data.uTime, "1000")),
-        };
-      });
-      return new ResponseFormat({
-        message: "getOrderHistory",
-        payload,
-      });
-    } catch (error) {
-      this.logger.error(error);
-      let message = error.message;
-      if (error.response && error.response.data)
-        message = error.response.data.msg;
-      return new ResponseFormat({
-        message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
     }
+    return new ResponseFormat({
+      message: "getOrderList",
+      payload: this.orderBook.getSnapshot(memberId, instId, "history"),
+    });
   }
 
   async postCancelOrder({ body }) {

@@ -38,7 +38,7 @@ class WebSocket {
     let metaData = JSON.parse(msg.data);
     switch (metaData.type) {
       case Events.account:
-        this.accountBook.updateAll(metaData.data);
+        this.accountBook.updateByDifference(metaData.data);
         break;
       case Events.update:
         this.depthBook.updateAll(metaData.data);
@@ -64,6 +64,10 @@ class WebSocket {
     const ws = new WebSocket(Config[Config.status].websocket);
     let interval;
     ws.addEventListener("open", () => {
+      console.log(
+        "Socket is open connection_resolvers",
+        this.connection_resolvers
+      );
       clearInterval(interval);
       const data = this.connection_resolvers.shift();
       if (data) ws.send(data);
