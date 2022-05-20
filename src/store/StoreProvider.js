@@ -587,15 +587,15 @@ const StoreProvider = (props) => {
 
   // ++ TODO1: verify function works properly
   const sync = useCallback(() => {
-    let accountInterval = 300,
+    let accountInterval = 500,
       accountTs = 0,
-      depthInterval = 100,
+      depthInterval = 300,
       depthTs = 0,
-      orderInterval = 300,
+      orderInterval = 500,
       orderTs = 0,
-      tradeInterval = 300,
+      tradeInterval = 500,
       tradeTs = 0,
-      tickerInterval = 100,
+      tickerInterval = 300,
       tickerTs = 0,
       tickersInterval = 1000,
       tickersTs = 0;
@@ -635,8 +635,7 @@ const StoreProvider = (props) => {
     _sync();
     interval = setInterval(() => {
       _sync();
-      // }, 100);
-    }, 3000);
+    }, 100);
   }, [middleman]);
 
   const start = useCallback(async () => {

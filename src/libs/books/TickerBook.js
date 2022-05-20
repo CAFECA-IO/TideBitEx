@@ -73,7 +73,7 @@ class TickerBook extends BookBase {
 
   updateByDifference(tickers) {
     Object.values(tickers).forEach((ticker) => {
-      console.log(`[TickerBook updateByDifference]`, ticker);
+      // console.log(`[TickerBook updateByDifference]`, ticker);
       this._difference = {};
       try {
         this._difference[ticker.market] = ticker;
@@ -88,7 +88,7 @@ class TickerBook extends BookBase {
 
   updateAll(tickers) {
     this._difference = {};
-    console.log(`[TickerBook updateAll]`, tickers);
+    // console.log(`[TickerBook updateAll]`, tickers);
     try {
       Object.values(tickers).forEach((ticker) => {
         if (this._compareFunction(this._snapshot[ticker.market], ticker)) {
