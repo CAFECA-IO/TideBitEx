@@ -18,7 +18,7 @@ const Exchange = () => {
     }
 
     return () => {
-      storeCtx.stop();
+      // storeCtx.stop();
     };
   }, [isStart, storeCtx]);
 

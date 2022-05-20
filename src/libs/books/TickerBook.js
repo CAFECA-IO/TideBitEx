@@ -75,13 +75,15 @@ class TickerBook extends BookBase {
     Object.values(tickers).forEach((ticker) => {
       // console.log(`[TickerBook updateByDifference]`, ticker);
       this._difference = {};
-      try {
-        this._difference[ticker.market] = ticker;
-        this._snapshot[ticker.market] = ticker;
-        return true;
-      } catch (error) {
-        console.error(`[${this.constructor.name}] error`, error);
-        return false;
+      if (this._compareFunction(this._snapshot[ticker.market], ticker)) {
+        try {
+          this._difference[ticker.market] = ticker;
+          this._snapshot[ticker.market] = ticker;
+          return true;
+        } catch (error) {
+          console.error(`[${this.constructor.name}] error`, error);
+          return false;
+        }
       }
     });
   }
@@ -91,9 +93,9 @@ class TickerBook extends BookBase {
     // console.log(`[TickerBook updateAll]`, tickers);
     try {
       Object.values(tickers).forEach((ticker) => {
-        if (this._compareFunction(this._snapshot[ticker.market], ticker)) {
-          this._difference[ticker.market] = ticker;
-        }
+        // if (this._compareFunction(this._snapshot[ticker.market], ticker)) {
+        this._difference[ticker.market] = ticker;
+        // }
         this._snapshot[ticker.market] = ticker;
       });
       return true;

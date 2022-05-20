@@ -17,7 +17,19 @@ import SafeMath from "../utils/SafeMath";
 //   tradeTimestamp = 0,
 //   connection_resolvers = [];
 
-let interval;
+let interval,
+  accountInterval = 500,
+  accountTs = 0,
+  depthInterval = 300,
+  depthTs = 0,
+  orderInterval = 500,
+  orderTs = 0,
+  tradeInterval = 500,
+  tradeTs = 0,
+  tickerInterval = 300,
+  tickerTs = 0,
+  tickersInterval = 1000,
+  tickersTs = 0;
 
 const StoreProvider = (props) => {
   const middleman = useMemo(() => new Middleman(), []);
@@ -587,55 +599,37 @@ const StoreProvider = (props) => {
 
   // ++ TODO1: verify function works properly
   const sync = useCallback(() => {
-    let accountInterval = 500,
-      accountTs = 0,
-      depthInterval = 300,
-      depthTs = 0,
-      orderInterval = 500,
-      orderTs = 0,
-      tradeInterval = 500,
-      tradeTs = 0,
-      tickerInterval = 300,
-      tickerTs = 0,
-      tickersInterval = 1000,
-      tickersTs = 0;
-
+    // console.log(`sync`);
     const time = Date.now();
-    const _sync = () => {
-      console.log(`_sync`);
-      // if (time - accountTs > accountInterval) {
-      //   const accounts = middleman.getAccounts();
-      //   console.log(`middleman.accounts`, accounts);
-      //   setIsLogin(!!accounts);
-      //   setAccounts(accounts);
-      // }
-      if (time - tickerTs > tickerInterval) {
-        console.log(`middleman.getTicker()`, middleman.getTicker());
-        setSelectedTicker(middleman.getTicker());
-      }
-      // if (time - depthTs > depthInterval) {
-      //   console.log(`middleman.getBooks()`, middleman.getBooks());
-      //   setBooks(middleman.getBooks());
-      // }
-      // if (time - tradeTs > tradeInterval) {
-      //   console.log(`middleman.getTrades()`, middleman.getTrades());
-      //   setTrades(middleman.getTrades());
-      // }
-      if (time - tickersTs > tickersInterval) {
-        // TODO getSnapshot is not finished
-        console.log(`middleman.getTickers()`, middleman.getTickers());
-        setTickers(middleman.getTickers());
-      }
-      // TODO orderBook is not completed
-      // if (time - orderTs > orderInterval) {
-      //   console.log(`middleman.getMyOrders()`, middleman.getMyOrders());
-      //   setOrderHistories(middleman.getMyOrders());
-      // }
-    };
-    _sync();
-    interval = setInterval(() => {
-      _sync();
-    }, 100);
+
+    // if (time - accountTs > accountInterval) {
+    //   const accounts = middleman.getAccounts();
+    //   console.log(`middleman.accounts`, accounts);
+    //   setIsLogin(!!accounts);
+    //   setAccounts(accounts);
+    // }
+    if (time - tickerTs > tickerInterval) {
+      // console.log(`middleman.getTicker()`, middleman.getTicker());
+      setSelectedTicker(middleman.getTicker());
+    }
+    // if (time - depthTs > depthInterval) {
+    //   console.log(`middleman.getBooks()`, middleman.getBooks());
+    //   setBooks(middleman.getBooks());
+    // }
+    // if (time - tradeTs > tradeInterval) {
+    //   console.log(`middleman.getTrades()`, middleman.getTrades());
+    //   setTrades(middleman.getTrades());
+    // }
+    if (time - tickersTs > tickersInterval) {
+      // TODO getSnapshot is not finished
+      // console.log(`middleman.getTickers()`, middleman.getTickers());
+      setTickers(middleman.getTickers());
+    }
+    // TODO orderBook is not completed
+    // if (time - orderTs > orderInterval) {
+    //   console.log(`middleman.getMyOrders()`, middleman.getMyOrders());
+    //   setOrderHistories(middleman.getMyOrders());
+    // }
   }, [middleman]);
 
   const start = useCallback(async () => {
@@ -656,6 +650,8 @@ const StoreProvider = (props) => {
     await middleman.start(market);
     setSelectedTicker(middleman.getTicker());
     sync();
+    interval = setInterval(sync, 100);
+    // console.log(`interval`, interval);
     /**
      connectWS();
      const market = location.pathname.includes("/markets/")
@@ -670,6 +666,7 @@ const StoreProvider = (props) => {
   }, [history, location.pathname, middleman, sync]);
 
   const stop = useCallback(() => {
+    console.log(`stop`);
     clearInterval(interval);
   }, []);
 
