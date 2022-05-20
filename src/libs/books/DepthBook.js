@@ -1,4 +1,5 @@
 // import SafeMath from "../../utils/SafeMath";
+import SafeMath from "../../utils/SafeMath";
 import BookBase from "../BookBase";
 
 class DepthBook extends BookBase {
@@ -30,8 +31,20 @@ class DepthBook extends BookBase {
           depthBooks.bids.push(data);
         }
       });
-      // console.log(`[DepthBook] getSnapshot[${market}]`, depthBooks);
-      return depthBooks;
+      console.log(`[DepthBook] getSnapshot[${market}]`, {
+        ...depthBooks,
+        total: SafeMath.plus(
+          depthBooks.asks[depthBooks.asks.length - 1]?.total,
+          depthBooks.bids[depthBooks.bids.length - 1]?.total
+        ),
+      });
+      return {
+        ...depthBooks,
+        total: SafeMath.plus(
+          depthBooks.asks[depthBooks.asks.length - 1]?.total,
+          depthBooks.bids[depthBooks.bids.length - 1]?.total
+        ),
+      };
     } catch (error) {
       console.error(`[DepthBook getSnapshot]`, error);
       return false;

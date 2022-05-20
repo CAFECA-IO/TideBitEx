@@ -437,7 +437,7 @@ class Middleman {
 
    getBooks(market) {
     if (!market) market = this.tickerBook.getCurrentTicker()?.market;
-    console.log(`getBooks current market`, market)
+    // console.log(`getBooks current market`, market)
     return this.depthBook.getSnapshot(market);
   }
 
