@@ -30,7 +30,7 @@ class DepthBook extends BookBase {
           depthBooks.bids.push(data);
         }
       });
-      console.log(`[DepthBook] getSnapshot[${market}]`, depthBooks);
+      // console.log(`[DepthBook] getSnapshot[${market}]`, depthBooks);
       return depthBooks;
     } catch (error) {
       console.error(`[DepthBook getSnapshot]`, error);
