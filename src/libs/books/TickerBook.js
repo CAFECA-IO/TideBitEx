@@ -13,9 +13,15 @@ class TickerBook extends BookBase {
     return this;
   }
 
-  // TODO getSnapshot(){
-  // compare difference and snapshot get updatetickers and compare currentTicker to get active ticker
-  // }
+  getSnapshot() {
+    return Object.values(this._snapshot).map((ticker) =>
+      Object.values(this._difference).some(
+        (diff) => diff.instId === ticker.instId
+      )
+        ? { ...ticker, update: true }
+        : ticker
+    );
+  }
 
   /**
    * return need update ticker
@@ -42,7 +48,7 @@ class TickerBook extends BookBase {
    */
   _compareFunction(valueA, valueB) {
     return (
-      valueA?.id === valueB.id &&
+      valueA?.instId === valueB.instId &&
       valueA?.source === valueB.source &&
       (!SafeMath.eq(valueA?.last, valueB.last) ||
         !SafeMath.eq(valueA?.open, valueB.open) ||
@@ -65,12 +71,12 @@ class TickerBook extends BookBase {
     return this._currentMarket;
   }
 
-  updateByDifference(market, ticker) {
-    console.log(`[TickerBook updateByDifference]`, market, ticker);
+  updateByDifference(ticker) {
+    console.log(`[TickerBook updateByDifference]`, ticker);
     this._difference = {};
     try {
-      this._difference[market] = ticker;
-      this._snapshot[market] = ticker;
+      this._difference[ticker.market] = ticker;
+      this._snapshot[ticker.market] = ticker;
       return true;
     } catch (error) {
       console.error(`[${this.constructor.name}] error`, error);

@@ -38,7 +38,7 @@ class TickerBook extends BookBase {
    */
   _compareFunction(valueA, valueB) {
     return (
-      valueA?.id === valueB.id &&
+      valueA?.instId === valueB.instId &&
       valueA?.source === valueB.source &&
       (!SafeMath.eq(valueA?.last, valueB.last) ||
         !SafeMath.eq(valueA?.open, valueB.open) ||
