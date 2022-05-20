@@ -1360,6 +1360,8 @@ class OkexConnector extends ConnectorBase {
     data.forEach((d) => {
       const updateTicker = this._formateTicker(d);
       const result = this.tickerBook.updateByDifference(d.instId, updateTicker);
+      if (d.instId === "ethhkd")
+        this.logger.error(`_updateTickers updateTicker`, updateTicker);
       if (result)
         EventBus.emit(Events.tickers, this.tickerBook.getDifference());
     });
