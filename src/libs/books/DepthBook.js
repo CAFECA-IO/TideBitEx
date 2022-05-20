@@ -30,10 +30,7 @@ class DepthBook extends BookBase {
           depthBooks.bids.push(data);
         }
       });
-      console.log(
-        `[DepthBook] getSnapshot[${market}]`,
-        depthBooks
-      );
+      console.log(`[DepthBook] getSnapshot[${market}]`, depthBooks);
       return depthBooks;
     } catch (error) {
       console.error(`[DepthBook getSnapshot]`, error);
@@ -46,7 +43,8 @@ class DepthBook extends BookBase {
     data.forEach((d) => {
       if (d.side === "asks" && asks.length < 100) {
         asks.push(d);
-      } else if (d.side === "bids" && bids.length < 100) {
+      }
+      if (d.side === "bids" && bids.length < 100) {
         bids.push(d);
       }
     });

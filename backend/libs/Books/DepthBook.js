@@ -104,7 +104,8 @@ class DepthBook extends BookBase {
     data.forEach((d) => {
       if (d.side === "asks" && asks.length < 100) {
         asks.push(d);
-      } else if (d.side === "bids" && bids.length < 100) {
+      }
+      if (d.side === "bids" && bids.length < 100) {
         bids.push(d);
       }
     });
@@ -120,6 +121,8 @@ class DepthBook extends BookBase {
         sumBidAmount = SafeMath.plus(bid.amount, sumBidAmount);
         return { ...bid, total: sumBidAmount };
       });
+    this.logger.log(`[${this.constructor.name}] _trim bids`, bids);
+    this.logger.log(`[${this.constructor.name}] _trim asks`, asks);
     return bids.concat(asks);
   }
 

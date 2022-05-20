@@ -420,7 +420,7 @@ class Middleman {
     return this.tickers;
   }
 
-  async getTrades(market) {
+   getTrades(market) {
     if (!market) market = this.tickerBook.getCurrentTicker()?.market;
     return this.tradeBook.getSnapshot(market);
   }
@@ -435,8 +435,9 @@ class Middleman {
     }
   }
 
-  async getBooks(market) {
+   getBooks(market) {
     if (!market) market = this.tickerBook.getCurrentTicker()?.market;
+    console.log(`getBooks current market`, market)
     return this.depthBook.getSnapshot(market);
   }
 
@@ -490,7 +491,7 @@ class Middleman {
     this.websocket.setCurrentMarket(market);
     this.tickerBook.setCurrentMarket(market);
     if (!this.tickerBook.getCurrentTicker()) await this._getTicker(market);
-    // await this._getBooks(market);
+    await this._getBooks(market);
     // await this._getTrades(market);
     // if (this.isLogin) {
     // TODO to verify if user is not login would be a problem

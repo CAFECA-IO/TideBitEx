@@ -20,7 +20,7 @@ import SafeMath from "../utils/SafeMath";
 let interval,
   accountInterval = 500,
   accountTs = 0,
-  depthInterval = 300,
+  depthInterval = 30000,
   depthTs = 0,
   orderInterval = 500,
   orderTs = 0,
@@ -609,20 +609,17 @@ const StoreProvider = (props) => {
     //   setAccounts(accounts);
     // }
     if (time - tickerTs > tickerInterval) {
-      // console.log(`middleman.getTicker()`, middleman.getTicker());
       setSelectedTicker(middleman.getTicker());
     }
-    // if (time - depthTs > depthInterval) {
-    //   console.log(`middleman.getBooks()`, middleman.getBooks());
-    //   setBooks(middleman.getBooks());
-    // }
+    if (time - depthTs > depthInterval) {
+      // console.log(`middleman.getBooks()`, middleman.getBooks());
+      setBooks(middleman.getBooks());
+    }
     // if (time - tradeTs > tradeInterval) {
     //   console.log(`middleman.getTrades()`, middleman.getTrades());
     //   setTrades(middleman.getTrades());
     // }
     if (time - tickersTs > tickersInterval) {
-      // TODO getSnapshot is not finished
-      // console.log(`middleman.getTickers()`, middleman.getTickers());
       setTickers(middleman.getTickers());
     }
     // TODO orderBook is not completed
@@ -646,10 +643,11 @@ const StoreProvider = (props) => {
     history.push({
       pathname: `/markets/${market}`,
     });
-    // ++ TODO: verify function works properly
     await middleman.start(market);
     setSelectedTicker(middleman.getTicker());
-    sync();
+    // ++ TODO: verify function works properly
+    setBooks(middleman.getBooks());
+    // sync();
     interval = setInterval(sync, 100);
     // console.log(`interval`, interval);
     /**
