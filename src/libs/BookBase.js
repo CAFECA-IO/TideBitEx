@@ -1,4 +1,4 @@
-import { SafeMath } from "./SafeMath";
+import SafeMath from "../utils/SafeMath";
 
 class BookBase {
   constructor() {
