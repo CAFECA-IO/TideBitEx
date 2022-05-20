@@ -20,7 +20,7 @@ import SafeMath from "../utils/SafeMath";
 let interval,
   accountInterval = 500,
   accountTs = 0,
-  depthInterval = 30000,
+  depthInterval = 3000,
   depthTs = 0,
   orderInterval = 500,
   orderTs = 0,
