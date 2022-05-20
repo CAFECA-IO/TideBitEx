@@ -50,7 +50,7 @@ class TideBitWS {
         );
         break;
       case Events.tickers:
-        this.tickerBook.updateAll(metaData.data);
+        this.tickerBook.updateByDifference(metaData.data);
         break;
       case Events.trades:
         this.tradeBook.updateAll(metaData.data.market, metaData.data.trades);

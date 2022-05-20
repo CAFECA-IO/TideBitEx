@@ -407,13 +407,10 @@ class Middleman {
     }
     try {
       rawTickers = await this.communicator.tickers(instType, from, limit);
-      console.log(`_getTickers`, rawTickers);
       Object.values(rawTickers).forEach((t) => {
-        if (!t) {
-          let instrument = instruments.find((i) => i.instId === t.instId);
-          const ticker = { ...t, minSz: instrument?.minSz || "0.001" };
-          tickers[ticker.instId] = ticker;
-        }
+        let instrument = instruments.find((i) => i.instId === t.instId);
+        const ticker = { ...t, minSz: instrument?.minSz || "0.001" };
+        tickers[ticker.instId] = ticker;
       });
       this.tickerBook.updateAll(tickers);
     } catch (error) {

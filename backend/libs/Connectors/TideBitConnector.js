@@ -300,13 +300,11 @@ class TibeBitConnector extends ConnectorBase {
     at: 1649742406
   },}
     */
-    // const updateTickers = Object.values(data).map((d) =>
-    //   this._formateTicker(d)
-    // );
-    // updateTickers.forEach((ticker) => {
-    //   this.tickerBook.updateByDifference(ticker.instId, ticker);
-    // });
-    // EventBus.emit(Events.tickers, this.tickerBook.getSnapshot());
+    Object.values(data).forEach((d) => {
+      const ticker = this._formateTicker(d);
+      this.tickerBook.updateByDifference(ticker.instId, ticker);
+      EventBus.emit(Events.tickers, this.tickerBook.getDifference(d.instId));
+    });
   }
 
   // ++ TODO: verify function works properly
