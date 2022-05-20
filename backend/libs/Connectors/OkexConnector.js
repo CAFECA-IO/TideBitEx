@@ -1278,6 +1278,7 @@ class OkexConnector extends ConnectorBase {
       this.depthBook.updateByDifference(instId, difference);
     } catch (error) {
       // ++
+      this.logger.error(`_updateBooks`, error);
     }
 
     const timestamp = Date.now();

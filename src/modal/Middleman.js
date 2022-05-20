@@ -8,6 +8,7 @@ import Communicator from "./Communicator";
 import WebSocket from "./WebSocket";
 
 class Middleman {
+  login = false;
   constructor() {
     this.name = "Middleman";
     this.accountBook = new AccountBook();
@@ -24,7 +25,7 @@ class Middleman {
     });
     this.communicator = new Communicator();
   }
-
+  /*
   updateSelectedTicker(ticker) {
     this.selectedTicker = ticker;
     return this.selectedTicker;
@@ -68,6 +69,7 @@ class Middleman {
     );
     return _ticker;
   }
+*/
 
   async getInstruments(instType) {
     try {
@@ -131,7 +133,7 @@ class Middleman {
     };
     return updateBooks;
   }
-
+  /*
   updateBooks(rawBooks) {
     if (rawBooks.market !== this.selectedTicker.market) return;
     const books = this.handleBooks(rawBooks);
@@ -180,11 +182,13 @@ class Middleman {
     });
     return { candles, volumes };
   }
+  */
 
   /**
    *
    * @param {Array} trades
    */
+  /*
   transformTradesToCandle(trades, resolution) {
     let interval,
       data,
@@ -241,7 +245,6 @@ class Middleman {
 
     return Object.values(data);
   }
-
   async getCandles(instId, bar, after, before, limit) {
     let candles = [],
       volumes = [];
@@ -263,7 +266,7 @@ class Middleman {
       throw error;
     }
   }
-
+*/
   updateOrders(data) {
     // console.log(`*&&&&&&&&&&&*Events.order*&&&&&&&&&&&**`);
     // console.log(`data`, data);
@@ -321,7 +324,7 @@ class Middleman {
       updateCloseOrders: updateCloseOrders.sort((a, b) => +b.at - +a.at),
     };
   }
-
+  /*
   updateAccounts(data) {
     const updateAccounts = this.accounts.map((account) => ({ ...account }));
     const index = updateAccounts.findIndex(
@@ -334,7 +337,7 @@ class Middleman {
     this.accounts = updateAccounts;
     return this.accounts;
   }
-
+*/
   async postOrder(order) {
     if (this.isLogin) return await this.communicator.order(order);
   }
@@ -357,28 +360,25 @@ class Middleman {
     return await this.communicator.getUsersAccounts(exchange);
   }
 
-  async getOrderList(market, options = {}) {
-    if (this.isLogin) {
-      const orders = await this.communicator.getOrderList({
-        ...options,
-        market,
-      });
-      this.pendingOrders = orders;
-      // TODO this.orderBook.updateAll(orders)
-      return this.pendingOrders;
-    }
+  async getMyOrders(market) {
+    if (!market) market = this.tickerBook.getCurrentTicker()?.market;
+    return this.orderBook.getSnapshot(market);
   }
 
-  async getOrderHistory(market, options = {}) {
-    if (this.isLogin) {
-      const orders = await this.communicator.getOrderHistory({
-        ...options,
-        market,
-      });
-      this.closeOrders = orders;
-      // TODO this.orderBook.updateAll(orders)
-      return this.closeOrders;
-    }
+  async _getOrderList(market, options = {}) {
+    const orders = await this.communicator.getOrderList({
+      ...options,
+      market,
+    });
+    this.orderBook.updateByDifference(market, { add: orders });
+  }
+
+  async _getOrderHistory(market, options = {}) {
+    const orders = await this.communicator.getOrderHistory({
+      ...options,
+      market,
+    });
+    this.orderBook.updateByDifference(market, { add: orders });
   }
 
   getTickers() {
@@ -410,29 +410,29 @@ class Middleman {
     return this.tickers;
   }
 
-  async getTrades(instId) {
-    if (!instId) instId = this.tickerBook.getCurrentTicker()?.instId;
-    return this.tradeBook.getSnapshot(instId);
+  async getTrades(market) {
+    if (!market) market = this.tickerBook.getCurrentTicker()?.market;
+    return this.tradeBook.getSnapshot(market);
   }
 
   async _getTrades(id, limit) {
     try {
       const trades = await this.communicator.trades(id, limit);
-      this.tradeBook.updateAll(trades);
+      this.tradeBook.updateAll(id, trades);
     } catch (error) {
       throw error;
     }
   }
 
-  async getBooks(instId) {
-    if (!instId) instId = this.tickerBook.getCurrentTicker()?.instId;
-    return this.depthBook.getSnapshot(instId);
+  async getBooks(market) {
+    if (!market) market = this.tickerBook.getCurrentTicker()?.market;
+    return this.depthBook.getSnapshot(market);
   }
 
   async _getBooks(id, sz) {
     try {
       const depthBook = await this.communicator.books(id, sz);
-      this.depthBook.updateAll(depthBook);
+      this.depthBook.updateAll(id, depthBook);
     } catch (error) {
       throw error;
     }
@@ -474,20 +474,18 @@ class Middleman {
     if (!this.tickerBook.getCurrentTicker()) await this._getTicker(market);
     await this._getBooks(market);
     await this._getTrades(market);
-    if (this.isLogin) {
-      // TODO to verify if user is not login would be a problem
-      // TODO integrate getOrderList and getOrderHistory into one
-      // TODO Books library orderBook
-      await this.getOrderList(market);
-      await this.getOrderHistory(market);
-    }
+    // if (this.isLogin) {
+    // TODO to verify if user is not login would be a problem
+    await this._getOrderList(market);
+    await this._getOrderHistory(market);
+    // }
   }
 
   async start(market) {
     // TODO to verify websocket connection is working and can receive update message
     this.websocket.connect();
-    await this._getAccounts();
     await this.selectMarket(market);
+    await this._getAccounts();
     await this._getTickers();
   }
 

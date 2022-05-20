@@ -9,15 +9,15 @@ class DepthBook extends BookBase {
     return this;
   }
 
-  getSnapshot(instId) {
+  getSnapshot(market) {
     const depthBooks = {
-      market: instId.replace("-", "").toLowerCase(),
+      market,
       asks: [],
       bids: [],
     };
-    this._snapshot[instId].forEach((data) => {
+    this._snapshot[market].forEach((data) => {
       if (
-        this._difference[instId].add.some((d) => this._compareFunction(d, data))
+        this._difference[market].add.some((d) => this._compareFunction(d, data))
       )
         data = { ...data, update: true };
       if (data.side === "asks") {
@@ -28,10 +28,59 @@ class DepthBook extends BookBase {
       }
     });
     // console.log(
-    //   `[${this.constructor.name}] getSnapshot[${instId}]`,
+    //   `[${this.constructor.name}] getSnapshot[${market}]`,
     //   depthBooks
     // );
     return depthBooks;
+  }
+  _trim(data) {
+    let asks = [],
+      bids = [];
+    data.forEach((d) => {
+      if (d.side === "asks" && asks.length < 100) {
+        asks.push(d);
+      } else if (d.side === "bids" && bids.length < 100) {
+        bids.push(d);
+      }
+    });
+    return bids.concat(asks);
+  }
+
+  /**
+   * @typedef {Object} Book
+   * @property {string} market
+   * @property {Array} asks
+   * @property {Array} bids
+   *
+   * @param {Book} bookObj
+   * @returns {Array<Depth>}
+   */
+  // ++ TODO: verify function works properly
+  _formateBooks(bookObj) {
+    const bookArr = [];
+    bookObj.asks.forEach((ask) => {
+      bookArr.push({
+        id: ask[0],
+        price: ask[0],
+        amount: ask[1],
+        total: ask[2],
+        side: "asks",
+      });
+    });
+    bookObj.bids.forEach((bid) => {
+      bookArr.push({
+        id: bid[0],
+        price: bid[0],
+        amount: bid[1],
+        total: bid[2],
+        side: "bids",
+      });
+    });
+    return bookArr;
+  }
+
+  updateAll(market, data) {
+    return super.updateAll(market, this._formateBooks(data));
   }
 }
 

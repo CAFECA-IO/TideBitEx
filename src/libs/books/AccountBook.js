@@ -42,11 +42,13 @@ class AccountBook extends BookBase {
    * @param {Account} account
    * @returns
    */
-  updateByDifference(currency, account) {
+  updateByDifference(accounts) {
     this._difference = {};
     try {
-      this._difference[currency] = account;
-      this._snapshot[currency] = account;
+      accounts.forEach((account) => {
+        this._difference[account.currency] = account;
+        this._snapshot[account.currency] = account;
+      });
       return true;
     } catch (error) {
       console.error(`[${this.constructor.name}] error`, error);

@@ -272,18 +272,17 @@ class ExchangeHub extends Bot {
     });
   }
 
-  async getDepthBooks({ header, params, query }) {
+  async getDepthBooks({ query }) {
     this.logger.log(`[${this.constructor.name}] getDepthBooks`, query);
     const instId = this._findInstId(query.id);
     switch (this._findSource(instId)) {
       case SupportedExchange.OKEX:
         return this.okexConnector.router("getDepthBooks", {
-          params,
           query: { ...query, instId },
         });
       case SupportedExchange.TIDEBIT:
         return this.tideBitConnector.router("getDepthBooks", {
-          query,
+          query: { ...query, instId },
         });
       default:
         return new ResponseFormat({
@@ -309,12 +308,11 @@ class ExchangeHub extends Bot {
     }
   }
 
-  async getTrades({ params, query }) {
+  async getTrades({ query }) {
     const instId = this._findInstId(query.id);
     switch (this._findSource(instId)) {
       case SupportedExchange.OKEX:
         return this.okexConnector.router("getTrades", {
-          params,
           query: { ...query, instId },
         });
       case SupportedExchange.TIDEBIT:
@@ -444,11 +442,10 @@ class ExchangeHub extends Bot {
               add: [_updateOrder],
             });
             // ++ TODO: verify function works properly
-            EventBus.emit(
-              Events.order,
-              body.market,
-              this.orderBook.getDifference(memberId, body.instId)
-            );
+            EventBus.emit(Events.order, body.market, {
+              market: body.market,
+              difference: this.orderBook.getDifference(memberId, body.instId),
+            });
             this.logger.log(
               `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] _updateOrder ln:409`,
               _updateOrder
@@ -503,9 +500,13 @@ class ExchangeHub extends Bot {
     const instId = this._findInstId(query.market);
     const market = this._findMarket(instId);
     if (memberId === -1) {
+      // return new ResponseFormat({
+      //   message: "member_id not found",
+      //   code: Codes.MEMBER_ID_NOT_FOUND,
+      // });
       return new ResponseFormat({
-        message: "member_id not found",
-        code: Codes.MEMBER_ID_NOT_FOUND,
+        message: "getOrderList",
+        payload: null,
       });
     }
     switch (this._findSource(query.instId)) {
@@ -538,7 +539,7 @@ class ExchangeHub extends Bot {
       default:
         return new ResponseFormat({
           message: "getOrderList",
-          payload: [],
+          payload: null,
         });
     }
   }
@@ -547,9 +548,13 @@ class ExchangeHub extends Bot {
     const instId = this._findInstId(query.market);
     const market = this._findMarket(instId);
     if (memberId === -1) {
+      // return new ResponseFormat({
+      //   message: "member_id not found",
+      //   code: Codes.MEMBER_ID_NOT_FOUND,
+      // });
       return new ResponseFormat({
-        message: "member_id not found",
-        code: Codes.MEMBER_ID_NOT_FOUND,
+        message: "getOrderHistory",
+        payload: null,
       });
     }
     switch (this._findSource(query.instId)) {
@@ -582,7 +587,7 @@ class ExchangeHub extends Bot {
       default:
         return new ResponseFormat({
           message: "getOrderHistory",
-          payload: [],
+          payload: null,
         });
     }
   }
@@ -637,11 +642,10 @@ class ExchangeHub extends Bot {
       add: [_updateOrder],
     });
     // ++ TODO: verify function works properly
-    EventBus.emit(
-      Events.order,
-      _updateOrder.market,
-      this.orderBook.getDifference(memberId, _updateOrder.instId)
-    );
+    EventBus.emit(Events.order, _updateOrder.market, {
+      market: _updateOrder.market,
+      difference: this.orderBook.getDifference(memberId, _updateOrder.instId),
+    });
 
     try {
       await this.database.updateOrder(newOrder, { dbTransaction: t });
@@ -742,7 +746,7 @@ class ExchangeHub extends Bot {
     try {
       switch (source) {
         case SupportedExchange.OKEX:
-            // get pending orders by snapshot
+          // get pending orders by snapshot
           const _orders = await this.tideBitConnector.tbGetOrderList({
             ...body,
             market: this._findMarket(body.instId),
@@ -1186,11 +1190,11 @@ class ExchangeHub extends Bot {
       this.orderBook.updateByDifference(memberId, instId, {
         add: [_updateOrder],
       });
-      EventBus.emit(
-        Events.order,
-        instId.replace("-", "").toLowerCase(),
-        this.orderBook.getDifference(memberId, instId)
-      );
+      let market = instId.replace("-", "").toLowerCase();
+      EventBus.emit(Events.order, market, {
+        market,
+        difference: this.orderBook.getDifference(memberId, instId),
+      });
 
       await this._updateAccount(
         accountAsk,

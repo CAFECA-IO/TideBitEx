@@ -14,7 +14,7 @@ class TickerBook extends BookBase {
   }
 
   // TODO getSnapshot(){
-// compare difference and snapshot get updatetickers and compare currentTicker to get active ticker
+  // compare difference and snapshot get updatetickers and compare currentTicker to get active ticker
   // }
 
   /**
@@ -59,6 +59,10 @@ class TickerBook extends BookBase {
 
   setCurrentMarket(market) {
     this._currentMarket = market;
+  }
+  
+  getCurrentMarket() {
+    return this._currentMarket;
   }
 
   updateByDifference(market, ticker) {

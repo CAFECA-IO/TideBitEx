@@ -53,10 +53,10 @@ class DepthBook extends BookBase {
         depthBooks.bids.push([data.price, data.amount, data.total]);
       }
     });
-  this.logger.log(
-    `[${this.constructor.name}] getSnapshot[${instId}]`,
-    depthBooks
-  );
+    this.logger.log(
+      `[${this.constructor.name}] getSnapshot[${instId}]`,
+      depthBooks
+    );
     return depthBooks;
   }
 
@@ -102,22 +102,20 @@ class DepthBook extends BookBase {
       asks = [],
       bids = [];
     data.forEach((d) => {
-      if (d.side === "asks") {
+      if (d.side === "asks" && asks.length < 100) {
         asks.push(d);
-      } else if (d.side === "bids") {
+      } else if (d.side === "bids" && bids.length < 100) {
         bids.push(d);
       }
     });
     asks = asks
       .sort((a, b) => +a.price - +b.price)
-      .slice(0, 100)
       .map((ask) => {
         sumAskAmount = SafeMath.plus(ask.amount, sumAskAmount);
         return { ...ask, total: sumAskAmount };
       });
     bids = bids
       .sort((a, b) => +b.price - +a.price)
-      .slice(0, 100)
       .map((bid) => {
         sumBidAmount = SafeMath.plus(bid.amount, sumBidAmount);
         return { ...bid, total: sumBidAmount };

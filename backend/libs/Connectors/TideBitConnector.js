@@ -310,12 +310,12 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   // ++ TODO: verify function works properly
-  async getDepthBook({ query }) {
-    const instId = this._findInstId(query.id);
+  async getDepthBooks({ query }) {
+    const { instId, id: market } = query;
     if (!this.fetchedBook[instId]) {
       try {
         const tbBooksRes = await axios.get(
-          `${this.peatio}/api/v2/order_book?market=${query.id}`
+          `${this.peatio}/api/v2/order_book?market=${market}`
         );
         if (!tbBooksRes || !tbBooksRes.data) {
           return new ResponseFormat({
@@ -326,10 +326,10 @@ class TibeBitConnector extends ConnectorBase {
         const tbBooks = tbBooksRes.data;
         const asks = [];
         const bids = [];
-        // this.logger.log(`tbBooks query.id`, query.id);
+        // this.logger.log(`tbBooks market`, market);
         tbBooks.asks.forEach((ask) => {
           if (
-            ask.market === query.id &&
+            ask.market === market &&
             ask.ord_type === "limit" &&
             ask.state === "wait"
           ) {
@@ -349,7 +349,7 @@ class TibeBitConnector extends ConnectorBase {
         });
         tbBooks.bids.forEach((bid) => {
           if (
-            bid.market === query.id &&
+            bid.market === market &&
             bid.ord_type === "limit" &&
             bid.state === "wait"
           ) {
@@ -367,11 +367,11 @@ class TibeBitConnector extends ConnectorBase {
             }
           }
         });
-        const books = { asks, bids, market: query.id };
+        const books = { asks, bids, market: market };
 
         this.logger.log(`[FROM TideBit] Response books`, books);
         this.logger.log(
-          `---------- [${this.constructor.name}]  DepthBook market: ${query.id} [END] ----------`
+          `---------- [${this.constructor.name}]  DepthBook market: ${market} [END] ----------`
         );
         this.depthBook.updateAll(instId, books);
       } catch (error) {
@@ -467,11 +467,11 @@ class TibeBitConnector extends ConnectorBase {
     ]
     */
   async getTrades({ query }) {
-    const instId = this._findInstId(query.id);
+    const { instId, id: market } = query;
     if (!this.fetchedTrades[instId]) {
       try {
         const tbTradesRes = await axios.get(
-          `${this.peatio}/api/v2/trades?market=${query.id}`
+          `${this.peatio}/api/v2/trades?market=${market}`
         );
         if (!tbTradesRes || !tbTradesRes.data) {
           return new ResponseFormat({
@@ -513,13 +513,10 @@ class TibeBitConnector extends ConnectorBase {
     }*/
     const instId = this._findInstId(newTrade.market);
     this.tradeBook.updateByDifference(instId, { add: [newTrade] });
-    EventBus.emit(
-      Events.trade,
-      newTrade.market,
-      this.tradeBook
-        .getSnapshot(instId)
-        .find((trade) => trade.id === newTrade.id)
-    );
+    EventBus.emit(Events.trade, newTrade.market, {
+      market: newTrade.market,
+      difference: this.tradeBook.getDifference(instId),
+    });
 
     this.logger.log(
       `---------- [${this.constructor.name}]  _updateTrade [END] ----------`
@@ -546,7 +543,7 @@ class TibeBitConnector extends ConnectorBase {
     const timestamp = Date.now();
     if (timestamp - this._tradesTimestamp > this._tradesUpdateInterval) {
       this._tradesTimestamp = timestamp;
-      EventBus.emit(Events.trade, market, {
+      EventBus.emit(Events.trades, market, {
         market,
         trades: this.tradeBook.getSnapshot(instId),
       });
@@ -870,11 +867,10 @@ class TibeBitConnector extends ConnectorBase {
       this.orderBook.updateByDifference(memberId, instId, {
         add: [formatOrder],
       });
-      EventBus.emit(
-        Events.order,
-        data.market,
-        this.orderBook.getDifference(memberId, instId)
-      );
+      EventBus.emit(Events.order, data.market, {
+        market: data.market,
+        difference: this.orderBook.getDifference(memberId, instId),
+      });
       this.logger.log(
         `---------- [${this.constructor.name}]  _updateOrder market: ${data.market} [END] ----------`
       );

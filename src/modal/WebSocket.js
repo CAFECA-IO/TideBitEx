@@ -41,19 +41,19 @@ class WebSocket {
         this.accountBook.updateByDifference(metaData.data);
         break;
       case Events.update:
-        this.depthBook.updateAll(metaData.data);
+        this.depthBook.updateAll(metaData.data.market, metaData.data);
         break;
       case Events.order:
-        this.orderBook.updateByDifference(metaData.data);
+        this.orderBook.updateByDifference(metaData.data.market, metaData.data.difference);
         break;
       case Events.tickers:
         this.tickerBook.updateAll(metaData.data);
         break;
       case Events.trades:
-        this.tradeBook.updateAll(metaData.data);
+        this.tradeBook.updateAll(metaData.data.market, metaData.data.trades);
         break;
       case Events.trade:
-        this.tradeBook.updateByDifference(metaData.data);
+        this.tradeBook.updateByDifference(metaData.data.market, metaData.data.difference);
         break;
       default:
     }

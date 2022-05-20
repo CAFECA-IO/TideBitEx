@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import { useSnackbar } from "notistack";
 // import { Config } from "../constant/Config";
@@ -35,7 +35,7 @@ const StoreProvider = (props) => {
   const [selectedTicker, setSelectedTicker] = useState(null);
   const [activePage, setActivePage] = useState("market");
   const [depthBook, setDepthbook] = useState(null);
-  const [token, setToken] = useState(null);
+  // const [token, setToken] = useState(null);
   const [languageKey, setLanguageKey] = useState("en");
 
   const action = useCallback(
@@ -267,6 +267,7 @@ const StoreProvider = (props) => {
   */
 
   // TODO when orderBook is complete this function will be remove
+  /*
   const getOrderList = useCallback(
     async (options) => {
       try {
@@ -601,7 +602,9 @@ const StoreProvider = (props) => {
     const time = Date.now();
     const _sync = () => {
       if (time - accountTs > accountInterval) {
-        setAccounts(middleman.getAccounts());
+        const accounts = middleman.getAccounts()
+        setIsLogin(!!accounts);
+        setAccounts(accounts);
       }
       if (time - tickerTs > tickerInterval) {
         setSelectedTicker(middleman.getTicker());
@@ -617,9 +620,9 @@ const StoreProvider = (props) => {
         setTickers(middleman.getTickers());
       }
       // TODO orderBook is not completed
-      // if (time - orderTs > orderInterval) {
-      //   setOrderHistories(middleman.getOrderHistory());
-      // }
+      if (time - orderTs > orderInterval) {
+        setOrderHistories(middleman.getMyOrders());
+      }
     };
     interval = setInterval(() => {
       _sync();
@@ -627,30 +630,33 @@ const StoreProvider = (props) => {
   }, [middleman]);
 
   const start = useCallback(async () => {
+    let market;
     if (location.pathname.includes("/markets")) {
-      const market = location.pathname.includes("/markets/")
+      market = location.pathname.includes("/markets/")
         ? location.pathname.replace("/markets/", "")
-        : null;
-      // ++ TODO: verify function works properly
-      await middleman.start(market);
-      // TODO: need OP
-      setIsLogin(middleman.isLogin);
-      sync();
-      /**
-      connectWS();
-      const market = location.pathname.includes("/markets/")
-        ? location.pathname.replace("/markets/", "")
-        : null;
-      // const ticker = await getTicker(market);
-      selectTickerHandler(market);
-      getTickers();
-      getAccounts();
-      console.log(`******** start [END] ********`);
-      */
-    }else{
-      // ++ TODO add default market: ethhkd
+        : "ethhkd";
+    } else {
+      // add default market: ethhkd
+      market = "ethhkd";
     }
-  }, [location.pathname, middleman, sync]);
+    history.push({
+      pathname: `/markets/${market}`,
+    });
+    // ++ TODO: verify function works properly
+    await middleman.start(market);
+    sync();
+    /**
+     connectWS();
+     const market = location.pathname.includes("/markets/")
+       ? location.pathname.replace("/markets/", "")
+       : null;
+     // const ticker = await getTicker(market);
+     selectTickerHandler(market);
+     getTickers();
+     getAccounts();
+     console.log(`******** start [END] ********`);
+     */
+  }, [history, location.pathname, middleman, sync]);
 
   const stop = useCallback(() => {
     clearInterval(interval);

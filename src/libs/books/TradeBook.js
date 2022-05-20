@@ -25,10 +25,10 @@ class TradeBook extends BookBase {
     return valueA.id === valueB.id;
   }
 
-  getSnapshot(instId) {
-    return this._snapshot[instId].map((trade) => {
+  getSnapshot(market) {
+    return this._snapshot[market].map((trade) => {
       if (
-        this._difference[instId].add.some((_trade) =>
+        this._difference[market].add.some((_trade) =>
           this._compareFunction(trade, _trade)
         )
       ) {

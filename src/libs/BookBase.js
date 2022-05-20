@@ -78,53 +78,54 @@ class BookBase {
 
   /**
    *
-   * @param {String} instId
+   * @param {String} market
    * @returns {Array<Object>}
    */
-  getSnapshot(instId) {
-    if (instId) return this._snapshot[instId];
+  getSnapshot(market) {
+    if (market) return this._snapshot[market];
     else return this._snapshot;
   }
 
   /**
    *
-   * @param {String} instId
+   * @param {String} market
    * @returns {Array<Object>}
    */
-  getDifference(instId) {
-    if (instId) return this._difference[instId];
+  getDifference(market) {
+    if (market) return this._difference[market];
     else return this._difference;
   }
 
   /**
    *
-   * @param {String} instId
+   * @param {String} market
    * @returns {Boolean}
    */
   // ++ TODO: verify function works properly
-  updateByDifference(instId, difference) {
+  updateByDifference(market, difference) {
+    if (!this._snapshot[market]) this._snapshot[market] = [];
     let updateSnapshot;
     try {
       if (this._config.remove) {
-        updateSnapshot = this._snapshot[instId].filter(
+        updateSnapshot = this._snapshot[market].filter(
           (data) =>
             !difference.remove.some((diff) => this._isEqual(data.id, diff.id))
         );
       }
       if (this._config.add) {
-        updateSnapshot = this._snapshot[instId]
+        updateSnapshot = this._snapshot[market]
           .filter(
             (data) =>
               !difference.add.some((diff) => this._isEqual(data.id, diff.id))
           )
           .concat(difference.add);
       }
-      this._snapshot[instId] = this._trim(updateSnapshot);
-      this._difference[instId] = difference;
+      this._snapshot[market] = this._trim(updateSnapshot);
+      this._difference[market] = difference;
       return true;
     } catch (error) {
       console.error(
-        `[${this.constructor.name}] updateByDifference[${instId}] error`,
+        `[${this.constructor.name}] updateByDifference[${market}] error`,
         error
       );
       return false;
@@ -133,17 +134,18 @@ class BookBase {
 
   /**
    *
-   * @param {String} instId
+   * @param {String} market
    * @returns {Boolean}
    */
   // ++ TODO: verify function works properly
-  updateAll(instId, data) {
+  updateAll(market, data) {
+    if (!this._snapshot[market]) this._snapshot[market] = [];
     try {
-      this._difference[instId] = this._calculateDifference(
-        this._snapshot[instId],
+      this._difference[market] = this._calculateDifference(
+        this._snapshot[market],
         data
       );
-      this._snapshot[instId] = this._trim(data);
+      this._snapshot[market] = this._trim(data);
     } catch (error) {
       console.error(`[${this.constructor.name}] updateAll error`, error);
       return false;
