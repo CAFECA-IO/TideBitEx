@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useViewport } from "../store/ViewportProvider";
 import DesktopExchange from "./desktop-exchange";
 import MobileExchange from "./mobile-exchange";
@@ -7,16 +7,20 @@ import StoreContext from "../store/store-context";
 
 const Exchange = () => {
   const storeCtx = useContext(StoreContext);
+  const [isStart, setIsStart] = useState(false);
   const { width } = useViewport();
   const breakpoint = 414;
 
   useEffect(() => {
-    storeCtx.start();
+    if (!isStart) {
+      storeCtx.start();
+      setIsStart(true);
+    }
 
     return () => {
       storeCtx.stop();
     };
-  }, [storeCtx]);
+  }, [isStart, storeCtx]);
 
   return (
     <Layout>

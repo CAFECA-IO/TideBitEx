@@ -497,7 +497,7 @@ class ExchangeHub extends Bot {
 
   // TODO integrate getOrderList and getOrderHistory into one
   async getOrderList({ query, memberId }) {
-    const instId = this._findInstId(query.market);
+    const instId = this._findInstId(query.id);
     const market = this._findMarket(instId);
     if (memberId === -1) {
       // return new ResponseFormat({
@@ -545,7 +545,7 @@ class ExchangeHub extends Bot {
   }
 
   async getOrderHistory({ query, memberId }) {
-    const instId = this._findInstId(query.market);
+    const instId = this._findInstId(query.id);
     const market = this._findMarket(instId);
     if (memberId === -1) {
       // return new ResponseFormat({

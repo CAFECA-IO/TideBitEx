@@ -1,7 +1,7 @@
 import { Config } from "../constant/Config";
 import Events from "../constant/Events";
 
-class WebSocket {
+class TideBitWS {
   connection_resolvers = [];
   constructor({ accountBook, depthBook, orderBook, tickerBook, tradeBook }) {
     this.tickerBook = tickerBook;
@@ -44,7 +44,10 @@ class WebSocket {
         this.depthBook.updateAll(metaData.data.market, metaData.data);
         break;
       case Events.order:
-        this.orderBook.updateByDifference(metaData.data.market, metaData.data.difference);
+        this.orderBook.updateByDifference(
+          metaData.data.market,
+          metaData.data.difference
+        );
         break;
       case Events.tickers:
         this.tickerBook.updateAll(metaData.data);
@@ -53,7 +56,10 @@ class WebSocket {
         this.tradeBook.updateAll(metaData.data.market, metaData.data.trades);
         break;
       case Events.trade:
-        this.tradeBook.updateByDifference(metaData.data.market, metaData.data.difference);
+        this.tradeBook.updateByDifference(
+          metaData.data.market,
+          metaData.data.difference
+        );
         break;
       default:
     }
@@ -83,7 +89,7 @@ class WebSocket {
         "Socket is closed. Reconnect will be attempted in 1 second.",
         msg.reason
       );
-      setTimeout(function () {
+      setTimeout(() => {
         this.connect();
       }, 1000);
     });
@@ -94,4 +100,4 @@ class WebSocket {
   }
 }
 
-export default WebSocket;
+export default TideBitWS;

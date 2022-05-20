@@ -326,6 +326,7 @@ const StoreProvider = (props) => {
           pathname: `/markets/${market}`,
         });
         await middleman.selectMarket(market);
+        setSelectedTicker(middleman.getTicker());
         /*
         connection_resolvers.push(
           JSON.stringify({
@@ -601,8 +602,9 @@ const StoreProvider = (props) => {
 
     const time = Date.now();
     const _sync = () => {
+      console.log(`_sync`)
       if (time - accountTs > accountInterval) {
-        const accounts = middleman.getAccounts()
+        const accounts = middleman.getAccounts();
         setIsLogin(!!accounts);
         setAccounts(accounts);
       }
@@ -624,12 +626,15 @@ const StoreProvider = (props) => {
         setOrderHistories(middleman.getMyOrders());
       }
     };
+    _sync();
     interval = setInterval(() => {
       _sync();
     }, 100);
   }, [middleman]);
 
   const start = useCallback(async () => {
+
+    console.log(`STORE location.pathname start`, location.pathname);
     let market;
     if (location.pathname.includes("/markets")) {
       market = location.pathname.includes("/markets/")
@@ -644,6 +649,7 @@ const StoreProvider = (props) => {
     });
     // ++ TODO: verify function works properly
     await middleman.start(market);
+    setSelectedTicker(middleman.getTicker());
     sync();
     /**
      connectWS();

@@ -490,7 +490,7 @@ class Communicator {
         retries > 0 &&
         retryCodes.includes(response.code)
       ) {
-        // console.log(`[Communicator] _request retries`, retries);
+        console.log(`[Communicator] _request retries`, retries);
         setTimeout(() => {
           return this._request({
             method,

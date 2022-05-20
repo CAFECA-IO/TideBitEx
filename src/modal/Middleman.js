@@ -366,19 +366,29 @@ class Middleman {
   }
 
   async _getOrderList(market, options = {}) {
-    const orders = await this.communicator.getOrderList({
-      ...options,
-      market,
-    });
-    this.orderBook.updateByDifference(market, { add: orders });
+    try {
+      const orders = await this.communicator.getOrderList({
+        ...options,
+        market,
+      });
+      this.orderBook.updateByDifference(market, { add: orders });
+    } catch (error) {
+      console.error(`_getOrderList error`, error);
+      throw error;
+    }
   }
 
   async _getOrderHistory(market, options = {}) {
-    const orders = await this.communicator.getOrderHistory({
-      ...options,
-      market,
-    });
-    this.orderBook.updateByDifference(market, { add: orders });
+    try {
+      const orders = await this.communicator.getOrderHistory({
+        ...options,
+        market,
+      });
+      this.orderBook.updateByDifference(market, { add: orders });
+    } catch (error) {
+      console.error(`_getOrderHistory error`, error);
+      throw error;
+    }
   }
 
   getTickers() {
@@ -420,6 +430,7 @@ class Middleman {
       const trades = await this.communicator.trades(id, limit);
       this.tradeBook.updateAll(id, trades);
     } catch (error) {
+      console.error(`_getTrades error`, error);
       throw error;
     }
   }
@@ -434,6 +445,7 @@ class Middleman {
       const depthBook = await this.communicator.books(id, sz);
       this.depthBook.updateAll(id, depthBook);
     } catch (error) {
+      console.error(`_getBooks error`, error);
       throw error;
     }
   }
@@ -443,8 +455,13 @@ class Middleman {
   }
 
   async _getTicker(market) {
-    const ticker = await this.communicator.ticker(market);
-    this.tickerBook.updateByDifference(market, ticker[market]);
+    try {
+      const ticker = await this.communicator.ticker(market);
+      this.tickerBook.updateByDifference(market, ticker[market]);
+    } catch (error) {
+      this.isLogin = false;
+      console.error(`_getTicker error`, error);
+    }
   }
 
   async _getAccounts() {
@@ -461,6 +478,7 @@ class Middleman {
       }
     } catch (error) {
       this.isLogin = false;
+      console.error(`_getAccounts error`, error);
     }
   }
 
