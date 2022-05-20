@@ -252,8 +252,9 @@ class ExchangeHub extends Bot {
             code: Codes.API_UNKNOWN_ERROR,
           });
         }
-        this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
-        this.logger.log(`filteredTBTickers`, filteredTBTickers);
+        // this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
+        // this.logger.log(`filteredTBTickers`, filteredTBTickers);
+        this.tickerBook.updateAll({...filteredOkexTickers, ...filteredTBTickers})
         this.logger.debug(
           `*********** [${this.name}] getTickers [END] ************`
         );

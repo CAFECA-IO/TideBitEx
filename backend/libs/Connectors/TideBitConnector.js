@@ -252,7 +252,7 @@ class TibeBitConnector extends ConnectorBase {
       }
     });
     // ++ TODO !!! Ticker dataFormate is different
-    this.tickerBook.updateAll(tickers);
+    // this.tickerBook.updateAll(tickers);
     return new ResponseFormat({
       message: "getTickers from TideBit",
       payload: tickers,

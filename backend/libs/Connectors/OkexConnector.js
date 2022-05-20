@@ -258,7 +258,7 @@ class OkexConnector extends ConnectorBase {
         optional.mask,
         tickers
       );
-      // this.tickerBook.updateAll(filteredTickers);
+      // this.tickerBook.updateAll(tickers);
       return new ResponseFormat({
         message: "getTickers from OKEx",
         payload: filteredTickers,
