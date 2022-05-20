@@ -186,6 +186,10 @@ class BookBase {
         `[${this.constructor.name}] updateAll this._difference[${instId}]`,
         this._difference[instId]
       );
+      this.logger.log(
+        `[${this.constructor.name}] updateAll data[${instId}]`,
+        data[instId]
+      );
       this._snapshot[instId] = this._trim(data);
       this.logger.log(
         `[${this.constructor.name}] updateAll this._snapshot[${instId}]`,

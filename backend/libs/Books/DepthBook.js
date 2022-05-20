@@ -92,6 +92,7 @@ class DepthBook extends BookBase {
         side: "bids",
       });
     });
+    console.log(`[DepthBook _formateBooks]`, bookArr);
     return bookArr;
   }
 
@@ -148,6 +149,7 @@ class DepthBook extends BookBase {
    * @param {Array<Depth>} data
    */
   updateAll(instId, data) {
+    console.log(`[DepthBook updateAll]`, instId, data);
     return super.updateAll(instId, this._formateBooks(data));
   }
 }
