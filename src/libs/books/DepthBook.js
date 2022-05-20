@@ -10,28 +10,35 @@ class DepthBook extends BookBase {
   }
 
   getSnapshot(market) {
-    const depthBooks = {
-      market,
-      asks: [],
-      bids: [],
-    };
-    this._snapshot[market].forEach((data) => {
-      if (
-        this._difference[market].add.some((d) => this._compareFunction(d, data))
-      )
-        data = { ...data, update: true };
-      if (data.side === "asks") {
-        depthBooks.asks.push(data);
-      }
-      if (data.side === "bids") {
-        depthBooks.bids.push(data);
-      }
-    });
-    // console.log(
-    //   `[${this.constructor.name}] getSnapshot[${market}]`,
-    //   depthBooks
-    // );
-    return depthBooks;
+    try {
+      const depthBooks = {
+        market,
+        asks: [],
+        bids: [],
+      };
+      this._snapshot[market].forEach((data) => {
+        if (
+          this._difference[market].add.some((d) =>
+            this._compareFunction(d, data)
+          )
+        )
+          data = { ...data, update: true };
+        if (data.side === "asks") {
+          depthBooks.asks.push(data);
+        }
+        if (data.side === "bids") {
+          depthBooks.bids.push(data);
+        }
+      });
+      console.log(
+        `[${this.constructor.name}] getSnapshot[${market}]`,
+        depthBooks
+      );
+      return depthBooks;
+    } catch (error) {
+      console.error(`[${this.constructor.name} getSnapshot]`, error);
+      return false;
+    }
   }
   _trim(data) {
     let asks = [],
@@ -80,6 +87,7 @@ class DepthBook extends BookBase {
   }
 
   updateAll(market, data) {
+    console.log(`[${this.constructor.name} updateAll]`, market, data);
     return super.updateAll(market, this._formateBooks(data));
   }
 }

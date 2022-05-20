@@ -103,6 +103,8 @@ class BookBase {
    */
   // ++ TODO: verify function works properly
   updateByDifference(market, difference) {
+    console.log(`[${this.constructor.name} updateByDifference]`, market, difference);
+
     if (!this._snapshot[market]) this._snapshot[market] = [];
     let updateSnapshot;
     try {
@@ -139,6 +141,7 @@ class BookBase {
    */
   // ++ TODO: verify function works properly
   updateAll(market, data) {
+    console.log(`[${this.constructor.name} updateAll]`, market, data);
     if (!this._snapshot[market]) this._snapshot[market] = [];
     try {
       this._difference[market] = this._calculateDifference(

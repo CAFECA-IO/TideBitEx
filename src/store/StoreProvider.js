@@ -615,6 +615,7 @@ const StoreProvider = (props) => {
         setBooks(middleman.getBooks());
       }
       if (time - tradeTs > tradeInterval) {
+        console.log(`middleman.getTrades()`, middleman.getTrades())
         setTrades(middleman.getTrades());
       }
       if (time - tickersTs > tickersInterval) {

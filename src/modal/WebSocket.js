@@ -94,6 +94,10 @@ class TideBitWS {
       }, 1000);
     });
     ws.addEventListener("message", (msg) => {
+      console.log(
+        "Socket received message",
+        msg
+      );
       this.messageHandler(msg);
     });
     // });

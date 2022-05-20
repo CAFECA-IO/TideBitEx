@@ -12,9 +12,14 @@ class AccountBook extends BookBase {
   }
 
   getSnapshot(instId) {
-    if (instId)
-      return instId.split("-").map((currency) => this._snapshot[currency]);
-    return Object.values(this._snapshot);
+    try {
+      if (instId)
+        return instId.split("-").map((currency) => this._snapshot[currency]);
+      return Object.values(this._snapshot);
+    } catch (error) {
+      console.error(`[${this.constructor.name} getSnapshot]`, error);
+      return false;
+    }
   }
 
   /**
@@ -62,6 +67,7 @@ class AccountBook extends BookBase {
    * @returns
    */
   updateAll(accounts) {
+    console.log(`[${this.constructor.name} updateAll]`, accounts);
     this._difference = {};
     try {
       accounts.forEach((account) => {
@@ -72,6 +78,7 @@ class AccountBook extends BookBase {
       });
       return true;
     } catch (error) {
+      console.error(`[${this.constructor.name} updateAll]`, error);
       return false;
     }
   }
