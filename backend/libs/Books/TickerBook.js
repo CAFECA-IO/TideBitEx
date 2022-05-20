@@ -54,10 +54,11 @@ class TickerBook extends BookBase {
       if (this._compareFunction(this._snapshot[instId], ticker)) {
         this._difference[instId] = ticker;
         this._snapshot[instId] = ticker;
-        this.logger.log(
-          `[${this.constructor.name}]  this._difference`,
-          this._difference
-        );
+        if (ticker.market === "ethhkd")
+          this.logger.log(
+            `[${this.constructor.name}]  this._difference`,
+            this._difference
+          );
         return true;
       } else return false;
     } catch (error) {
