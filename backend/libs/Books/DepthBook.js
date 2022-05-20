@@ -121,8 +121,14 @@ class DepthBook extends BookBase {
         sumBidAmount = SafeMath.plus(bid.amount, sumBidAmount);
         return { ...bid, total: sumBidAmount };
       });
-    this.logger.log(`[${this.constructor.name}] _trim bids`, bids);
-    this.logger.log(`[${this.constructor.name}] _trim asks`, asks);
+    this.logger.log(
+      `[${this.constructor.name}] _trim bids[${bids.length}]`,
+      // bids
+    );
+    this.logger.log(
+      `[${this.constructor.name}] _trim asks[${asks.length}]`,
+      // asks
+    );
     return bids.concat(asks);
   }
 

@@ -16,7 +16,7 @@ class DepthBook extends BookBase {
         asks: [],
         bids: [],
       };
-      this._snapshot[market].forEach((data) => {
+      this._snapshot[market]?.forEach((data) => {
         if (
           this._difference[market].add.some((d) =>
             this._compareFunction(d, data)

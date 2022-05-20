@@ -646,9 +646,8 @@ const StoreProvider = (props) => {
     await middleman.start(market);
     setSelectedTicker(middleman.getTicker());
     // ++ TODO: verify function works properly
-    setBooks(middleman.getBooks());
-    // sync();
-    interval = setInterval(sync, 100);
+    sync();
+    // interval = setInterval(sync, 100);
     // console.log(`interval`, interval);
     /**
      connectWS();
