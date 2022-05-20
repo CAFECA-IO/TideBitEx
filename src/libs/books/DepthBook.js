@@ -31,13 +31,13 @@ class DepthBook extends BookBase {
           depthBooks.bids.push(data);
         }
       });
-      console.log(`[DepthBook] getSnapshot[${market}]`, {
-        ...depthBooks,
-        total: SafeMath.plus(
-          depthBooks.asks[depthBooks.asks.length - 1]?.total,
-          depthBooks.bids[depthBooks.bids.length - 1]?.total
-        ),
-      });
+      // console.log(`[DepthBook] getSnapshot[${market}]`, {
+      //   ...depthBooks,
+      //   total: SafeMath.plus(
+      //     depthBooks.asks[depthBooks.asks.length - 1]?.total,
+      //     depthBooks.bids[depthBooks.bids.length - 1]?.total
+      //   ),
+      // });
       return {
         ...depthBooks,
         total: SafeMath.plus(
@@ -98,7 +98,7 @@ class DepthBook extends BookBase {
   }
 
   updateAll(market, data) {
-    console.log(`[DepthBook updateAll]`, market, data);
+    // console.log(`[DepthBook updateAll]`, market, data);
     return super.updateAll(market, this._formateBooks(data));
   }
 }

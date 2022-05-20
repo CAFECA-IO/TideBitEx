@@ -284,10 +284,10 @@ class OkexConnector extends ConnectorBase {
     if (instId) arr.push(`instId=${instId}`);
     if (sz) arr.push(`sz=${sz}`);
     const qs = !!arr.length ? `?${arr.join("&")}` : "";
-    this.logger.log(
-      `[${this.constructor.name}] getDepthBooks this.fetchedBook[${instId}]`,`url`,`${this.domain}${path}${qs}`,
-      this.fetchedBook[instId]
-    );
+    // this.logger.log(
+    //   `[${this.constructor.name}] getDepthBooks this.fetchedBook[${instId}]`,`url`,`${this.domain}${path}${qs}`,
+    //   this.fetchedBook[instId]
+    // );
     if (!this.fetchedBook[instId]) {
       try {
         const res = await axios({

@@ -975,10 +975,10 @@ class ExchangeHub extends Bot {
       //   `[${this.name}]_updateBooks booksData`,
       //   booksData
       // );
-      // this.broadcast(market, {
-      //   type: Events.update,
-      //   data: booksData,
-      // });
+      this.broadcast(market, {
+        type: Events.update,
+        data: booksData,
+      });
     });
 
     // EventBus.on(Events.candleOnUpdate, (market, formatCandle) => {
