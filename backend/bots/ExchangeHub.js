@@ -244,7 +244,7 @@ class ExchangeHub extends Bot {
           optional: { mask: tideBitOnlyMarkets },
         });
         if (tBTickersRes.success) {
-          filteredOkexTickers = tBTickersRes.payload;
+          filteredTBTickers = tBTickersRes.payload;
         } else {
           this.logger.error(tBTickersRes);
           return new ResponseFormat({

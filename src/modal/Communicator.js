@@ -107,7 +107,8 @@ class Communicator {
   // Market
   async tickers(instType, from, limit) {
     try {
-      if (!instType) return { message: "instType cannot be null" };
+      if (!instType)
+        return Promise.reject({ message: "instType cannot be null" });
       // const res = await this._get(
       //   `/market/tickers?instType=${instType}${from ? `&from=${from}` : ""}${
       //     limit ? `&limit=${limit}` : ""

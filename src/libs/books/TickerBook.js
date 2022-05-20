@@ -66,7 +66,7 @@ class TickerBook extends BookBase {
   }
 
   updateByDifference(market, ticker) {
-    console.log(`[TickerBook updateByDifference]`, ticker);
+    console.log(`[TickerBook updateByDifference]`,market, ticker);
     this._difference = {};
     try {
       this._difference[market] = ticker;
