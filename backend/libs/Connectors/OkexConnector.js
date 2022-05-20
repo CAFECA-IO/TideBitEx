@@ -1361,7 +1361,7 @@ class OkexConnector extends ConnectorBase {
       const updateTicker = this._formateTicker(d);
       const result = this.tickerBook.updateByDifference(d.instId, updateTicker);
       if (result)
-        EventBus.emit(Events.tickers, this.tickerBook.getDifference(d.instId));
+        EventBus.emit(Events.tickers, this.tickerBook.getDifference());
     });
   }
 
