@@ -124,11 +124,11 @@ class TibeBitConnector extends ConnectorBase {
         return memberId;
       } else return -1;
     } catch (error) {
-      this.logger.error(
+      this.logger.log(
         `[${this.constructor.name} getMemberIdFromRedis] error: "get member_id fail`,
         error
       );
-      this.logger.error(error);
+      // this.logger.error(error);
       await client.quit();
       return -1;
     }
