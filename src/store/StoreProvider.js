@@ -647,7 +647,7 @@ const StoreProvider = (props) => {
     setSelectedTicker(middleman.getTicker());
     // ++ TODO: verify function works properly
     sync();
-    // interval = setInterval(sync, 100);
+    interval = setInterval(sync, 100);
     // console.log(`interval`, interval);
     /**
      connectWS();
