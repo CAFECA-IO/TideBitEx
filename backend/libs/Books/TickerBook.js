@@ -49,6 +49,7 @@ class TickerBook extends BookBase {
   }
 
   updateByDifference(instId, ticker) {
+    this._difference = {}
     try {
       if (this._compareFunction(this._snapshot[instId], ticker)) {
         this.logger.log(
@@ -69,6 +70,7 @@ class TickerBook extends BookBase {
 
   updateAll(tickers) {
     // this.logger.log(`[${this.constructor.name}] updateAll tickers`, tickers);
+    this._difference = {}
     try {
       Object.values(tickers).forEach((ticker) => {
         this._snapshot[ticker.instId] = ticker;
