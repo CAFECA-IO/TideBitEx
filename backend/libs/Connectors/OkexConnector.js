@@ -258,7 +258,7 @@ class OkexConnector extends ConnectorBase {
         optional.mask,
         tickers
       );
-      this.tickerBook.updateAll(filteredTickers);
+      // this.tickerBook.updateAll(filteredTickers);
       return new ResponseFormat({
         message: "getTickers from OKEx",
         payload: filteredTickers,
@@ -1359,7 +1359,6 @@ class OkexConnector extends ConnectorBase {
   _updateTickers(data) {
     data.forEach((d) => {
       const updateTicker = this._formateTicker(d);
-      // this.logger.log(`_updateTickers updateTicker`, updateTicker);
       this.tickerBook.updateByDifference(d.instId, updateTicker);
     });
 

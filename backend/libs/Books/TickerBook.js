@@ -49,13 +49,13 @@ class TickerBook extends BookBase {
   }
 
   updateByDifference(instId, ticker) {
-    // this.logger.log(
-    //   `[${this.constructor.name}] updateByDifference ticker`,
-    //   ticker,
-    //   `this._snapshot[${instId}]`,
-    //   this._snapshot[instId],
-    //   this._compareFunction(this._snapshot[instId], ticker)
-    // );
+    this.logger.log(
+      `[${this.constructor.name}] updateByDifference ticker`,
+      ticker,
+      `this._snapshot[${instId}]`,
+      this._snapshot[instId],
+      this._compareFunction(this._snapshot[instId], ticker)
+    );
     try {
       if (this._compareFunction(this._snapshot[instId], ticker)) {
         this._difference[instId] = ticker;
@@ -69,16 +69,16 @@ class TickerBook extends BookBase {
   }
 
   updateAll(tickers) {
-    // this.logger.log(`[${this.constructor.name}] updateAll tickers`, tickers);
+    this.logger.log(`[${this.constructor.name}] updateAll tickers`, tickers);
     try {
       Object.values(tickers).forEach((ticker) => {
         this._snapshot[ticker.instId] = ticker;
         this._difference[ticker.instId] = ticker;
       });
-      // this.logger.log(
-      //   `[${this.constructor.name}] updateAll this._snapshot`,
-      //   this._snapshot
-      // );
+      this.logger.log(
+        `[${this.constructor.name}] updateAll this._snapshot`,
+        this._snapshot
+      );
       return true;
     } catch (error) {
       return false;

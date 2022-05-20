@@ -490,12 +490,12 @@ class Middleman {
     this.websocket.setCurrentMarket(market);
     this.tickerBook.setCurrentMarket(market);
     if (!this.tickerBook.getCurrentTicker()) await this._getTicker(market);
-    await this._getBooks(market);
-    await this._getTrades(market);
+    // await this._getBooks(market);
+    // await this._getTrades(market);
     // if (this.isLogin) {
     // TODO to verify if user is not login would be a problem
-    await this._getOrderList(market);
-    await this._getOrderHistory(market);
+    // await this._getOrderList(market);
+    // await this._getOrderHistory(market);
     // }
   }
 
@@ -503,7 +503,7 @@ class Middleman {
     // TODO to verify websocket connection is working and can receive update message
     this.websocket.connect();
     await this.selectMarket(market);
-    await this._getAccounts();
+    // await this._getAccounts();
     await this._getTickers();
   }
 

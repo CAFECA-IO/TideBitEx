@@ -37,7 +37,7 @@ class TradeBook extends BookBase {
         } else return trade;
       });
     } catch (error) {
-      console.error(`[${this.constructor.name} getSnapshot]`, error);
+      console.error(`[TradeBook getSnapshot]`, error);
       return false;
     }
   }

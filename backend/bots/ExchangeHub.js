@@ -252,8 +252,8 @@ class ExchangeHub extends Bot {
             code: Codes.API_UNKNOWN_ERROR,
           });
         }
-        // this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
-        // this.logger.log(`filteredTBTickers`, filteredTBTickers);
+        this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
+        this.logger.log(`filteredTBTickers`, filteredTBTickers);
         this.logger.debug(
           `*********** [${this.name}] getTickers [END] ************`
         );
@@ -933,53 +933,59 @@ class ExchangeHub extends Bot {
   }
 
   async _eventListener() {
+    // ++ TODO TEST
     EventBus.on(Events.account, (account) => {
-      this.broadcastAllClient({
-        type: Events.account,
-        data: account,
-      });
+      // this.broadcastAllClient({
+      //   type: Events.account,
+      //   data: account,
+      // });
     });
+
+    // ++ TODO TEST
     EventBus.on(Events.order, (market, order) => {
-      this.broadcast(market, {
-        type: Events.order,
-        data: order,
-      });
+      // this.broadcast(market, {
+      //   type: Events.order,
+      //   data: order,
+      // });
     });
 
+    // ++ TODO TEST
     EventBus.on(Events.trade, (market, tradeData) => {
-      if (this._isIncludeTideBitMarket(market)) {
-        this.broadcast(market, {
-          type: Events.trade,
-          data: tradeData,
-        });
-      }
+      // if (this._isIncludeTideBitMarket(market)) {
+      //   this.broadcast(market, {
+      //     type: Events.trade,
+      //     data: tradeData,
+      //   });
+      // }
     });
 
+    // ++ TODO TEST
     EventBus.on(Events.trades, (market, tradesData) => {
-      this.broadcast(market, {
-        type: Events.trades,
-        data: tradesData,
-      });
+      // this.broadcast(market, {
+      //   type: Events.trades,
+      //   data: tradesData,
+      // });
     });
 
     // depthBooksOnUpdate
+    // ++ TODO TEST
     EventBus.on(Events.update, (market, booksData) => {
       // this.logger.debug(
       //   `[${this.name}]_updateBooks booksData`,
       //   booksData
       // );
-      this.broadcast(market, {
-        type: Events.update,
-        data: booksData,
-      });
+      // this.broadcast(market, {
+      //   type: Events.update,
+      //   data: booksData,
+      // });
     });
 
-    EventBus.on(Events.candleOnUpdate, (market, formatCandle) => {
-      this.broadcast(market, {
-        type: Events.candleOnUpdate,
-        data: formatCandle,
-      });
-    });
+    // EventBus.on(Events.candleOnUpdate, (market, formatCandle) => {
+    //   this.broadcast(market, {
+    //     type: Events.candleOnUpdate,
+    //     data: formatCandle,
+    //   });
+    // });
 
     // tickersOnUpdate
     EventBus.on(Events.tickers, (updateTickers) => {

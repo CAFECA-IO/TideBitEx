@@ -31,12 +31,12 @@ class DepthBook extends BookBase {
         }
       });
       console.log(
-        `[${this.constructor.name}] getSnapshot[${market}]`,
+        `[DepthBook] getSnapshot[${market}]`,
         depthBooks
       );
       return depthBooks;
     } catch (error) {
-      console.error(`[${this.constructor.name} getSnapshot]`, error);
+      console.error(`[DepthBook getSnapshot]`, error);
       return false;
     }
   }
@@ -87,7 +87,7 @@ class DepthBook extends BookBase {
   }
 
   updateAll(market, data) {
-    console.log(`[${this.constructor.name} updateAll]`, market, data);
+    console.log(`[DepthBook updateAll]`, market, data);
     return super.updateAll(market, this._formateBooks(data));
   }
 }

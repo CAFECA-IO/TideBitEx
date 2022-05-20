@@ -66,7 +66,7 @@ class BookBase {
       };
     } catch (error) {
       console.error(
-        `[${this.constructor.name}] _calculateDifference error`,
+        `[BookBase] _calculateDifference error`,
         error
       );
       return {
@@ -103,7 +103,7 @@ class BookBase {
    */
   // ++ TODO: verify function works properly
   updateByDifference(market, difference) {
-    console.log(`[${this.constructor.name} updateByDifference]`, market, difference);
+    console.log(`[BookBase updateByDifference]`, market, difference);
 
     if (!this._snapshot[market]) this._snapshot[market] = [];
     let updateSnapshot;
@@ -127,7 +127,7 @@ class BookBase {
       return true;
     } catch (error) {
       console.error(
-        `[${this.constructor.name}] updateByDifference[${market}] error`,
+        `[BookBase] updateByDifference[${market}] error`,
         error
       );
       return false;
@@ -141,7 +141,7 @@ class BookBase {
    */
   // ++ TODO: verify function works properly
   updateAll(market, data) {
-    console.log(`[${this.constructor.name} updateAll]`, market, data);
+    console.log(`[BookBase updateAll]`, market, data);
     if (!this._snapshot[market]) this._snapshot[market] = [];
     try {
       this._difference[market] = this._calculateDifference(
@@ -150,7 +150,7 @@ class BookBase {
       );
       this._snapshot[market] = this._trim(data);
     } catch (error) {
-      console.error(`[${this.constructor.name}] updateAll error`, error);
+      console.error(`[BookBase] updateAll error`, error);
       return false;
     }
   }

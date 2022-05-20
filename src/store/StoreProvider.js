@@ -602,39 +602,44 @@ const StoreProvider = (props) => {
 
     const time = Date.now();
     const _sync = () => {
-      console.log(`_sync`)
-      if (time - accountTs > accountInterval) {
-        const accounts = middleman.getAccounts();
-        setIsLogin(!!accounts);
-        setAccounts(accounts);
-      }
+      console.log(`_sync`);
+      // if (time - accountTs > accountInterval) {
+      //   const accounts = middleman.getAccounts();
+      //   console.log(`middleman.accounts`, accounts);
+      //   setIsLogin(!!accounts);
+      //   setAccounts(accounts);
+      // }
       if (time - tickerTs > tickerInterval) {
+        console.log(`middleman.getTicker()`, middleman.getTicker());
         setSelectedTicker(middleman.getTicker());
       }
-      if (time - depthTs > depthInterval) {
-        setBooks(middleman.getBooks());
-      }
-      if (time - tradeTs > tradeInterval) {
-        console.log(`middleman.getTrades()`, middleman.getTrades())
-        setTrades(middleman.getTrades());
-      }
+      // if (time - depthTs > depthInterval) {
+      //   console.log(`middleman.getBooks()`, middleman.getBooks());
+      //   setBooks(middleman.getBooks());
+      // }
+      // if (time - tradeTs > tradeInterval) {
+      //   console.log(`middleman.getTrades()`, middleman.getTrades());
+      //   setTrades(middleman.getTrades());
+      // }
       if (time - tickersTs > tickersInterval) {
         // TODO getSnapshot is not finished
+        console.log(`middleman.getTickers()`, middleman.getTickers());
         setTickers(middleman.getTickers());
       }
       // TODO orderBook is not completed
-      if (time - orderTs > orderInterval) {
-        setOrderHistories(middleman.getMyOrders());
-      }
+      // if (time - orderTs > orderInterval) {
+      //   console.log(`middleman.getMyOrders()`, middleman.getMyOrders());
+      //   setOrderHistories(middleman.getMyOrders());
+      // }
     };
     _sync();
     interval = setInterval(() => {
       _sync();
-    }, 100);
+      // }, 100);
+    }, 3000);
   }, [middleman]);
 
   const start = useCallback(async () => {
-
     console.log(`STORE location.pathname start`, location.pathname);
     let market;
     if (location.pathname.includes("/markets")) {
