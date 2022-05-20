@@ -71,17 +71,19 @@ class TickerBook extends BookBase {
     return this._currentMarket;
   }
 
-  updateByDifference(ticker) {
-    console.log(`[TickerBook updateByDifference]`, ticker);
-    this._difference = {};
-    try {
-      this._difference[ticker.market] = ticker;
-      this._snapshot[ticker.market] = ticker;
-      return true;
-    } catch (error) {
-      console.error(`[${this.constructor.name}] error`, error);
-      return false;
-    }
+  updateByDifference(tickers) {
+    Object.values(tickers).forEach((ticker) => {
+      console.log(`[TickerBook updateByDifference]`, ticker);
+      this._difference = {};
+      try {
+        this._difference[ticker.market] = ticker;
+        this._snapshot[ticker.market] = ticker;
+        return true;
+      } catch (error) {
+        console.error(`[${this.constructor.name}] error`, error);
+        return false;
+      }
+    });
   }
 
   updateAll(tickers) {

@@ -61,7 +61,7 @@ class TickerBook extends BookBase {
         this._difference[instId] = ticker;
         this._snapshot[instId] = ticker;
         return true;
-      }
+      } else return false;
     } catch (error) {
       this.logger.error(`[${this.constructor.name}] error`, error);
       return false;
