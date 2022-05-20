@@ -285,7 +285,7 @@ class OkexConnector extends ConnectorBase {
     if (sz) arr.push(`sz=${sz}`);
     const qs = !!arr.length ? `?${arr.join("&")}` : "";
     this.logger.log(
-      `[${this.constructor.name}] getDepthBooks this.fetchedBook[${instId}]`,
+      `[${this.constructor.name}] getDepthBooks this.fetchedBook[${instId}]`,`${this.domain}${path}${qs}`,
       this.fetchedBook[instId]
     );
     if (!this.fetchedBook[instId]) {
