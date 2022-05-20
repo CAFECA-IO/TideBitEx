@@ -262,9 +262,9 @@ class TibeBitConnector extends ConnectorBase {
   _formateTicker(data) {
     // return tickerData.map((data) => {
     const id = data.name.replace("/", "").toLowerCase();
-    const change = SafeMath.minus(data.last, data.open24h);
-    const changePct = SafeMath.gt(data.open24h, "0")
-      ? SafeMath.div(change, data.open24h)
+    const change = SafeMath.minus(data.last, data.open);
+    const changePct = SafeMath.gt(data.open, "0")
+      ? SafeMath.div(change, data.open)
       : SafeMath.eq(change, "0")
       ? "0"
       : "1";
@@ -304,6 +304,7 @@ class TibeBitConnector extends ConnectorBase {
       const ticker = this._formateTicker(d);
       const result = this.tickerBook.updateByDifference(ticker.instId, ticker);
       if (result)
+      this.logger.log(this.tickerBook.getDifference())
         EventBus.emit(Events.tickers, this.tickerBook.getDifference(d.instId));
     });
   }
