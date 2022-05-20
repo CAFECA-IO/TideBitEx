@@ -130,7 +130,7 @@ class Communicator {
   }
 
   // Market
-  async books(id, sz) {
+  async books(id, sz = 100) {
     try {
       if (!id) return { message: "id cannot be null" };
       // const res = await this._get(
