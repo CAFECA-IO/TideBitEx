@@ -5,7 +5,7 @@ class TradeBook extends BookBase {
   constructor() {
     super();
     this.name = `TradeBook`;
-    this._config = { remove: false, add: false, update: true };
+    this._config = { remove: false, add: true, update: false };
     return this;
   }
 

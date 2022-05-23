@@ -6,7 +6,7 @@ class DepthBook extends BookBase {
   constructor() {
     super();
     this.name = `DepthBook`;
-    this._config = { remove: false, add: false, update: true };
+    this._config = { remove: true, add: true, update: false };
     return this;
   }
 

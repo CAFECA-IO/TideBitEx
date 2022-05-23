@@ -5,7 +5,7 @@ class OrderBook extends BookBase {
   constructor() {
     super();
     this.name = `OrderBook`;
-    this._config = { remove: false, add: true, update: true };
+    this._config = { remove: true, add: true, update: false };
     return this;
   }
 }

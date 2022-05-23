@@ -460,7 +460,6 @@ class Middleman {
       const ticker = await this.communicator.ticker(market);
       this.tickerBook.updateByDifference(market, ticker[market]);
     } catch (error) {
-      this.isLogin = false;
       console.error(`_getTicker error`, error);
     }
   }
@@ -504,7 +503,7 @@ class Middleman {
     // TODO to verify websocket connection is working and can receive update message
     this.websocket.connect();
     await this.selectMarket(market);
-    // await this._getAccounts();
+    await this._getAccounts();
     await this._getTickers();
   }
 

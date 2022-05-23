@@ -936,36 +936,36 @@ class ExchangeHub extends Bot {
   async _eventListener() {
     // ++ TODO TEST
     EventBus.on(Events.account, (account) => {
-      // this.broadcastAllClient({
-      //   type: Events.account,
-      //   data: account,
-      // });
+      this.broadcastAllClient({
+        type: Events.account,
+        data: account,
+      });
     });
 
     // ++ TODO TEST
     EventBus.on(Events.order, (market, order) => {
-      // this.broadcast(market, {
-      //   type: Events.order,
-      //   data: order,
-      // });
+      this.broadcast(market, {
+        type: Events.order,
+        data: order,
+      });
     });
 
     // ++ TODO TEST
     EventBus.on(Events.trade, (market, tradeData) => {
-      // if (this._isIncludeTideBitMarket(market)) {
-      //   this.broadcast(market, {
-      //     type: Events.trade,
-      //     data: tradeData,
-      //   });
-      // }
+      if (this._isIncludeTideBitMarket(market)) {
+        this.broadcast(market, {
+          type: Events.trade,
+          data: tradeData,
+        });
+      }
     });
 
     // ++ TODO TEST
     EventBus.on(Events.trades, (market, tradesData) => {
-      // this.broadcast(market, {
-      //   type: Events.trades,
-      //   data: tradesData,
-      // });
+      this.broadcast(market, {
+        type: Events.trades,
+        data: tradesData,
+      });
     });
 
     // depthBooksOnUpdate

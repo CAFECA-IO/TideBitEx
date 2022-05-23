@@ -605,7 +605,6 @@ const StoreProvider = (props) => {
     // if (time - accountTs > accountInterval) {
     //   const accounts = middleman.getAccounts();
     //   console.log(`middleman.accounts`, accounts);
-    //   setIsLogin(!!accounts);
     //   setAccounts(accounts);
     // }
     if (time - tickerTs > tickerInterval) {
@@ -645,6 +644,7 @@ const StoreProvider = (props) => {
     });
     await middleman.start(market);
     setSelectedTicker(middleman.getTicker());
+    setIsLogin(middleman.isLogin);
     // ++ TODO: verify function works properly
     sync();
     interval = setInterval(sync, 100);

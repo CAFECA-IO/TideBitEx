@@ -645,6 +645,7 @@ class TibeBitConnector extends ConnectorBase {
       return new ResponseFormat({
         message,
         code: Codes.MEMBER_ID_NOT_FOUND,
+        payload:null // ++ TODO ?
       });
     }
     return new ResponseFormat({
