@@ -53,10 +53,10 @@ class DepthBook extends BookBase {
         depthBooks.bids.push([data.price, data.amount, data.total]);
       }
     });
-    // this.logger.log(
-    //   `[${this.constructor.name}] getSnapshot[${instId}]`,
-    //   depthBooks
-    // );
+    this.logger.log(
+      `[${this.constructor.name}] getSnapshot[${instId}]`,
+      depthBooks
+    );
     return depthBooks;
   }
 

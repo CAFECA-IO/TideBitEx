@@ -16,13 +16,13 @@ const { waterfallPromise } = require("../Utils");
 const HEART_BEAT_TIME = 25000;
 
 class OkexConnector extends ConnectorBase {
-  _tickersUpdateInterval = 0;
-  _booksUpdateInterval = 300;
-  _tradesUpdateInterval = 300;
+  // _tickersUpdateInterval = 0;
+  // _booksUpdateInterval = 300;
+  // _tradesUpdateInterval = 300;
 
-  _tickersTimestamp = 0;
-  _booksTimestamp = 0;
-  _tradesTimestamp = 0;
+  // _tickersTimestamp = 0;
+  // _booksTimestamp = 0;
+  // _tradesTimestamp = 0;
 
   tickers = {};
   // okexWsChannels = {};
@@ -1281,11 +1281,11 @@ class OkexConnector extends ConnectorBase {
       this.logger.error(`_updateBooks`, error);
     }
 
-    const timestamp = Date.now();
-    if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
-      this._booksTimestamp = timestamp;
+    // const timestamp = Date.now();
+    // if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
+    //   this._booksTimestamp = timestamp;
       EventBus.emit(Events.update, market, this.depthBook.getSnapshot(instId));
-    }
+    // }
   }
 
   _updateCandle(instId, channel, candleData) {
@@ -1543,8 +1543,8 @@ class OkexConnector extends ConnectorBase {
       this.logger.log(`_subscribeMarket instId`, instId);
       this.logger.log(`_subscribeMarket market`, market);
 
-      this._booksTimestamp = 0;
-      this._tradesTimestamp = 0;
+      // this._booksTimestamp = 0;
+      // this._tradesTimestamp = 0;
 
       this._subscribeTrades(instId);
       this._subscribeBook(instId);

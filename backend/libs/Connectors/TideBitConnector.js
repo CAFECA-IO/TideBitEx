@@ -12,15 +12,15 @@ const Codes = require("../../constants/Codes");
 const TideBitLegacyAdapter = require("../TideBitLegacyAdapter");
 
 class TibeBitConnector extends ConnectorBase {
-  _accountsUpdateInterval = 0;
-  _tickersUpdateInterval = 0;
-  _booksUpdateInterval = 500;
-  _tradesUpdateInterval = 500;
+  // _accountsUpdateInterval = 0;
+  // _tickersUpdateInterval = 0;
+  // _booksUpdateInterval = 500;
+  // _tradesUpdateInterval = 500;
 
-  _accountsTimestamp = 0;
-  _tickersTimestamp = 0;
-  _booksTimestamp = 0;
-  _tradesTimestamp = 0;
+  // _accountsTimestamp = 0;
+  // _tickersTimestamp = 0;
+  // _booksTimestamp = 0;
+  // _tradesTimestamp = 0;
 
   isStart = false;
 
@@ -447,11 +447,11 @@ class TibeBitConnector extends ConnectorBase {
       }
     });
     this.depthBook.updateByDifference(instId, difference);
-    const timestamp = Date.now();
-    if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
-      this._booksTimestamp = timestamp;
+    // const timestamp = Date.now();
+    // if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
+    //   this._booksTimestamp = timestamp;
       EventBus.emit(Events.update, market, this.depthBook.getSnapshot(instId));
-    }
+    // }
   }
 
   /**
@@ -542,14 +542,14 @@ class TibeBitConnector extends ConnectorBase {
     */
     const instId = this._findInstId(market);
     this.tradeBook.updateByDifference(instId, { add: data.trades });
-    const timestamp = Date.now();
-    if (timestamp - this._tradesTimestamp > this._tradesUpdateInterval) {
-      this._tradesTimestamp = timestamp;
+    // const timestamp = Date.now();
+    // if (timestamp - this._tradesTimestamp > this._tradesUpdateInterval) {
+    //   this._tradesTimestamp = timestamp;
       EventBus.emit(Events.trades, market, {
         market,
         trades: this.tradeBook.getSnapshot(instId),
       });
-    }
+    // }
   }
 
   /* 
@@ -1319,9 +1319,9 @@ class TibeBitConnector extends ConnectorBase {
     if (
       this._findSource(this._findInstId(market)) === SupportedExchange.TIDEBIT
     ) {
-      this.books = null;
-      this._booksTimestamp = 0;
-      this._tradesTimestamp = 0;
+      // this.books = null;
+      // this._booksTimestamp = 0;
+      // this._tradesTimestamp = 0;
 
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeMarket [START] ++++++`
