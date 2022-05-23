@@ -35,9 +35,9 @@ class AccountBook extends BookBase {
    */
   _compareFunction(valueA, valueB) {
     return (
-      valueA.currency === valueB.currency &&
-      (!SafeMath.eq(valueA.balance, valueB.balance) ||
-        !SafeMath.eq(valueA.locked, valueB.locked))
+      valueA?.currency === valueB.currency &&
+      (!SafeMath.eq(valueA?.balance, valueB.balance) ||
+        !SafeMath.eq(valueA?.locked, valueB.locked))
     );
   }
 
