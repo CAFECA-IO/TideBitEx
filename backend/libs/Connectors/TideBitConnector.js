@@ -652,9 +652,13 @@ class TibeBitConnector extends ConnectorBase {
         payload: null, // ++ TODO ?
       });
     }
+    this.logger.log(
+      `[${this.constructor.name}] getAccounts accounts`,
+      this.accountBook.getSnapshot()
+    );
     return new ResponseFormat({
       message: "getAccounts",
-      payload: this.accountBook.getSnapshot(),
+      payload: this.accountBook.getSnapshot(memberId),
     });
   }
 
