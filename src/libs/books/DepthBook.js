@@ -98,7 +98,7 @@ class DepthBook extends BookBase {
   }
 
   updateAll(market, data) {
-    console.log(`[DepthBook updateAll]`, market, data);
+    // console.log(`[DepthBook updateAll]`, market, data);
     return super.updateAll(market, this._formateBooks(data));
   }
 }

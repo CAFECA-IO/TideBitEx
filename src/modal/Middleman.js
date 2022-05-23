@@ -420,7 +420,7 @@ class Middleman {
     return this.tickers;
   }
 
-   getTrades(market) {
+  getTrades(market) {
     if (!market) market = this.tickerBook.getCurrentTicker()?.market;
     return this.tradeBook.getSnapshot(market);
   }
@@ -435,7 +435,7 @@ class Middleman {
     }
   }
 
-   getBooks(market) {
+  getBooks(market) {
     if (!market) market = this.tickerBook.getCurrentTicker()?.market;
     // console.log(`getBooks current market`, market)
     return this.depthBook.getSnapshot(market);
@@ -470,6 +470,7 @@ class Middleman {
         .getAccounts
         // this.selectedTicker?.instId?.replace("-", ",")
         ();
+      console.info(`_getAccounts accounts`, accounts);
       if (accounts) {
         this.isLogin = true;
         this.accountBook.updateAll(accounts);

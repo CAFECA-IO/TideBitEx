@@ -67,7 +67,7 @@ class AccountBook extends BookBase {
    * @returns
    */
   updateAll(accounts) {
-    console.log(`[AccountBook updateAll]`, accounts);
+    // console.log(`[AccountBook updateAll]`, accounts);
     this._difference = {};
     try {
       accounts.forEach((account) => {

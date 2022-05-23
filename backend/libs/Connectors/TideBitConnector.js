@@ -450,7 +450,7 @@ class TibeBitConnector extends ConnectorBase {
     // const timestamp = Date.now();
     // if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
     //   this._booksTimestamp = timestamp;
-      EventBus.emit(Events.update, market, this.depthBook.getSnapshot(instId));
+    EventBus.emit(Events.update, market, this.depthBook.getSnapshot(instId));
     // }
   }
 
@@ -545,10 +545,10 @@ class TibeBitConnector extends ConnectorBase {
     // const timestamp = Date.now();
     // if (timestamp - this._tradesTimestamp > this._tradesUpdateInterval) {
     //   this._tradesTimestamp = timestamp;
-      EventBus.emit(Events.trades, market, {
-        market,
-        trades: this.tradeBook.getSnapshot(instId),
-      });
+    EventBus.emit(Events.trades, market, {
+      market,
+      trades: this.tradeBook.getSnapshot(instId),
+    });
     // }
   }
 
@@ -638,14 +638,18 @@ class TibeBitConnector extends ConnectorBase {
       }));
 
       // this.accounts = accounts;
+      this.logger.log(
+        `[${this.constructor.name}] getAccounts accounts`,
+        accounts
+      );
       this.accountBook.updateAll(memberId, accounts);
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error(`[${this.constructor.name}] getAccounts error`, error);
       const message = error.message;
       return new ResponseFormat({
         message,
         code: Codes.MEMBER_ID_NOT_FOUND,
-        payload:null // ++ TODO ?
+        payload: null, // ++ TODO ?
       });
     }
     return new ResponseFormat({
