@@ -5,12 +5,6 @@ const users = {};
 let userGCInterval = 86400 * 1000;
 
 class TideBitLegacyAdapter {
-  constructor({ config }) {
-    this.config = config;
-    this.name = `TideBitLegacyAdapter`;
-    return this;
-  }
-
   static usersGC() {
     // ++ removeUser //++ gc behavior （timer 清理）
     Object.keys(users).forEach((key) => {
@@ -27,7 +21,7 @@ class TideBitLegacyAdapter {
     }
     const peatioToken = Utils.peatioToken(ctx.header);
     console.log(
-      `[${this.constructor.name} TideBitLegacyAdapter parseMemberId] peatioToken`,
+      `[TideBitLegacyAdapter parseMemberId] peatioToken`,
       peatioToken
     );
     if (!peatioToken) {
