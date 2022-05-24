@@ -91,7 +91,10 @@ class WSChannel extends Bot {
                 this._onOpStatusUpdate(req.headers, ws, args);
                 break;
               case "switchMarket":
-                this.logger.log(`[${this.constructor.name} _onOpSwitchMarket]`, args)
+                this.logger.log(
+                  `[${this.constructor.name} _onOpSwitchMarket]`,
+                  args
+                );
                 this._onOpSwitchMarket(ws, args);
                 break;
               default:
@@ -148,7 +151,7 @@ class WSChannel extends Bot {
   // ++ CURRENT_USER UNSAVED
   _onOpStatusUpdate(headers, ws, args) {
     const findClient = this._client[ws.id];
-    const token = Utils.peatioToken(headers);
+    const peatioToken = Utils.peatioToken(headers);
     if (!findClient.isStart) {
       findClient.channel = args.market;
       findClient.isStart = true;
@@ -158,7 +161,7 @@ class WSChannel extends Bot {
         this._channelClients[args.market] = {};
       }
       if (Object.values(this._channelClients[args.market]).length === 0) {
-        if (args.token) {
+        if (peatioToken && args.token) {
           EventBus.emit(Events.userOnSubscribe, {
             headers: {
               cookie: headers.cookie,
@@ -166,7 +169,7 @@ class WSChannel extends Bot {
               "x-csrf-token": args.token,
             },
             market: args.market,
-            token,
+            peatioToken,
             wsId: ws.id,
           });
         } else
@@ -192,7 +195,7 @@ class WSChannel extends Bot {
               "x-csrf-token": args.token,
             },
             market: args.market,
-            token,
+            peatioToken,
             wsId: ws.id,
           });
         } else

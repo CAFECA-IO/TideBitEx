@@ -84,59 +84,6 @@ class TibeBitConnector extends ConnectorBase {
     return this;
   }
 
-  // ++ move to utils
-  async getMemberIdFromRedis(peatioSession) {
-    const client = redis.createClient({
-      url: this.redis,
-    });
-
-    client.on("error", (err) => this.logger.error("Redis Client Error", err));
-
-    try {
-      await client.connect(); // 會因為連線不到卡住
-      const value = await client.get(
-        redis.commandOptions({ returnBuffers: true }),
-        peatioSession
-      );
-      await client.quit();
-      // ++ TODO: 下面補error handle
-      this.logger.log(
-        `[${this.constructor.name} getMemberIdFromRedis] value:`,
-        value
-      );
-      this.logger.log(
-        `[${this.constructor.name} getMemberIdFromRedis] value.toString("latin1"):`,
-        value.toString("latin1")
-      );
-      const split1 = value
-        .toString("latin1")
-        .split("member_id\x06:\x06EFi\x02");
-      this.logger.log(
-        `[${this.constructor.name} getMemberIdFromRedis] split1:`,
-        split1
-      );
-      if (split1.length > 0) {
-        const memberIdLatin1 = split1[1].split('I"')[0];
-        const memberIdString = Buffer.from(memberIdLatin1, "latin1")
-          .reverse()
-          .toString("hex");
-        const memberId = parseInt(memberIdString, 16);
-        return memberId;
-      } else return -1;
-    } catch (error) {
-      this.logger.log(
-        `[${this.constructor.name} getMemberIdFromRedis] error: "get member_id fail`,
-        error
-      );
-      try {
-        await client.quit();
-        return -1;
-      } catch (error) {
-        return -1;
-      }
-    }
-  }
-
   async getTicker({ query, optional }) {
     const tBTickerRes = await axios.get(
       `${this.peatio}/api/v2/tickers/${query.id}`
@@ -1300,7 +1247,7 @@ class TibeBitConnector extends ConnectorBase {
         `++++++++ [${this.constructor.name}]  _subscribeUser [START] ++++++`
       );
       this.logger.log(`_subscribeUser credential`, credential);
-      const memberId = await this.getMemberIdFromRedis(credential.token);
+      const memberId = await Utils.getMemberIdFromRedis(credential.peatioToken);
       if (memberId !== -1) {
         const member = await this.database.getMemberById(memberId);
         this._startPusherWithLoginToken(credential.headers, credential.wsId);
