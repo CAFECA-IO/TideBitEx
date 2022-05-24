@@ -34,6 +34,7 @@ class TideBitWS {
     );
   }
 
+  // TODO !!!IMPORTANT WS dont touch libraries data only middleman can alter libraries data
   messageHandler(msg) {
     let metaData = JSON.parse(msg.data);
     switch (metaData.type) {
