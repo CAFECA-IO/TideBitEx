@@ -24,6 +24,10 @@ class Middleman {
       tradeBook: this.tradeBook,
     });
     this.communicator = new Communicator();
+    // -- TEST
+    window.middleman = this;
+    // -- TEST
+    return this;
   }
 
   async getInstruments(instType) {
@@ -152,9 +156,16 @@ class Middleman {
   }
   async cancelOrder(order) {
     if (this.isLogin) {
-      return await this.communicator.cancel(order);
+      const result = await this.communicator.cancel(order);
+      if (result.success) {
+        this.orderBook.updateByDifference(
+          this.tickerBook.getCurrentTicker()?.market,
+          { ...order, state: "cancel", state_text: "Canceled" }
+        );
+      }
     }
   }
+
   async cancelOrders(options) {
     if (this.isLogin) {
       return await this.communicator.cancelOrders(options);
