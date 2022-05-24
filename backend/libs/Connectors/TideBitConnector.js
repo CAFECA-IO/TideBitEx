@@ -817,6 +817,7 @@ class TibeBitConnector extends ConnectorBase {
       clOrdId: data.id,
       instId,
       ordType: data.price === undefined ? "market" : "limit",
+      at: parseInt(SafeMath.mult(data.at, "1000")),
       // px: data.price,
       // side: data.kind === "bid" ? "buy" : "sell",
       // sz: Utils.removeZeroEnd(
