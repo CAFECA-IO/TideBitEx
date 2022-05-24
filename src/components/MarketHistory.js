@@ -13,12 +13,8 @@ const TradeTile = (props) => {
       trade-id={props.trade.id}
     >
       <div className="market-history__tile--time">
-        <span>
-          {dateFormatter(parseInt(SafeMath.mult(props.trade.at, "1000"))).time}
-        </span>
-        <span>
-          {dateFormatter(parseInt(SafeMath.mult(props.trade.at, "1000"))).date}
-        </span>
+        <span>{dateFormatter(parseInt(props.trade.at)).time}</span>
+        <span>{dateFormatter(parseInt(props.trade.at)).date}</span>
       </div>
       <div
         className={`market-history__tile--data ${

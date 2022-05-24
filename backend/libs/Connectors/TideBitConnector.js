@@ -420,8 +420,13 @@ class TibeBitConnector extends ConnectorBase {
             code: Codes.API_UNKNOWN_ERROR,
           });
         }
-        // ++ TODO: verify function works properly
-        this.tradeBook.updateAll(instId, tbTradesRes.data);
+        this.tradeBook.updateAll(
+          instId,
+          tbTradesRes.data.map((d) => ({
+            ...d,
+            at: parseInt(SafeMath.mult(d.at, "1000")),
+          }))
+        );
         this.fetchedTrades[instId] = true;
       } catch (error) {
         this.logger.error(error);
@@ -928,19 +933,20 @@ class TibeBitConnector extends ConnectorBase {
         "x-csrf-token": body["X-CSRF-Token"],
         cookie: header.cookie,
       };
+      this.logger.log(`cancelAllAsks headers`, headers);
       const tbCancelOrderRes = await axios({
         method: "post",
         url,
         headers,
       });
+      this.logger.log(`cancelAllAsks tbCancelOrderRes`, tbCancelOrderRes);
       return new ResponseFormat({
         message: "cancelAllAsks",
         code: Codes.SUCCESS,
         payload: tbCancelOrderRes.data,
       });
     } catch (error) {
-      this.logger.error(error);
-      // debug for postman so return error
+      this.logger.error(`cancelAllAsks error`, error);
       return new ResponseFormat({
         message: "cancelAllAsks error",
         code: Codes.UNKNOWN_ERROR,
@@ -957,19 +963,20 @@ class TibeBitConnector extends ConnectorBase {
         "x-csrf-token": body["X-CSRF-Token"],
         cookie: header.cookie,
       };
+      this.logger.log(`cancelAllBids headers`, headers);
       const tbCancelOrderRes = await axios({
         method: "post",
         url,
         headers,
       });
+      this.logger.log(`cancelAllBids tbCancelOrderRes`, tbCancelOrderRes);
       return new ResponseFormat({
         message: "cancelAllBids",
         code: Codes.SUCCESS,
         payload: tbCancelOrderRes.data,
       });
     } catch (error) {
-      this.logger.error(error);
-      // debug for postman so return error
+      this.logger.error(`cancelAllBids error`, error);
       return new ResponseFormat({
         message: "cancelAllBids error",
         code: Codes.UNKNOWN_ERROR,
@@ -986,19 +993,20 @@ class TibeBitConnector extends ConnectorBase {
         "x-csrf-token": body["X-CSRF-Token"],
         cookie: header.cookie,
       };
+      this.logger.log(`cancelAllOrders headers`, headers);
       const tbCancelOrderRes = await axios({
         method: "post",
         url,
         headers,
       });
+      this.logger.log(`cancelAllOrders tbCancelOrderRes`, tbCancelOrderRes);
       return new ResponseFormat({
         message: "cancelAll",
         code: Codes.SUCCESS,
         payload: tbCancelOrderRes.data,
       });
     } catch (error) {
-      this.logger.error(error);
-      // debug for postman so return error
+      this.logger.error(`cancelAllOrders error`, error);
       return new ResponseFormat({
         message: "cancelAll error",
         code: Codes.UNKNOWN_ERROR,
