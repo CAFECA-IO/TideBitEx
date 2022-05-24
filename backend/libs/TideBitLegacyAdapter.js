@@ -5,10 +5,8 @@ const users = {};
 let userGCInterval = 86400 * 1000;
 
 class TideBitLegacyAdapter {
-  constructor({ config, database, logger }) {
+  constructor({ config }) {
     this.config = config;
-    this.database = database;
-    this.logger = logger;
     this.name = `TideBitLegacyAdapter`;
     return this;
   }
@@ -28,8 +26,8 @@ class TideBitLegacyAdapter {
       TideBitLegacyAdapter.usersGC();
     }
     const peatioToken = Utils.peatioToken(ctx.header);
-    this.logger.log(
-      `[${this.constructor.name} parseMemberId] peatioToken`,
+    console.log(
+      `[${this.constructor.name} TideBitLegacyAdapter parseMemberId] peatioToken`,
       peatioToken
     );
     if (!peatioToken) {
@@ -44,7 +42,7 @@ class TideBitLegacyAdapter {
           if (memberId !== -1) {
             users[peatioToken] = { memberId, ts: Date.now() };
           }
-          this.logger.log(
+          console.log(
             `[${this.constructor.name} parseMemberId] memberId`,
             memberId
           );
