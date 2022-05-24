@@ -6,22 +6,11 @@ const EventBus = require("../EventBus");
 const Events = require("../../constants/Events");
 const SupportedExchange = require("../../constants/SupportedExchange");
 const Utils = require("../Utils");
-const redis = require("redis");
 const ResponseFormat = require("../ResponseFormat");
 const Codes = require("../../constants/Codes");
 const TideBitLegacyAdapter = require("../TideBitLegacyAdapter");
 
 class TibeBitConnector extends ConnectorBase {
-  // _accountsUpdateInterval = 0;
-  // _tickersUpdateInterval = 0;
-  // _booksUpdateInterval = 500;
-  // _tradesUpdateInterval = 500;
-
-  // _accountsTimestamp = 0;
-  // _tickersTimestamp = 0;
-  // _booksTimestamp = 0;
-  // _tradesTimestamp = 0;
-
   isStart = false;
 
   public_pusher = null;
@@ -34,10 +23,6 @@ class TibeBitConnector extends ConnectorBase {
   fetchedTrades = {};
   fetchedBook = {};
   fetchedOrders = {};
-
-  // tickers = {};
-  trades = [];
-  books = null;
 
   constructor({ logger }) {
     super({ logger });
@@ -814,46 +799,44 @@ class TibeBitConnector extends ConnectorBase {
     // ++ TODO
     // formatOrder
     this.logger.log(
-      `---------- [${this.constructor.name}]  _updateOrder this.market: ${this.market} [START] ----------`
+      `---------- [${this.constructor.name}]  _updateOrder [START] ----------`
     );
-    this.logger.log(` this.market: ${this.market}`);
     this.logger.log(`[FROM TideBit] orderData`, data);
     let instId = this._findInstId(data.market);
-    if (data.market === this.market) {
-      const formatOrder = {
-        ...data,
-        // ordId: data.id,
-        clOrdId: data.id,
-        instId,
-        ordType: data.price === undefined ? "market" : "limit",
-        // px: data.price,
-        // side: data.kind === "bid" ? "buy" : "sell",
-        // sz: Utils.removeZeroEnd(
-        //   SafeMath.eq(data.volume, "0") ? data.origin_volume : data.volume
-        // ),
-        filled: data.volume !== data.origin_volume,
-        // state:
-        //   data.state === "wait"
-        //     ? "wait"
-        //     : SafeMath.eq(data.volume, "0")
-        //     ? "done"
-        //     : "canceled",
-      };
-      this.logger.log(
-        `[TO FRONTEND][OnEvent: ${Events.order}] updateOrder`,
-        formatOrder
-      );
-      this.orderBook.updateByDifference(memberId, instId, {
-        add: [formatOrder],
-      });
-      EventBus.emit(Events.order, data.market, {
-        market: data.market,
-        difference: this.orderBook.getDifference(memberId, instId),
-      });
-      this.logger.log(
-        `---------- [${this.constructor.name}]  _updateOrder market: ${data.market} [END] ----------`
-      );
-    }
+
+    const formatOrder = {
+      ...data,
+      // ordId: data.id,
+      clOrdId: data.id,
+      instId,
+      ordType: data.price === undefined ? "market" : "limit",
+      // px: data.price,
+      // side: data.kind === "bid" ? "buy" : "sell",
+      // sz: Utils.removeZeroEnd(
+      //   SafeMath.eq(data.volume, "0") ? data.origin_volume : data.volume
+      // ),
+      filled: data.volume !== data.origin_volume,
+      // state:
+      //   data.state === "wait"
+      //     ? "wait"
+      //     : SafeMath.eq(data.volume, "0")
+      //     ? "done"
+      //     : "canceled",
+    };
+    this.logger.log(
+      `[TO FRONTEND][OnEvent: ${Events.order}] updateOrder`,
+      formatOrder
+    );
+    this.orderBook.updateByDifference(memberId, instId, {
+      add: [formatOrder],
+    });
+    EventBus.emit(Events.order, data.market, {
+      market: data.market,
+      difference: this.orderBook.getDifference(memberId, instId),
+    });
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateOrder [END] ----------`
+    );
   }
 
   async postPlaceOrder({ header, body }) {
