@@ -1217,6 +1217,11 @@ class OkexConnector extends ConnectorBase {
 
   // ++ TODO: verify function works properly
   async _updateTrades(instId, newTrades) {
+    this.logger.debug(
+      `[${this.constructor.name}]_updateTrades`,
+      instId,
+      newTrades
+    );
     try {
       const market = instId.replace("-", "").toLowerCase();
       this.tradeBook.updateByDifference(instId, {
@@ -1284,7 +1289,7 @@ class OkexConnector extends ConnectorBase {
     // const timestamp = Date.now();
     // if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
     //   this._booksTimestamp = timestamp;
-      EventBus.emit(Events.update, market, this.depthBook.getSnapshot(instId));
+    EventBus.emit(Events.update, market, this.depthBook.getSnapshot(instId));
     // }
   }
 

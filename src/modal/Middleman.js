@@ -360,7 +360,7 @@ class Middleman {
     return await this.communicator.getUsersAccounts(exchange);
   }
 
-  async getMyOrders(market) {
+  getMyOrders(market) {
     if (!market) market = this.tickerBook.getCurrentTicker()?.market;
     return this.orderBook.getSnapshot(market);
   }

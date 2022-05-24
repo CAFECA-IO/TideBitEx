@@ -525,6 +525,16 @@ class TibeBitConnector extends ConnectorBase {
     );
   }
 
+  _formateTrade(market, trade) {
+    return {
+      id: trade.tid,
+      at: trade.date,
+      price: trade.price,
+      volume: trade.amount,
+      market,
+    };
+  }
+
   // ++ TODO: verify function works properly
   _updateTrades(market, data) {
     /**
@@ -541,7 +551,9 @@ class TibeBitConnector extends ConnectorBase {
     }
     */
     const instId = this._findInstId(market);
-    this.tradeBook.updateByDifference(instId, { add: data.trades });
+    this.tradeBook.updateByDifference(instId, {
+      add: data.trades.map((trade) => this._formateTrade(market, trade)),
+    });
     // const timestamp = Date.now();
     // if (timestamp - this._tradesTimestamp > this._tradesUpdateInterval) {
     //   this._tradesTimestamp = timestamp;
