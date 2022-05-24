@@ -30,7 +30,7 @@ class OrderBook extends BookBase {
   getSnapshot(market) {
     const pendingOrders = [];
     const closedOrders = [];
-    this._snapshot[market].forEach((order) => {
+    this._snapshot[market]?.forEach((order) => {
       if (order.state === "wait") pendingOrders.push(order);
       if (order.state === "canceled" || order.state === "done")
         closedOrders.push(order);
