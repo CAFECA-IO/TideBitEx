@@ -740,6 +740,7 @@ class Utils {
         return memberId;
       } else return -1;
     } catch (error) {
+      this.logger.error(`getMemberIdFromRedis error`, error)
       try {
         await client.quit();
         return -1;

@@ -9,6 +9,7 @@ class TideBitLegacyAdapter {
     this.config = config;
     this.database = database;
     this.logger = logger;
+    this.name = `TideBitLegacyAdapter`;
     return this;
   }
 
@@ -23,12 +24,14 @@ class TideBitLegacyAdapter {
 
   // ++ middleware
   static async parseMemberId(ctx, next) {
-    // console.log(`parseMemberId ctx.header`, ctx.header);
     if (Math.random() < 0.01) {
       TideBitLegacyAdapter.usersGC();
     }
     const peatioToken = Utils.peatioToken(ctx.header);
-    // console.log(`parseMemberId peatioToken`, peatioToken);
+    this.logger.log(
+      `[${this.constructor.name} parseMemberId] peatioToken`,
+      peatioToken
+    );
     if (!peatioToken) {
       ctx.memberId = -1;
     } else {
@@ -41,6 +44,10 @@ class TideBitLegacyAdapter {
           if (memberId !== -1) {
             users[peatioToken] = { memberId, ts: Date.now() };
           }
+          this.logger.log(
+            `[${this.constructor.name} parseMemberId] memberId`,
+            memberId
+          );
           ctx.memberId = memberId;
         } catch (error) {
           console.error(`parseMemberId getMemberIdFromRedis error`, error);

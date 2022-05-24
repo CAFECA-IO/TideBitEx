@@ -750,18 +750,18 @@ class TibeBitConnector extends ConnectorBase {
     );
     if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = [];
     // if (!this.fetchedOrders[memberId].some((_instId) => _instId === instId)) {
-      try {
-        const orders = await this.tbGetOrderList(query);
-        this.orderBook.updateAll(memberId, instId, orders);
-        this.fetchedOrders[memberId].push(instId);
-      } catch (error) {
-        this.logger.error(error);
-        const message = error.message;
-        return new ResponseFormat({
-          message,
-          code: Codes.API_UNKNOWN_ERROR,
-        });
-      }
+    try {
+      const orders = await this.tbGetOrderList(query);
+      this.orderBook.updateAll(memberId, instId, orders);
+      this.fetchedOrders[memberId].push(instId);
+    } catch (error) {
+      this.logger.error(error);
+      const message = error.message;
+      return new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
     // }
     return new ResponseFormat({
       message: "getOrderList",
@@ -1247,13 +1247,14 @@ class TibeBitConnector extends ConnectorBase {
         `++++++++ [${this.constructor.name}]  _subscribeUser [START] ++++++`
       );
       this.logger.log(`_subscribeUser credential`, credential);
-      const memberId = await Utils.getMemberIdFromRedis(credential.peatioToken);
-      if (memberId !== -1) {
-        const member = await this.database.getMemberById(memberId);
+      // const memberId = await Utils.getMemberIdFromRedis(credential.peatioToken);
+      this.logger.log(`_subscribeUser memberId`, credential.memberId);
+      if (credential.memberId !== -1) {
+        const member = await this.database.getMemberById(credential.memberId);
         this._startPusherWithLoginToken(credential.headers, credential.wsId);
         await this._registerPrivateChannel(
           credential.wsId,
-          memberId,
+          credential.memberId,
           member.sn
         );
       }
@@ -1321,10 +1322,10 @@ class TibeBitConnector extends ConnectorBase {
       );
       this.logger.error(`_unsubscribeMarket market, wsId`, market, wsId);
       this._unregisterMarketChannel(market, wsId);
+      this.logger.log(
+        `---------- [${this.constructor.name}]  _unsubscribeMarket [END] ----------`
+      );
     }
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _unsubscribeMarket [END] ----------`
-    );
   }
 
   _findInstId(id) {
