@@ -233,6 +233,7 @@ const StoreProvider = (props) => {
         });
         return result;
       } catch (error) {
+        console.error(`cancelOrders error`, error);
         enqueueSnackbar(
           `${error?.message || "Some went wrong"}. Failed to cancel orders`,
           {
