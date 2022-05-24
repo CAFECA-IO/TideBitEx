@@ -2,7 +2,6 @@ import React, { useContext } from "react";
 import StoreContext from "../store/store-context";
 import { dateFormatter, formateDecimal } from "../utils/Utils";
 import { useTranslation } from "react-i18next";
-import SafeMath from "../utils/SafeMath";
 
 const TradeTile = (props) => {
   return (
