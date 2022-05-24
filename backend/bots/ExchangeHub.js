@@ -504,13 +504,13 @@ class ExchangeHub extends Bot {
     this.logger.log(
       `[${this.constructor.name} getOrderList] memberId:`,
       memberId,
-      `query`,
-      query
+      // `query`,
+      // query
     );
     const instId = this._findInstId(query.market);
-    this.logger.log(`[${this.constructor.name} getOrderList] instId:`, instId);
+    // this.logger.log(`[${this.constructor.name} getOrderList] instId:`, instId);
     const market = this._findMarket(instId);
-    this.logger.log(`[${this.constructor.name} getOrderList] market:`, market);
+    // this.logger.log(`[${this.constructor.name} getOrderList] market:`, market);
     if (memberId === -1) {
       // return new ResponseFormat({
       //   message: "member_id not found",
@@ -521,7 +521,7 @@ class ExchangeHub extends Bot {
         payload: null,
       });
     }
-    switch (this._findSource(query.instId)) {
+    switch (instId) {
       case SupportedExchange.OKEX:
         const res = await this.okexConnector.router("getOrderList", {
           query: {
@@ -577,7 +577,7 @@ class ExchangeHub extends Bot {
         payload: null,
       });
     }
-    switch (this._findSource(query.instId)) {
+    switch (instId) {
       case SupportedExchange.OKEX:
         const res = await this.okexConnector.router("getOrderHistory", {
           query: {
