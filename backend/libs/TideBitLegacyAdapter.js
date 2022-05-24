@@ -37,7 +37,7 @@ class TideBitLegacyAdapter {
             users[peatioToken] = { memberId, ts: Date.now() };
           }
           console.log(
-            `[${this.constructor.name} parseMemberId] memberId`,
+            `[TideBitLegacyAdapter parseMemberId] memberId`,
             memberId
           );
           ctx.memberId = memberId;
