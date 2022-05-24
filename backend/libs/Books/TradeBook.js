@@ -66,11 +66,11 @@ class TradeBook extends BookBase {
    * @param {Difference} difference
    */
   updateByDifference(instId, difference) {
-    this.logger.debug(
-      `[${this.constructor.name}]updateByDifference`,
-      instId,
-      difference
-    );
+    // this.logger.debug(
+    //   `[${this.constructor.name}]updateByDifference`,
+    //   instId,
+    //   difference
+    // );
     const add = difference.add.filter(
       (diff) => !this._snapshot[instId].some((trade) => trade.id === diff.id)
     );

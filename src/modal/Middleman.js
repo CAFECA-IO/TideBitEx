@@ -191,7 +191,7 @@ class Middleman {
         ...options,
         market,
       });
-      this.orderBook.updateByDifference(market, { add: orders });
+      if (!!orders) this.orderBook.updateByDifference(market, { add: orders });
     } catch (error) {
       console.error(`_getOrderList error`, error);
       // throw error;
@@ -204,7 +204,7 @@ class Middleman {
         ...options,
         market,
       });
-      this.orderBook.updateByDifference(market, { add: orders });
+      if (!!orders) this.orderBook.updateByDifference(market, { add: orders });
     } catch (error) {
       console.error(`_getOrderHistory error`, error);
       // throw error;
