@@ -748,7 +748,7 @@ class TibeBitConnector extends ConnectorBase {
     this.logger.log(
       `[${this.constructor.name} getOrderList${instId}] memberId ${memberId}[${this.fetchedOrders[memberId]}:`
     );
-    // if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = [];
+    if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = [];
     // if (!this.fetchedOrders[memberId].some((_instId) => _instId === instId)) {
       try {
         const orders = await this.tbGetOrderList(query);
