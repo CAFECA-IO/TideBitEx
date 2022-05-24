@@ -25,51 +25,6 @@ class Middleman {
     });
     this.communicator = new Communicator();
   }
-  /*
-  updateSelectedTicker(ticker) {
-    this.selectedTicker = ticker;
-    return this.selectedTicker;
-  }
-
-  updateTickers(tickers) {
-    let updateTicker,
-      updateTickers = this.tickers.map((t) => ({ ...t, update: false }));
-    Object.values(tickers).forEach(async (t) => {
-      const i = this.tickers.findIndex((ticker) => ticker.instId === t.instId);
-      if (i === -1) {
-        updateTickers.push({ ...t, update: true });
-      } else {
-        const ticker = {
-          ...updateTickers[i],
-          last: t.last,
-          change: t.change,
-          changePct: t.changePct,
-          open: t.open,
-          high: t.high,
-          low: t.low,
-          volume: t.volume,
-          update: true,
-        };
-        updateTickers[i] = ticker;
-        if (!!this.selectedTicker && t.instId === this.selectedTicker?.instId) {
-          updateTicker = ticker;
-        }
-      }
-    });
-    this.tickers = updateTickers;
-    return {
-      updateTicker: updateTicker,
-      updateTickers,
-    };
-  }
-
-  findTicker(id) {
-    let _ticker = this.tickers.find(
-      (ticker) => ticker.instId.replace("-", "").toLowerCase() === id
-    );
-    return _ticker;
-  }
-*/
 
   async getInstruments(instType) {
     try {
@@ -133,140 +88,7 @@ class Middleman {
     };
     return updateBooks;
   }
-  /*
-  updateBooks(rawBooks) {
-    if (rawBooks.market !== this.selectedTicker.market) return;
-    const books = this.handleBooks(rawBooks);
-    return books;
-  }
 
-  updateAllTrades = (updateData) => {
-    this.trades = updateData.trades;
-  };
-
-  updateTrades = (updateData) => {
-    if (updateData.market !== this.selectedTicker.market) return;
-    const updateTrades = updateData.trades;
-    this.updateTradesQueue = updateTrades.concat(this.updateTradesQueue);
-  };
-
-  getUpdateTrades = () => {
-    let updatedTrades = this.updateTradesQueue.map((t) => ({
-      ...t,
-      update: true,
-    }));
-
-    return {
-      updateTrades: updatedTrades.concat(this.trades).slice(0, 100),
-      updatedTrades,
-    };
-  };
-
-  updateUpdatedTradesQueue = (updatedTrades) => {
-    let _updatedTrades = updatedTrades.map((t) => {
-      let index = this.updateTradesQueue.findIndex((_t) => _t.id === t.id);
-      if (index !== -1) this.updateTradesQueue.splice(index, 1);
-      return { ...t, update: false };
-    });
-    this.trades = _updatedTrades.concat(this.trades).slice(0, 100);
-  };
-
-  updateCandles(trades, resolution) {
-    const candlesData = this.transformTradesToCandle(trades, resolution);
-    let candles = [],
-      volumes = [];
-    this.candles = Object.values(candlesData);
-    this.candles.forEach((candle) => {
-      candles.push(candle.slice(0, 5));
-      volumes.push([candle[0], candle[5]]);
-    });
-    return { candles, volumes };
-  }
-  */
-
-  /**
-   *
-   * @param {Array} trades
-   */
-  /*
-  transformTradesToCandle(trades, resolution) {
-    let interval,
-      data,
-      defaultObj = {};
-    switch (resolution) {
-      case "1m":
-        interval = 1 * 60 * 1000;
-        break;
-      case "30m":
-        interval = 30 * 60 * 1000;
-        break;
-      case "1H":
-        interval = 60 * 60 * 1000;
-        break;
-      case "1W":
-        interval = 7 * 24 * 60 * 60 * 1000;
-        break;
-      case "M":
-        interval = 30 * 24 * 60 * 60 * 1000;
-        break;
-      case "1D":
-      default:
-        interval = 24 * 60 * 60 * 1000;
-    }
-    data = trades.reduce((prev, curr) => {
-      const index = Math.floor((curr.at * 1000) / interval);
-      let point = prev[index];
-      if (point) {
-        point[2] = Math.max(point[2], +curr.price); // high
-        point[3] = Math.min(point[3], +curr.price); // low
-        point[4] = +curr.price; // close
-        point[5] += +curr.volume; // volume
-        point[6] += +curr.volume * +curr.price;
-      } else {
-        point = [
-          index * interval, // ts
-          +curr.price, // open
-          +curr.price, // high
-          +curr.price, // low
-          +curr.price, // close
-          +curr.volume, // volume
-          +curr.volume * +curr.price,
-        ];
-      }
-      prev[index] = point;
-      return prev;
-    }, defaultObj);
-
-    const now = Math.floor(new Date().getTime() / interval);
-    for (let i = 0; i < 100; i++) {
-      if (!defaultObj[now - i])
-        defaultObj[now - i] = [(now - i) * interval, 0, 0, 0, 0, 0, 0];
-    }
-
-    return Object.values(data);
-  }
-  async getCandles(instId, bar, after, before, limit) {
-    let candles = [],
-      volumes = [];
-    try {
-      const result = await this.communicator.candles(
-        instId,
-        bar,
-        after,
-        before,
-        limit
-      );
-      this.candles = result;
-      this.candles.forEach((candle) => {
-        candles.push(candle.slice(0, 5));
-        volumes.push([candle[0], candle[5]]);
-      });
-      return { candles, volumes };
-    } catch (error) {
-      throw error;
-    }
-  }
-*/
   updateOrders(data) {
     // console.log(`*&&&&&&&&&&&*Events.order*&&&&&&&&&&&**`);
     // console.log(`data`, data);
@@ -324,20 +146,7 @@ class Middleman {
       updateCloseOrders: updateCloseOrders.sort((a, b) => +b.at - +a.at),
     };
   }
-  /*
-  updateAccounts(data) {
-    const updateAccounts = this.accounts.map((account) => ({ ...account }));
-    const index = updateAccounts.findIndex(
-      (account) => account.currency === data.currency
-    );
-    if (index !== -1) {
-      updateAccounts[index] = data;
-    } else updateAccounts.push(data);
 
-    this.accounts = updateAccounts;
-    return this.accounts;
-  }
-*/
   async postOrder(order) {
     if (this.isLogin) return await this.communicator.order(order);
   }
@@ -492,11 +301,11 @@ class Middleman {
     this.tickerBook.setCurrentMarket(market);
     if (!this.tickerBook.getCurrentTicker()) await this._getTicker(market);
     await this._getBooks(market);
-    // await this._getTrades(market);
+    await this._getTrades(market);
     // if (this.isLogin) {
     // TODO to verify if user is not login would be a problem
-    // await this._getOrderList(market);
-    // await this._getOrderHistory(market);
+    await this._getOrderList(market);
+    await this._getOrderHistory(market);
     // }
   }
 

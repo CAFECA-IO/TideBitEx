@@ -27,15 +27,17 @@ class TradeBook extends BookBase {
 
   getSnapshot(market) {
     try {
-      return this._snapshot[market].map((trade) => {
-        if (
-          this._difference[market].add.some((_trade) =>
-            this._compareFunction(trade, _trade)
-          )
-        ) {
-          return { ...trade, update: true };
-        } else return trade;
-      });
+      if (this._snapshot[market])
+        return this._snapshot[market].map((trade) => {
+          if (
+            this._difference[market].add.some((_trade) =>
+              this._compareFunction(trade, _trade)
+            )
+          ) {
+            return { ...trade, update: true };
+          } else return trade;
+        });
+      else return [];
     } catch (error) {
       console.error(`[TradeBook getSnapshot]`, error);
       return false;

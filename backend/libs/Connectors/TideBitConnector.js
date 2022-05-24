@@ -469,6 +469,7 @@ class TibeBitConnector extends ConnectorBase {
     ]
     */
   async getTrades({ query }) {
+    this.logger.log(`getTrades query`, query);
     const { instId, id: market } = query;
     if (!this.fetchedTrades[instId]) {
       try {
@@ -649,7 +650,6 @@ class TibeBitConnector extends ConnectorBase {
         locked: Utils.removeZeroEnd(account.locked),
       }));
 
-      // this.accounts = accounts;
       this.logger.log(
         `[${this.constructor.name}] getAccounts accounts`,
         accounts
@@ -665,8 +665,8 @@ class TibeBitConnector extends ConnectorBase {
       });
     }
     this.logger.log(
-      `[${this.constructor.name}] getAccounts accounts`,
-      this.accountBook.getSnapshot()
+      `[${this.constructor.name}] getAccounts getSnapshot`,
+      this.accountBook.getSnapshot(memberId)
     );
     return new ResponseFormat({
       message: "getAccounts",

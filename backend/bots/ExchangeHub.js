@@ -293,21 +293,21 @@ class ExchangeHub extends Bot {
     }
   }
 
-  async getCandlesticks({ params, query }) {
-    switch (this._findSource(query.instId)) {
-      case SupportedExchange.OKEX:
-        return this.okexConnector.router("getCandlesticks", { params, query });
-      case SupportedExchange.TIDEBIT:
-        return this.tideBitConnector.router("getTrades", {
-          query: { ...query, increase: true },
-        });
-      default:
-        return new ResponseFormat({
-          message: "getCandlesticks",
-          payload: [],
-        });
-    }
-  }
+  // async getCandlesticks({ params, query }) {
+  //   switch (this._findSource(query.instId)) {
+  //     case SupportedExchange.OKEX:
+  //       return this.okexConnector.router("getCandlesticks", { params, query });
+  //     case SupportedExchange.TIDEBIT:
+  //       return this.tideBitConnector.router("getTrades", {
+  //         query: { ...query, increase: true },
+  //       });
+  //     default:
+  //       return new ResponseFormat({
+  //         message: "getCandlesticks",
+  //         payload: [],
+  //       });
+  //   }
+  // }
 
   async getTrades({ query }) {
     const instId = this._findInstId(query.id);
@@ -318,7 +318,7 @@ class ExchangeHub extends Bot {
         });
       case SupportedExchange.TIDEBIT:
         return this.tideBitConnector.router("getTrades", {
-          query,
+          query: { ...query, instId },
         });
       default:
         return new ResponseFormat({
