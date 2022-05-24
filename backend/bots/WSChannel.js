@@ -75,7 +75,7 @@ class WSChannel extends Bot {
               this.logger.error(error);
             }
 
-            if (!op || !args || !args.market) {
+            if (!op || !args) {
               ws.send(
                 JSON.stringify(
                   new ResponseFormat({
