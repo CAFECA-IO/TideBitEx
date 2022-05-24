@@ -194,7 +194,7 @@ class Middleman {
       this.orderBook.updateByDifference(market, { add: orders });
     } catch (error) {
       console.error(`_getOrderList error`, error);
-      throw error;
+      // throw error;
     }
   }
 
@@ -207,7 +207,7 @@ class Middleman {
       this.orderBook.updateByDifference(market, { add: orders });
     } catch (error) {
       console.error(`_getOrderHistory error`, error);
-      throw error;
+      // throw error;
     }
   }
 
@@ -223,7 +223,7 @@ class Middleman {
       instruments = await this.communicator.instruments(instType);
     } catch (error) {
       console.error(`get instruments error`, error);
-      throw error;
+      // throw error;
     }
     try {
       rawTickers = await this.communicator.tickers(instType, from, limit);
@@ -251,7 +251,7 @@ class Middleman {
       this.tradeBook.updateAll(id, trades);
     } catch (error) {
       console.error(`_getTrades error`, error);
-      throw error;
+      // throw error;
     }
   }
 
@@ -267,7 +267,7 @@ class Middleman {
       this.depthBook.updateAll(id, depthBook);
     } catch (error) {
       console.error(`_getBooks error`, error);
-      throw error;
+      // throw error;
     }
   }
 

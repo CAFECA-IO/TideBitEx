@@ -718,7 +718,7 @@ class Utils {
     const client = redis.createClient({
       url: this.redis,
     });
-    client.on("error", (err) => this.logger.error("Redis Client Error", err));
+    client.on("error", (err) => console.error("Redis Client Error", err));
 
     try {
       await client.connect(); // 會因為連線不到卡住
@@ -740,7 +740,7 @@ class Utils {
         return memberId;
       } else return -1;
     } catch (error) {
-      this.logger.error(`getMemberIdFromRedis error`, error)
+      console.error(`getMemberIdFromRedis error`, error);
       try {
         await client.quit();
         return -1;

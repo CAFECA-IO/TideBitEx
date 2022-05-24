@@ -151,10 +151,6 @@ class WSChannel extends Bot {
   // ++ CURRENT_USER UNSAVED
   async _onOpStatusUpdate(headers, ws, args) {
     const findClient = this._client[ws.id];
-    this.logger.log(
-      `[${this.constructor.name} _onOpStatusUpdate] findClient`,
-      findClient
-    );
     const peatioToken = Utils.peatioToken(headers);
     this.logger.log(
       `[${this.constructor.name} _onOpStatusUpdate] peatioToken`,

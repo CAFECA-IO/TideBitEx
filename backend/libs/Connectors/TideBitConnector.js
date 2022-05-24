@@ -731,10 +731,9 @@ class TibeBitConnector extends ConnectorBase {
   async getOrderList({ query }) {
     const { instId, memberId } = query;
     this.logger.log(
-      `[${this.constructor.name} getOrderList${instId}] memberId ${memberId}[${this.fetchedOrders[memberId]}:`
+      `[${this.constructor.name} getOrderList${instId}] memberId ${memberId}:`
     );
     if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = [];
-    // if (!this.fetchedOrders[memberId].some((_instId) => _instId === instId)) {
     try {
       const orders = await this.tbGetOrderList(query);
       this.orderBook.updateAll(memberId, instId, orders);
@@ -747,7 +746,6 @@ class TibeBitConnector extends ConnectorBase {
         code: Codes.API_UNKNOWN_ERROR,
       });
     }
-    // }
     return new ResponseFormat({
       message: "getOrderList",
       payload: this.orderBook.getSnapshot(memberId, instId, "pending"),
