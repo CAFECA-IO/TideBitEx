@@ -2,7 +2,7 @@ import React from "react";
 import HistoryOrder from "../components/HistoryOrder";
 import MarketHistory from "../components/MarketHistory";
 import MarketTrade from "../components/MarketTrade";
-import OrderBook from "../components/OrderBook";
+import DepthBook from "../components/DepthBook";
 import SelectedTicker from "../components/SelectedTicker";
 import TradingChart from "../components/TradingChart";
 import { ThemeConsumer } from "../context/ThemeContext";
@@ -14,7 +14,7 @@ const DesktopExchange = (props) => {
       <section className="section">
         <div className="section__container">
           <div className="section__container--left">
-            <OrderBook />
+            <DepthBook />
           </div>
           <div className="section__container--right">
             <ThemeConsumer>

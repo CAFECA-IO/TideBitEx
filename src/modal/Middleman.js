@@ -1,60 +1,33 @@
+import AccountBook from "../libs/books/AccountBook";
+import DepthBook from "../libs/books/DepthBook";
+import OrderBook from "../libs/books/OrderBook";
+import TickerBook from "../libs/books/TickerBook";
+import TradeBook from "../libs/books/TradeBook";
 import SafeMath from "../utils/SafeMath";
 import Communicator from "./Communicator";
+import WebSocket from "./WebSocket";
 
 class Middleman {
+  login = false;
   constructor() {
-    this.communicator = new Communicator();
-    this.tickers = [];
-    this.updateTradesQueue = [];
-  }
-
-  updateSelectedTicker(ticker) {
-    this.selectedTicker = ticker;
-    return this.selectedTicker;
-  }
-
-  async getTicker(market) {
-    const ticker = await this.communicator.ticker(market);
-    return ticker[market];
-  }
-
-  updateTickers(tickers) {
-    let updateTicker,
-      updateTickers = this.tickers.map((t) => ({ ...t, update: false }));
-    Object.values(tickers).forEach(async (t) => {
-      const i = this.tickers.findIndex((ticker) => ticker.instId === t.instId);
-      if (i === -1) {
-        updateTickers.push({ ...t, update: true });
-      } else {
-        const ticker = {
-          ...updateTickers[i],
-          last: t.last,
-          change: t.change,
-          changePct: t.changePct,
-          open: t.open,
-          high: t.high,
-          low: t.low,
-          volume: t.volume,
-          update: true,
-        };
-        updateTickers[i] = ticker;
-        if (!!this.selectedTicker && t.instId === this.selectedTicker?.instId) {
-          updateTicker = ticker;
-        }
-      }
+    this.name = "Middleman";
+    this.accountBook = new AccountBook();
+    this.depthBook = new DepthBook();
+    this.orderBook = new OrderBook();
+    this.tickerBook = new TickerBook();
+    this.tradeBook = new TradeBook();
+    this.websocket = new WebSocket({
+      accountBook: this.accountBook,
+      depthBook: this.depthBook,
+      orderBook: this.orderBook,
+      tickerBook: this.tickerBook,
+      tradeBook: this.tradeBook,
     });
-    this.tickers = updateTickers;
-    return {
-      updateTicker: updateTicker,
-      updateTickers,
-    };
-  }
-
-  findTicker(id) {
-    let _ticker = this.tickers.find(
-      (ticker) => ticker.instId.replace("-", "").toLowerCase() === id
-    );
-    return _ticker;
+    this.communicator = new Communicator();
+    // -- TEST
+    window.middleman = this;
+    // -- TEST
+    return this;
   }
 
   async getInstruments(instType) {
@@ -66,28 +39,6 @@ class Middleman {
       // this.instruments = [];
       throw error;
     }
-  }
-
-  async getTickers(instType, from, limit) {
-    let instruments, rawTickers;
-    try {
-      instruments = await this.communicator.instruments(instType);
-    } catch (error) {
-      console.error(`get instruments error`, error);
-      throw error;
-    }
-    try {
-      rawTickers = await this.communicator.tickers(instType, from, limit);
-      this.rawTickers = rawTickers;
-      this.tickers = Object.values(rawTickers).map((t) => {
-        let instrument = instruments.find((i) => i.instId === t.instId);
-        return { ...t, minSz: instrument?.minSz || "0.001" };
-      });
-    } catch (error) {
-      console.error(`get tickers error`, error);
-      throw error;
-    }
-    return this.tickers;
   }
 
   handleBooks(rawBooks) {
@@ -140,162 +91,6 @@ class Middleman {
       total: SafeMath.plus(totalAsks, totalBids),
     };
     return updateBooks;
-  }
-
-  updateBooks(rawBooks) {
-    if (rawBooks.market !== this.selectedTicker.market) return;
-    const books = this.handleBooks(rawBooks);
-    return books;
-  }
-
-  async getBooks(id, sz) {
-    try {
-      const rawBooks = await this.communicator.books(id, sz);
-      const books = this.handleBooks(rawBooks);
-      return books;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  updateAllTrades = (updateData) => {
-    this.trades = updateData.trades;
-  };
-
-  updateTrades = (updateData) => {
-    if (updateData.market !== this.selectedTicker.market) return;
-    const updateTrades = updateData.trades;
-    this.updateTradesQueue = updateTrades.concat(this.updateTradesQueue);
-  };
-
-  getUpdateTrades = () => {
-    let updatedTrades = this.updateTradesQueue.map((t) => ({
-      ...t,
-      update: true,
-    }));
-
-    return {
-      updateTrades: updatedTrades.concat(this.trades).slice(0, 100),
-      updatedTrades,
-    };
-  };
-
-  updateUpdatedTradesQueue = (updatedTrades) => {
-    let _updatedTrades = updatedTrades.map((t) => {
-      let index = this.updateTradesQueue.findIndex((_t) => _t.id === t.id);
-      if (index !== -1) this.updateTradesQueue.splice(index, 1);
-      return { ...t, update: false };
-    });
-    this.trades = _updatedTrades.concat(this.trades).slice(0, 100);
-  };
-
-  async getTrades(id, limit) {
-    try {
-      this.updateTradesQueue = [];
-      const trades = await this.communicator.trades(id, limit);
-      if (trades) {
-        this.trades = trades
-        // const { candles, volumes } = this.updateCandles(trades, resolution);
-        return trades;
-      }
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  updateCandles(trades, resolution) {
-    const candlesData = this.transformTradesToCandle(trades, resolution);
-    let candles = [],
-      volumes = [];
-    this.candles = Object.values(candlesData);
-    this.candles.forEach((candle) => {
-      candles.push(candle.slice(0, 5));
-      volumes.push([candle[0], candle[5]]);
-    });
-    return { candles, volumes };
-  }
-
-  /**
-   *
-   * @param {Array} trades
-   */
-  transformTradesToCandle(trades, resolution) {
-    let interval,
-      data,
-      defaultObj = {};
-    switch (resolution) {
-      case "1m":
-        interval = 1 * 60 * 1000;
-        break;
-      case "30m":
-        interval = 30 * 60 * 1000;
-        break;
-      case "1H":
-        interval = 60 * 60 * 1000;
-        break;
-      case "1W":
-        interval = 7 * 24 * 60 * 60 * 1000;
-        break;
-      case "M":
-        interval = 30 * 24 * 60 * 60 * 1000;
-        break;
-      case "1D":
-      default:
-        interval = 24 * 60 * 60 * 1000;
-    }
-    data = trades.reduce((prev, curr) => {
-      const index = Math.floor((curr.at * 1000) / interval);
-      let point = prev[index];
-      if (point) {
-        point[2] = Math.max(point[2], +curr.price); // high
-        point[3] = Math.min(point[3], +curr.price); // low
-        point[4] = +curr.price; // close
-        point[5] += +curr.volume; // volume
-        point[6] += +curr.volume * +curr.price;
-      } else {
-        point = [
-          index * interval, // ts
-          +curr.price, // open
-          +curr.price, // high
-          +curr.price, // low
-          +curr.price, // close
-          +curr.volume, // volume
-          +curr.volume * +curr.price,
-        ];
-      }
-      prev[index] = point;
-      return prev;
-    }, defaultObj);
-
-    const now = Math.floor(new Date().getTime() / interval);
-    for (let i = 0; i < 100; i++) {
-      if (!defaultObj[now - i])
-        defaultObj[now - i] = [(now - i) * interval, 0, 0, 0, 0, 0, 0];
-    }
-
-    return Object.values(data);
-  }
-
-  async getCandles(instId, bar, after, before, limit) {
-    let candles = [],
-      volumes = [];
-    try {
-      const result = await this.communicator.candles(
-        instId,
-        bar,
-        after,
-        before,
-        limit
-      );
-      this.candles = result;
-      this.candles.forEach((candle) => {
-        candles.push(candle.slice(0, 5));
-        volumes.push([candle[0], candle[5]]);
-      });
-      return { candles, volumes };
-    } catch (error) {
-      throw error;
-    }
   }
 
   updateOrders(data) {
@@ -356,69 +151,25 @@ class Middleman {
     };
   }
 
-  async getOrderList(options) {
-    if (this.isLogin) {
-      const orders = await this.communicator.getOrderList({
-        ...options,
-        instId: this.selectedTicker?.instId,
-      });
-      this.pendingOrders = orders;
-      return this.pendingOrders;
-    }
-  }
-
-  async getOrderHistory(options) {
-    if (this.isLogin) {
-      const orders = await this.communicator.getOrderHistory({
-        ...options,
-        instId: this.selectedTicker?.instId,
-      });
-      this.closeOrders = orders;
-      return this.closeOrders;
-    }
-  }
-
-  updateAccounts(data) {
-    const updateAccounts = this.accounts.map((account) => ({ ...account }));
-    const index = updateAccounts.findIndex(
-      (account) => account.currency === data.currency
-    );
-    if (index !== -1) {
-      updateAccounts[index] = data;
-    } else updateAccounts.push(data);
-
-    this.accounts = updateAccounts;
-    return this.accounts;
-  }
-
-  async getAccounts() {
-    try {
-      const result = await this.communicator.getAccounts(
-        this.selectedTicker?.instId?.replace("-", ",")
-      );
-      this.accounts = result;
-      if (this.accounts) this.isLogin = true;
-    } catch (error) {
-      this.isLogin = false;
-    }
-  }
-
   async postOrder(order) {
     if (this.isLogin) return await this.communicator.order(order);
   }
   async cancelOrder(order) {
     if (this.isLogin) {
-      return await this.communicator.cancel(order);
+      const result = await this.communicator.cancel(order);
+      if (result.success) {
+        this.orderBook.updateByDifference(
+          this.tickerBook.getCurrentTicker()?.market,
+          { ...order, state: "cancel", state_text: "Canceled" }
+        );
+      }
     }
   }
+
   async cancelOrders(options) {
     if (this.isLogin) {
       return await this.communicator.cancelOrders(options);
     }
-  }
-
-  async getCSRTToken() {
-    return await this.communicator.CSRFTokenRenew();
   }
 
   async getExAccounts(exchange) {
@@ -429,13 +180,157 @@ class Middleman {
     return await this.communicator.getUsersAccounts(exchange);
   }
 
-  // connectWS(callback){
-  //   return this.communicator.connectWS(callback)
-  // }
+  getMyOrders(market) {
+    if (!market) market = this.tickerBook.getCurrentTicker()?.market;
+    return this.orderBook.getSnapshot(market);
+  }
 
-  // sendMsg(op, args, needAuth){
-  //   return this.sendMsg(op, args, needAuth)
-  // }
+  async _getOrderList(market, options = {}) {
+    try {
+      const orders = await this.communicator.getOrderList({
+        ...options,
+        market,
+      });
+      if (!!orders) this.orderBook.updateByDifference(market, { add: orders });
+    } catch (error) {
+      console.error(`_getOrderList error`, error);
+      // throw error;
+    }
+  }
+
+  async _getOrderHistory(market, options = {}) {
+    try {
+      const orders = await this.communicator.getOrderHistory({
+        ...options,
+        market,
+      });
+      if (!!orders) this.orderBook.updateByDifference(market, { add: orders });
+    } catch (error) {
+      console.error(`_getOrderHistory error`, error);
+      // throw error;
+    }
+  }
+
+  getTickers() {
+    return Object.values(this.tickerBook.getSnapshot());
+  }
+
+  async _getTickers(instType = "SPOT", from, limit) {
+    let instruments,
+      rawTickers,
+      tickers = {};
+    try {
+      instruments = await this.communicator.instruments(instType);
+    } catch (error) {
+      console.error(`get instruments error`, error);
+      // throw error;
+    }
+    try {
+      rawTickers = await this.communicator.tickers(instType, from, limit);
+      Object.values(rawTickers).forEach((t) => {
+        let instrument = instruments.find((i) => i.instId === t.instId);
+        const ticker = { ...t, minSz: instrument?.minSz || "0.001" };
+        tickers[ticker.instId] = ticker;
+      });
+      this.tickerBook.updateAll(tickers);
+    } catch (error) {
+      console.error(`get tickers error`, error);
+      throw error;
+    }
+    return this.tickers;
+  }
+
+  getTrades(market) {
+    if (!market) market = this.tickerBook.getCurrentTicker()?.market;
+    return this.tradeBook.getSnapshot(market);
+  }
+
+  async _getTrades(id, limit) {
+    try {
+      const trades = await this.communicator.trades(id, limit);
+      this.tradeBook.updateAll(id, trades);
+    } catch (error) {
+      console.error(`_getTrades error`, error);
+      // throw error;
+    }
+  }
+
+  getBooks(market) {
+    if (!market) market = this.tickerBook.getCurrentTicker()?.market;
+    // console.log(`getBooks current market`, market)
+    return this.depthBook.getSnapshot(market);
+  }
+
+  async _getBooks(id, sz) {
+    try {
+      const depthBook = await this.communicator.books(id, sz);
+      this.depthBook.updateAll(id, depthBook);
+    } catch (error) {
+      console.error(`_getBooks error`, error);
+      // throw error;
+    }
+  }
+
+  getTicker() {
+    return this.tickerBook.getCurrentTicker();
+  }
+
+  async _getTicker(market) {
+    try {
+      const ticker = await this.communicator.ticker(market);
+      this.tickerBook.updateByDifference(market, ticker[market]);
+    } catch (error) {
+      console.error(`_getTicker error`, error);
+    }
+  }
+
+  async _getAccounts() {
+    try {
+      const accounts = await this.communicator
+        .getAccounts
+        // this.selectedTicker?.instId?.replace("-", ",")
+        ();
+      console.info(`_getAccounts accounts`, accounts);
+      if (accounts) {
+        this.isLogin = true;
+        this.accountBook.updateAll(accounts);
+        const token = await this.communicator.CSRFTokenRenew();
+        this.websocket.setCurrentUser(token);
+      }
+    } catch (error) {
+      this.isLogin = false;
+      console.error(`_getAccounts error`, error);
+    }
+  }
+
+  getAccounts(instId) {
+    return this.accountBook.getSnapshot(instId);
+  }
+
+  async selectMarket(market) {
+    this.websocket.setCurrentMarket(market);
+    this.tickerBook.setCurrentMarket(market);
+    if (!this.tickerBook.getCurrentTicker()) await this._getTicker(market);
+    await this._getBooks(market);
+    await this._getTrades(market);
+    // if (this.isLogin) {
+    // TODO to verify if user is not login would be a problem
+    await this._getOrderList(market);
+    await this._getOrderHistory(market);
+    // }
+  }
+
+  async start(market) {
+    // TODO to verify websocket connection is working and can receive update message
+    this.websocket.connect();
+    await this.selectMarket(market);
+    await this._getAccounts();
+    await this._getTickers();
+  }
+
+  stop() {
+    // TODO stop ws
+  }
 }
 
 export default Middleman;

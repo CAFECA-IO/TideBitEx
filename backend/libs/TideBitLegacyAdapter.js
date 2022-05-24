@@ -5,13 +5,6 @@ const users = {};
 let userGCInterval = 86400 * 1000;
 
 class TideBitLegacyAdapter {
-  constructor({ config, database, logger }) {
-    this.config = config;
-    this.database = database;
-    this.logger = logger;
-    return this;
-  }
-
   static usersGC() {
     // ++ removeUser //++ gc behavior （timer 清理）
     Object.keys(users).forEach((key) => {
@@ -23,12 +16,14 @@ class TideBitLegacyAdapter {
 
   // ++ middleware
   static async parseMemberId(ctx, next) {
-    // console.log(`parseMemberId ctx.header`, ctx.header);
     if (Math.random() < 0.01) {
-      TideBitLegacyAdapter.usersGC()
+      TideBitLegacyAdapter.usersGC();
     }
     const peatioToken = Utils.peatioToken(ctx.header);
-    // console.log(`parseMemberId peatioToken`, peatioToken);
+    console.log(
+      `[TideBitLegacyAdapter parseMemberId] peatioToken`,
+      peatioToken
+    );
     if (!peatioToken) {
       ctx.memberId = -1;
     } else {
@@ -36,11 +31,20 @@ class TideBitLegacyAdapter {
       if (users[peatioToken]) {
         ctx.memberId = users[peatioToken].memberId;
       } else {
-        const memberId = await Utils.getMemberIdFromRedis(peatioToken);
-        if (memberId !== -1) {
-          users[peatioToken] = { memberId, ts: Date.now() };
+        try {
+          const memberId = await Utils.getMemberIdFromRedis(peatioToken);
+          if (memberId !== -1) {
+            users[peatioToken] = { memberId, ts: Date.now() };
+          }
+          console.log(
+            `[TideBitLegacyAdapter parseMemberId] memberId`,
+            memberId
+          );
+          ctx.memberId = memberId;
+        } catch (error) {
+          console.error(`parseMemberId getMemberIdFromRedis error`, error);
+          ctx.memberId = -1;
         }
-        ctx.memberId = memberId;
       }
       // console.log(`parseMemberId ctx.memberId`, ctx.memberId);
     }

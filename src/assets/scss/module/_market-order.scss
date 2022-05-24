@@ -15,6 +15,10 @@
   color: #758696;
   padding: 8px 15px;
 }
+.pending-orders,
+.closed-orders {
+  overflow: scroll;
+}
 // .market-order-item > li {
 //   // width: 12%;
 //   text-align: right;

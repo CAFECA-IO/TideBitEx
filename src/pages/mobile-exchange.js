@@ -1,12 +1,8 @@
 import React, { useContext } from "react";
-import {
-  AccountList,
-  AccountMobileTile,
-  PendingOrders,
-} from "../components/HistoryOrder";
+import { AccountMobileTile, PendingOrders } from "../components/HistoryOrder";
 import MarketHistory from "../components/MarketHistory";
 import MarketTrade from "../components/MarketTrade";
-import OrderBook from "../components/OrderBook";
+import DepthBook from "../components/DepthBook";
 import TradingChart from "../components/TradingChart";
 import { ThemeConsumer } from "../context/ThemeContext";
 import StoreContext from "../store/store-context";
@@ -42,7 +38,7 @@ const MobileExchange = (props) => {
           <>
             <DepthChart />
             <div className="order-book--mobile">
-              <OrderBook />
+              <DepthBook />
             </div>
           </>
         )}
@@ -54,7 +50,7 @@ const MobileExchange = (props) => {
             <div className="section__container section__container--mobile">
               <Tabs defaultActiveKey="market">
                 <Tab eventKey="market" title={t("market")}>
-                  <OrderBook />
+                  <DepthBook />
                 </Tab>
                 {storeCtx.isLogin && (
                   <Tab eventKey="my_orders" title={t("my_orders")}>

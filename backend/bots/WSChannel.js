@@ -75,7 +75,7 @@ class WSChannel extends Bot {
               this.logger.error(error);
             }
 
-            if (!op || !args || !args.market) {
+            if (!op || !args) {
               ws.send(
                 JSON.stringify(
                   new ResponseFormat({
@@ -91,7 +91,10 @@ class WSChannel extends Bot {
                 this._onOpStatusUpdate(req.headers, ws, args);
                 break;
               case "switchMarket":
-                this.logger.log(`[${this.constructor.name} _onOpSwitchMarket]`, args)
+                this.logger.log(
+                  `[${this.constructor.name} _onOpSwitchMarket]`,
+                  args
+                );
                 this._onOpSwitchMarket(ws, args);
                 break;
               default:
@@ -146,63 +149,48 @@ class WSChannel extends Bot {
 
   // TODO SPA LOGIN
   // ++ CURRENT_USER UNSAVED
-  _onOpStatusUpdate(headers, ws, args) {
-    this.logger.debug(`_onOpStatusUpdate args`, args)
+  async _onOpStatusUpdate(headers, ws, args) {
     const findClient = this._client[ws.id];
-    const token = Utils.peatioToken(headers);
+    const peatioToken = Utils.peatioToken(headers);
+    this.logger.log(
+      `[${this.constructor.name} _onOpStatusUpdate] peatioToken`,
+      peatioToken
+    );
+    let memberId = -1;
+    if (peatioToken) memberId = await Utils.getMemberIdFromRedis(peatioToken);
+    this.logger.log(
+      `[${this.constructor.name} _onOpStatusUpdate] memberId`,
+      memberId
+    );
     if (!findClient.isStart) {
       findClient.channel = args.market;
       findClient.isStart = true;
-
-      // add channel-client map
       if (!this._channelClients[args.market]) {
         this._channelClients[args.market] = {};
       }
       if (Object.values(this._channelClients[args.market]).length === 0) {
-        if (args.token) {
-          EventBus.emit(Events.userOnSubscribe, {
-            headers: {
-              cookie: headers.cookie,
-              "content-type": "application/json",
-              "x-csrf-token": args.token,
-            },
-            market: args.market,
-            token,
-            wsId: ws.id,
-          });
-        } else
-          EventBus.emit(Events.userOnUnsubscribe, {
-            market: args.market,
-            wsId: ws.id,
-          });
+        EventBus.emit(Events.tickerOnSibscribe, args.market, ws.id);
       }
       this._channelClients[args.market][ws.id] = ws;
+    }
+    this.logger.log(
+      `[${this.constructor.name} _onOpStatusUpdate] args.token`,
+      args.token
+    );
+    if (memberId !== -1 && args.token) {
+      EventBus.emit(Events.userOnSubscribe, {
+        headers: {
+          cookie: headers.cookie,
+          "content-type": "application/json",
+          "x-csrf-token": args.token,
+        },
+        memberId,
+        wsId: ws.id,
+      });
     } else {
-      const oldChannel = findClient.channel;
-      delete this._channelClients[oldChannel][ws.id];
-      findClient.channel = args.market;
-      if (!this._channelClients[args.market]) {
-        this._channelClients[args.market] = {};
-      }
-      if (Object.values(this._channelClients[args.market]).length === 0) {
-        if (args.token) {
-          EventBus.emit(Events.userOnSubscribe, {
-            headers: {
-              cookie: headers.cookie,
-              "content-type": "application/json",
-              "x-csrf-token": args.token,
-            },
-            market: args.market,
-            token,
-            wsId: ws.id,
-          });
-        } else
-          EventBus.emit(Events.userOnUnsubscribe, {
-            market: args.market,
-            wsId: ws.id,
-          });
-      }
-      this._channelClients[args.market][ws.id] = ws;
+      EventBus.emit(Events.userOnUnsubscribe, {
+        wsId: ws.id,
+      });
     }
   }
 

@@ -107,7 +107,8 @@ class Communicator {
   // Market
   async tickers(instType, from, limit) {
     try {
-      if (!instType) return { message: "instType cannot be null" };
+      if (!instType)
+        return Promise.reject({ message: "instType cannot be null" });
       // const res = await this._get(
       //   `/market/tickers?instType=${instType}${from ? `&from=${from}` : ""}${
       //     limit ? `&limit=${limit}` : ""
@@ -129,7 +130,7 @@ class Communicator {
   }
 
   // Market
-  async books(id, sz) {
+  async books(id, sz = 100) {
     try {
       if (!id) return { message: "id cannot be null" };
       // const res = await this._get(
@@ -196,14 +197,14 @@ class Communicator {
   async getOrderList(options) {
     try {
       const url = `/trade/orders-pending?${
-        options?.instId ? `&instId=${options.instId}` : ""
-      }${options?.instType ? `&instType=${options.instType}` : ""}${
-        options?.ordType ? `&ordType=${options.ordType}` : ""
-      }${options?.state ? `&state=${options.state}` : ""}${
-        options?.after ? `&after=${options.after}` : ""
-      }${options?.before ? `&before=${options.before}` : ""}${
-        options?.limit ? `&limit=${options.limit}` : ""
-      }`;
+        options?.market ? `&market=${options.market}` : ""
+      }${options?.instId ? `&instId=${options.instId}` : ""}${
+        options?.instType ? `&instType=${options.instType}` : ""
+      }${options?.ordType ? `&ordType=${options.ordType}` : ""}${
+        options?.state ? `&state=${options.state}` : ""
+      }${options?.after ? `&after=${options.after}` : ""}${
+        options?.before ? `&before=${options.before}` : ""
+      }${options?.limit ? `&limit=${options.limit}` : ""}`;
       // const res = await this._get(url);
       const res = await this._request({
         method: "GET",
@@ -222,8 +223,8 @@ class Communicator {
   async getOrderHistory(options) {
     try {
       const url = `/trade/orders-history?${
-        options?.instId ? `&instId=${options.instId}` : ""
-      }${
+        options?.market ? `&market=${options.market}` : ""
+      }${options?.instId ? `&instId=${options.instId}` : ""}${
         options?.instType ? `&instType=${options.instType}` : "&instType=SPOT"
       }${options?.ordType ? `&ordType=${options.ordType}` : ""}${
         options?.state ? `&state=${options.state}` : ""
@@ -490,7 +491,7 @@ class Communicator {
         retries > 0 &&
         retryCodes.includes(response.code)
       ) {
-        // console.log(`[Communicator] _request retries`, retries);
+        console.log(`[Communicator] _request retries`, retries);
         setTimeout(() => {
           return this._request({
             method,

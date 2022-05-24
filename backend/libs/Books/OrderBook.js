@@ -1,140 +1,123 @@
 const BookBase = require("../BookBase");
-const SafeMath = require("../SafeMath");
 
 class OrderBook extends BookBase {
   constructor({ logger, markets }) {
     super({ logger, markets });
-    this._config = { remove: true, add: true, update: false };
+    this._config = { remove: false, add: true, update: true };
     this.name = `OrderBook`;
+    this._snapshot = {};
+    this._difference = {};
     return this;
   }
 
-  /**
-   * @typedef {Object} Order
-   * @property {string} id = price
-   * @property {string} price
-   * @property {string} amount
-   * @property {string} side 'asks' || 'bids'
-
-   * @param {Order} valueA
-   * @param {Order} valueB
-   */
-  _compareFunction(valueA, valueB) {
-    return (
-      SafeMath.eq(valueA.price, valueB.price) &&
-      SafeMath.eq(valueA.amount, valueB.amount) &&
-      valueA.side === valueB.side
+  // ++ TODO: verify function works properly
+  _calculateDifference(arrayA, arrayB) {
+    const { add } = super._calculateDifference(arrayA, arrayB);
+    const update = arrayB.filter((arrayBValue) =>
+      arrayA.some(
+        (arrayAValue) =>
+          arrayBValue.id === arrayAValue.id &&
+          (arrayBValue.volume !== arrayAValue.volume ||
+            arrayBValue.state !== arrayAValue.state)
+      )
     );
-  }
-
-  /**
-   * @param {Array<Order>} arrayA
-   * @param {Array<Order>} arrayB
-   * @param {Function} compareFunction
-   * @returns
-   */
-  // _calculateDifference(arrayA, arrayB) {
-  //   return super._calculateDiffence(arrayA, arrayB);
-  // }
-
-  // ++ TODO: verify function works properly
-  getSnapshot(instId) {
-    const orderBooks = {
-      market: instId.replace("-", "").toLowerCase(),
-      asks: [],
-      bids: [],
+    return {
+      add,
+      update,
     };
-    this._snapshot[instId].forEach((data) => {
-      if (data.side === "asks") {
-        orderBooks.asks.push([data.price, data.amount]);
-      }
-      if (data.side === "bids") {
-        orderBooks.bids.push([data.price, data.amount]);
-      }
-    });
-    // this.logger.log(
-    //   `[${this.constructor.name}] getSnapshot[${instId}]`,
-    //   orderBooks
-    // );
-    return orderBooks;
-  }
-
-  // getDifference(instId) {
-  //   return super.getDifference(instId);
-  // }
-
-  /**
-   * @typedef {Object} Book
-   * @property {string} market
-   * @property {Array} asks
-   * @property {Array} bids
-   *
-   * @param {Book} bookObj
-   * @returns {Array<Order>}
-   */
-  // ++ TODO: verify function works properly
-  _formateBooks(bookObj) {
-    const bookArr = [];
-    bookObj.asks.forEach((ask) => {
-      bookArr.push({
-        id: ask[0],
-        price: ask[0],
-        amount: ask[1],
-        side: "asks",
-      });
-    });
-    bookObj.bids.forEach((bid) => {
-      bookArr.push({
-        id: bid[0],
-        price: bid[0],
-        amount: bid[1],
-        side: "bids",
-      });
-    });
-    return bookArr;
   }
 
   // ++ TODO: verify function works properly
   _trim(data) {
-    let asks = [];
-    let bids = [];
-    data.forEach((d) => {
-      if (d.side === "asks") {
-        asks.push(d);
-      } else if (d.side === "bids") {
-        bids.push(d);
-      }
-    });
-    asks = asks.sort((a, b) => +a.price - +b.price).slice(0, 100);
-    bids = bids.sort((a, b) => +b.price - +a.price).slice(0, 100);
-    return bids.concat(asks);
+    const pendingOrders = [];
+    const historyOrders = [];
+    data
+      .sort((a, b) => +b.at - +a.at)
+      .forEach((d) => {
+        if (pendingOrders.length >= 100 && historyOrders.length >= 100) return;
+        if (d.state === "wait" && pendingOrders.length < 100)
+          pendingOrders.push(d);
+        if (
+          (d.state === "canceled" || d.state === "done") &&
+          historyOrders.length < 100
+        )
+          historyOrders.push(d);
+      });
+    return pendingOrders.concat(historyOrders);
   }
 
-  /**
-   * @typedef {Object} Difference
-   * @property {Arrary<Order>} updates
-   * @property {Arrary<Order>} add
-   * @property {Arrary<Order>} remove
-   *
-   * @param {String} instId BTC-USDT
-   * @param {Difference} difference
-   */
-  //  updateByDifference(instId, difference) {
-  //   try {
-  //     super.updateByDifference(instId, difference);
-  //     this._snapshot[instId] = this._trim(this._snapshot[instId]);
-  //     return true;
-  //   } catch (error) {
-  //     return false;
-  //   }
-  // }
+  // ++ TODO: verify function works properly
+  getDifference(memberId, instId) {
+    if (!this._snapshot[memberId]) return null;
+    else if (!this._snapshot[memberId][instId]) return null;
+    else {
+      return this._difference[memberId][instId];
+    }
+  }
 
-  /**
-   * @param {String} instId BTC-USDT
-   * @param {Array<Order>} data
-   */
-  updateAll(instId, data) {
-    return super.updateAll(instId, this._formateBooks(data));
+  // ++ TODO: verify function works properly
+  getSnapshot(memberId, instId, state) {
+    if (!this._snapshot[memberId]) return [];
+    else if (!this._snapshot[memberId][instId]) return [];
+    else {
+      if (state === "pending")
+        return this._snapshot[memberId][instId].filter(
+          (order) => order.state === "wait"
+        );
+      if (state === "history")
+        return this._snapshot[memberId][instId].filter(
+          (order) => order.state === "canceled" || order.state === "done"
+        );
+    }
+  }
+
+  updateByDifference(memberId, instId, difference) {
+    try {
+      if (!this._difference[memberId]) this._difference[memberId] = {};
+      if (!this._snapshot[memberId]) this._snapshot[memberId] = {};
+      if (!this._snapshot[memberId][instId])
+        this._snapshot[memberId][instId] = [];
+      this._difference[memberId][instId] = difference;
+      let updateSnapshot = this._snapshot[memberId][instId]
+        .filter(
+          (data) =>
+            !difference.add.some((diff) => this._isEqual(data.id, diff.id))
+        )
+        .concat(difference.add);
+      // .filter(
+      //   (data) =>
+      //     !difference.update.some((diff) => this._isEqual(data.id, diff.id))
+      // )
+      // .concat(difference.update);
+      this._snapshot[memberId][instId] = this._trim(updateSnapshot);
+    } catch (error) {
+      this.logger.error(
+        `[${this.constructor.name}] updateByDifference error`,
+        error
+      );
+
+      return false;
+    }
+  }
+
+  updateAll(memberId, instId, data) {
+    try {
+      if (!this._difference[memberId]) this._difference[memberId] = {};
+      if (!this._snapshot[memberId]) this._snapshot[memberId] = {};
+      if (!this._snapshot[memberId][instId])
+        this._snapshot[memberId][instId] = [];
+      this._difference[memberId][instId] = this._calculateDifference(
+        this._snapshot[memberId][instId],
+        data
+      );
+      this._snapshot[memberId][instId] = this._trim(data);
+    } catch (error) {
+      this.logger.error(
+        `[${this.constructor.name}] updateAll  this._snapshot[memberId][instId]`,
+        this._snapshot[memberId][instId]
+      );
+      return false;
+    }
   }
 }
 

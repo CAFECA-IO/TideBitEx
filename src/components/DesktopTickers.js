@@ -13,13 +13,12 @@ import { useTranslation } from "react-i18next";
 import { formateDecimal } from "../utils/Utils";
 
 const TickerTile = (props) => {
-  const storeCtx = useContext(StoreContext);
   return (
     <li
-      onClick={(_) => storeCtx.selectTickerHandler(props.ticker.market)}
-      className={`market-tile ${
-        props.ticker.instId === storeCtx?.selectedTicker?.instId ? "active" : ""
-      } ${props.ticker.update ? "update" : ""}`}
+      onClick={props.onClick}
+      className={`market-tile ${props.active ? "active" : ""} ${
+        props.update ? "update" : ""
+      }`}
     >
       <div>{props.ticker.name}</div>
       <div>{formateDecimal(props.ticker.last, 8)}</div>
@@ -42,13 +41,18 @@ const TickerTile = (props) => {
 };
 
 const TickerList = (props) => {
+  const storeCtx = useContext(StoreContext);
   return (
     <ul className="ticker-list">
-      {props.tickers.map((ticker, index) => (
+      {props.tickers.map((ticker) => (
         <TickerTile
+          key={`${ticker.market}`}
           ticker={ticker}
-          index={index}
-          key={`${ticker.instId}-${ticker.instType}-${index}-star`}
+          active={ticker.active}
+          update={ticker.update}
+          onClick={() => {
+            storeCtx.selectMarket(ticker.market);
+          }}
         />
       ))}
     </ul>
@@ -68,16 +72,15 @@ const TickersHeader = (props) => {
     </ul>
   );
 };
+
 const quoteCcies = {
-  // BTC: ["BTC"],
-  // ETH: ["ETH"],
   HKD: ["HKD"],
   USDX: ["USDC", "USDT", "USDK"],
   INNO: ["INNO"],
   USD: ["USD"],
   ALTS: ["USX"],
 };
-const MarketTickers = (props) => {
+const DesktopTickers = (props) => {
   const storeCtx = useContext(StoreContext);
   const inputRef = useRef();
   const [selectedTicker, setSelectedTicker] = useState(null);
@@ -148,4 +151,4 @@ const MarketTickers = (props) => {
   );
 };
 
-export default MarketTickers;
+export default DesktopTickers;

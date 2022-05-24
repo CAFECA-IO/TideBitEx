@@ -111,6 +111,8 @@ class BookBase {
       : str1 === str2;
   }
 
+  // control data length 
+  // implement in TradeBook & DepthBook
   _trim(data) {
     return data;
   }
@@ -133,14 +135,14 @@ class BookBase {
       if (this._config.remove) {
         updateSnapshot = this._snapshot[instId].filter(
           (data) =>
-            !difference.remove.some((diff) => this._isEqual(data.id, diff.id))
+            !difference.remove?.some((diff) => this._isEqual(data.id, diff.id))
         );
       }
       if (this._config.add) {
         updateSnapshot = this._snapshot[instId]
           .filter(
             (data) =>
-              !difference.add.some((diff) => this._isEqual(data.id, diff.id))
+              !difference.add?.some((diff) => this._isEqual(data.id, diff.id))
           )
           .concat(difference.add);
       }
@@ -183,6 +185,10 @@ class BookBase {
       // this.logger.log(
       //   `[${this.constructor.name}] updateAll this._difference[${instId}]`,
       //   this._difference[instId]
+      // );
+      // this.logger.log(
+      //   `[${this.constructor.name}] updateAll data[${instId}]`,
+      //   data[instId]
       // );
       this._snapshot[instId] = this._trim(data);
       // this.logger.log(
