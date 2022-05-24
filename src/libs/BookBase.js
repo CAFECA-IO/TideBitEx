@@ -111,14 +111,14 @@ class BookBase {
       if (this._config.remove) {
         updateSnapshot = this._snapshot[market].filter(
           (data) =>
-            !difference.remove.some((diff) => this._isEqual(data.id, diff.id))
+            !difference.remove?.some((diff) => this._isEqual(data.id, diff.id))
         );
       }
       if (this._config.add) {
         updateSnapshot = this._snapshot[market]
           .filter(
             (data) =>
-              !difference.add.some((diff) => this._isEqual(data.id, diff.id))
+              !difference.add?.some((diff) => this._isEqual(data.id, diff.id))
           )
           .concat(difference.add);
       }
