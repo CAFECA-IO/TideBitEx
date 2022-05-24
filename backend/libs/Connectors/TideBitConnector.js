@@ -772,15 +772,15 @@ class TibeBitConnector extends ConnectorBase {
         origin_volume: Utils.removeZeroEnd(order.origin_volume),
         volume: Utils.removeZeroEnd(order.volume),
         state:
-          query.state === this.database.ORDER_STATE.CANCEL
+          order.state === this.database.ORDER_STATE.CANCEL
             ? "canceled"
-            : query.state === this.database.ORDER_STATE.WAIT
+            : order.state === this.database.ORDER_STATE.WAIT
             ? "wait"
             : "unknown",
         state_text:
-          query.state === this.database.ORDER_STATE.CANCEL
+          order.state === this.database.ORDER_STATE.CANCEL
             ? "Canceled"
-            : query.state === this.database.ORDER_STATE.WAIT
+            : order.state === this.database.ORDER_STATE.WAIT
             ? "Waiting"
             : "Unknown",
         clOrdId: order.id,
