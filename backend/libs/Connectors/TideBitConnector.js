@@ -801,11 +801,11 @@ class TibeBitConnector extends ConnectorBase {
     this.logger.log(
       `[${this.constructor.name} getOrderList${instId}] memberId ${memberId}[${this.fetchedOrders[memberId]}:`
     );
+    if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = [];
     if (!this.fetchedOrders[memberId].some((_instId) => _instId === instId)) {
       try {
         const orders = await this.tbGetOrderList(query);
         this.orderBook.updateAll(memberId, instId, orders);
-        this.fetchedOrders[memberId] = [];
         this.fetchedOrders[memberId].push(instId);
       } catch (error) {
         this.logger.error(error);
@@ -827,11 +827,11 @@ class TibeBitConnector extends ConnectorBase {
     this.logger.log(
       `[${this.constructor.name} getOrderList${instId}] memberId ${memberId}[${this.fetchedOrders[memberId]}:`
     );
+    if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = [];
     if (!this.fetchedOrders[memberId].some((_instId) => _instId === instId)) {
       try {
         const orders = await this.tbGetOrderList(query);
         this.orderBook.updateAll(memberId, instId, orders);
-        this.fetchedOrders[memberId] = [];
         this.fetchedOrders[memberId].push(instId);
       } catch (error) {
         this.logger.error(error);
