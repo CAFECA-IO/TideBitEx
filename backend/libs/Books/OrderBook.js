@@ -111,8 +111,15 @@ class OrderBook extends BookBase {
         data
       );
       this._snapshot[memberId][instId] = this._trim(data);
+      this.logger.error(
+        `[${this.constructor.name}] updateAll  this._difference[memberId][instId]`,
+        this._difference[memberId][instId]
+      );
     } catch (error) {
-      this.logger.error(`[${this.constructor.name}] updateAll error`, error);
+      this.logger.error(
+        `[${this.constructor.name}] updateAll  this._snapshot[memberId][instId]`,
+        this._snapshot[memberId][instId]
+      );
       return false;
     }
   }

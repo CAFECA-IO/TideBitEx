@@ -5,7 +5,6 @@ import Middleman from "../modal/Middleman";
 import StoreContext from "./store-context";
 import SafeMath from "../utils/SafeMath";
 
-
 let interval,
   accountInterval = 500,
   accountTs = 0,
@@ -30,7 +29,7 @@ const StoreProvider = (props) => {
   const [trades, setTrades] = useState([]);
   const [pendingOrders, setPendingOrders] = useState([]);
   const [closeOrders, setCloseOrders] = useState([]);
-  const [orderHistories, setOrderHistories] = useState([]);
+  // const [orderHistories, setOrderHistories] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [selectedTicker, setSelectedTicker] = useState(null);
@@ -292,7 +291,9 @@ const StoreProvider = (props) => {
     // TODO orderBook is not completed
     if (time - orderTs > orderInterval) {
       // console.log(`middleman.getMyOrders()`, middleman.getMyOrders());
-      setOrderHistories(middleman.getMyOrders());
+      const orders = middleman.getMyOrders();
+      setPendingOrders(orders.pendingOrders);
+      setCloseOrders(orders.closedOrders);
     }
   }, [middleman]);
 
@@ -324,7 +325,6 @@ const StoreProvider = (props) => {
     clearInterval(interval);
   }, []);
 
-
   return (
     <StoreContext.Provider
       value={{
@@ -334,7 +334,6 @@ const StoreProvider = (props) => {
         trades,
         pendingOrders,
         closeOrders,
-        orderHistories,
         accounts,
         selectedTicker,
         activePage,

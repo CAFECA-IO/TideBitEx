@@ -104,7 +104,6 @@ class BookBase {
   // ++ TODO: verify function works properly
   updateByDifference(market, difference) {
     // console.log(`[BookBase updateByDifference]`, market, difference);
-
     if (!this._snapshot[market]) this._snapshot[market] = [];
     let updateSnapshot;
     try {

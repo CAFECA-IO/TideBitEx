@@ -254,7 +254,10 @@ class ExchangeHub extends Bot {
         }
         // this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
         // this.logger.log(`filteredTBTickers`, filteredTBTickers);
-        this.tickerBook.updateAll({...filteredOkexTickers, ...filteredTBTickers})
+        this.tickerBook.updateAll({
+          ...filteredOkexTickers,
+          ...filteredTBTickers,
+        });
         this.logger.debug(
           `*********** [${this.name}] getTickers [END] ************`
         );
@@ -498,8 +501,16 @@ class ExchangeHub extends Bot {
 
   // TODO integrate getOrderList and getOrderHistory into one
   async getOrderList({ query, memberId }) {
+    this.logger.log(
+      `[${this.constructor.name} getOrderList] memberId:`,
+      memberId,
+      `query`,
+      query
+    );
     const instId = this._findInstId(query.market);
+    this.logger.log(`[${this.constructor.name} getOrderList] instId:`, instId);
     const market = this._findMarket(instId);
+    this.logger.log(`[${this.constructor.name} getOrderList] market:`, market);
     if (memberId === -1) {
       // return new ResponseFormat({
       //   message: "member_id not found",
@@ -548,6 +559,14 @@ class ExchangeHub extends Bot {
   async getOrderHistory({ query, memberId }) {
     const instId = this._findInstId(query.market);
     const market = this._findMarket(instId);
+    this.logger.log(
+      `[${this.constructor.name} getOrderHistory] memberId:`,
+      memberId,
+      `query`,
+      query
+    );
+    this.logger.log(`[${this.constructor.name} getOrderHistory] instId:`, instId);
+    this.logger.log(`[${this.constructor.name} getOrderHistory] market:`, market);
     if (memberId === -1) {
       // return new ResponseFormat({
       //   message: "member_id not found",

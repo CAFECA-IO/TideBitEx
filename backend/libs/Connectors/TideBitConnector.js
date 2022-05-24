@@ -128,9 +128,12 @@ class TibeBitConnector extends ConnectorBase {
         `[${this.constructor.name} getMemberIdFromRedis] error: "get member_id fail`,
         error
       );
-      // this.logger.error(error);
-      await client.quit();
-      return -1;
+      try {
+        await client.quit();
+        return -1;
+      } catch (error) {
+        return -1;
+      }
     }
   }
 
@@ -649,11 +652,10 @@ class TibeBitConnector extends ConnectorBase {
         total: SafeMath.plus(account.balance, account.locked),
         locked: Utils.removeZeroEnd(account.locked),
       }));
-
-      this.logger.log(
-        `[${this.constructor.name}] getAccounts accounts`,
-        accounts
-      );
+      // this.logger.log(
+      //   `[${this.constructor.name}] getAccounts accounts`,
+      //   accounts
+      // );
       this.accountBook.updateAll(memberId, accounts);
     } catch (error) {
       this.logger.error(`[${this.constructor.name}] getAccounts error`, error);
@@ -790,11 +792,15 @@ class TibeBitConnector extends ConnectorBase {
       }
       */
     });
+    this.logger.log(`tbGetOrderList`, query, orders);
     return orders;
   }
 
   async getOrderList({ query }) {
     const { instId, memberId } = query;
+    this.logger.log(
+      `[${this.constructor.name} getOrderList${instId}] memberId ${memberId}[${this.fetchedOrders[memberId]}:`
+    );
     if (!this.fetchedOrders[memberId].some((_instId) => _instId === instId)) {
       try {
         const orders = await this.tbGetOrderList(query);
@@ -818,6 +824,9 @@ class TibeBitConnector extends ConnectorBase {
 
   async getOrderHistory({ query }) {
     const { instId, memberId } = query;
+    this.logger.log(
+      `[${this.constructor.name} getOrderList${instId}] memberId ${memberId}[${this.fetchedOrders[memberId]}:`
+    );
     if (!this.fetchedOrders[memberId].some((_instId) => _instId === instId)) {
       try {
         const orders = await this.tbGetOrderList(query);
