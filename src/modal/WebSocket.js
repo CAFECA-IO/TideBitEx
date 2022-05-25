@@ -94,7 +94,7 @@ class TideBitWS {
         "Socket is closed. Reconnect will be attempted in 1 second.",
         msg.reason
       );
-      // TODO push currentUser and current
+      // !!!!ONLY PUSH ONCE TODO push currentUser and current
       if (this.currentMarket) this.setCurrentMarket(this.currentMarket);
       if (this.currentUser) this.setCurrentUser(this.currentUser);
       setTimeout(() => {
