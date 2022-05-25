@@ -95,8 +95,8 @@ class TibeBitConnector extends ConnectorBase {
       base_unit: optional.market.base_unit,
       quote_unit: optional.market.quote_unit,
       ...tBTicker.ticker,
-      // at: tBTicker.at,
-      at: parseInt(SafeMath.mult(tBTicker.at, "1000")),
+      at: tBTicker.at,
+      ts: parseInt(SafeMath.mult(tBTicker.at, "1000")),
       change,
       changePct,
       volume: tBTicker.ticker.vol.toString(),
@@ -144,8 +144,8 @@ class TibeBitConnector extends ConnectorBase {
         volume: tickerObj.ticker.vol,
         change,
         changePct,
-        // at: parseInt(tickerObj.at),
-        at: parseInt(SafeMath.mult(tickerObj.at, "1000")),
+        at: parseInt(tickerObj.at),
+        ts: parseInt(SafeMath.mult(tickerObj.at, "1000")),
         source: SupportedExchange.TIDEBIT,
         ticker: tickerObj.ticker,
       };
@@ -208,7 +208,8 @@ class TibeBitConnector extends ConnectorBase {
     const updateTicker = {
       ...data,
       id,
-      at: parseInt(SafeMath.mult(data.at, "1000")),
+      ts: parseInt(SafeMath.mult(data.at, "1000")),
+      at: parseInt(data.at),
       instId: this._findInstId(id),
       market: id,
       change,
@@ -424,7 +425,7 @@ class TibeBitConnector extends ConnectorBase {
           instId,
           tbTradesRes.data.map((d) => ({
             ...d,
-            at: parseInt(SafeMath.mult(d.at, "1000")),
+            ts: parseInt(SafeMath.mult(d.at, "1000")),
           }))
         );
         this.fetchedTrades[instId] = true;
@@ -472,8 +473,8 @@ class TibeBitConnector extends ConnectorBase {
   _formateTrade(market, trade) {
     return {
       id: trade.tid,
-      // at: trade.date,
-      at: parseInt(SafeMath.mult(trade.date, "1000")),
+      at: trade.date,
+      ts: parseInt(SafeMath.mult(trade.date, "1000")),
       price: trade.price,
       volume: trade.amount,
       market,
@@ -711,7 +712,10 @@ class TibeBitConnector extends ConnectorBase {
         */
       return {
         id: order.id,
-        at: parseInt(new Date(order.updated_at).getTime()),
+        ts: parseInt(new Date(order.updated_at).getTime()),
+        at: parseInt(
+          SafeMath.div(new Date(order.updated_at).getTime(), "1000")
+        ),
         market: query.instId.replace("-", "").toLowerCase(),
         kind: order.type === "OrderAsk" ? "ask" : "bid",
         price: Utils.removeZeroEnd(order.price),
@@ -822,7 +826,8 @@ class TibeBitConnector extends ConnectorBase {
       clOrdId: data.id,
       instId,
       ordType: data.price === undefined ? "market" : "limit",
-      at: parseInt(SafeMath.mult(data.at, "1000")),
+      ts: parseInt(SafeMath.mult(data.at, "1000")),
+      at: parseInt(data.at),
       // px: data.price,
       // side: data.kind === "bid" ? "buy" : "sell",
       // sz: Utils.removeZeroEnd(

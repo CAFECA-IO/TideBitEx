@@ -12,8 +12,8 @@ const TradeTile = (props) => {
       trade-id={props.trade.id}
     >
       <div className="market-history__tile--time">
-        <span>{dateFormatter(parseInt(props.trade.at)).time}</span>
-        <span>{dateFormatter(parseInt(props.trade.at)).date}</span>
+        <span>{dateFormatter(parseInt(props.trade.ts)).time}</span>
+        <span>{dateFormatter(parseInt(props.trade.ts)).date}</span>
       </div>
       <div
         className={`market-history__tile--data ${

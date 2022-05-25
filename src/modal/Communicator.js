@@ -343,7 +343,7 @@ class Communicator {
       const res = await this._request({
         method: "POST",
         url: `/trade/cancel-orders`,
-        data: { options, "X-CSRF-Token": this.CSRFToken },
+        data: { ...options, "X-CSRF-Token": this.CSRFToken },
       });
       if (res.success) {
         return res.data;

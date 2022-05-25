@@ -433,8 +433,8 @@ class ExchangeHub extends Bot {
               ordType: body.ordType,
               id: okexOrderRes.payload.ordId,
               clOrdId: okexOrderRes.payload.clOrdId,
-              // at: parseInt(SafeMath.div(Date.now(), "1000")),
-              at: Date.now(),
+              at: parseInt(SafeMath.div(Date.now(), "1000")),
+              ts: Date.now(),
               market: body.market,
               kind: body.kind,
               price: body.price,
@@ -656,8 +656,8 @@ class ExchangeHub extends Bot {
       ...orderData,
       state: "canceled",
       state_text: "Canceled",
-      // at: parseInt(SafeMath.div(Date.now(), "1000")),
-      at: Date.now(),
+      at: parseInt(SafeMath.div(Date.now(), "1000")),
+      ts: Date.now(),
     };
     this.logger.log(
       `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] updateOrder ln:1092`,
@@ -1190,8 +1190,8 @@ class ExchangeHub extends Bot {
 
       const _updateOrder = {
         id: ordId,
-        // at: parseInt(SafeMath.div(uTime, "1000")),
-        at: parseInt(uTime),
+        at: parseInt(SafeMath.div(uTime, "1000")),
+        ts: parseInt(uTime),
         market: instId.replace("-", "").toLowerCase(),
         kind: side === "buy" ? "bid" : "ask",
         price: null, // market prcie

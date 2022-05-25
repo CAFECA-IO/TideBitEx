@@ -219,10 +219,10 @@ const StoreProvider = (props) => {
 
   // TODO get latest snapshot of orders, trades, accounts
   const cancelOrders = useCallback(
-    async (type) => {
+    async (instId, type) => {
       const _options = {
         type,
-        instId: selectedTicker.instId,
+        instId,
         // "X-CSRF-Token": token,
       };
       try {
