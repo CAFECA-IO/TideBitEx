@@ -54,6 +54,7 @@ class WSChannel extends Bot {
             ws,
             channel: "",
             isStart: false,
+            isPrivate: false,
           };
           this.logger.debug("ws.id", ws.id);
           // this.logger.debug(req.headers);
@@ -89,6 +90,10 @@ class WSChannel extends Bot {
             }
             switch (op) {
               case "userStatusUpdate":
+                this.logger.log(
+                  `[${this.constructor.name} _onOpStatusUpdate]`,
+                  args
+                );
                 this._onOpStatusUpdate(req.headers, ws, args);
                 break;
               case "switchMarket":
@@ -111,14 +116,13 @@ class WSChannel extends Bot {
             this.logger.debug(
               `*********findClient.channl [channel: ${
                 this._client[ws.id].channel
-              },isStart: ${this._client[ws.id].isStart}]*************`
+              },isStart: ${this._client[ws.id].isStart}],isPrivate: ${this._client[ws.id].isPrivate}]*************`
             );
             this.logger.debug("this._channelClients", this._channelClients);
           });
           ws.on("close", () => {
-            this.logger.debug("disconnected");
             this.logger.debug(
-              `*********findClient.channl [channel: ${
+              `*********disconnected findClient.channel [channel: ${
                 this._client[ws.id].channel
               },isStart: ${this._client[ws.id].isStart}]*************`
             );
@@ -139,12 +143,14 @@ class WSChannel extends Bot {
                 );
               }
             }
+            this.logger.debug(`findClient${findClient.isPrivate}`, findClient);
             if (findClient.isPrivate) {
               EventBus.emit(
                 Events.userOnUnsubscribe,
                 findClient.channel,
                 ws.id
               );
+              findClient.isPrivate = false;
             }
             delete this._client[ws.id];
           });
