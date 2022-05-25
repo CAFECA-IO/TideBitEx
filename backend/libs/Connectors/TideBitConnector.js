@@ -692,6 +692,7 @@ class TibeBitConnector extends ConnectorBase {
     //     orderType: query.orderType,
     //   });
     // }
+    this.logger.log(`tbGetOrderList orderList`, orderList);
     const orders = orderList.map((order) => {
       /*
       if (order.state === this.database.ORDER_STATE.DONE) {
