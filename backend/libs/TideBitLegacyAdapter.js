@@ -21,6 +21,7 @@ class TideBitLegacyAdapter {
     let peatioToken,
       memberId = -1;
     peatioToken = Utils.peatioToken(header);
+    console.log(`parseMemberId peatioToken`, peatioToken);
     if (peatioToken) {
       if (users[peatioToken]) {
         memberId = users[peatioToken].memberId;
@@ -37,8 +38,7 @@ class TideBitLegacyAdapter {
           console.error(`parseMemberId getMemberIdFromRedis error`, error);
         }
       }
-      console.log(`parseMemberId peatioToken`, peatioToken);
-      console.log(`parseMemberId memberId`, memberId);
+      console.log(`parseMemberId users[${peatioToken}]`, users[peatioToken]);
     }
     return { peatioToken, memberId };
   }
