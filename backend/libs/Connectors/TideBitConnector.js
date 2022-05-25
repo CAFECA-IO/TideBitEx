@@ -23,7 +23,7 @@ class TibeBitConnector extends ConnectorBase {
   fetchedTrades = {};
   fetchedBook = {};
   fetchedOrders = {};
-  fetchedOrdersInterval = 5 * 60 * 1000;
+  fetchedOrdersInterval = 1 * 60 * 1000;
 
   constructor({ logger }) {
     super({ logger });
