@@ -1065,7 +1065,7 @@ class TibeBitConnector extends ConnectorBase {
     );
     try {
       this.private_channel[wsId]["channel"]?.unbind();
-      this.private_pusher[wsId]["channel"]?.unsubscribe(
+      this.private_pusher[wsId]?.unsubscribe(
         `private-${this.private_channel[wsId]["sn"]}`
       );
       delete this.private_channel[wsId];
