@@ -1283,10 +1283,8 @@ class TibeBitConnector extends ConnectorBase {
           `---------- [${this.constructor.name}]  _unsubscribeUser [START] ----------`
         );
         this.logger.error(`_unsubscribeUser credential`, credential);
-        // this._stopPusher();
         this._unregisterPrivateChannel(credential.wsId);
         delete this.private_pusher[credential.wsId];
-        // this._unsubscribeMarket(credential.market, credential.wsId);
         this.logger.log(
           `---------- [${this.constructor.name}]  _unsubscribeUser [END] ----------`
         );
@@ -1324,7 +1322,7 @@ class TibeBitConnector extends ConnectorBase {
       this.logger.log(
         `---------- [${this.constructor.name}]  _unsubscribeMarket [START] ----------`
       );
-      this.logger.error(`_unsubscribeMarket market, wsId`, market, wsId);
+      this.logger.log(`_unsubscribeMarket market, wsId`, market, wsId);
       this._unregisterMarketChannel(market, wsId);
       this.logger.log(
         `---------- [${this.constructor.name}]  _unsubscribeMarket [END] ----------`

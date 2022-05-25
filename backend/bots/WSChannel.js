@@ -126,6 +126,7 @@ class WSChannel extends Bot {
             const findClient = this._client[ws.id];
             if (findClient.isStart) {
               delete this._channelClients[findClient.channel][ws.id];
+              this.logger.debug("this._channelClients", this._channelClients);
               if (
                 Object.values(this._channelClients[findClient.channel])
                   .length === 0
@@ -135,6 +136,8 @@ class WSChannel extends Bot {
                   findClient.channel,
                   ws.id
                 );
+              }
+              if (findClient.isPrivate) {
                 EventBus.emit(
                   Events.userOnUnsubscribe,
                   findClient.channel,
@@ -152,15 +155,12 @@ class WSChannel extends Bot {
   // ++ CURRENT_USER UNSAVED
   async _onOpStatusUpdate(header, ws, args) {
     const findClient = this._client[ws.id];
-    let { peatioToken, memberId } = await parseMemberId(header);
     this.logger.log(
-      `[${this.constructor.name} _onOpStatusUpdate] memberId`,
-      memberId
+      `[${this.constructor.name} _onOpStatusUpdate] findClient`,
+      findClient
     );
-    this.logger.log(
-      `[${this.constructor.name} _onOpStatusUpdate] peatioToken`,
-      peatioToken
-    );
+    let { memberId } = await parseMemberId(header);
+
     if (!findClient.isStart) {
       findClient.channel = args.market;
       findClient.isStart = true;
@@ -172,11 +172,8 @@ class WSChannel extends Bot {
       }
       this._channelClients[args.market][ws.id] = ws;
     }
-    this.logger.log(
-      `[${this.constructor.name} _onOpStatusUpdate] args.token`,
-      args.token
-    );
     if (memberId !== -1 && args.token) {
+      findClient.isPrivate = true;
       EventBus.emit(Events.userOnSubscribe, {
         headers: {
           cookie: header.cookie,
@@ -187,6 +184,7 @@ class WSChannel extends Bot {
         wsId: ws.id,
       });
     } else {
+      findClient.isPrivate = false;
       EventBus.emit(Events.userOnUnsubscribe, {
         wsId: ws.id,
       });
@@ -195,6 +193,10 @@ class WSChannel extends Bot {
 
   _onOpSwitchMarket(ws, args) {
     const findClient = this._client[ws.id];
+    this.logger.log(
+      `[${this.constructor.name} _onOpSwitchMarket] findClient`,
+      findClient
+    );
     if (!findClient.isStart) {
       findClient.channel = args.market;
       findClient.isStart = true;
