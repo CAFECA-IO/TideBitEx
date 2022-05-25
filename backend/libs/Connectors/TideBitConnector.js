@@ -1020,23 +1020,32 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async _registerPrivateChannel(wsId, memberId, sn) {
+    this.logger.log(
+      `[${this.constructor.name}]_registerPrivateChannel`,
+      `memberId`,
+      memberId,
+      `sn`,
+      sn
+    );
+    this.logger.log(
+      `[${this.constructor.name}]this.private_channel[${wsId}]`,
+      this.private_channel[wsId]
+    );
     try {
-      if (!this.private_channel[wsId]) {
-        this.private_channel[wsId] = {};
-        this.private_channel[wsId]["sn"] = sn;
-        this.private_channel[wsId]["channel"] = this.private_pusher[
-          wsId
-        ].subscribe(`private-${sn}`);
-        this.private_channel[wsId]["channel"].bind("account", (data) =>
-          this._updateAccount(memberId, data)
-        );
-        this.private_channel[wsId]["channel"].bind("order", (data) =>
-          this._updateOrder(memberId, data)
-        );
-        this.private_channel[wsId]["channel"].bind("trade", (data) => {
-          this._updateTrade(memberId, data);
-        });
-      }
+      if (!this.private_channel[wsId]) this.private_channel[wsId] = {};
+      this.private_channel[wsId]["sn"] = sn;
+      this.private_channel[wsId]["channel"] = this.private_pusher[
+        wsId
+      ].subscribe(`private-${sn}`);
+      this.private_channel[wsId]["channel"].bind("account", (data) =>
+        this._updateAccount(memberId, data)
+      );
+      this.private_channel[wsId]["channel"].bind("order", (data) =>
+        this._updateOrder(memberId, data)
+      );
+      this.private_channel[wsId]["channel"].bind("trade", (data) => {
+        this._updateTrade(memberId, data);
+      });
     } catch (error) {
       this.logger.error(`private_channel error`, error);
       throw error;
