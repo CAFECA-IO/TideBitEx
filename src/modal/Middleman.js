@@ -8,7 +8,6 @@ import Communicator from "./Communicator";
 import WebSocket from "./WebSocket";
 
 class Middleman {
-  login = false;
   constructor() {
     this.name = "Middleman";
     this.accountBook = new AccountBook();

@@ -329,6 +329,7 @@ const StoreProvider = (props) => {
         activePage,
         depthBook,
         languageKey,
+        setIsLogin,
         start,
         stop,
         depthBookHandler,

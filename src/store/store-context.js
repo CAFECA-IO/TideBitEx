@@ -18,6 +18,7 @@ const StoreContext = React.createContext({
   // sellPx: null,
   orderType: null,
   // orderTypeHandler: (orderType) => {},
+  setIsLogin: () => {},
   start: () => {},
   stop: () => {},
   depthBookHandler: (price, amount) => {},

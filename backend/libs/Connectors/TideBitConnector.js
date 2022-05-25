@@ -393,7 +393,7 @@ class TibeBitConnector extends ConnectorBase {
         });
       }
     });
-    this.depthBook.updateByDifference(instId, difference);
+    this.depthBook.updateAll(instId, updateBooks);
     // this.logger.log(
     //   `[FROM TideBit] market[${market}] difference`,
     //   this.depthBook.getDifference(instId)
