@@ -32,11 +32,10 @@ class TideBitLegacyAdapter {
             `!!! [TideBitLegacyAdapter parseMemberId] getMemberIdFromRedis`
           );
           memberId = await Utils.getMemberIdFromRedis(peatioToken);
-          if (memberId !== -1) {
-            users[peatioToken] = { memberId, ts: Date.now() };
-          }
+          users[peatioToken] = { memberId, ts: Date.now() };
         } catch (error) {
           console.error(`parseMemberId getMemberIdFromRedis error`, error);
+          users[peatioToken] = { memberId, ts: Date.now() };
         }
       }
       console.log(`parseMemberId users[${peatioToken}]`, users[peatioToken]);
