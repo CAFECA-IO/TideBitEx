@@ -692,7 +692,7 @@ class TibeBitConnector extends ConnectorBase {
     //     orderType: query.orderType,
     //   });
     // }
-    this.logger.log(`tbGetOrderList orderList`, orderList);
+    // this.logger.log(`tbGetOrderList orderList`, orderList);
     const orders = orderList.map((order) => {
       /*
       if (order.state === this.database.ORDER_STATE.DONE) {
@@ -732,18 +732,16 @@ class TibeBitConnector extends ConnectorBase {
         price: Utils.removeZeroEnd(order.price),
         origin_volume: Utils.removeZeroEnd(order.origin_volume),
         volume: Utils.removeZeroEnd(order.volume),
-        state:
-          order.state === this.database.ORDER_STATE.CANCEL
-            ? "canceled"
-            : order.state === this.database.ORDER_STATE.WAIT
-            ? "wait"
-            : "unknown",
-        state_text:
-          order.state === this.database.ORDER_STATE.CANCEL
-            ? "Canceled"
-            : order.state === this.database.ORDER_STATE.WAIT
-            ? "Waiting"
-            : "Unknown",
+        state: SafeMath.eq(order.state, this.database.ORDER_STATE.CANCEL)
+          ? "canceled"
+          : SafeMath.eq(order.state, this.database.ORDER_STATE.WAIT)
+          ? "wait"
+          : "unknown",
+        state_text: SafeMath.eq(order.state, this.database.ORDER_STATE.CANCEL)
+          ? "Canceled"
+          : SafeMath.eq(order.state, this.database.ORDER_STATE.WAIT)
+          ? "Waiting"
+          : "Unknown",
         clOrdId: order.id,
         instId: query.instId,
         ordType: order.ord_type,
@@ -753,7 +751,7 @@ class TibeBitConnector extends ConnectorBase {
       }
       */
     });
-    // this.logger.log(`tbGetOrderList`, query, orders);
+    this.logger.log(`tbGetOrderList orders`, orders);
     return orders;
   }
 
