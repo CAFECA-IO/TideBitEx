@@ -8,7 +8,6 @@ import Communicator from "./Communicator";
 import WebSocket from "./WebSocket";
 
 class Middleman {
-  login = false;
   constructor() {
     this.name = "Middleman";
     this.accountBook = new AccountBook();
@@ -91,64 +90,6 @@ class Middleman {
       total: SafeMath.plus(totalAsks, totalBids),
     };
     return updateBooks;
-  }
-
-  updateOrders(data) {
-    // console.log(`*&&&&&&&&&&&*Events.order*&&&&&&&&&&&**`);
-    // console.log(`data`, data);
-    // console.log(`this.selectedTicker.market`, this.selectedTicker.market);
-    const updatePendingOrders =
-      this.pendingOrders?.map((order) => ({
-        ...order,
-      })) || [];
-    const updateCloseOrders =
-      this.closeOrders?.map((order) => ({ ...order })) || [];
-    if (data.market === this.selectedTicker.market) {
-      const index = updatePendingOrders.findIndex(
-        (order) => order.id === data.id
-      );
-      if (index !== -1) {
-        if (data.state !== "wait") {
-          updatePendingOrders.splice(index, 1);
-          updateCloseOrders.push({
-            ...data,
-            at: SafeMath.div(Date.now(), "1000"),
-          });
-          // console.log(`updateCloseOrders.push`, { ...data, at: SafeMath.div(Date.now(), "1000") });
-        } else {
-          const updateOrder = updatePendingOrders[index];
-          updatePendingOrders[index] = {
-            ...updateOrder,
-            ...data,
-          };
-          // console.log(` updatePendingOrders[${index}]`, {
-          // ...updateOrder,
-          // ...data,
-          // });
-        }
-      } else {
-        if (data.state === "wait")
-          updatePendingOrders.push({
-            ...data,
-            at: SafeMath.div(Date.now(), "1000"),
-          });
-        else
-          updateCloseOrders.push({
-            ...data,
-            at: SafeMath.div(Date.now(), "1000"),
-          });
-        // console.log(` updatePendingOrders[${index}]`, {
-        //   ...data,
-        // });
-      }
-      this.pendingOrders = updatePendingOrders;
-      this.closeOrders = updateCloseOrders;
-    }
-    // console.log(`*&&&&&&&&&&&*Events.order*&&&&&&&&&&&**`);
-    return {
-      updatePendingOrders: updatePendingOrders.sort((a, b) => b.at - a.at),
-      updateCloseOrders: updateCloseOrders.sort((a, b) => +b.at - +a.at),
-    };
   }
 
   async postOrder(order) {

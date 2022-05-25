@@ -20,7 +20,9 @@ const TradingChart = (props) => {
       }`}
     >
       <div className="main-chart__header">{t("chart")}</div>
+      {/* {!!storeCtx.selectedTicker && ( */}
       <TradingIframe isMobile={width <= breakpoint} />
+      {/* )} */}
       {/* {storeCtx.selectedTicker?.source === "TideBit" ? (
         // <TradingApexChart />
         <TradingIframe isMobile={width <= breakpoint} />

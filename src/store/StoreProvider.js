@@ -219,10 +219,10 @@ const StoreProvider = (props) => {
 
   // TODO get latest snapshot of orders, trades, accounts
   const cancelOrders = useCallback(
-    async (type) => {
+    async (instId, type) => {
       const _options = {
         type,
-        instId: selectedTicker.instId,
+        instId,
         // "X-CSRF-Token": token,
       };
       try {
@@ -244,7 +244,7 @@ const StoreProvider = (props) => {
         return false;
       }
     },
-    [action, enqueueSnackbar, middleman, selectedTicker]
+    [action, enqueueSnackbar, middleman]
   );
 
   const activePageHandler = (page) => {
@@ -303,7 +303,6 @@ const StoreProvider = (props) => {
       pathname: `/markets/${market}`,
     });
     await middleman.start(market);
-    setSelectedTicker(middleman.getTicker());
     setIsLogin(middleman.isLogin);
     // ++ TODO: verify function works properly
     sync();
@@ -330,6 +329,7 @@ const StoreProvider = (props) => {
         activePage,
         depthBook,
         languageKey,
+        setIsLogin,
         start,
         stop,
         depthBookHandler,

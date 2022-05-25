@@ -11,7 +11,7 @@ const staticServe = require("koa-static");
 const dvalue = require("dvalue");
 const cors = require("@koa/cors");
 const proxy = require("koa-better-http-proxy");
-const { parseMemberId } = require("../libs/TideBitLegacyAdapter");
+const { getMemberId } = require("../libs/TideBitLegacyAdapter");
 
 const Bot = require(path.resolve(__dirname, "Bot.js"));
 const Utils = require(path.resolve(__dirname, "../libs/Utils.js"));
@@ -48,7 +48,7 @@ class Receptor extends Bot {
         app
           .use(cors())
           .use(staticServe(this.config.base.static))
-          .use(parseMemberId)
+          .use(getMemberId)
           .use(this.router.routes())
           .use(this.router.allowedMethods())
           .use(proxy(peatio));

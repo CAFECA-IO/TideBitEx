@@ -738,14 +738,13 @@ class Utils {
           .toString("hex");
         const memberId = parseInt(memberIdString, 16);
         return memberId;
-      } else return -1;
+      } else throw Error('memberId not found');
     } catch (error) {
-      console.error(`getMemberIdFromRedis error`, error);
       try {
         await client.quit();
-        return -1;
+        throw error;
       } catch (error) {
-        return -1;
+        throw error;
       }
     }
   }

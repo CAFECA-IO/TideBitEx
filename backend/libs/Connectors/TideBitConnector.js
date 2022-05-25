@@ -23,6 +23,7 @@ class TibeBitConnector extends ConnectorBase {
   fetchedTrades = {};
   fetchedBook = {};
   fetchedOrders = {};
+  fetchedOrdersInterval = 1 * 60 * 1000;
 
   constructor({ logger }) {
     super({ logger });
@@ -95,8 +96,8 @@ class TibeBitConnector extends ConnectorBase {
       base_unit: optional.market.base_unit,
       quote_unit: optional.market.quote_unit,
       ...tBTicker.ticker,
-      // at: tBTicker.at,
-      at: parseInt(SafeMath.mult(tBTicker.at, "1000")),
+      at: tBTicker.at,
+      ts: parseInt(SafeMath.mult(tBTicker.at, "1000")),
       change,
       changePct,
       volume: tBTicker.ticker.vol.toString(),
@@ -144,8 +145,8 @@ class TibeBitConnector extends ConnectorBase {
         volume: tickerObj.ticker.vol,
         change,
         changePct,
-        // at: parseInt(tickerObj.at),
-        at: parseInt(SafeMath.mult(tickerObj.at, "1000")),
+        at: parseInt(tickerObj.at),
+        ts: parseInt(SafeMath.mult(tickerObj.at, "1000")),
         source: SupportedExchange.TIDEBIT,
         ticker: tickerObj.ticker,
       };
@@ -208,7 +209,8 @@ class TibeBitConnector extends ConnectorBase {
     const updateTicker = {
       ...data,
       id,
-      at: parseInt(SafeMath.mult(data.at, "1000")),
+      ts: parseInt(SafeMath.mult(data.at, "1000")),
+      at: parseInt(data.at),
       instId: this._findInstId(id),
       market: id,
       change,
@@ -331,6 +333,9 @@ class TibeBitConnector extends ConnectorBase {
 
   // ++ TODO: verify function works properly
   _updateBooks(market, updateBooks) {
+    // WORKAROUND
+    if (!updateBooks.asks.length > 0 && !updateBooks.bids.length > 0) return;
+    // WORKAROUND
     /**
     {
         asks: [
@@ -343,7 +348,13 @@ class TibeBitConnector extends ConnectorBase {
         ]
     }
     */
-
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateBooks [START] ----------`
+    );
+    // this.logger.log(
+    //   `[FROM TideBit] market[${market}] updateBooks`,
+    //   updateBooks
+    // );
     const instId = this._findInstId(market);
     const difference = {
       updates: [],
@@ -384,12 +395,12 @@ class TibeBitConnector extends ConnectorBase {
         });
       }
     });
-    this.depthBook.updateByDifference(instId, difference);
-    // const timestamp = Date.now();
-    // if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
-    //   this._booksTimestamp = timestamp;
+    this.depthBook.updateAll(instId, updateBooks);
+    // this.logger.log(
+    //   `[FROM TideBit] market[${market}] difference`,
+    //   this.depthBook.getDifference(instId)
+    // );
     EventBus.emit(Events.update, market, this.depthBook.getSnapshot(instId));
-    // }
   }
 
   /**
@@ -424,7 +435,7 @@ class TibeBitConnector extends ConnectorBase {
           instId,
           tbTradesRes.data.map((d) => ({
             ...d,
-            at: parseInt(SafeMath.mult(d.at, "1000")),
+            ts: parseInt(SafeMath.mult(d.at, "1000")),
           }))
         );
         this.fetchedTrades[instId] = true;
@@ -458,7 +469,9 @@ class TibeBitConnector extends ConnectorBase {
     volume: "0.1"
     }*/
     const instId = this._findInstId(newTrade.market);
-    this.tradeBook.updateByDifference(instId, { add: [newTrade] });
+    this.tradeBook.updateByDifference(instId, {
+      add: [{ ...newTrade, ts: parseInt(SafeMath.mult(newTrade.at, "1000")) }],
+    });
     EventBus.emit(Events.trade, newTrade.market, {
       market: newTrade.market,
       difference: this.tradeBook.getDifference(instId),
@@ -472,8 +485,8 @@ class TibeBitConnector extends ConnectorBase {
   _formateTrade(market, trade) {
     return {
       id: trade.tid,
-      // at: trade.date,
-      at: parseInt(SafeMath.mult(trade.date, "1000")),
+      at: trade.date,
+      ts: parseInt(SafeMath.mult(trade.date, "1000")),
       price: trade.price,
       volume: trade.amount,
       market,
@@ -681,6 +694,7 @@ class TibeBitConnector extends ConnectorBase {
     //     orderType: query.orderType,
     //   });
     // }
+    // this.logger.log(`tbGetOrderList orderList`, orderList);
     const orders = orderList.map((order) => {
       /*
       if (order.state === this.database.ORDER_STATE.DONE) {
@@ -711,24 +725,29 @@ class TibeBitConnector extends ConnectorBase {
         */
       return {
         id: order.id,
-        at: parseInt(new Date(order.updated_at).getTime()),
+        ts: parseInt(new Date(order.updated_at).getTime()),
+        at: parseInt(
+          SafeMath.div(new Date(order.updated_at).getTime(), "1000")
+        ),
         market: query.instId.replace("-", "").toLowerCase(),
         kind: order.type === "OrderAsk" ? "ask" : "bid",
         price: Utils.removeZeroEnd(order.price),
         origin_volume: Utils.removeZeroEnd(order.origin_volume),
         volume: Utils.removeZeroEnd(order.volume),
-        state:
-          order.state === this.database.ORDER_STATE.CANCEL
-            ? "canceled"
-            : order.state === this.database.ORDER_STATE.WAIT
-            ? "wait"
-            : "unknown",
-        state_text:
-          order.state === this.database.ORDER_STATE.CANCEL
-            ? "Canceled"
-            : order.state === this.database.ORDER_STATE.WAIT
-            ? "Waiting"
-            : "Unknown",
+        state: SafeMath.eq(order.state, this.database.ORDER_STATE.CANCEL)
+          ? "canceled"
+          : SafeMath.eq(order.state, this.database.ORDER_STATE.WAIT)
+          ? "wait"
+          : SafeMath.eq(order.state, this.database.ORDER_STATE.DONE)
+          ? "done"
+          : "unkwon",
+        state_text: SafeMath.eq(order.state, this.database.ORDER_STATE.CANCEL)
+          ? "Canceled"
+          : SafeMath.eq(order.state, this.database.ORDER_STATE.WAIT)
+          ? "Waiting"
+          : SafeMath.eq(order.state, this.database.ORDER_STATE.DONE)
+          ? "Done"
+          : "Unkwon",
         clOrdId: order.id,
         instId: query.instId,
         ordType: order.ord_type,
@@ -738,7 +757,7 @@ class TibeBitConnector extends ConnectorBase {
       }
       */
     });
-    // this.logger.log(`tbGetOrderList`, query, orders);
+    this.logger.log(`tbGetOrderList orders`, orders);
     return orders;
   }
 
@@ -747,19 +766,27 @@ class TibeBitConnector extends ConnectorBase {
     this.logger.log(
       `[${this.constructor.name} getOrderList${instId}] memberId ${memberId}:`
     );
-    if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = [];
-    try {
-      const orders = await this.tbGetOrderList(query);
-      this.orderBook.updateAll(memberId, instId, orders);
-      this.fetchedOrders[memberId].push(instId);
-    } catch (error) {
-      this.logger.error(error);
-      const message = error.message;
-      return new ResponseFormat({
-        message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
-    }
+    if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = {};
+    let ts = Date.now();
+    if (
+      !this.fetchedOrders[memberId][instId] ||
+      SafeMath.gt(
+        SafeMath.minus(ts, this.fetchedOrders[memberId][instId]),
+        this.fetchedOrdersInterval
+      )
+    )
+      try {
+        const orders = await this.tbGetOrderList(query);
+        this.orderBook.updateAll(memberId, instId, orders);
+        this.fetchedOrders[memberId][instId] = ts;
+      } catch (error) {
+        this.logger.error(error);
+        const message = error.message;
+        return new ResponseFormat({
+          message,
+          code: Codes.API_UNKNOWN_ERROR,
+        });
+      }
     return new ResponseFormat({
       message: "getOrderList",
       payload: this.orderBook.getSnapshot(memberId, instId, "pending"),
@@ -769,14 +796,21 @@ class TibeBitConnector extends ConnectorBase {
   async getOrderHistory({ query }) {
     const { instId, memberId } = query;
     this.logger.log(
-      `[${this.constructor.name} getOrderList${instId}] memberId ${memberId}[${this.fetchedOrders[memberId]}:`
+      `[${this.constructor.name} getOrderHistory${instId}] memberId ${memberId}[${this.fetchedOrders[memberId]}:`
     );
-    if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = [];
-    if (!this.fetchedOrders[memberId].some((_instId) => _instId === instId)) {
+    if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = {};
+    let ts = Date.now();
+    if (
+      !this.fetchedOrders[memberId][instId] ||
+      SafeMath.gt(
+        SafeMath.minus(ts, this.fetchedOrders[memberId][instId]),
+        this.fetchedOrdersInterval
+      )
+    ) {
       try {
         const orders = await this.tbGetOrderList(query);
         this.orderBook.updateAll(memberId, instId, orders);
-        this.fetchedOrders[memberId].push(instId);
+        this.fetchedOrders[memberId][instId] = ts;
       } catch (error) {
         this.logger.error(error);
         const message = error.message;
@@ -822,7 +856,8 @@ class TibeBitConnector extends ConnectorBase {
       clOrdId: data.id,
       instId,
       ordType: data.price === undefined ? "market" : "limit",
-      at: parseInt(SafeMath.mult(data.at, "1000")),
+      ts: parseInt(SafeMath.mult(data.at, "1000")),
+      at: parseInt(data.at),
       // px: data.price,
       // side: data.kind === "bid" ? "buy" : "sell",
       // sz: Utils.removeZeroEnd(
@@ -1015,23 +1050,32 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async _registerPrivateChannel(wsId, memberId, sn) {
+    this.logger.log(
+      `[${this.constructor.name}]_registerPrivateChannel`,
+      `memberId`,
+      memberId,
+      `sn`,
+      sn
+    );
+    this.logger.log(
+      `[${this.constructor.name}]this.private_channel[${wsId}]`,
+      this.private_channel[wsId]
+    );
     try {
-      if (!this.private_channel[wsId]) {
-        this.private_channel[wsId] = {};
-        this.private_channel[wsId]["sn"] = sn;
-        this.private_channel[wsId]["channel"] = this.private_pusher[
-          wsId
-        ].subscribe(`private-${sn}`);
-        this.private_channel[wsId]["channel"].bind("account", (data) =>
-          this._updateAccount(memberId, data)
-        );
-        this.private_channel[wsId]["channel"].bind("order", (data) =>
-          this._updateOrder(memberId, data)
-        );
-        this.private_channel[wsId]["channel"].bind("trade", (data) => {
-          this._updateTrade(memberId, data);
-        });
-      }
+      if (!this.private_channel[wsId]) this.private_channel[wsId] = {};
+      this.private_channel[wsId]["sn"] = sn;
+      this.private_channel[wsId]["channel"] = this.private_pusher[
+        wsId
+      ].subscribe(`private-${sn}`);
+      this.private_channel[wsId]["channel"].bind("account", (data) =>
+        this._updateAccount(memberId, data)
+      );
+      this.private_channel[wsId]["channel"].bind("order", (data) =>
+        this._updateOrder(memberId, data)
+      );
+      this.private_channel[wsId]["channel"].bind("trade", (data) => {
+        this._updateTrade(memberId, data);
+      });
     } catch (error) {
       this.logger.error(`private_channel error`, error);
       throw error;
@@ -1043,10 +1087,13 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _unregisterPrivateChannel(wsId) {
-    if (!wsId || !this.isStart) return;
+    this.logger.log(
+      `_unregisterPrivateChannel  this.private_channel[${wsId}]`,
+      this.private_channel[wsId]
+    );
     try {
       this.private_channel[wsId]["channel"]?.unbind();
-      this.private_channel = this.private_pusher[wsId].unsubscribe(
+      this.private_pusher[wsId]?.unsubscribe(
         `private-${this.private_channel[wsId]["sn"]}`
       );
       delete this.private_channel[wsId];
@@ -1215,23 +1262,6 @@ class TibeBitConnector extends ConnectorBase {
     // );
   }
 
-  _stopPusher() {
-    this._unregisterGlobalChannel();
-    this._unregisterMarketChannel();
-    this._unregisterPrivateChannel();
-    // this.isStart = false;
-    // this.isCredential = false;
-  }
-
-  _restartPusherWithLoginToken(credential) {
-    // this._stopPusher();
-    this._startPusherWithLoginToken(credential.headers);
-    if (credential.market) {
-      this.logger.log(`credential.market`, credential.market);
-      this._registerMarketChannel(credential.market);
-    }
-  }
-
   /**
    *
    * @param {*} credential
@@ -1271,25 +1301,26 @@ class TibeBitConnector extends ConnectorBase {
    * wsId
    * market
    */
-  async _unsubscribeUser(credential) {
-    if (this.private_pusher[credential.wsId]) {
+  async _unsubscribeUser(wsId) {
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _unsubscribeUser [START] ----------`
+    );
+    this.logger.log(
+      ` _unsubscribeUser this.private_pusher[${wsId}]`,
+      this.private_pusher
+    );
+    if (this.private_pusher[wsId]) {
       try {
-        this.logger.log(
-          `---------- [${this.constructor.name}]  _unsubscribeUser [START] ----------`
-        );
-        this.logger.error(`_unsubscribeUser credential`, credential);
-        // this._stopPusher();
-        this._unregisterPrivateChannel(credential.wsId);
-        delete this.private_pusher[credential.wsId];
-        // this._unsubscribeMarket(credential.market, credential.wsId);
-        this.logger.log(
-          `---------- [${this.constructor.name}]  _unsubscribeUser [END] ----------`
-        );
+        this._unregisterPrivateChannel(wsId);
+        delete this.private_pusher[wsId];
       } catch (error) {
         this.logger.error(`_unsubscribeUser error`, error);
         throw error;
       }
     }
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _unsubscribeUser [END] ----------`
+    );
   }
 
   _subscribeMarket(market, wsId) {
@@ -1319,7 +1350,7 @@ class TibeBitConnector extends ConnectorBase {
       this.logger.log(
         `---------- [${this.constructor.name}]  _unsubscribeMarket [START] ----------`
       );
-      this.logger.error(`_unsubscribeMarket market, wsId`, market, wsId);
+      this.logger.log(`_unsubscribeMarket market, wsId`, market, wsId);
       this._unregisterMarketChannel(market, wsId);
       this.logger.log(
         `---------- [${this.constructor.name}]  _unsubscribeMarket [END] ----------`

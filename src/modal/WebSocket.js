@@ -2,6 +2,8 @@ import { Config } from "../constant/Config";
 import Events from "../constant/Events";
 
 class TideBitWS {
+  currentUser;
+  currentMarket;
   connection_resolvers = [];
   constructor({ accountBook, depthBook, orderBook, tickerBook, tradeBook }) {
     this.tickerBook = tickerBook;
@@ -12,6 +14,7 @@ class TideBitWS {
   }
 
   setCurrentUser(token) {
+    this.currentUser = token;
     this.connection_resolvers.push(
       JSON.stringify({
         op: "userStatusUpdate",
@@ -24,6 +27,7 @@ class TideBitWS {
   }
 
   setCurrentMarket(market) {
+    this.currentMarket = market;
     this.connection_resolvers.push(
       JSON.stringify({
         op: "switchMarket",
@@ -90,6 +94,9 @@ class TideBitWS {
         "Socket is closed. Reconnect will be attempted in 1 second.",
         msg.reason
       );
+      // !!!!ONLY PUSH ONCE TODO push currentUser and current
+      if (this.currentMarket) this.setCurrentMarket(this.currentMarket);
+      if (this.currentUser) this.setCurrentUser(this.currentUser);
       setTimeout(() => {
         this.connect();
       }, 1000);

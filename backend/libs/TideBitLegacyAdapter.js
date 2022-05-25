@@ -14,40 +14,40 @@ class TideBitLegacyAdapter {
     });
   }
 
-  // ++ middleware
-  static async parseMemberId(ctx, next) {
+  static async parseMemberId(header) {
     if (Math.random() < 0.01) {
       TideBitLegacyAdapter.usersGC();
     }
-    const peatioToken = Utils.peatioToken(ctx.header);
-    console.log(
-      `[TideBitLegacyAdapter parseMemberId] peatioToken`,
-      peatioToken
-    );
-    if (!peatioToken) {
-      ctx.memberId = -1;
-    } else {
-      ctx.token = peatioToken;
+    let peatioToken,
+      memberId = -1;
+    // console.trace(`parseMemberId header`, header);
+    peatioToken = Utils.peatioToken(header);
+    console.log(`parseMemberId peatioToken`, peatioToken);
+    if (peatioToken) {
       if (users[peatioToken]) {
-        ctx.memberId = users[peatioToken].memberId;
+        memberId = users[peatioToken].memberId;
       } else {
         try {
-          const memberId = await Utils.getMemberIdFromRedis(peatioToken);
-          if (memberId !== -1) {
-            users[peatioToken] = { memberId, ts: Date.now() };
-          }
           console.log(
-            `[TideBitLegacyAdapter parseMemberId] memberId`,
-            memberId
+            `!!! [TideBitLegacyAdapter parseMemberId] getMemberIdFromRedis`
           );
-          ctx.memberId = memberId;
+          memberId = await Utils.getMemberIdFromRedis(peatioToken);
+          users[peatioToken] = { memberId, ts: Date.now() };
         } catch (error) {
           console.error(`parseMemberId getMemberIdFromRedis error`, error);
-          ctx.memberId = -1;
+          users[peatioToken] = { memberId, ts: Date.now() };
         }
       }
-      // console.log(`parseMemberId ctx.memberId`, ctx.memberId);
+      console.log(`parseMemberId users[${peatioToken}]`, users[peatioToken]);
     }
+    return { peatioToken, memberId };
+  }
+
+  // ++ middleware
+  static async getMemberId(ctx, next) {
+    const parsedResult = await TideBitLegacyAdapter.parseMemberId(ctx.header);
+    ctx.token = parsedResult.peatioToken;
+    ctx.memberId = parsedResult.memberId;
     return next();
   }
 

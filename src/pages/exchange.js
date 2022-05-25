@@ -13,6 +13,7 @@ const Exchange = () => {
 
   useEffect(() => {
     if (!isStart) {
+      window.storeCtx = storeCtx;
       storeCtx.start();
       setIsStart(true);
     }

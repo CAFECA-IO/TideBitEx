@@ -787,8 +787,8 @@ class OkexConnector extends ConnectorBase {
               : state === "filled"
               ? "Done"
               : "Waiting",
-          // at: parseInt(SafeMath.div(data.uTime, "1000")),
-          at: parseInt(data.uTime),
+          at: parseInt(SafeMath.div(data.uTime, "1000")),
+          ts: parseInt(data.uTime),
         };
       });
       this.logger.log(
@@ -896,8 +896,8 @@ class OkexConnector extends ConnectorBase {
               : state === "filled"
               ? "Done"
               : "Waiting",
-          // at: parseInt(SafeMath.div(data.uTime, "1000")),
-          at: parseInt(data.uTime),
+          at: parseInt(SafeMath.div(data.uTime, "1000")),
+          ts: parseInt(data.uTime),
         };
       });
       this.orderBook.updateAll(memberId, instId, orders);
@@ -1205,8 +1205,8 @@ class OkexConnector extends ConnectorBase {
       price: data.px,
       volume: data.sz,
       market,
-      // at: parseInt(SafeMath.div(data.ts, "1000")),
-      at: data.ts,
+      at: parseInt(SafeMath.div(data.ts, "1000")),
+      ts: data.ts,
     }));
   }
 
@@ -1337,7 +1337,8 @@ class OkexConnector extends ConnectorBase {
       high: data.high24h,
       low: data.low24h,
       volume: data.vol24h,
-      at: parseInt(data.ts),
+      at: parseInt(SafeMath.div(data.ts, "1000")),
+      ts: parseInt(data.ts),
       source: SupportedExchange.OKEX,
       sell: data.askPx, // [about to decrepted]
       buy: data.bidPx, // [about to decrepted]
