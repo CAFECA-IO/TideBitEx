@@ -6,6 +6,7 @@ const ResponseFormat = require("../libs/ResponseFormat");
 const EventBus = require("../libs/EventBus");
 const Events = require("../constants/Events");
 const Utils = require("../libs/Utils");
+const { parseMemberId } = require("../libs/TideBitLegacyAdapter");
 
 const Bot = require(path.resolve(__dirname, "Bot.js"));
 
@@ -149,18 +150,16 @@ class WSChannel extends Bot {
 
   // TODO SPA LOGIN
   // ++ CURRENT_USER UNSAVED
-  async _onOpStatusUpdate(headers, ws, args) {
+  async _onOpStatusUpdate(header, ws, args) {
     const findClient = this._client[ws.id];
-    const peatioToken = Utils.peatioToken(headers);
-    this.logger.log(
-      `[${this.constructor.name} _onOpStatusUpdate] peatioToken`,
-      peatioToken
-    );
-    let memberId = -1;
-    if (peatioToken) memberId = await Utils.getMemberIdFromRedis(peatioToken);
+    let { peatioToken, memberId } = await parseMemberId(header);
     this.logger.log(
       `[${this.constructor.name} _onOpStatusUpdate] memberId`,
       memberId
+    );
+    this.logger.log(
+      `[${this.constructor.name} _onOpStatusUpdate] peatioToken`,
+      peatioToken
     );
     if (!findClient.isStart) {
       findClient.channel = args.market;
@@ -180,7 +179,7 @@ class WSChannel extends Bot {
     if (memberId !== -1 && args.token) {
       EventBus.emit(Events.userOnSubscribe, {
         headers: {
-          cookie: headers.cookie,
+          cookie: header.cookie,
           "content-type": "application/json",
           "x-csrf-token": args.token,
         },

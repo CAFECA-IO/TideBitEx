@@ -244,7 +244,7 @@ const StoreProvider = (props) => {
         return false;
       }
     },
-    [action, enqueueSnackbar, middleman, selectedTicker]
+    [action, enqueueSnackbar, middleman]
   );
 
   const activePageHandler = (page) => {

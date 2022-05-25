@@ -14,40 +14,40 @@ class TideBitLegacyAdapter {
     });
   }
 
-  // ++ middleware
-  static async parseMemberId(ctx, next) {
+  static async parseMemberId(header) {
     if (Math.random() < 0.01) {
       TideBitLegacyAdapter.usersGC();
     }
-    const peatioToken = Utils.peatioToken(ctx.header);
-    console.log(
-      `[TideBitLegacyAdapter parseMemberId] peatioToken`,
-      peatioToken
-    );
-    if (!peatioToken) {
-      ctx.memberId = -1;
-    } else {
-      ctx.token = peatioToken;
+    let peatioToken,
+      memberId = -1;
+    peatioToken = Utils.peatioToken(header);
+    if (peatioToken) {
       if (users[peatioToken]) {
-        ctx.memberId = users[peatioToken].memberId;
+        memberId = users[peatioToken].memberId;
       } else {
         try {
-          const memberId = await Utils.getMemberIdFromRedis(peatioToken);
+          console.log(
+            `!!! [TideBitLegacyAdapter parseMemberId] getMemberIdFromRedis`
+          );
+          memberId = await Utils.getMemberIdFromRedis(peatioToken);
           if (memberId !== -1) {
             users[peatioToken] = { memberId, ts: Date.now() };
           }
-          console.log(
-            `[TideBitLegacyAdapter parseMemberId] memberId`,
-            memberId
-          );
-          ctx.memberId = memberId;
         } catch (error) {
           console.error(`parseMemberId getMemberIdFromRedis error`, error);
-          ctx.memberId = -1;
         }
       }
-      // console.log(`parseMemberId ctx.memberId`, ctx.memberId);
+      console.log(`parseMemberId peatioToken`, peatioToken);
+      console.log(`parseMemberId memberId`, memberId);
     }
+    return { peatioToken, memberId };
+  }
+
+  // ++ middleware
+  static async getMemberId(ctx, next) {
+    const parsedResult = await TideBitLegacyAdapter.parseMemberId(ctx.header);
+    ctx.token = parsedResult.peatioToken;
+    ctx.memberId = parsedResult.memberId;
     return next();
   }
 
