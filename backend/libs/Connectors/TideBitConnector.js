@@ -332,6 +332,7 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   // ++ TODO: verify function works properly
+  //++!!!TODO 不應該使用 updateByDifference 應該使用updateAll
   _updateBooks(market, updateBooks) {
     /**
     {
@@ -348,10 +349,10 @@ class TibeBitConnector extends ConnectorBase {
     this.logger.log(
       `---------- [${this.constructor.name}]  _updateBooks [START] ----------`
     );
-    this.logger.log(
-      `[FROM TideBit] market[${market}] updateBooks`,
-      updateBooks
-    );
+    // this.logger.log(
+    //   `[FROM TideBit] market[${market}] updateBooks`,
+    //   updateBooks
+    // );
     const instId = this._findInstId(market);
     const difference = {
       updates: [],
@@ -393,10 +394,10 @@ class TibeBitConnector extends ConnectorBase {
       }
     });
     this.depthBook.updateByDifference(instId, difference);
-    this.logger.log(
-      `[FROM TideBit] market[${market}] difference`,
-      this.depthBook.getDifference(instId)
-    );
+    // this.logger.log(
+    //   `[FROM TideBit] market[${market}] difference`,
+    //   this.depthBook.getDifference(instId)
+    // );
     EventBus.emit(Events.update, market, this.depthBook.getSnapshot(instId));
   }
 
