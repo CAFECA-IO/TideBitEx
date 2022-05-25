@@ -35,7 +35,7 @@ class TideBitLegacyAdapter {
           users[peatioToken] = { memberId, ts: Date.now() };
         } catch (error) {
           console.error(`parseMemberId getMemberIdFromRedis error`, error);
-          users[peatioToken] = { memberId, ts: Date.now() };
+          users[peatioToken] = { memberId, ts: Date.now(), error };
         }
       }
       console.log(`parseMemberId users[${peatioToken}]`, users[peatioToken]);
