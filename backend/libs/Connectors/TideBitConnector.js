@@ -344,7 +344,13 @@ class TibeBitConnector extends ConnectorBase {
         ]
     }
     */
-
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateBooks [START] ----------`
+    );
+    this.logger.log(
+      `[FROM TideBit] market[${market}] updateBooks`,
+      updateBooks
+    );
     const instId = this._findInstId(market);
     const difference = {
       updates: [],
@@ -386,11 +392,11 @@ class TibeBitConnector extends ConnectorBase {
       }
     });
     this.depthBook.updateByDifference(instId, difference);
-    // const timestamp = Date.now();
-    // if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
-    //   this._booksTimestamp = timestamp;
+    this.logger.log(
+      `[FROM TideBit] market[${market}] difference`,
+      this.depthBook.getDifference(instId)
+    );
     EventBus.emit(Events.update, market, this.depthBook.getSnapshot(instId));
-    // }
   }
 
   /**
