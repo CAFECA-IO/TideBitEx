@@ -459,7 +459,9 @@ class TibeBitConnector extends ConnectorBase {
     volume: "0.1"
     }*/
     const instId = this._findInstId(newTrade.market);
-    this.tradeBook.updateByDifference(instId, { add: [newTrade] });
+    this.tradeBook.updateByDifference(instId, {
+      add: [{ ...newTrade, ts: parseInt(SafeMath.mult(newTrade.at, "1000")) }],
+    });
     EventBus.emit(Events.trade, newTrade.market, {
       market: newTrade.market,
       difference: this.tradeBook.getDifference(instId),
@@ -1057,7 +1059,10 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _unregisterPrivateChannel(wsId) {
-    this.logger.log(`_unregisterPrivateChannel  this.private_channel[${wsId}]`, this.private_channel[wsId]);
+    this.logger.log(
+      `_unregisterPrivateChannel  this.private_channel[${wsId}]`,
+      this.private_channel[wsId]
+    );
     try {
       this.private_channel[wsId]["channel"]?.unbind();
       this.private_pusher[wsId]["channel"]?.unsubscribe(
