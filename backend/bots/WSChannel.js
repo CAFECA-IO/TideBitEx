@@ -138,13 +138,13 @@ class WSChannel extends Bot {
                   ws.id
                 );
               }
-              if (findClient.isPrivate) {
-                EventBus.emit(
-                  Events.userOnUnsubscribe,
-                  findClient.channel,
-                  ws.id
-                );
-              }
+            }
+            if (findClient.isPrivate) {
+              EventBus.emit(
+                Events.userOnUnsubscribe,
+                findClient.channel,
+                ws.id
+              );
             }
             delete this._client[ws.id];
           });
