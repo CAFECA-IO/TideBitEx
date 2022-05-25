@@ -201,10 +201,6 @@ class WSChannel extends Bot {
 
   _onOpSwitchMarket(ws, args) {
     const findClient = this._client[ws.id];
-    this.logger.log(
-      `[${this.constructor.name} _onOpSwitchMarket] findClient`,
-      findClient
-    );
     if (!findClient.isStart) {
       findClient.channel = args.market;
       findClient.isStart = true;
