@@ -124,6 +124,7 @@ class WSChannel extends Bot {
             );
             this.logger.debug("this._channelClients", this._channelClients);
             const findClient = this._client[ws.id];
+            this.logger.debug("findClient", findClient);
             if (findClient.isStart) {
               delete this._channelClients[findClient.channel][ws.id];
               this.logger.debug("this._channelClients", this._channelClients);
