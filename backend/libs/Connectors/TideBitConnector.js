@@ -721,10 +721,6 @@ class TibeBitConnector extends ConnectorBase {
         };
       } else {
         */
-        this.logger.log(`tbGetOrderList order.state`, order.state, typeof order.state);
-        this.logger.log(`this.database.ORDER_STATE.WAIT`, this.database.ORDER_STATE.WAIT);
-        this.logger.log(`this.database.ORDER_STATE.CANCEL`, this.database.ORDER_STATE.CANCEL);
-        this.logger.log(`this.database.ORDER_STATE.WAIT`, this.database.ORDER_STATE.WAIT);
       return {
         id: order.id,
         ts: parseInt(new Date(order.updated_at).getTime()),
@@ -740,12 +736,16 @@ class TibeBitConnector extends ConnectorBase {
           ? "canceled"
           : SafeMath.eq(order.state, this.database.ORDER_STATE.WAIT)
           ? "wait"
-          : "done",
+          : SafeMath.eq(order.state, this.database.ORDER_STATE.DONE)
+          ? "done"
+          : "unkwon",
         state_text: SafeMath.eq(order.state, this.database.ORDER_STATE.CANCEL)
           ? "Canceled"
           : SafeMath.eq(order.state, this.database.ORDER_STATE.WAIT)
           ? "Waiting"
-          : "Done",
+          : SafeMath.eq(order.state, this.database.ORDER_STATE.DONE)
+          ? "Done"
+          : "Unkwon",
         clOrdId: order.id,
         instId: query.instId,
         ordType: order.ord_type,
