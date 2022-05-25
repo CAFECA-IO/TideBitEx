@@ -116,7 +116,9 @@ class WSChannel extends Bot {
             this.logger.debug(
               `*********findClient.channl [channel: ${
                 this._client[ws.id].channel
-              },isStart: ${this._client[ws.id].isStart}],isPrivate: ${this._client[ws.id].isPrivate}]*************`
+              },isStart: ${this._client[ws.id].isStart}],isPrivate: ${
+                this._client[ws.id].isPrivate
+              }]*************`
             );
             this.logger.debug("this._channelClients", this._channelClients);
           });
@@ -147,7 +149,6 @@ class WSChannel extends Bot {
             if (findClient.isPrivate) {
               EventBus.emit(
                 Events.userOnUnsubscribe,
-                findClient.channel,
                 ws.id
               );
               findClient.isPrivate = false;

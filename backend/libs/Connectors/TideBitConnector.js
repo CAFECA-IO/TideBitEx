@@ -1276,23 +1276,26 @@ class TibeBitConnector extends ConnectorBase {
    * wsId
    * market
    */
-  async _unsubscribeUser(credential) {
-    if (this.private_pusher[credential.wsId]) {
+  async _unsubscribeUser(wsId) {
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _unsubscribeUser [START] ----------`
+    );
+    this.logger.log(
+      ` _unsubscribeUser this.private_pusher[${wsId}]`,
+      this.private_pusher
+    );
+    if (this.private_pusher[wsId]) {
       try {
-        this.logger.log(
-          `---------- [${this.constructor.name}]  _unsubscribeUser [START] ----------`
-        );
-        this.logger.error(`_unsubscribeUser credential`, credential);
-        this._unregisterPrivateChannel(credential.wsId);
-        delete this.private_pusher[credential.wsId];
-        this.logger.log(
-          `---------- [${this.constructor.name}]  _unsubscribeUser [END] ----------`
-        );
+        this._unregisterPrivateChannel(wsId);
+        delete this.private_pusher[wsId];
       } catch (error) {
         this.logger.error(`_unsubscribeUser error`, error);
         throw error;
       }
     }
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _unsubscribeUser [END] ----------`
+    );
   }
 
   _subscribeMarket(market, wsId) {
