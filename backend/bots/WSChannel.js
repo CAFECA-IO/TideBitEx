@@ -145,7 +145,7 @@ class WSChannel extends Bot {
                 );
               }
             }
-            this.logger.debug(`findClient${findClient.isPrivate}`, findClient);
+            // this.logger.debug(`findClient${findClient.isPrivate}`, findClient);
             if (findClient.isPrivate) {
               EventBus.emit(
                 Events.userOnUnsubscribe,

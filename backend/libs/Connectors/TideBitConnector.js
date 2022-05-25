@@ -1057,10 +1057,10 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _unregisterPrivateChannel(wsId) {
-    if (!wsId || !this.isStart) return;
+    this.logger.log(`_unregisterPrivateChannel  this.private_channel[${wsId}]`, this.private_channel[wsId]);
     try {
       this.private_channel[wsId]["channel"]?.unbind();
-      this.private_channel = this.private_pusher[wsId].unsubscribe(
+      this.private_pusher[wsId]["channel"]?.unsubscribe(
         `private-${this.private_channel[wsId]["sn"]}`
       );
       delete this.private_channel[wsId];
@@ -1227,23 +1227,6 @@ class TibeBitConnector extends ConnectorBase {
     // this.public_pusher.bind_global((data) =>
     //   this.logger.log(`[_startPusherWithLoginToken][bind_global] data`, data)
     // );
-  }
-
-  _stopPusher() {
-    this._unregisterGlobalChannel();
-    this._unregisterMarketChannel();
-    this._unregisterPrivateChannel();
-    // this.isStart = false;
-    // this.isCredential = false;
-  }
-
-  _restartPusherWithLoginToken(credential) {
-    // this._stopPusher();
-    this._startPusherWithLoginToken(credential.headers);
-    if (credential.market) {
-      this.logger.log(`credential.market`, credential.market);
-      this._registerMarketChannel(credential.market);
-    }
   }
 
   /**
