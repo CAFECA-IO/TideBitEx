@@ -303,7 +303,6 @@ const StoreProvider = (props) => {
       pathname: `/markets/${market}`,
     });
     await middleman.start(market);
-    setSelectedTicker(middleman.getTicker());
     setIsLogin(middleman.isLogin);
     // ++ TODO: verify function works properly
     sync();

@@ -23,6 +23,7 @@ class TibeBitConnector extends ConnectorBase {
   fetchedTrades = {};
   fetchedBook = {};
   fetchedOrders = {};
+  fetchedOrdersInterval = 5 * 60 * 1000;
 
   constructor({ logger }) {
     super({ logger });
@@ -759,19 +760,27 @@ class TibeBitConnector extends ConnectorBase {
     this.logger.log(
       `[${this.constructor.name} getOrderList${instId}] memberId ${memberId}:`
     );
-    if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = [];
-    try {
-      const orders = await this.tbGetOrderList(query);
-      this.orderBook.updateAll(memberId, instId, orders);
-      this.fetchedOrders[memberId].push(instId);
-    } catch (error) {
-      this.logger.error(error);
-      const message = error.message;
-      return new ResponseFormat({
-        message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
-    }
+    if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = {};
+    let ts = Date.now();
+    if (
+      !this.fetchedOrders[memberId][instId] ||
+      SafeMath.gt(
+        SafeMath.minus(ts, this.fetchedOrders[memberId][instId]),
+        this.fetchedOrdersInterval
+      )
+    )
+      try {
+        const orders = await this.tbGetOrderList(query);
+        this.orderBook.updateAll(memberId, instId, orders);
+        this.fetchedOrders[memberId][instId] = ts;
+      } catch (error) {
+        this.logger.error(error);
+        const message = error.message;
+        return new ResponseFormat({
+          message,
+          code: Codes.API_UNKNOWN_ERROR,
+        });
+      }
     return new ResponseFormat({
       message: "getOrderList",
       payload: this.orderBook.getSnapshot(memberId, instId, "pending"),
@@ -781,14 +790,21 @@ class TibeBitConnector extends ConnectorBase {
   async getOrderHistory({ query }) {
     const { instId, memberId } = query;
     this.logger.log(
-      `[${this.constructor.name} getOrderList${instId}] memberId ${memberId}[${this.fetchedOrders[memberId]}:`
+      `[${this.constructor.name} getOrderHistory${instId}] memberId ${memberId}[${this.fetchedOrders[memberId]}:`
     );
-    if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = [];
-    if (!this.fetchedOrders[memberId].some((_instId) => _instId === instId)) {
+    if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = {};
+    let ts = Date.now();
+    if (
+      !this.fetchedOrders[memberId][instId] ||
+      SafeMath.gt(
+        SafeMath.minus(ts, this.fetchedOrders[memberId][instId]),
+        this.fetchedOrdersInterval
+      )
+    ) {
       try {
         const orders = await this.tbGetOrderList(query);
         this.orderBook.updateAll(memberId, instId, orders);
-        this.fetchedOrders[memberId].push(instId);
+        this.fetchedOrders[memberId][instId] = ts;
       } catch (error) {
         this.logger.error(error);
         const message = error.message;
