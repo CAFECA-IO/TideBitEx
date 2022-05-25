@@ -332,8 +332,10 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   // ++ TODO: verify function works properly
-  //++!!!TODO 不應該使用 updateByDifference 應該使用updateAll
   _updateBooks(market, updateBooks) {
+    // WORKAROUND
+    if (!updateBooks.asks.length > 0 && !updateBooks.bids.length > 0) return;
+    // WORKAROUND
     /**
     {
         asks: [
