@@ -26,26 +26,7 @@ class Bot {
     });
     return Promise.resolve(bot);
   }
-  async broadcast(market, { type, data }) {
-    const ws = await this.getBot('WSChannel');
-    return ws.broadcast(market, { type, data });
-  }
-
-  async broadcastAllClient({ type, data }) {
-    const ws = await this.getBot('WSChannel');
-    return ws.broadcastAllClient({ type, data });
-  }
-
-  async broadcastPrivateClient(memberId, { market, type, data }) {
-    const ws = await this.getBot("WSChannel");
-    return ws.broadcastAllPrivateClient(memberId, { market, type, data });
-  }
-
-  async broadcastAllPrivateClient(memberId, { type, data }) {
-    const ws = await this.getBot("WSChannel");
-    return ws.broadcastAllPrivateClient(memberId, { type, data });
-  }
-
+ 
   /* leveldb operation */
   /* ----------------- */
   write({ key, value }) {

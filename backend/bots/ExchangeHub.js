@@ -23,6 +23,125 @@ class ExchangeHub extends Bot {
     this.fetchedTickers = false;
   }
 
+  async broadcast(market, { type, data }) {
+    const ws = await this.getBot("WSChannel");
+    return ws.broadcast(market, { type, data });
+  }
+
+  async broadcastAllClient({ type, data }) {
+    const ws = await this.getBot("WSChannel");
+    return ws.broadcastAllClient({ type, data });
+  }
+
+  async broadcastPrivateClient(memberId, { market, type, data }) {
+    const ws = await this.getBot("WSChannel");
+    return ws.broadcastAllPrivateClient(memberId, { market, type, data });
+  }
+
+  async broadcastAllPrivateClient(memberId, { type, data }) {
+    const ws = await this.getBot("WSChannel");
+    return ws.broadcastAllPrivateClient(memberId, { type, data });
+  }
+
+  async _eventListener() {
+    // ++ TODO TEST
+    EventBus.on(Events.account, (memberId, account) => {
+      this.logger.log(
+        `[${this.constructor.name}] EventBus.on(Events.account)`,
+        memberId,
+        account
+      );
+      this.broadcastAllPrivateClient(memberId, {
+        type: Events.account,
+        data: account,
+      });
+    });
+
+    // ++ TODO TEST
+    EventBus.on(Events.order, (memberId, market, order) => {
+      this.logger.log(
+        `[${this.constructor.name}] EventBus.on(Events.order)`,
+        memberId,
+        market,
+        order
+      );
+      this.broadcastPrivateClient(memberId, {
+        market,
+        type: Events.order,
+        data: order,
+      });
+    });
+
+    // ++ TODO TEST
+    EventBus.on(Events.trade, (memberId, market, tradeData) => {
+      if (this._isIncludeTideBitMarket(market)) {
+        this.logger.log(
+          `[${this.constructor.name}] EventBus.on(Events.trade)`,
+          memberId,
+          market,
+          tradeData
+        );
+        this.broadcastPrivateClient(memberId, {
+          market,
+          type: Events.trade,
+          data: tradeData,
+        });
+      }
+    });
+
+    // ++ TODO TEST
+    EventBus.on(Events.trades, (market, tradesData) => {
+      this.broadcast(market, {
+        type: Events.trades,
+        data: tradesData,
+      });
+    });
+
+    // depthBooksOnUpdate
+    // ++ TODO TEST
+    EventBus.on(Events.update, (market, booksData) => {
+      // this.logger.debug(
+      //   `[${this.name}]_updateBooks booksData`,
+      //   booksData
+      // );
+      this.broadcast(market, {
+        type: Events.update,
+        data: booksData,
+      });
+    });
+
+    // EventBus.on(Events.candleOnUpdate, (market, formatCandle) => {
+    //   this.broadcast(market, {
+    //     type: Events.candleOnUpdate,
+    //     data: formatCandle,
+    //   });
+    // });
+
+    // tickersOnUpdate
+    EventBus.on(Events.tickers, (updateTickers) => {
+      // const filteredTickers = Utils.tickersFilterInclude(this.tidebitMarkets, updateTickers)
+      // this.logger.log(`[${this.name} Events.tickers]`, filteredTickers)
+      this.broadcastAllClient({
+        type: Events.tickers,
+        data: updateTickers,
+      });
+    });
+
+    EventBus.on(Events.orderDetailUpdate, async (instType, formatOrders) => {
+      if (instType === "SPOT") {
+        // TODO: using message queue
+        for (const formatOrder of formatOrders) {
+          if (
+            formatOrder.state !== "canceled" /* cancel order */ &&
+            formatOrder.accFillSz !== "0" /* create order */
+          ) {
+            await this._updateOrderDetail(formatOrder);
+          }
+        }
+      }
+    });
+  }
+
   init({ config, database, logger, i18n }) {
     return super
       .init({ config, database, logger, i18n })
@@ -960,105 +1079,6 @@ class ExchangeHub extends Bot {
           });
         }
     }
-  }
-
-  async _eventListener() {
-    // ++ TODO TEST
-    EventBus.on(Events.account, (memberId, account) => {
-      this.logger.log(
-        `[${this.constructor.name}] EventBus.on(Events.account)`,
-        memberId,
-        account
-      );
-      this.broadcastAllPrivateClient(memberId, {
-        type: Events.account,
-        data: account,
-      });
-    });
-
-    // ++ TODO TEST
-    EventBus.on(Events.order, (memberId, market, order) => {
-      this.logger.log(
-        `[${this.constructor.name}] EventBus.on(Events.order)`,
-        memberId,
-        market,
-        order
-      );
-      this.broadcastPrivateClient(memberId, {
-        market,
-        type: Events.order,
-        data: order,
-      });
-    });
-
-    // ++ TODO TEST
-    EventBus.on(Events.trade, (memberId, market, tradeData) => {
-      if (this._isIncludeTideBitMarket(market)) {
-        this.logger.log(
-          `[${this.constructor.name}] EventBus.on(Events.trade)`,
-          memberId,
-          market,
-          tradeData
-        );
-        this.broadcastPrivateClient(memberId, {
-          market,
-          type: Events.trade,
-          data: tradeData,
-        });
-      }
-    });
-
-    // ++ TODO TEST
-    EventBus.on(Events.trades, (market, tradesData) => {
-      this.broadcast(market, {
-        type: Events.trades,
-        data: tradesData,
-      });
-    });
-
-    // depthBooksOnUpdate
-    // ++ TODO TEST
-    EventBus.on(Events.update, (market, booksData) => {
-      // this.logger.debug(
-      //   `[${this.name}]_updateBooks booksData`,
-      //   booksData
-      // );
-      this.broadcast(market, {
-        type: Events.update,
-        data: booksData,
-      });
-    });
-
-    // EventBus.on(Events.candleOnUpdate, (market, formatCandle) => {
-    //   this.broadcast(market, {
-    //     type: Events.candleOnUpdate,
-    //     data: formatCandle,
-    //   });
-    // });
-
-    // tickersOnUpdate
-    EventBus.on(Events.tickers, (updateTickers) => {
-      // const filteredTickers = Utils.tickersFilterInclude(this.tidebitMarkets, updateTickers)
-      // this.logger.log(`[${this.name} Events.tickers]`, filteredTickers)
-      this.broadcastAllClient({
-        type: Events.tickers,
-        data: updateTickers,
-      });
-    });
-
-    EventBus.on(Events.orderDetailUpdate, async (instType, formatOrders) => {
-      if (instType === "SPOT") {
-        // TODO: using message queue
-        for (const formatOrder of formatOrders) {
-          if (
-            formatOrder.state !== "canceled" /* cancel order */ &&
-            formatOrder.accFillSz !== "0" /* create order */
-          ) {
-            await this._updateOrderDetail(formatOrder);
-          }
-        }
-      }
-    });
   }
 
   async _updateOrderDetail(formatOrder) {

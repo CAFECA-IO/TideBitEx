@@ -8,7 +8,7 @@ import SafeMath from "../utils/SafeMath";
 let interval,
   accountInterval = 500,
   accountTs = 0,
-  depthInterval = 3000,
+  depthInterval = 300,
   depthTs = 0,
   orderInterval = 500,
   orderTs = 0,
