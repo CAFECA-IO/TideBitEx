@@ -1,7 +1,7 @@
 class TideBitWS {
   currentUser;
   currentMarket;
-  interval;
+  timeout;
   connection_resolvers = [];
   constructor() {
     return this;
@@ -10,7 +10,7 @@ class TideBitWS {
   setCurrentUser(market, token) {
     this.currentMarket = market;
     this.currentUser = token;
-    this.connection_resolvers.push(
+    this.send(
       JSON.stringify({
         op: "userStatusUpdate",
         args: {
@@ -23,7 +23,7 @@ class TideBitWS {
 
   setCurrentMarket(market) {
     this.currentMarket = market;
-    this.connection_resolvers.push(
+    this.send(
       JSON.stringify({
         op: "switchMarket",
         args: {
@@ -55,24 +55,22 @@ class TideBitWS {
     };
   }
 
-  eventMessenger() {
-    console.log("Socket is open");
-    if (this.interval) clearInterval(this.interval);
+  send(data) {
+    this.connection_resolvers.push(data);
+    this.sendDataFromQueue();
+  }
 
-    // !!!!TODO verify
-
-    if (this.currentMarket && this.currentUser)
-      this.setCurrentUser(this.currentMarket, this.currentUser);
-    else if (this.currentMarket) this.setCurrentMarket(this.currentMarket);
-    // !!!!TODO verify
-
-    const data = this.connection_resolvers.shift();
-    if (data) this.ws.send(data);
-    this.interval = setInterval(() => {
-      // console.log("Interval: connection_resolvers", this.connection_resolvers);
+  sendDataFromQueue() {
+    if (this.ws.readyState === 1) {
       const data = this.connection_resolvers.shift();
-      if (data) this.ws.send(data);
-    }, 500);
+      if (data) {
+        this.ws.send(data);
+        this.sendDataFromQueue();
+      }
+    } else {
+      clearTimeout(this.timeout);
+      this.timeout = setTimeout(() => this.sendDataFromQueue(), 1500);
+    }
   }
 
   /**
@@ -89,7 +87,7 @@ class TideBitWS {
     this.eventListener();
     return new Promise((resolve) => {
       this.ws.onopen = (r) => {
-        this.eventMessenger();
+        console.log("Socket is open");
         return resolve(r);
       };
     });
