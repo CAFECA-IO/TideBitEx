@@ -1,5 +1,3 @@
-const HEART_BEAT_TIME = 25000;
-
 class TideBitWS {
   currentUser;
   currentMarket;
@@ -16,7 +14,6 @@ class TideBitWS {
         op: "userStatusUpdate",
         args: {
           token,
-          market: this.tickerBook.market,
         },
       })
     );
@@ -32,6 +29,27 @@ class TideBitWS {
         },
       })
     );
+  }
+
+  clear(msg) {
+    console.log(
+      "Socket is closed. Reconnect will be attempted in 1 second.",
+      msg.reason
+    );
+    if (this.interval) clearInterval(this.interval);
+    // in case connection is broken
+    if (msg.code === 1006 || msg.reason === "" || msg.wasClean === false)
+      setTimeout(async () => {
+        await this.init({ url: this.url });
+      }, 1000);
+  }
+
+  eventListener() {
+    this.ws.onclose = (msg) => this.clear(msg);
+    this.ws.onerror = async (err) => {
+      this.logger.error(err);
+      await this.init({ url: this.url });
+    };
   }
 
   eventMessenger() {
@@ -52,35 +70,6 @@ class TideBitWS {
     }, 500);
   }
 
-  eventListener() {
-    this.ws.on("pong", () => this.heartbeat());
-    this.ws.on("close", (msg) => this.clear(msg));
-    this.ws.on("error", async (err) => {
-      this.logger.error(err);
-      await this.init({ url: this.url });
-    });
-  }
-
-  heartbeat() {
-    clearTimeout(this.pingTimeout);
-    this.pingTimeout = setTimeout(() => {
-      // this.logger.debug('heartbeat');
-      this.ws.ping();
-    }, this.heartBeatTime);
-  }
-
-  clear(msg) {
-    console.log(
-      "Socket is closed. Reconnect will be attempted in 1 second.",
-      msg.reason
-    );
-    clearTimeout(this.pingTimeout);
-    if (this.interval) clearInterval(this.interval);
-    setTimeout(async () => {
-      await this.init({ url: this.url });
-    }, 1000);
-  }
-
   /**
    * @param {(msg: any) => void} cb
    */
@@ -88,17 +77,14 @@ class TideBitWS {
     this.ws.onmessage = cb;
   }
 
-  init({ url, heartBeat = HEART_BEAT_TIME }) {
+  init({ url }) {
     if (!url) throw new Error("Invalid input");
     this.url = url;
-    this.heartBeatTime = heartBeat;
     this.ws = new WebSocket(url);
-
+    this.eventListener();
     return new Promise((resolve) => {
       this.ws.onopen = (r) => {
-        this.heartbeat();
         this.eventMessenger();
-        this.eventListener();
         return resolve(r);
       };
     });

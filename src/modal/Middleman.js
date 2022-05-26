@@ -288,7 +288,6 @@ class Middleman {
           break;
         default:
       }
-      this.tbWebSocket.heartbeat();
     };
   }
 
