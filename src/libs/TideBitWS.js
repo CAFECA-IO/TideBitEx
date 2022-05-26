@@ -81,6 +81,13 @@ class TideBitWS {
     }, 1000);
   }
 
+  /**
+   * @param {(msg: any) => void} cb
+   */
+  set onmessage(cb) {
+    this.ws.onmessage = cb;
+  }
+
   init({ url, heartBeat = HEART_BEAT_TIME }) {
     if (!url) throw new Error("Invalid input");
     this.url = url;

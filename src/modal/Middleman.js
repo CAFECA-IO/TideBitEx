@@ -257,7 +257,6 @@ class Middleman {
     // }
   }
 
-  // TODO !!!IMPORTANT WS dont touch libraries data only middleman can alter libraries data
   _tbWSEventListener() {
     this.tbWebSocket.onmessage = (msg) => {
       let metaData = JSON.parse(msg.data);
