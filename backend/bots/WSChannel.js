@@ -149,6 +149,12 @@ class WSChannel extends Bot {
             if (findClient.isPrivate) {
               EventBus.emit(Events.userOnUnsubscribe, ws.id);
               findClient.isPrivate = false;
+              Object.values(this._privateClient).forEach((member) => {
+                Object.values(member).forEach((client) => {
+                  if (client.ws.id === ws.id)
+                    delete this._privateClient[client.memberId][ws.id];
+                });
+              });
             }
             delete this._client[ws.id];
           });
