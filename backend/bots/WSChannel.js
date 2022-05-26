@@ -159,10 +159,10 @@ class WSChannel extends Bot {
   // ++ CURRENT_USER UNSAVED
   async _onOpStatusUpdate(header, ws, args) {
     const findClient = this._client[ws.id];
-    this.logger.log(
-      `[${this.constructor.name} _onOpStatusUpdate] findClient`,
-      findClient
-    );
+    // this.logger.log(
+    //   `[${this.constructor.name} _onOpStatusUpdate] findClient`,
+    //   findClient
+    // );
     let { memberId } = await parseMemberId(header);
 
     if (!findClient.isStart) {
@@ -262,6 +262,7 @@ class WSChannel extends Bot {
   }
 
   broadcastPrivateClient(memberId, { market, type, data }) {
+    this.logger.log(`broadcastPrivateClient`, this._privateClient[memberId]);
     const msg = JSON.stringify({ type, data });
     const clients = Object.values(this._privateClient[memberId]).filter(
       (client) => client.channel === market
@@ -272,6 +273,7 @@ class WSChannel extends Bot {
   }
 
   broadcastAllPrivateClient(memberId, { type, data }) {
+    this.logger.log(`broadcastAllPrivateClient`, this._privateClient[memberId]);
     const msg = JSON.stringify({ type, data });
     const clients = Object.values(this._privateClient[memberId]);
     clients.forEach((client) => {

@@ -761,7 +761,7 @@ class TibeBitConnector extends ConnectorBase {
       }
       */
     });
-    this.logger.log(`tbGetOrderList orders`, orders);
+    // this.logger.log(`tbGetOrderList orders`, orders);
     return orders;
   }
 
