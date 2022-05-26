@@ -54,6 +54,7 @@ class WSChannel extends Bot {
             channel: "",
             isStart: false,
             isPrivate: false,
+            memberId: "",
           };
           this.logger.debug("ws.id", ws.id);
           // this.logger.debug(req.headers);
@@ -182,6 +183,8 @@ class WSChannel extends Bot {
       args
     );
     if (memberId !== -1 && args.token) {
+      findClient.isPrivate = true;
+      findClient.memberId = memberId;
       this.logger.log(
         `[${this.constructor.name} _onOpStatusUpdate] this._privateClient[memberId],`,
         this._privateClient[memberId]
@@ -194,10 +197,9 @@ class WSChannel extends Bot {
             channel: "",
             isStart: false,
             isPrivate: false,
+            memberId: ""
           }
          */
-        findClient.isPrivate = true;
-        findClient.memberId = memberId;
         this._privateClient[memberId][ws.id] = findClient;
         EventBus.emit(Events.userOnSubscribe, {
           headers: {
