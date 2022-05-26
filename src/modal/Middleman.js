@@ -221,7 +221,7 @@ class Middleman {
     }
   }
 
-  async _getAccounts() {
+  async _getAccounts(market) {
     try {
       const accounts = await this.communicator
         .getAccounts
@@ -232,7 +232,8 @@ class Middleman {
         this.isLogin = true;
         this.accountBook.updateAll(accounts);
         const token = await this.communicator.CSRFTokenRenew();
-        this.tbWebSocket.setCurrentUser(token);
+        this.tbWebSocket.setCurrentUser(market, token);
+        this.tickerBook.setCurrentMarket(market);
       }
     } catch (error) {
       this.isLogin = false;
@@ -260,7 +261,7 @@ class Middleman {
   _tbWSEventListener() {
     this.tbWebSocket.onmessage = (msg) => {
       let metaData = JSON.parse(msg.data);
-      console.log(metaData);
+      // console.log(metaData);
       switch (metaData.type) {
         case Events.account:
           this.accountBook.updateByDifference(metaData.data);
@@ -292,11 +293,10 @@ class Middleman {
   }
 
   async start(market) {
-    // TODO to verify websocket connection is working and can receive update message
     await this.tbWebSocket.init({ url: Config[Config.status].websocket });
     this._tbWSEventListener();
+    await this._getAccounts(market);
     await this.selectMarket(market);
-    await this._getAccounts();
     await this._getTickers();
   }
 

@@ -7,12 +7,14 @@ class TideBitWS {
     return this;
   }
 
-  setCurrentUser(token) {
+  setCurrentUser(market, token) {
+    this.currentMarket = market;
     this.currentUser = token;
     this.connection_resolvers.push(
       JSON.stringify({
         op: "userStatusUpdate",
         args: {
+          market,
           token,
         },
       })
@@ -47,7 +49,7 @@ class TideBitWS {
   eventListener() {
     this.ws.onclose = (msg) => this.clear(msg);
     this.ws.onerror = async (err) => {
-      this.logger.error(err);
+      console.error(err);
       await this.init({ url: this.url });
     };
   }
@@ -57,8 +59,10 @@ class TideBitWS {
     if (this.interval) clearInterval(this.interval);
 
     // !!!!TODO verify
-    if (this.currentMarket) this.setCurrentMarket(this.currentMarket);
-    if (this.currentUser) this.setCurrentUser(this.currentUser);
+
+    if (this.currentMarket && this.currentUser)
+      this.setCurrentUser(this.currentMarket, this.currentUser);
+    else if (this.currentMarket) this.setCurrentMarket(this.currentMarket);
     // !!!!TODO verify
 
     const data = this.connection_resolvers.shift();

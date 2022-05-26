@@ -447,7 +447,7 @@ class ExchangeHub extends Bot {
               add: [_updateOrder],
             });
             // ++ TODO: verify function works properly
-            EventBus.emit(Events.order, body.market, {
+            EventBus.emit(Events.order, memberId, body.market, {
               market: body.market,
               difference: this.orderBook.getDifference(memberId, body.instId),
             });
@@ -667,7 +667,7 @@ class ExchangeHub extends Bot {
       add: [_updateOrder],
     });
     // ++ TODO: verify function works properly
-    EventBus.emit(Events.order, _updateOrder.market, {
+    EventBus.emit(Events.order, memberId, _updateOrder.market, {
       market: _updateOrder.market,
       difference: this.orderBook.getDifference(memberId, _updateOrder.instId),
     });
@@ -959,25 +959,27 @@ class ExchangeHub extends Bot {
 
   async _eventListener() {
     // ++ TODO TEST
-    EventBus.on(Events.account, (account) => {
-      this.broadcastAllClient({
+    EventBus.on(Events.account, (memberId, account) => {
+      this.broadcastAllPrivateClient(memberId, {
         type: Events.account,
         data: account,
       });
     });
 
     // ++ TODO TEST
-    EventBus.on(Events.order, (market, order) => {
-      this.broadcast(market, {
+    EventBus.on(Events.order, (memberId, market, order) => {
+      this.broadcastPrivateClient(memberId, {
+        market,
         type: Events.order,
         data: order,
       });
     });
 
     // ++ TODO TEST
-    EventBus.on(Events.trade, (market, tradeData) => {
+    EventBus.on(Events.trade, (memberId, market, tradeData) => {
       if (this._isIncludeTideBitMarket(market)) {
-        this.broadcast(market, {
+        this.broadcastPrivateClient(memberId, {
+          market,
           type: Events.trade,
           data: tradeData,
         });
@@ -1223,7 +1225,7 @@ class ExchangeHub extends Bot {
         add: [_updateOrder],
       });
       let market = instId.replace("-", "").toLowerCase();
-      EventBus.emit(Events.order, market, {
+      EventBus.emit(Events.order, memberId, market, {
         market,
         difference: this.orderBook.getDifference(memberId, instId),
       });
