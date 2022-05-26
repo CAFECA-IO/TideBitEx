@@ -960,6 +960,11 @@ class ExchangeHub extends Bot {
   async _eventListener() {
     // ++ TODO TEST
     EventBus.on(Events.account, (memberId, account) => {
+      this.logger.log(
+        `[${this.constructor.name}] EventBus.on(Events.account)`,
+        memberId,
+        account
+      );
       this.broadcastAllPrivateClient(memberId, {
         type: Events.account,
         data: account,
@@ -968,6 +973,12 @@ class ExchangeHub extends Bot {
 
     // ++ TODO TEST
     EventBus.on(Events.order, (memberId, market, order) => {
+      this.logger.log(
+        `[${this.constructor.name}] EventBus.on(Events.order)`,
+        memberId,
+        market,
+        order
+      );
       this.broadcastPrivateClient(memberId, {
         market,
         type: Events.order,
@@ -978,6 +989,12 @@ class ExchangeHub extends Bot {
     // ++ TODO TEST
     EventBus.on(Events.trade, (memberId, market, tradeData) => {
       if (this._isIncludeTideBitMarket(market)) {
+        this.logger.log(
+          `[${this.constructor.name}] EventBus.on(Events.trade)`,
+          memberId,
+          market,
+          tradeData
+        );
         this.broadcastPrivateClient(memberId, {
           market,
           type: Events.trade,

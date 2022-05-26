@@ -262,7 +262,10 @@ class WSChannel extends Bot {
   }
 
   broadcastPrivateClient(memberId, { market, type, data }) {
-    this.logger.log(`broadcastPrivateClient`, this._privateClient[memberId]);
+    this.logger.log(
+      `[${this.constructor.name}] broadcastPrivateClient`,
+      this._privateClient[memberId]
+    );
     const msg = JSON.stringify({ type, data });
     const clients = Object.values(this._privateClient[memberId]).filter(
       (client) => client.channel === market
@@ -273,7 +276,10 @@ class WSChannel extends Bot {
   }
 
   broadcastAllPrivateClient(memberId, { type, data }) {
-    this.logger.log(`broadcastAllPrivateClient`, this._privateClient[memberId]);
+    this.logger.log(
+      `[${this.constructor.name}] broadcastAllPrivateClient`,
+      this._privateClient[memberId]
+    );
     const msg = JSON.stringify({ type, data });
     const clients = Object.values(this._privateClient[memberId]);
     clients.forEach((client) => {
