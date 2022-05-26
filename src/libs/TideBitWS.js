@@ -1,0 +1,97 @@
+class TideBitWS {
+  currentUser;
+  currentMarket;
+  timeout;
+  connection_resolvers = [];
+  constructor() {
+    return this;
+  }
+
+  setCurrentUser(market, token) {
+    this.currentMarket = market;
+    this.currentUser = token;
+    this.send(
+      JSON.stringify({
+        op: "userStatusUpdate",
+        args: {
+          market,
+          token,
+        },
+      })
+    );
+  }
+
+  setCurrentMarket(market) {
+    this.currentMarket = market;
+    this.send(
+      JSON.stringify({
+        op: "switchMarket",
+        args: {
+          market,
+        },
+      })
+    );
+  }
+
+  clear(msg) {
+    console.log(
+      "Socket is closed. Reconnect will be attempted in 1 second.",
+      msg.reason
+    );
+    if (this.interval) clearInterval(this.interval);
+    // in case connection is broken
+    if (msg.code === 1006 || msg.reason === "" || msg.wasClean === false)
+      setTimeout(async () => {
+        await this.init({ url: this.url });
+      }, 1000);
+  }
+
+  eventListener() {
+    this.ws.onclose = (msg) => this.clear(msg);
+    this.ws.onerror = async (err) => {
+      if (this.interval) clearInterval(this.interval);
+      console.error(`[TideBitWS] this.ws.onerror`, err);
+      // await this.init({ url: this.url });
+    };
+  }
+
+  send(data) {
+    this.connection_resolvers.push(data);
+    this.sendDataFromQueue();
+  }
+
+  sendDataFromQueue() {
+    if (this.ws.readyState === 1) {
+      const data = this.connection_resolvers.shift();
+      if (data) {
+        this.ws.send(data);
+        this.sendDataFromQueue();
+      }
+    } else {
+      clearTimeout(this.timeout);
+      this.timeout = setTimeout(() => this.sendDataFromQueue(), 1500);
+    }
+  }
+
+  /**
+   * @param {(msg: any) => void} cb
+   */
+  set onmessage(cb) {
+    this.ws.onmessage = cb;
+  }
+
+  init({ url }) {
+    if (!url) throw new Error("Invalid input");
+    this.url = url;
+    this.ws = new WebSocket(url);
+    this.eventListener();
+    return new Promise((resolve) => {
+      this.ws.onopen = (r) => {
+        console.log("Socket is open");
+        return resolve(r);
+      };
+    });
+  }
+}
+
+export default TideBitWS;

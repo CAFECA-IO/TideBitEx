@@ -663,7 +663,7 @@ class OkexConnector extends ConnectorBase {
       // ccy: body.ccy,
       clOrdId,
       tag: this.brokerId,
-      side: body.kind === "bid" ? "buy" : "ask",
+      side: body.kind === "bid" ? "buy" : "sell",
       // posSide: body.posSide,
       ordType: body.ordType,
       sz: body.volume,

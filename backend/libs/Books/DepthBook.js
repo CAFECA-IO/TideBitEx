@@ -92,7 +92,7 @@ class DepthBook extends BookBase {
         side: "bids",
       });
     });
-    console.log(`[DepthBook _formateBooks]`, bookArr);
+    // console.log(`[DepthBook _formateBooks]`, bookArr);
     return bookArr;
   }
 

@@ -311,10 +311,10 @@ class TibeBitConnector extends ConnectorBase {
         });
         const books = { asks, bids, market: market };
 
-        this.logger.log(`[FROM TideBit] Response books`, books);
-        this.logger.log(
-          `---------- [${this.constructor.name}]  DepthBook market: ${market} [END] ----------`
-        );
+        // this.logger.log(`[FROM TideBit] Response books`, books);
+        // this.logger.log(
+        //   `---------- [${this.constructor.name}]  DepthBook market: ${market} [END] ----------`
+        // );
         this.depthBook.updateAll(instId, books);
       } catch (error) {
         this.logger.error(error);
@@ -348,53 +348,53 @@ class TibeBitConnector extends ConnectorBase {
         ]
     }
     */
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _updateBooks [START] ----------`
-    );
+    // this.logger.log(
+    //   `---------- [${this.constructor.name}]  _updateBooks [START] ----------`
+    // );
     // this.logger.log(
     //   `[FROM TideBit] market[${market}] updateBooks`,
     //   updateBooks
     // );
     const instId = this._findInstId(market);
-    const difference = {
-      updates: [],
-      add: [],
-      remove: [],
-    };
-    updateBooks.asks.forEach((ask) => {
-      if (SafeMath.eq(ask[1], 0)) {
-        difference.remove.push({
-          id: ask[0],
-          price: ask[0],
-          amount: ask[1],
-          side: "asks",
-        });
-      } else {
-        difference.add.push({
-          id: ask[0],
-          price: ask[0],
-          amount: ask[1],
-          side: "asks",
-        });
-      }
-    });
-    updateBooks.bids.forEach((bid) => {
-      if (SafeMath.eq(bid[1], 0)) {
-        difference.remove.push({
-          id: bid[0],
-          price: bid[0],
-          amount: bid[1],
-          side: "bids",
-        });
-      } else {
-        difference.add.push({
-          id: bid[0],
-          price: bid[0],
-          amount: bid[1],
-          side: "bids",
-        });
-      }
-    });
+    // const difference = {
+    //   updates: [],
+    //   add: [],
+    //   remove: [],
+    // };
+    // updateBooks.asks.forEach((ask) => {
+    //   if (SafeMath.eq(ask[1], 0)) {
+    //     difference.remove.push({
+    //       id: ask[0],
+    //       price: ask[0],
+    //       amount: ask[1],
+    //       side: "asks",
+    //     });
+    //   } else {
+    //     difference.add.push({
+    //       id: ask[0],
+    //       price: ask[0],
+    //       amount: ask[1],
+    //       side: "asks",
+    //     });
+    //   }
+    // });
+    // updateBooks.bids.forEach((bid) => {
+    //   if (SafeMath.eq(bid[1], 0)) {
+    //     difference.remove.push({
+    //       id: bid[0],
+    //       price: bid[0],
+    //       amount: bid[1],
+    //       side: "bids",
+    //     });
+    //   } else {
+    //     difference.add.push({
+    //       id: bid[0],
+    //       price: bid[0],
+    //       amount: bid[1],
+    //       side: "bids",
+    //     });
+    //   }
+    // });
     this.depthBook.updateAll(instId, updateBooks);
     // this.logger.log(
     //   `[FROM TideBit] market[${market}] difference`,
@@ -627,10 +627,10 @@ class TibeBitConnector extends ConnectorBase {
         payload: null, // ++ TODO ?
       });
     }
-    this.logger.log(
-      `[${this.constructor.name}] getAccounts getSnapshot`,
-      this.accountBook.getSnapshot(memberId)
-    );
+    // this.logger.log(
+    //   `[${this.constructor.name}] getAccounts getSnapshot`,
+    //   this.accountBook.getSnapshot(memberId)
+    // );
     return new ResponseFormat({
       message: "getAccounts",
       payload: this.accountBook.getSnapshot(memberId),
@@ -651,7 +651,11 @@ class TibeBitConnector extends ConnectorBase {
       total: SafeMath.plus(data.balance, data.locked),
     };
     this.accountBook.updateByDifference(memberId, account);
-    EventBus.emit(Events.account, this.accountBook.getDifference(memberId));
+    EventBus.emit(
+      Events.account,
+      memberId,
+      this.accountBook.getDifference(memberId)
+    );
   }
 
   async tbGetOrderList(query) {
@@ -757,7 +761,7 @@ class TibeBitConnector extends ConnectorBase {
       }
       */
     });
-    this.logger.log(`tbGetOrderList orders`, orders);
+    // this.logger.log(`tbGetOrderList orders`, orders);
     return orders;
   }
 
@@ -878,7 +882,7 @@ class TibeBitConnector extends ConnectorBase {
     this.orderBook.updateByDifference(memberId, instId, {
       add: [formatOrder],
     });
-    EventBus.emit(Events.order, data.market, {
+    EventBus.emit(Events.order, memberId, data.market, {
       market: data.market,
       difference: this.orderBook.getDifference(memberId, instId),
     });

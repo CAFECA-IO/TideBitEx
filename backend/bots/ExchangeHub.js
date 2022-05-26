@@ -23,6 +23,125 @@ class ExchangeHub extends Bot {
     this.fetchedTickers = false;
   }
 
+  async broadcast(market, { type, data }) {
+    const ws = await this.getBot("WSChannel");
+    return ws.broadcast(market, { type, data });
+  }
+
+  async broadcastAllClient({ type, data }) {
+    const ws = await this.getBot("WSChannel");
+    return ws.broadcastAllClient({ type, data });
+  }
+
+  async broadcastPrivateClient(memberId, { market, type, data }) {
+    const ws = await this.getBot("WSChannel");
+    return ws.broadcastPrivateClient(memberId, { market, type, data });
+  }
+
+  async broadcastAllPrivateClient(memberId, { type, data }) {
+    const ws = await this.getBot("WSChannel");
+    return ws.broadcastAllPrivateClient(memberId, { type, data });
+  }
+
+  async _eventListener() {
+    // ++ TODO TEST
+    EventBus.on(Events.account, (memberId, account) => {
+      this.logger.log(
+        `[${this.constructor.name}] EventBus.on(Events.account)`,
+        memberId,
+        account
+      );
+      this.broadcastAllPrivateClient(memberId, {
+        type: Events.account,
+        data: account,
+      });
+    });
+
+    // ++ TODO TEST
+    EventBus.on(Events.order, (memberId, market, order) => {
+      this.logger.log(
+        `[${this.constructor.name}] EventBus.on(Events.order)`,
+        memberId,
+        market,
+        order
+      );
+      this.broadcastPrivateClient(memberId, {
+        market,
+        type: Events.order,
+        data: order,
+      });
+    });
+
+    // ++ TODO TEST
+    EventBus.on(Events.trade, (memberId, market, tradeData) => {
+      if (this._isIncludeTideBitMarket(market)) {
+        this.logger.log(
+          `[${this.constructor.name}] EventBus.on(Events.trade)`,
+          memberId,
+          market,
+          tradeData
+        );
+        this.broadcastPrivateClient(memberId, {
+          market,
+          type: Events.trade,
+          data: tradeData,
+        });
+      }
+    });
+
+    // ++ TODO TEST
+    EventBus.on(Events.trades, (market, tradesData) => {
+      this.broadcast(market, {
+        type: Events.trades,
+        data: tradesData,
+      });
+    });
+
+    // depthBooksOnUpdate
+    // ++ TODO TEST
+    EventBus.on(Events.update, (market, booksData) => {
+      // this.logger.debug(
+      //   `[${this.name}]_updateBooks booksData`,
+      //   booksData
+      // );
+      this.broadcast(market, {
+        type: Events.update,
+        data: booksData,
+      });
+    });
+
+    // EventBus.on(Events.candleOnUpdate, (market, formatCandle) => {
+    //   this.broadcast(market, {
+    //     type: Events.candleOnUpdate,
+    //     data: formatCandle,
+    //   });
+    // });
+
+    // tickersOnUpdate
+    EventBus.on(Events.tickers, (updateTickers) => {
+      // const filteredTickers = Utils.tickersFilterInclude(this.tidebitMarkets, updateTickers)
+      // this.logger.log(`[${this.name} Events.tickers]`, filteredTickers)
+      this.broadcastAllClient({
+        type: Events.tickers,
+        data: updateTickers,
+      });
+    });
+
+    EventBus.on(Events.orderDetailUpdate, async (instType, formatOrders) => {
+      if (instType === "SPOT") {
+        // TODO: using message queue
+        for (const formatOrder of formatOrders) {
+          if (
+            formatOrder.state !== "canceled" /* cancel order */ &&
+            formatOrder.accFillSz !== "0" /* create order */
+          ) {
+            await this._updateOrderDetail(formatOrder);
+          }
+        }
+      }
+    });
+  }
+
   init({ config, database, logger, i18n }) {
     return super
       .init({ config, database, logger, i18n })
@@ -447,7 +566,7 @@ class ExchangeHub extends Bot {
               add: [_updateOrder],
             });
             // ++ TODO: verify function works properly
-            EventBus.emit(Events.order, body.market, {
+            EventBus.emit(Events.order, memberId, body.market, {
               market: body.market,
               difference: this.orderBook.getDifference(memberId, body.instId),
             });
@@ -469,6 +588,7 @@ class ExchangeHub extends Bot {
             this.accountBook.updateByDifference(memberId, _updateAccount);
             EventBus.emit(
               Events.account,
+              memberId,
               this.accountBook.getDifference(memberId)
             );
             this.logger.log(
@@ -667,7 +787,7 @@ class ExchangeHub extends Bot {
       add: [_updateOrder],
     });
     // ++ TODO: verify function works properly
-    EventBus.emit(Events.order, _updateOrder.market, {
+    EventBus.emit(Events.order, memberId, _updateOrder.market, {
       market: _updateOrder.market,
       difference: this.orderBook.getDifference(memberId, _updateOrder.instId),
     });
@@ -686,7 +806,11 @@ class ExchangeHub extends Bot {
           ),
         };
         this.accountBook.updateByDifference(memberId, _updateAccount);
-        EventBus.emit(Events.account, this.accountBook.getDifference(memberId));
+        EventBus.emit(
+          Events.account,
+          memberId,
+          this.accountBook.getDifference(memberId)
+        );
         this.logger.log(
           `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:425`,
           _updateAccount
@@ -957,86 +1081,6 @@ class ExchangeHub extends Bot {
     }
   }
 
-  async _eventListener() {
-    // ++ TODO TEST
-    EventBus.on(Events.account, (account) => {
-      this.broadcastAllClient({
-        type: Events.account,
-        data: account,
-      });
-    });
-
-    // ++ TODO TEST
-    EventBus.on(Events.order, (market, order) => {
-      this.broadcast(market, {
-        type: Events.order,
-        data: order,
-      });
-    });
-
-    // ++ TODO TEST
-    EventBus.on(Events.trade, (market, tradeData) => {
-      if (this._isIncludeTideBitMarket(market)) {
-        this.broadcast(market, {
-          type: Events.trade,
-          data: tradeData,
-        });
-      }
-    });
-
-    // ++ TODO TEST
-    EventBus.on(Events.trades, (market, tradesData) => {
-      this.broadcast(market, {
-        type: Events.trades,
-        data: tradesData,
-      });
-    });
-
-    // depthBooksOnUpdate
-    // ++ TODO TEST
-    EventBus.on(Events.update, (market, booksData) => {
-      // this.logger.debug(
-      //   `[${this.name}]_updateBooks booksData`,
-      //   booksData
-      // );
-      this.broadcast(market, {
-        type: Events.update,
-        data: booksData,
-      });
-    });
-
-    // EventBus.on(Events.candleOnUpdate, (market, formatCandle) => {
-    //   this.broadcast(market, {
-    //     type: Events.candleOnUpdate,
-    //     data: formatCandle,
-    //   });
-    // });
-
-    // tickersOnUpdate
-    EventBus.on(Events.tickers, (updateTickers) => {
-      // const filteredTickers = Utils.tickersFilterInclude(this.tidebitMarkets, updateTickers)
-      // this.logger.log(`[${this.name} Events.tickers]`, filteredTickers)
-      this.broadcastAllClient({
-        type: Events.tickers,
-        data: updateTickers,
-      });
-    });
-
-    EventBus.on(Events.orderDetailUpdate, async (instType, formatOrders) => {
-      if (instType === "SPOT") {
-        // TODO: using message queue
-        for (const formatOrder of formatOrders) {
-          if (
-            formatOrder.state !== "canceled" /* cancel order */ &&
-            formatOrder.accFillSz !== "0" /* create order */
-          ) {
-            await this._updateOrderDetail(formatOrder);
-          }
-        }
-      }
-    });
-  }
-
   async _updateOrderDetail(formatOrder) {
     this.logger.log(
       `---------- [${this.constructor.name}]  _updateOrderDetail [START] ----------`
@@ -1223,7 +1267,7 @@ class ExchangeHub extends Bot {
         add: [_updateOrder],
       });
       let market = instId.replace("-", "").toLowerCase();
-      EventBus.emit(Events.order, market, {
+      EventBus.emit(Events.order, memberId, market, {
         market,
         difference: this.orderBook.getDifference(memberId, instId),
       });
@@ -1253,7 +1297,11 @@ class ExchangeHub extends Bot {
         ),
       };
       this.accountBook.updateByDifference(memberId, _updateAcc);
-      EventBus.emit(Events.account, this.accountBook.getDifference(memberId));
+      EventBus.emit(
+        Events.account,
+        memberId,
+        this.accountBook.getDifference(memberId)
+      );
 
       this.logger.log(
         `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAcc ln:1057`,
@@ -1284,7 +1332,11 @@ class ExchangeHub extends Bot {
         ),
       };
       this.accountBook.updateByDifference(memberId, _updateAcc);
-      EventBus.emit(Events.account, this.accountBook.getDifference(memberId));
+      EventBus.emit(
+        Events.account,
+        memberId,
+        this.accountBook.getDifference(memberId)
+      );
 
       this.logger.log(
         `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAcc ln:1086`,
@@ -1322,6 +1374,7 @@ class ExchangeHub extends Bot {
           this.accountBook.updateByDifference(memberId, _updateAcc);
           EventBus.emit(
             Events.account,
+            memberId,
             this.accountBook.getDifference(memberId)
           );
           this.logger.log(
@@ -1355,6 +1408,7 @@ class ExchangeHub extends Bot {
           this.accountBook.updateByDifference(memberId, _updateAcc);
           EventBus.emit(
             Events.account,
+            memberId,
             this.accountBook.getDifference(memberId)
           );
           this.logger.log(

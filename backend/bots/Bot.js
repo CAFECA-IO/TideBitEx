@@ -26,16 +26,7 @@ class Bot {
     });
     return Promise.resolve(bot);
   }
-  async broadcast(market, { type, data }) {
-    const ws = await this.getBot('WSChannel');
-    return ws.broadcast(market, { type, data });
-  }
-
-  async broadcastAllClient({ type, data }) {
-    const ws = await this.getBot('WSChannel');
-    return ws.broadcastAllClient({ type, data });
-  }
-
+ 
   /* leveldb operation */
   /* ----------------- */
   write({ key, value }) {
@@ -115,7 +106,7 @@ class Bot {
           })
           resolve(true)
         } else {
-          rejectresolve(Error('no input or format not valid'));
+          reject(Error('no input or format not valid'));
         }
       } else {
         reject(Error('array format not valid'));
