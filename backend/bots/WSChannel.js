@@ -179,10 +179,10 @@ class WSChannel extends Bot {
       }
       this._channelClients[args.market][ws.id] = ws;
     }
-    this.logger.log(
-      `[${this.constructor.name} _onOpStatusUpdate] findClient`,
-      findClient
-    );
+    // this.logger.log(
+    //   `[${this.constructor.name} _onOpStatusUpdate] findClient`,
+    //   findClient
+    // );
     this.logger.log(
       `[${this.constructor.name} _onOpStatusUpdate] memberId,`,
       memberId,
@@ -192,7 +192,7 @@ class WSChannel extends Bot {
       findClient.isPrivate = true;
       findClient.memberId = memberId;
       this.logger.log(
-        `[${this.constructor.name} _onOpStatusUpdate] this._privateClient[${memberId}],`,
+        `[${this.constructor.name} _onOpStatusUpdate] this._privateClient,`,
         this._privateClient
       );
       if (!this._privateClient[memberId]) {
