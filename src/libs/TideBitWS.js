@@ -49,8 +49,9 @@ class TideBitWS {
   eventListener() {
     this.ws.onclose = (msg) => this.clear(msg);
     this.ws.onerror = async (err) => {
-      console.error(err);
-      await this.init({ url: this.url });
+      if (this.interval) clearInterval(this.interval);
+      console.error(`[TideBitWS] this.ws.onerror`, err);
+      // await this.init({ url: this.url });
     };
   }
 
