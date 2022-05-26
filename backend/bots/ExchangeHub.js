@@ -35,7 +35,7 @@ class ExchangeHub extends Bot {
 
   async broadcastPrivateClient(memberId, { market, type, data }) {
     const ws = await this.getBot("WSChannel");
-    return ws.broadcastAllPrivateClient(memberId, { market, type, data });
+    return ws.broadcastPrivateClient(memberId, { market, type, data });
   }
 
   async broadcastAllPrivateClient(memberId, { type, data }) {
