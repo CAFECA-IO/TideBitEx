@@ -1,11 +1,13 @@
+import { Config } from "../constant/Config";
+import Events from "../constant/Events";
 import AccountBook from "../libs/books/AccountBook";
 import DepthBook from "../libs/books/DepthBook";
 import OrderBook from "../libs/books/OrderBook";
 import TickerBook from "../libs/books/TickerBook";
 import TradeBook from "../libs/books/TradeBook";
+import TideBitWS from "../libs/TideBitWS";
 import SafeMath from "../utils/SafeMath";
 import Communicator from "./Communicator";
-import WebSocket from "./WebSocket";
 
 class Middleman {
   constructor() {
@@ -15,13 +17,7 @@ class Middleman {
     this.orderBook = new OrderBook();
     this.tickerBook = new TickerBook();
     this.tradeBook = new TradeBook();
-    this.websocket = new WebSocket({
-      accountBook: this.accountBook,
-      depthBook: this.depthBook,
-      orderBook: this.orderBook,
-      tickerBook: this.tickerBook,
-      tradeBook: this.tradeBook,
-    });
+    this.tbWebSocket = new TideBitWS();
     this.communicator = new Communicator();
     // -- TEST
     window.middleman = this;
@@ -236,7 +232,7 @@ class Middleman {
         this.isLogin = true;
         this.accountBook.updateAll(accounts);
         const token = await this.communicator.CSRFTokenRenew();
-        this.websocket.setCurrentUser(token);
+        this.tbWebSocket.setCurrentUser(token);
       }
     } catch (error) {
       this.isLogin = false;
@@ -249,7 +245,7 @@ class Middleman {
   }
 
   async selectMarket(market) {
-    this.websocket.setCurrentMarket(market);
+    this.tbWebSocket.setCurrentMarket(market);
     this.tickerBook.setCurrentMarket(market);
     if (!this.tickerBook.getCurrentTicker()) await this._getTicker(market);
     await this._getBooks(market);
@@ -261,9 +257,46 @@ class Middleman {
     // }
   }
 
+  // TODO !!!IMPORTANT WS dont touch libraries data only middleman can alter libraries data
+  _tbWSEventListener() {
+    this.tbWebSocket.onmessage = (msg) => {
+      let metaData = JSON.parse(msg.data);
+      console.log(metaData);
+      switch (metaData.type) {
+        case Events.account:
+          this.accountBook.updateByDifference(metaData.data);
+          break;
+        case Events.update:
+          this.depthBook.updateAll(metaData.data.market, metaData.data);
+          break;
+        case Events.order:
+          this.orderBook.updateByDifference(
+            metaData.data.market,
+            metaData.data.difference
+          );
+          break;
+        case Events.tickers:
+          this.tickerBook.updateByDifference(metaData.data);
+          break;
+        case Events.trades:
+          this.tradeBook.updateAll(metaData.data.market, metaData.data.trades);
+          break;
+        case Events.trade:
+          this.tradeBook.updateByDifference(
+            metaData.data.market,
+            metaData.data.difference
+          );
+          break;
+        default:
+      }
+      this.tbWebSocket.heartbeat();
+    };
+  }
+
   async start(market) {
     // TODO to verify websocket connection is working and can receive update message
-    this.websocket.connect();
+    await this.tbWebSocket.init({ url: Config[Config.status].websocket });
+    this._tbWSEventListener();
     await this.selectMarket(market);
     await this._getAccounts();
     await this._getTickers();
