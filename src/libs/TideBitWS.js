@@ -64,7 +64,7 @@ class TideBitWS {
     const data = this.connection_resolvers.shift();
     if (data) this.ws.send(data);
     this.interval = setInterval(() => {
-      console.log("Interval: connection_resolvers", this.connection_resolvers);
+      // console.log("Interval: connection_resolvers", this.connection_resolvers);
       const data = this.connection_resolvers.shift();
       if (data) this.ws.send(data);
     }, 500);
