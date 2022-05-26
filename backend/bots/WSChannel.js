@@ -274,7 +274,7 @@ class WSChannel extends Bot {
 
   broadcastPrivateClient(memberId, { market, type, data }) {
     this.logger.log(
-      `[${this.constructor.name}] broadcastPrivateClient`,
+      `[${this.constructor.name}] broadcastPrivateClient market[${market}] this._privateClient[${memberId}]`,
       this._privateClient[memberId]
     );
     const msg = JSON.stringify({ type, data });
@@ -288,8 +288,8 @@ class WSChannel extends Bot {
 
   broadcastAllPrivateClient(memberId, { type, data }) {
     this.logger.log(
-      `[${this.constructor.name}] broadcastAllPrivateClient`,
-      Object.values(this._privateClient[memberId])
+      `[${this.constructor.name}] broadcastAllPrivateClient this._privateClient[${memberId}]`,
+      this._privateClient[memberId]
     );
     const msg = JSON.stringify({ type, data });
     const clients = Object.values(this._privateClient[memberId]);
