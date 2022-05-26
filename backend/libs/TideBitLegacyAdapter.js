@@ -22,7 +22,7 @@ class TideBitLegacyAdapter {
       memberId = -1;
     // console.trace(`parseMemberId header`, header);
     peatioToken = Utils.peatioToken(header);
-    console.log(`parseMemberId peatioToken`, peatioToken);
+    // console.log(`parseMemberId peatioToken`, peatioToken);
     if (peatioToken) {
       if (users[peatioToken]) {
         memberId = users[peatioToken].memberId;
@@ -38,7 +38,7 @@ class TideBitLegacyAdapter {
           users[peatioToken] = { memberId, ts: Date.now() };
         }
       }
-      console.log(`parseMemberId users[${peatioToken}]`, users[peatioToken]);
+      // console.log(`parseMemberId users[${peatioToken}]`, users[peatioToken]);
     }
     return { peatioToken, memberId };
   }

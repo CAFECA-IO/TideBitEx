@@ -186,8 +186,8 @@ class WSChannel extends Bot {
       findClient.isPrivate = true;
       findClient.memberId = memberId;
       this.logger.log(
-        `[${this.constructor.name} _onOpStatusUpdate] this._privateClient[memberId],`,
-        this._privateClient[memberId]
+        `[${this.constructor.name} _onOpStatusUpdate] this._privateClient[${memberId}],`,
+        this._privateClient
       );
       if (!this._privateClient[memberId]) {
         this._privateClient[memberId] = {};
