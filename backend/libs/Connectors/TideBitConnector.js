@@ -311,10 +311,10 @@ class TibeBitConnector extends ConnectorBase {
         });
         const books = { asks, bids, market: market };
 
-        this.logger.log(`[FROM TideBit] Response books`, books);
-        this.logger.log(
-          `---------- [${this.constructor.name}]  DepthBook market: ${market} [END] ----------`
-        );
+        // this.logger.log(`[FROM TideBit] Response books`, books);
+        // this.logger.log(
+        //   `---------- [${this.constructor.name}]  DepthBook market: ${market} [END] ----------`
+        // );
         this.depthBook.updateAll(instId, books);
       } catch (error) {
         this.logger.error(error);
@@ -627,10 +627,10 @@ class TibeBitConnector extends ConnectorBase {
         payload: null, // ++ TODO ?
       });
     }
-    this.logger.log(
-      `[${this.constructor.name}] getAccounts getSnapshot`,
-      this.accountBook.getSnapshot(memberId)
-    );
+    // this.logger.log(
+    //   `[${this.constructor.name}] getAccounts getSnapshot`,
+    //   this.accountBook.getSnapshot(memberId)
+    // );
     return new ResponseFormat({
       message: "getAccounts",
       payload: this.accountBook.getSnapshot(memberId),

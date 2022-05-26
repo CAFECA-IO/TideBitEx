@@ -112,27 +112,27 @@ class WSChannel extends Bot {
                   )
                 );
             }
-            this.logger.debug(
-              `*********findClient.channl [channel: ${
-                this._client[ws.id].channel
-              },isStart: ${this._client[ws.id].isStart}],isPrivate: ${
-                this._client[ws.id].isPrivate
-              }]*************`
-            );
-            this.logger.debug("this._channelClients", this._channelClients);
+            // this.logger.debug(
+            //   `*********findClient.channl [channel: ${
+            //     this._client[ws.id].channel
+            //   },isStart: ${this._client[ws.id].isStart}],isPrivate: ${
+            //     this._client[ws.id].isPrivate
+            //   }]*************`
+            // );
+            // this.logger.debug("this._channelClients", this._channelClients);
           });
           ws.on("close", () => {
-            this.logger.debug(
-              `*********disconnected findClient.channel [channel: ${
-                this._client[ws.id].channel
-              },isStart: ${this._client[ws.id].isStart}]*************`
-            );
-            this.logger.debug("this._channelClients", this._channelClients);
+            // this.logger.debug(
+            //   `*********disconnected findClient.channel [channel: ${
+            //     this._client[ws.id].channel
+            //   },isStart: ${this._client[ws.id].isStart}]*************`
+            // );
+            // this.logger.debug("this._channelClients", this._channelClients);
             const findClient = this._client[ws.id];
-            this.logger.debug("findClient", findClient);
+            // this.logger.debug("findClient", findClient);
             if (findClient.isStart) {
               delete this._channelClients[findClient.channel][ws.id];
-              this.logger.debug("this._channelClients", this._channelClients);
+              // this.logger.debug("this._channelClients", this._channelClients);
               if (
                 Object.values(this._channelClients[findClient.channel])
                   .length === 0
@@ -159,10 +159,6 @@ class WSChannel extends Bot {
   // ++ CURRENT_USER UNSAVED
   async _onOpStatusUpdate(header, ws, args) {
     const findClient = this._client[ws.id];
-    this.logger.log(
-      `[${this.constructor.name} _onOpStatusUpdate] findClient`,
-      findClient
-    );
     let { memberId } = await parseMemberId(header);
 
     if (!findClient.isStart) {
@@ -176,6 +172,10 @@ class WSChannel extends Bot {
       }
       this._channelClients[args.market][ws.id] = ws;
     }
+    this.logger.log(
+      `[${this.constructor.name} _onOpStatusUpdate] findClient`,
+      findClient
+    );
     this.logger.log(
       `[${this.constructor.name} _onOpStatusUpdate] memberId,`,
       memberId,
