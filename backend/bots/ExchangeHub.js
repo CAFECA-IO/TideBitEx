@@ -469,6 +469,7 @@ class ExchangeHub extends Bot {
             this.accountBook.updateByDifference(memberId, _updateAccount);
             EventBus.emit(
               Events.account,
+              memberId,
               this.accountBook.getDifference(memberId)
             );
             this.logger.log(
@@ -1353,6 +1354,7 @@ class ExchangeHub extends Bot {
           this.accountBook.updateByDifference(memberId, _updateAcc);
           EventBus.emit(
             Events.account,
+            memberId,
             this.accountBook.getDifference(memberId)
           );
           this.logger.log(
@@ -1386,6 +1388,7 @@ class ExchangeHub extends Bot {
           this.accountBook.updateByDifference(memberId, _updateAcc);
           EventBus.emit(
             Events.account,
+            memberId,
             this.accountBook.getDifference(memberId)
           );
           this.logger.log(
