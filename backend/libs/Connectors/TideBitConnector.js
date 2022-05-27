@@ -1067,19 +1067,12 @@ class TibeBitConnector extends ConnectorBase {
       `sn`,
       sn
     );
-    const channel = {};
+    let channel;
     try {
-      // if (!this.private_channel[memberId]) this.private_channel[memberId] = {};
-      channel["sn"] = sn;
-      // channel["wsId"] = wsId;
-      channel["channel"] = pusher.subscribe(`private-${sn}`);
-      channel["channel"].bind("account", (data) =>
-        this._updateAccount(memberId, data)
-      );
-      channel["channel"].bind("order", (data) =>
-        this._updateOrder(memberId, data)
-      );
-      channel["channel"].bind("trade", (data) => {
+      channel = pusher.subscribe(`private-${sn}`);
+      channel.bind("account", (data) => this._updateAccount(memberId, data));
+      channel.bind("order", (data) => this._updateOrder(memberId, data));
+      channel.bind("trade", (data) => {
         this._updateTrade(memberId, data);
       });
     } catch (error) {
