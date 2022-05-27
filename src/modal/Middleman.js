@@ -94,10 +94,15 @@ class Middleman {
   async cancelOrder(order) {
     if (this.isLogin) {
       const result = await this.communicator.cancel(order);
+      console.log(`cancelOrder result`, result);
       if (result.success) {
         this.orderBook.updateByDifference(
           this.tickerBook.getCurrentTicker()?.market,
-          { ...order, state: "cancel", state_text: "Canceled" }
+          { add: [{ ...order, state: "cancel", state_text: "Canceled" }] }
+        );
+        console.log(
+          `cancelOrder this.orderBook.snapshot`,
+          this.orderBook.getSnapshot(this.tickerBook.getCurrentTicker()?.market)
         );
       }
     }
@@ -227,7 +232,6 @@ class Middleman {
         .getAccounts
         // this.selectedTicker?.instId?.replace("-", ",")
         ();
-      console.info(`_getAccounts accounts`, accounts);
       if (accounts) {
         this.isLogin = true;
         this.accountBook.updateAll(accounts);
@@ -264,16 +268,22 @@ class Middleman {
       // console.log(metaData);
       switch (metaData.type) {
         case Events.account:
+          console.log(`_tbWSEventListener Events.account`, metaData)
+          console.log(`_tbWSEventListener this.accountBook.getSnapshot`, this.accountBook.getSnapshot())
           this.accountBook.updateByDifference(metaData.data);
+          console.log(`_tbWSEventListener this.accountBook.getSnapshot`, this.accountBook.getSnapshot())
           break;
         case Events.update:
           this.depthBook.updateAll(metaData.data.market, metaData.data);
           break;
         case Events.order:
+          console.log(`_tbWSEventListener Events.order`, metaData)
+          console.log(`_tbWSEventListener this.orderBook.getSnapshot`, this.orderBook.getSnapshot(metaData.data.market))
           this.orderBook.updateByDifference(
             metaData.data.market,
             metaData.data.difference
           );
+          console.log(`_tbWSEventListener this.orderBook.getSnapshot`, this.orderBook.getSnapshot(metaData.data.market))
           break;
         case Events.tickers:
           this.tickerBook.updateByDifference(metaData.data);

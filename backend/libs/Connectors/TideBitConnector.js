@@ -20,6 +20,8 @@ class TibeBitConnector extends ConnectorBase {
   private_channel = {};
   market_channel = {};
 
+  private_client = {};
+
   fetchedTrades = {};
   fetchedBook = {};
   fetchedOrders = {};
@@ -1288,13 +1290,17 @@ class TibeBitConnector extends ConnectorBase {
       // const memberId = await Utils.getMemberIdFromRedis(credential.peatioToken);
       this.logger.log(`_subscribeUser memberId`, credential.memberId);
       if (credential.memberId !== -1) {
-        const member = await this.database.getMemberById(credential.memberId);
-        this._startPusherWithLoginToken(credential.headers, credential.wsId);
-        await this._registerPrivateChannel(
-          credential.wsId,
-          credential.memberId,
-          member.sn
-        );
+        if (!this.private_client[credential.memberId]) {
+          this.private_client[credential.memberId] = [];
+          const member = await this.database.getMemberById(credential.memberId);
+          this._startPusherWithLoginToken(credential.headers, credential.wsId);
+          await this._registerPrivateChannel(
+            credential.wsId,
+            credential.memberId,
+            member.sn
+          );
+        }
+        this.private_client[credential.memberId].push(credential.wsId);
       }
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeUser [END] ++++++`
@@ -1318,15 +1324,29 @@ class TibeBitConnector extends ConnectorBase {
       ` _unsubscribeUser this.private_pusher[${wsId}]`,
       this.private_pusher
     );
-    if (this.private_pusher[wsId]) {
-      try {
-        this._unregisterPrivateChannel(wsId);
-        delete this.private_pusher[wsId];
-      } catch (error) {
-        this.logger.error(`_unsubscribeUser error`, error);
-        throw error;
+    this.logger.log(
+      ` _unsubscribeUser this.private_client[${wsId}]`,
+      this.private_client
+    );
+    const index = this.private_client[
+      this.public_channel[wsId].memberId
+    ].findIndex((id) => id === wsId);
+    this.private_client[this.public_channel[wsId].memberId].splice(index, 1);
+    if (this.private_client[this.public_channel[wsId].memberId].length === 0) {
+      if (this.private_pusher[wsId]) {
+        try {
+          this._unregisterPrivateChannel(wsId);
+          delete this.private_pusher[wsId];
+        } catch (error) {
+          this.logger.error(`_unsubscribeUser error`, error);
+          throw error;
+        }
       }
     }
+    this.logger.log(
+      ` _unsubscribeUser this.private_client[${wsId}]`,
+      this.private_client
+    );
     this.logger.log(
       `---------- [${this.constructor.name}]  _unsubscribeUser [END] ----------`
     );
