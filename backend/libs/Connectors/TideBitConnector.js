@@ -14,10 +14,10 @@ class TibeBitConnector extends ConnectorBase {
   isStart = false;
 
   public_pusher = null;
-  private_pusher = {};
+  // private_pusher = {};
 
   global_channel = null;
-  private_channel = {};
+  // private_channel = {};
   market_channel = {};
 
   private_client = {};
@@ -1059,7 +1059,7 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
-  async _registerPrivateChannel(wsId, memberId, sn) {
+  async _registerPrivateChannel(pusher, memberId, sn) {
     this.logger.log(
       `[${this.constructor.name}]_registerPrivateChannel`,
       `memberId`,
@@ -1067,24 +1067,19 @@ class TibeBitConnector extends ConnectorBase {
       `sn`,
       sn
     );
-    this.logger.log(
-      `[${this.constructor.name}]this.private_channel[${wsId}]`,
-      this.private_channel[wsId]
-    );
+    const channel = {};
     try {
-      if (!this.private_channel[wsId]) this.private_channel[wsId] = {};
-      this.private_channel[wsId]["sn"] = sn;
-      this.private_channel[wsId]["memberId"] = memberId;
-      this.private_channel[wsId]["channel"] = this.private_pusher[
-        wsId
-      ].subscribe(`private-${sn}`);
-      this.private_channel[wsId]["channel"].bind("account", (data) =>
+      // if (!this.private_channel[memberId]) this.private_channel[memberId] = {};
+      channel["sn"] = sn;
+      // channel["wsId"] = wsId;
+      channel["channel"] = pusher.subscribe(`private-${sn}`);
+      channel["channel"].bind("account", (data) =>
         this._updateAccount(memberId, data)
       );
-      this.private_channel[wsId]["channel"].bind("order", (data) =>
+      channel["channel"].bind("order", (data) =>
         this._updateOrder(memberId, data)
       );
-      this.private_channel[wsId]["channel"].bind("trade", (data) => {
+      channel["channel"].bind("trade", (data) => {
         this._updateTrade(memberId, data);
       });
     } catch (error) {
@@ -1092,22 +1087,17 @@ class TibeBitConnector extends ConnectorBase {
       throw error;
     }
     this.logger.log(
-      `[${this.constructor.name}] this.private_channel`,
-      this.private_channel
+      `[${this.constructor.name}] _registerPrivateChannel channel`,
+      channel
     );
+    return channel;
   }
 
-  _unregisterPrivateChannel(wsId) {
-    this.logger.log(
-      `_unregisterPrivateChannel  this.private_channel[${wsId}]`,
-      this.private_channel[wsId]
-    );
+  _unregisterPrivateChannel(client) {
+    this.logger.log(`_unregisterPrivateChannel  client`, client);
     try {
-      this.private_channel[wsId]["channel"]?.unbind();
-      this.private_pusher[wsId]?.unsubscribe(
-        `private-${this.private_channel[wsId]["sn"]}`
-      );
-      delete this.private_channel[wsId];
+      client["channel"]?.unbind();
+      client["pusher"]?.unsubscribe(`private-${client["sn"]}`);
     } catch (error) {
       this.logger.error(`_unregisterPrivateChannel error`, error);
       throw error;
@@ -1217,8 +1207,8 @@ class TibeBitConnector extends ConnectorBase {
     // );
   }
 
-  _startPusherWithLoginToken(headers, wsId) {
-    this.private_pusher[wsId] = new Pusher(this.key, {
+  _startPusherWithLoginToken(headers) {
+    const pusher = new Pusher(this.key, {
       encrypted: this.encrypted,
       wsHost: this.wsHost,
       wsPort: this.wsPort,
@@ -1266,11 +1256,7 @@ class TibeBitConnector extends ConnectorBase {
         };
       },
     });
-    this.isStart = true;
-    // this.isCredential = true;
-    // this.public_pusher.bind_global((data) =>
-    //   this.logger.log(`[_startPusherWithLoginToken][bind_global] data`, data)
-    // );
+    return pusher;
   }
 
   /**
@@ -1288,18 +1274,29 @@ class TibeBitConnector extends ConnectorBase {
       );
       this.logger.log(`_subscribeUser credential`, credential);
       if (credential.memberId !== -1) {
-        if (!this.private_client[credential.memberId]) {
-          this.private_client[credential.memberId] = [];
+        const client = this.private_client[credential.memberId];
+        if (!client) {
           const member = await this.database.getMemberById(credential.memberId);
-          this._startPusherWithLoginToken(credential.headers, credential.wsId);
-          await this._registerPrivateChannel(
-            credential.wsId,
+          const pusher = this._startPusherWithLoginToken(credential.headers);
+          const channel = await this._registerPrivateChannel(
+            pusher,
             credential.memberId,
             member.sn
           );
+          this.private_client[credential.memberId] = {
+            memberId: credential.memberId,
+            sn: member.sn,
+            wsIds: [credential.wsId],
+            pusher,
+            channel,
+          };
+        } else {
+          this.private_client[credential.memberId].wsIds.push(credential.wsId);
         }
-        this.private_client[credential.memberId].push(credential.wsId);
-        this.logger.log(`_subscribeUser  this.private_client`,  this.private_client);
+        this.logger.log(
+          `_subscribeUser this.private_client`,
+          this.private_client
+        );
       }
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeUser [END] ++++++`
@@ -1320,26 +1317,31 @@ class TibeBitConnector extends ConnectorBase {
       `---------- [${this.constructor.name}]  _unsubscribeUser [START] ----------`
     );
     this.logger.log(
-      ` _unsubscribeUser this.private_pusher[${wsId}]`,
-      this.private_pusher
-    );
-    this.logger.log(
       ` _unsubscribeUser this.private_client[${wsId}]`,
       this.private_client
     );
-    const index = this.private_client[
-      this.public_channel[wsId].memberId
-    ].findIndex((id) => id === wsId);
-    this.private_client[this.public_channel[wsId].memberId].splice(index, 1);
-    if (this.private_client[this.public_channel[wsId].memberId].length === 0) {
-      if (this.private_pusher[wsId]) {
+
+    let wsIndex;
+    const index = Object.values(this.private_client).findIndex((client) =>
+      client.wsIds.some((_wsId, _index) => {
+        if (_wsId === wsId) {
+          wsIndex = _index;
+        }
+        return _index;
+      })
+    );
+    const client = this.private_client[index];
+    if (index !== -1) {
+      client.wsIds.splice(wsIndex, 1);
+      if (client.wsIds.length === 0) {
         try {
-          this._unregisterPrivateChannel(wsId);
-          delete this.private_pusher[wsId];
+          this._unregisterPrivateChannel(client);
+          delete this.private_client[client.memberId];
         } catch (error) {
           this.logger.error(`_unsubscribeUser error`, error);
           throw error;
         }
+      } else {
       }
     }
     this.logger.log(

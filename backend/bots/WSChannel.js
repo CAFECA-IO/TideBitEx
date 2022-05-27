@@ -187,8 +187,7 @@ class WSChannel extends Bot {
     if (memberId !== -1 && args.token) {
       findClient.isPrivate = true;
       findClient.memberId = memberId;
-      // if (!this._privateClient[memberId]) {
-      this._privateClient[memberId] = {};
+      if (!this._privateClient[memberId]) this._privateClient[memberId] = {};
       /**
          * findClient = {
             ws,
