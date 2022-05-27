@@ -182,7 +182,10 @@ class WSChannel extends Bot {
     this.logger.log(
       `[${this.constructor.name} _onOpStatusUpdate] memberId,`,
       memberId,
-      args
+      `args`,
+      args,
+      `ws.id`,
+      ws.id
     );
     if (memberId !== -1 && args.token) {
       findClient.isPrivate = true;

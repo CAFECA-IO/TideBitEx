@@ -1265,7 +1265,6 @@ class TibeBitConnector extends ConnectorBase {
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeUser [START] ++++++`
       );
-      this.logger.log(`_subscribeUser credential`, credential);
       if (credential.memberId !== -1) {
         const client = this.private_client[credential.memberId];
         if (!client) {
@@ -1320,10 +1319,16 @@ class TibeBitConnector extends ConnectorBase {
         if (_wsId === wsId) {
           wsIndex = _index;
         }
-        return _index;
+        return _wsId === wsId;
       })
     );
-    const client = this.private_client[index];
+    const client = Object.values(this.private_client)[index];
+    this.logger.log(
+      ` _unsubscribeUser Object.values(this.private_client)[${index}]`,
+      client,
+      `wsIndex`,
+      wsIndex
+    );
     if (index !== -1) {
       client.wsIds.splice(wsIndex, 1);
       if (client.wsIds.length === 0) {
