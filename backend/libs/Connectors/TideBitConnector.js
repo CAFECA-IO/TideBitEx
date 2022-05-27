@@ -645,6 +645,10 @@ class TibeBitConnector extends ConnectorBase {
         currency: 'hkd'
     }
     */
+    this.logger.log(
+      `[${this.constructor.name}] _updateAccount this.private_channel`,
+      this.private_channel
+    );
     const account = {
       ...data,
       currency: data.currency.toUpperCase(),
@@ -1068,6 +1072,7 @@ class TibeBitConnector extends ConnectorBase {
     try {
       if (!this.private_channel[wsId]) this.private_channel[wsId] = {};
       this.private_channel[wsId]["sn"] = sn;
+      this.private_channel[wsId]["memberId"] = memberId;
       this.private_channel[wsId]["channel"] = this.private_pusher[
         wsId
       ].subscribe(`private-${sn}`);

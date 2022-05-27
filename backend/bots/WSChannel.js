@@ -145,8 +145,9 @@ class WSChannel extends Bot {
                 );
               }
             }
-            // this.logger.debug(`findClient${findClient.isPrivate}`, findClient);
             if (findClient.isPrivate) {
+              this.logger.debug(`findClient isPrivate${findClient.isPrivate}`, findClient);
+              this.logger.debug(`this._privateClient`, this._privateClient);
               EventBus.emit(Events.userOnUnsubscribe, ws.id);
               findClient.isPrivate = false;
               Object.values(this._privateClient).forEach((member) => {
@@ -255,6 +256,13 @@ class WSChannel extends Bot {
         EventBus.emit(Events.tickerOnSibscribe, args.market, ws.id);
       }
       this._channelClients[args.market][ws.id] = ws;
+    }
+    if (findClient.isPrivate) {
+      this._privateClient[findClient.memberId][ws.id] = findClient;
+      this.logger.log(
+        `[${this.constructor.name} _onOpStatusUpdate] this._privateClient,`,
+        this._privateClient
+      );
     }
   }
 
