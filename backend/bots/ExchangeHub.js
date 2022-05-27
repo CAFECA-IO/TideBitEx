@@ -829,7 +829,7 @@ class ExchangeHub extends Bot {
         );
       }
     } catch (error) {
-      t.rollback();
+      await t.rollback();
     }
     return t;
     /* !!! HIGH RISK (end) !!! */

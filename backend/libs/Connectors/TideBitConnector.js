@@ -459,7 +459,7 @@ class TibeBitConnector extends ConnectorBase {
     this.logger.log(
       `---------- [${this.constructor.name}]  _updateTrade [START] ----------`
     );
-    this.logger.log(`[FROM TideBit] newTrade`, newTrade);
+    this.logger.log(`[FROM TideBit: ${memberId}] newTrade`, newTrade);
     /**  {
     at: 1649675739
     id: 6
@@ -472,7 +472,7 @@ class TibeBitConnector extends ConnectorBase {
     this.tradeBook.updateByDifference(instId, {
       add: [{ ...newTrade, ts: parseInt(SafeMath.mult(newTrade.at, "1000")) }],
     });
-    EventBus.emit(Events.trade, newTrade.market, {
+    EventBus.emit(Events.trade, memberId, newTrade.market, {
       market: newTrade.market,
       difference: this.tradeBook.getDifference(instId),
     });
@@ -498,7 +498,7 @@ class TibeBitConnector extends ConnectorBase {
     this.logger.log(
       `---------- [${this.constructor.name}]  _updateTrades [START] ----------`
     );
-    this.logger.log(`[FROM TideBit] data`, data);
+    this.logger.log(`[FROM TideBit market:${market}] data`, data);
     /**
     {
        trades: [
@@ -855,7 +855,7 @@ class TibeBitConnector extends ConnectorBase {
     this.logger.log(
       `---------- [${this.constructor.name}]  _updateOrder [START] ----------`
     );
-    this.logger.log(`[FROM TideBit] orderData`, data);
+    this.logger.log(`[FROM TideBit: ${memberId}] orderData`, data);
     let instId = this._findInstId(data.market);
 
     const formatOrder = {

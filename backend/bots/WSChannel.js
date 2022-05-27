@@ -90,10 +90,6 @@ class WSChannel extends Bot {
             }
             switch (op) {
               case "userStatusUpdate":
-                this.logger.log(
-                  `[${this.constructor.name} _onOpStatusUpdate]`,
-                  args
-                );
                 this._onOpStatusUpdate(req.headers, ws, args);
                 break;
               case "switchMarket":
@@ -180,10 +176,6 @@ class WSChannel extends Bot {
       }
       this._channelClients[args.market][ws.id] = ws;
     }
-    // this.logger.log(
-    //   `[${this.constructor.name} _onOpStatusUpdate] findClient`,
-    //   findClient
-    // );
     this.logger.log(
       `[${this.constructor.name} _onOpStatusUpdate] memberId,`,
       memberId,
@@ -192,10 +184,6 @@ class WSChannel extends Bot {
     if (memberId !== -1 && args.token) {
       findClient.isPrivate = true;
       findClient.memberId = memberId;
-      this.logger.log(
-        `[${this.constructor.name} _onOpStatusUpdate] this._privateClient,`,
-        this._privateClient
-      );
       if (!this._privateClient[memberId]) {
         this._privateClient[memberId] = {};
         /**
@@ -220,6 +208,10 @@ class WSChannel extends Bot {
       } else {
         this._privateClient[memberId][ws.id] = findClient;
       }
+      this.logger.log(
+        `[${this.constructor.name} _onOpStatusUpdate] this._privateClient,`,
+        this._privateClient
+      );
     } else {
       findClient.isPrivate = false;
       EventBus.emit(Events.userOnUnsubscribe, {
