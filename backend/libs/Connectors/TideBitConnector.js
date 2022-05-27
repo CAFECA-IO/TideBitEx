@@ -1287,8 +1287,6 @@ class TibeBitConnector extends ConnectorBase {
         `++++++++ [${this.constructor.name}]  _subscribeUser [START] ++++++`
       );
       this.logger.log(`_subscribeUser credential`, credential);
-      // const memberId = await Utils.getMemberIdFromRedis(credential.peatioToken);
-      this.logger.log(`_subscribeUser memberId`, credential.memberId);
       if (credential.memberId !== -1) {
         if (!this.private_client[credential.memberId]) {
           this.private_client[credential.memberId] = [];
@@ -1301,6 +1299,7 @@ class TibeBitConnector extends ConnectorBase {
           );
         }
         this.private_client[credential.memberId].push(credential.wsId);
+        this.logger.log(`_subscribeUser  this.private_client`,  this.private_client);
       }
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeUser [END] ++++++`
