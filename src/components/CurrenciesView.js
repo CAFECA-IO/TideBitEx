@@ -19,11 +19,14 @@ const CurrencyDetail = (props) => {
           </div>
         </div>
         <div className="detail__header--sub">
-          <div>{`${props.exchange}: ${formateDecimal(props.ex_total, 2)}: ${
-            props.currency
-          }`}</div>
+          <div>{`${props.exchange}: ${formateDecimal(props.ex_total, {
+            decimalLength: 2,
+          })}: ${props.currency}`}</div>
           <div>
-            TideBit: {`${formateDecimal(props.tb_total, 2)}${props.currency}`}
+            TideBit:{" "}
+            {`${formateDecimal(props.tb_total, { decimalLength: 2 })}${
+              props.currency
+            }`}
           </div>
         </div>
       </div>
@@ -51,7 +54,7 @@ const CurrencyDetail = (props) => {
                         )}%`,
                       }}
                     >
-                      {formateDecimal(user.balance, 2)}
+                      {formateDecimal(user.balance, { decimalLength: 2 })}
                     </div>
                     <div
                       style={{
@@ -61,7 +64,7 @@ const CurrencyDetail = (props) => {
                         )}%`,
                       }}
                     >
-                      {formateDecimal(user.locked, 2)}
+                      {formateDecimal(user.locked, { decimalLength: 2 })}
                     </div>
                   </div>
                   <div
@@ -248,7 +251,7 @@ const CurrenciesView = (props) => {
                                     >
                                       {formateDecimal(
                                         overview[currency].ex_balance,
-                                        2
+                                        { decimalLength: 2 }
                                       )}
                                     </div>
                                     <div
@@ -264,7 +267,7 @@ const CurrenciesView = (props) => {
                                     >
                                       {formateDecimal(
                                         overview[currency].ex_locked,
-                                        2
+                                        { decimalLength: 2 }
                                       )}
                                     </div>
                                   </div>
@@ -302,7 +305,7 @@ const CurrenciesView = (props) => {
                                     >
                                       {formateDecimal(
                                         overview[currency].tb_balance,
-                                        2
+                                        { decimalLength: 2 }
                                       )}
                                     </div>
                                     <div
@@ -318,7 +321,7 @@ const CurrenciesView = (props) => {
                                     >
                                       {formateDecimal(
                                         overview[currency].tb_locked,
-                                        2
+                                        { decimalLength: 2 }
                                       )}
                                     </div>
                                   </div>

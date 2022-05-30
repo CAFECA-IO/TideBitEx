@@ -11,7 +11,7 @@ const MobileTicker = (props) => {
     <div className="mobile-ticker">
       <div className="mobile-ticker__container">
         <div className="mobile-ticker__price">
-          {formateDecimal(storeCtx.selectedTicker?.last, 8)}
+          {formateDecimal(storeCtx.selectedTicker?.last, { decimalLength: 8 })}
         </div>
         <div
           className={`mobile-ticker__change ${
@@ -27,11 +27,11 @@ const MobileTicker = (props) => {
             : SafeMath.gt(storeCtx.selectedTicker?.change, "0")
             ? `+${formateDecimal(
                 SafeMath.mult(storeCtx.selectedTicker?.changePct, "100"),
-                3
+                { decimalLength: 2 }
               )}%`
             : `${formateDecimal(
                 SafeMath.mult(storeCtx.selectedTicker?.changePct, "100"),
-                3
+                { decimalLength: 2 }
               )}%`}
         </div>
       </div>
@@ -39,13 +39,13 @@ const MobileTicker = (props) => {
         <div className="mobile-ticker__details">
           <div className="tickerItemLabel">{t("high")}:</div>
           <div className="tickerPriceText">
-            {formateDecimal(storeCtx.selectedTicker?.high, 8)}
+            {formateDecimal(storeCtx.selectedTicker?.high, { decimalLength: 8 })}
           </div>
         </div>
         <div className="mobile-ticker__details">
           <div className="tickerItemLabel">{t("low")}:</div>
           <div className="tickerPriceText">
-            {formateDecimal(storeCtx.selectedTicker?.low, 8)}
+            {formateDecimal(storeCtx.selectedTicker?.low, { decimalLength: 8 })}
           </div>
         </div>
         <div className="mobile-ticker__details">
@@ -54,7 +54,7 @@ const MobileTicker = (props) => {
             {`${
               !storeCtx.selectedTicker
                 ? "--"
-                : formateDecimal(storeCtx.selectedTicker?.volume, 8)
+                : formateDecimal(storeCtx.selectedTicker?.volume, { decimalLength: 8 })
             }${storeCtx.selectedTicker?.base_unit?.toUpperCase() || "--"}`}
           </div>
         </div>

@@ -21,21 +21,15 @@ const TickerTile = (props) => {
       }`}
     >
       <div>{props.ticker.name}</div>
-      <div>{formateDecimal(props.ticker.last, 8)}</div>
+      <div>{formateDecimal(props.ticker.last)}</div>
       <div className={SafeMath.gte(props.ticker.change, "0") ? "green" : "red"}>
         {SafeMath.gte(props.ticker.change, "0")
-          ? `+${formateDecimal(
-              SafeMath.mult(props.ticker?.changePct, "100"),
-              3
-            )}%`
-          : `${formateDecimal(
-              SafeMath.mult(props.ticker?.changePct, "100"),
-              3
-            )}%`}
+          ? `+${formateDecimal(SafeMath.mult(props.ticker?.changePct, "100"))}%`
+          : `${formateDecimal(SafeMath.mult(props.ticker?.changePct, "100"))}%`}
       </div>
-      <div>{formateDecimal(props.ticker.volume, 8)}</div>
-      <div>{formateDecimal(props.ticker.high, 8)}</div>
-      <div>{formateDecimal(props.ticker.low, 8)}</div>
+      <div>{formateDecimal(props.ticker.volume)}</div>
+      <div>{formateDecimal(props.ticker.high)}</div>
+      <div>{formateDecimal(props.ticker.low)}</div>
     </li>
   );
 };

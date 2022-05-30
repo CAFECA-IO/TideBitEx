@@ -48,13 +48,13 @@ class TickerBook extends BookBase {
     );
   }
 
-  getTickerSnapshot(market){
-    return this._snapshot[market]
+  getTickerSnapshot(market) {
+    return this._snapshot[market];
   }
 
   getSnapshot() {
     const tickers = Object.keys(this._snapshot).map((market) =>
-     !!this._difference[market]
+      !!this._difference[market]
         ? { ...this._snapshot[market], update: true }
         : this._snapshot[market]
     );
@@ -79,11 +79,23 @@ class TickerBook extends BookBase {
   updateByDifference(tickers) {
     Object.values(tickers).forEach((ticker) => {
       if (ticker.instId === "BTC-USDT")
-      console.log(`TickerBook _updateTickers ticker.last`, ticker.last, this._compareFunction(this._snapshot[ticker.market], ticker));
+        console.log(
+          `TickerBook _updateTickers ticker.last`,
+          ticker.last,
+          new Date(ticker.ts),
+          this._compareFunction(this._snapshot[ticker.market], ticker)
+        );
       if (this._compareFunction(this._snapshot[ticker.market], ticker)) {
         try {
-          this._difference[ticker.market] = ticker;
-          this._snapshot[ticker.market] = ticker;
+          const preTicker = { ...this._snapshot[ticker.market] };
+          this._difference[ticker.market] = {
+            ...preTicker,
+            ...ticker,
+          };
+          this._snapshot[ticker.market] = {
+            ...preTicker,
+            ...ticker,
+          };
           return true;
         } catch (error) {
           console.error(`[${this.constructor.name}] error`, error);

@@ -20,10 +20,10 @@ const TradeTile = (props) => {
           props.trade.side === "down" ? "red" : "green"
         }`}
       >
-        {formateDecimal(props.trade.price, 8)}
+        {formateDecimal(props.trade.price, { decimalLength: 8 })}
       </div>
       <div className="market-history__tile--data">
-        {formateDecimal(props.trade.volume, 8)}
+        {formateDecimal(props.trade.volume, { decimalLength: 8 })}
       </div>
     </li>
   );

@@ -26,7 +26,7 @@ const SelectedTicker = (props) => {
               : "increase"
           }`}
         >
-          {formateDecimal(storeCtx.selectedTicker?.last, 8)}
+          {formateDecimal(storeCtx.selectedTicker?.last, { decimalLength: 2 })}
         </div>
       </div>
       <div className="ticker__details">
@@ -46,11 +46,11 @@ const SelectedTicker = (props) => {
               : SafeMath.gt(storeCtx.selectedTicker?.change, "0")
               ? `+${formateDecimal(
                   SafeMath.mult(storeCtx.selectedTicker?.changePct, "100"),
-                  3
+                  { decimalLength: 2 }
                 )}%`
               : `${formateDecimal(
                   SafeMath.mult(storeCtx.selectedTicker?.changePct, "100"),
-                  3
+                  { decimalLength: 2 }
                 )}%`}
           </span>
         </div>
@@ -58,13 +58,13 @@ const SelectedTicker = (props) => {
       <div className="ticker__details">
         <div className="tickerItemLabel">{t("24_high")}</div>
         <div className="tickerPriceText">
-          {formateDecimal(storeCtx.selectedTicker?.high, 8)}
+          {formateDecimal(storeCtx.selectedTicker?.high, { decimalLength: 2 })}
         </div>
       </div>
       <div className="ticker__details">
         <div className="tickerItemLabel">{t("24_low")}</div>
         <div className="tickerPriceText">
-          {formateDecimal(storeCtx.selectedTicker?.low, 8)}
+          {formateDecimal(storeCtx.selectedTicker?.low, { decimalLength: 2 })}
         </div>
       </div>
       <div className="ticker__details">
@@ -76,7 +76,9 @@ const SelectedTicker = (props) => {
         <div className="tickerPriceText">
           {!storeCtx.selectedTicker
             ? "--"
-            : formateDecimal(storeCtx.selectedTicker?.volume, 8)}
+            : formateDecimal(storeCtx.selectedTicker?.volume, {
+                decimalLength: 2,
+              })}
         </div>
       </div>
       <div className="ticker__details">
@@ -86,7 +88,9 @@ const SelectedTicker = (props) => {
         <div className="tickerPriceText">
           {!storeCtx.selectedTicker
             ? "--"
-            : formateDecimal(storeCtx.selectedTicker?.volume, 8)}
+            : formateDecimal(storeCtx.selectedTicker?.volume, {
+                decimalLength: 2,
+              })}
         </div>
       </div>
     </div>

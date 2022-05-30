@@ -26,7 +26,7 @@ const TradeForm = (props) => {
                 props.kind === "bid"
                   ? props.quoteCcyAvailable
                   : props.baseCcyAvailable,
-                8
+                { decimalLength: 8 }
               )
             : "--"}
           {props.kind === "bid"
@@ -69,7 +69,7 @@ const TradeForm = (props) => {
             value={props.volume}
             onInput={(e) => props.onSzInput(e.target.value)}
             required
-            step="any"
+            step={storeCtx.selectedTicker.lotSz}
           />
           <div className="market-trade__input-group--append input-group-append">
             <span className="input-group-text">
@@ -151,7 +151,16 @@ const TradeForm = (props) => {
               : props.baseCcyAvailable
           ) ||
           SafeMath.lte(props.volume, "0") ||
-          SafeMath.lt(props.volume, storeCtx.selectedTicker?.minSz)
+          SafeMath.lt(props.volume, storeCtx.selectedTicker?.minSz) ||
+          SafeMath.lt(props.price, storeCtx.selectedTicker?.tickSz) ||
+          SafeMath.gt(
+            props.volume,
+            props.orderType === "market"
+              ? storeCtx.selectedTicker?.maxMktSz
+              : props.orderType === "limit"
+              ? storeCtx.selectedTicker?.maxLmtSz
+              : "99999"
+          )
         }
       >
         {props.kind === "bid" ? t("buy") : t("sell")}
@@ -180,16 +189,30 @@ const TradePannel = (props) => {
   const [sellErrorMessage, setSellErrorMessage] = useState(null);
   const { t } = useTranslation();
 
-  const limitBuyPxHandler = (value) => {
-    // console.trace(`limitBuyPxHandler`, value);
-    let _value = +value < 0 ? "0" : value;
-    setLimitBuyPx(_value);
-  };
+  const limitBuyPxHandler = useCallback(
+    (value) => {
+      // console.trace(`limitBuyPxHandler`, value);
+      let _value = +value < 0 ? "0" : value;
+      setLimitBuyPx(_value);
+      if (SafeMath.lt(value, storeCtx.selectedTicker?.tickSz))
+        setBuyErrorMessage(
+          `Minimum order price is ${storeCtx.selectedTicker?.tickSz}`
+        );
+    },
+    [storeCtx.selectedTicker?.tickSz]
+  );
 
-  const limitSellPxHandler = (value) => {
-    let _value = +value < 0 ? "0" : value;
-    setLimitSellPx(_value);
-  };
+  const limitSellPxHandler = useCallback(
+    (value) => {
+      let _value = +value < 0 ? "0" : value;
+      setLimitSellPx(_value);
+      if (SafeMath.lt(value, storeCtx.selectedTicker?.tickSz))
+        setSellErrorMessage(
+          `Minimum order price is ${storeCtx.selectedTicker?.tickSz}`
+        );
+    },
+    [storeCtx.selectedTicker?.tickSz]
+  );
 
   const buySzHandler = useCallback(
     (orderType, value) => {
@@ -212,7 +235,7 @@ const TradePannel = (props) => {
                 ? storeCtx.selectedTicker?.last
                 : limitBuyPx
             ),
-            8
+            { decimalLength: 8 }
           )
         : value;
       if (orderType === "market") setMarketBuySz(_value);
@@ -224,6 +247,25 @@ const TradePannel = (props) => {
         )
           setBuyErrorMessage(
             `Minimum order size is ${storeCtx.selectedTicker?.minSz}`
+          );
+        if (
+          SafeMath.gt(
+            value,
+            orderType === "market"
+              ? storeCtx.selectedTicker?.maxMktSz
+              : orderType === "limit"
+              ? storeCtx.selectedTicker?.maxLmtSz
+              : "99999"
+          )
+        )
+          setBuyErrorMessage(
+            `Maximum order size is ${
+              orderType === "market"
+                ? storeCtx.selectedTicker?.maxMktSz
+                : orderType === "limit"
+                ? storeCtx.selectedTicker?.maxLmtSz
+                : "99999"
+            }`
           );
         if (
           SafeMath.gt(
@@ -245,11 +287,13 @@ const TradePannel = (props) => {
       }
     },
     [
-      limitBuyPx,
       props.quoteCcyAvailable,
-      storeCtx.selectedTicker?.minSz,
-      storeCtx.selectedTicker?.quote_unit,
       storeCtx.selectedTicker?.last,
+      storeCtx.selectedTicker?.minSz,
+      storeCtx.selectedTicker?.maxMktSz,
+      storeCtx.selectedTicker?.maxLmtSz,
+      storeCtx.selectedTicker?.quote_unit,
+      limitBuyPx,
     ]
   );
   const sellSzHandler = useCallback(
@@ -271,6 +315,25 @@ const TradePannel = (props) => {
           setSellErrorMessage(
             `Minimum order size is ${storeCtx.selectedTicker?.minSz}`
           );
+        if (
+          SafeMath.gt(
+            value,
+            orderType === "market"
+              ? storeCtx.selectedTicker?.maxMktSz
+              : orderType === "limit"
+              ? storeCtx.selectedTicker?.maxLmtSz
+              : "99999"
+          )
+        )
+          setSellErrorMessage(
+            `Maximum order size is ${
+              orderType === "market"
+                ? storeCtx.selectedTicker?.maxMktSz
+                : orderType === "limit"
+                ? storeCtx.selectedTicker?.maxLmtSz
+                : "99999"
+            }`
+          );
         if (SafeMath.gt(value, props.baseCcyAvailable)) {
           setSellErrorMessage(
             `Available ${storeCtx.selectedTicker?.base_unit?.toUpperCase()} is not enough`
@@ -283,6 +346,8 @@ const TradePannel = (props) => {
     [
       props.baseCcyAvailable,
       storeCtx.selectedTicker?.base_unit,
+      storeCtx.selectedTicker?.maxLmtSz,
+      storeCtx.selectedTicker?.maxMktSz,
       storeCtx.selectedTicker?.minSz,
     ]
   );
@@ -293,12 +358,12 @@ const TradePannel = (props) => {
       if (SafeMath.gt(props.quoteCcyAvailable, 0))
         size = formateDecimal(
           SafeMath.div(SafeMath.mult(pct, props.quoteCcyAvailable), buyPx),
-          8
+          { decimalLength: storeCtx.selectedTicker?.lotSz || "0" }
         );
       else if (SafeMath.gt(availBal, 0))
         size = formateDecimal(
           SafeMath.div(SafeMath.mult(pct, availBal), buyPx),
-          8
+          { decimalLength: storeCtx.selectedTicker?.lotSz || "0" }
         );
       if (orderType === "market") {
         setMarketBuySz(size);
@@ -308,16 +373,20 @@ const TradePannel = (props) => {
         setSelectedLimitBuyPct(pct);
       }
     },
-    [props.quoteCcyAvailable]
+    [props.quoteCcyAvailable, storeCtx.selectedTicker?.lotSz]
   );
 
   const sellPctHandler = useCallback(
     (orderType, pct, availBal) => {
       let size = "0";
       if (SafeMath.gt(props.baseCcyAvailable, 0))
-        size = formateDecimal(SafeMath.mult(pct, props.baseCcyAvailable), 8);
+        size = formateDecimal(SafeMath.mult(pct, props.baseCcyAvailable), {
+          decimalLength: storeCtx.selectedTicker?.lotSz || "0",
+        });
       else if (SafeMath.gt(availBal, 0))
-        size = formateDecimal(SafeMath.mult(pct, availBal), 8);
+        size = formateDecimal(SafeMath.mult(pct, availBal), {
+          decimalLength: storeCtx.selectedTicker?.lotSz || "0",
+        });
       if (orderType === "market") {
         setMarketSellSz(size);
         setSelectedMarketSellPct(pct);
@@ -326,7 +395,7 @@ const TradePannel = (props) => {
         setSelectedLimitSellPct(pct);
       }
     },
-    [props.baseCcyAvailable]
+    [props.baseCcyAvailable, storeCtx.selectedTicker?.lotSz]
   );
 
   const onSubmit = async (event, kind) => {
@@ -414,7 +483,13 @@ const TradePannel = (props) => {
       sellSzHandler("limit", storeCtx.depthBook.amount);
       storeCtx.depthBookHandler(null);
     }
-  }, [buySzHandler, sellSzHandler, storeCtx]);
+  }, [
+    buySzHandler,
+    limitBuyPxHandler,
+    limitSellPxHandler,
+    sellSzHandler,
+    storeCtx,
+  ]);
 
   return (
     <div className="market-trade__panel">
@@ -422,6 +497,7 @@ const TradePannel = (props) => {
         <Tabs defaultActiveKey="buy">
           <Tab eventKey="buy" title={t("buy")}>
             <TradeForm
+              ordType={props.orderType}
               price={
                 props.orderType === "market"
                   ? storeCtx.selectedTicker?.last
@@ -448,6 +524,7 @@ const TradePannel = (props) => {
           </Tab>
           <Tab eventKey="sell" title={t("sell")}>
             <TradeForm
+              ordType={props.orderType}
               price={
                 props.orderType === "market"
                   ? storeCtx.selectedTicker?.last
@@ -476,6 +553,7 @@ const TradePannel = (props) => {
       ) : (
         <>
           <TradeForm
+            ordType={props.orderType}
             price={
               props.orderType === "market"
                 ? storeCtx.selectedTicker?.last
@@ -500,6 +578,7 @@ const TradePannel = (props) => {
             errorMessage={buyErrorMessage}
           />
           <TradeForm
+            ordType={props.orderType}
             price={
               props.orderType === "market"
                 ? storeCtx.selectedTicker?.last

@@ -1194,27 +1194,30 @@ class OkexConnector extends ConnectorBase {
 
   // ++ TODO: verify function works properly
   _formateTrades(market, trades) {
-    return trades.map((data) => ({
-      tid: data.tradeId, // [about to decrepted]
-      type: data.side, // [about to decrepted]
-      date: data.ts, // [about to decrepted]
-      amount: data.sz, // [about to decrepted]
-      id: data.tradeId,
-      price: data.px,
-      volume: data.sz,
-      market,
-      at: parseInt(SafeMath.div(data.ts, "1000")),
-      ts: data.ts,
-    }));
+    return trades.map((data) => {
+      const trade = {
+        tid: data.tradeId, // [about to decrepted]
+        type: data.side, // [about to decrepted]
+        date: data.ts, // [about to decrepted]
+        amount: data.sz, // [about to decrepted]
+        id: data.tradeId,
+        price: data.px,
+        volume: data.sz,
+        market,
+        at: parseInt(SafeMath.div(data.ts, "1000")),
+        ts: data.ts,
+      }
+      this.logger.debug(
+        `[${this.constructor.name}]_updateTrades`,
+        market,
+        new Date(trade.ts)
+      );
+      return trade
+    });
   }
 
   // ++ TODO: verify function works properly
   async _updateTrades(instId, newTrades) {
-    // this.logger.debug(
-    //   `[${this.constructor.name}]_updateTrades`,
-    //   instId,
-    //   newTrades
-    // );
     try {
       const market = instId.replace("-", "").toLowerCase();
       this.tradeBook.updateByDifference(instId, {
@@ -1364,7 +1367,11 @@ class OkexConnector extends ConnectorBase {
   _updateTickers(data) {
     data.forEach((d) => {
       if (d.instId === "BTC-USDT")
-        this.logger.log(`[${this.constructor.name}]_updateTickers d.last`, d.last);
+        this.logger.log(
+          `[${this.constructor.name}]_updateTickers d.last`,
+          d.last,
+          new Date(d.ts)
+        );
       if (this._findSource(d.instId) === SupportedExchange.OKEX) {
         const ticker = this._formateTicker(d);
         const result = this.tickerBook.updateByDifference(d.instId, ticker);

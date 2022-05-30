@@ -15,12 +15,25 @@ const BookTile = (props) => {
     >
       {props.type === "asks" ? (
         <>
-          <div>{formateDecimal(props.book.price, 8)}</div>
-          <div>{formateDecimal(props.book.amount, 8)}</div>
+          <div>
+            {formateDecimal(props.book.price, {
+              decimalLength: props?.tickSz || "0",
+              pad: true,
+            })}
+          </div>
+          <div>
+            {formateDecimal(props.book.amount, {
+              decimalLength: props?.lotSz || "0",
+              pad: true,
+            })}
+          </div>
           <div>
             {formateDecimal(
               SafeMath.mult(props.book.price, props.book.amount),
-              8
+              {
+                decimalLength: SafeMath.mult(props.tickSz, props.lotSz),
+                pad: true,
+              }
             )}
           </div>
           <div
@@ -33,11 +46,24 @@ const BookTile = (props) => {
           <div>
             {formateDecimal(
               SafeMath.mult(props.book.price, props.book.amount),
-              8
+              {
+                decimalLength: SafeMath.mult(props.tickSz, props.lotSz),
+                pad: true,
+              }
             )}
           </div>
-          <div>{formateDecimal(props.book.amount, 8)}</div>
-          <div>{formateDecimal(props.book.price, 8)}</div>
+          <div>
+            {formateDecimal(props.book.amount, {
+              decimalLength: props?.lotSz || "0",
+              pad: true,
+            })}
+          </div>
+          <div>
+            {formateDecimal(props.book.price, {
+              decimalLength: props?.tickSz || "0",
+              pad: true,
+            })}
+          </div>
           <div
             className="order-book__tile--cover"
             style={{ width: props.dataWidth }}
@@ -65,6 +91,8 @@ const DepthBook = (props) => {
             storeCtx.books?.bids &&
             storeCtx.books.bids.map((book) => (
               <BookTile
+                tickSz={storeCtx.selectedTicker?.tickSz}
+                lotSz={storeCtx.selectedTicker?.lotSz}
                 onClick={() => {
                   storeCtx.depthBookHandler(book.price, book.amount);
                 }}

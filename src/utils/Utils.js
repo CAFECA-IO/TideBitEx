@@ -226,22 +226,34 @@ export const formateNumber = (number, decimalLength = 2) => {
 export const numberWithCommas = (x) => {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
-
-export const formateDecimal = (amount, maxLength = 18, decimalLength = 2) => {
+export const padDecimal = (n, length) => {
+  let padR = n.toString();
+  for (let i = padR.length; i < length; i++) {
+    padR += "0";
+  }
+  return padR;
+};
+export const formateDecimal = (
+  amount,
+  { maxLength = 18, decimalLength = 2, pad = false }
+) => {
   if (isNaN(amount) || (!SafeMath.eq(amount, "0") && !amount)) return "--";
-  if (SafeMath.eq(amount, "0")) return "0.00";
+  if (SafeMath.eq(amount, "0"))
+    return pad ? `0.${padDecimal("", decimalLength)}` : "0.00";
   const splitChunck = amount.toString().split(".");
   if (SafeMath.gte(splitChunck[0].length, maxLength))
     return formateNumber(amount, decimalLength);
   if (splitChunck.length > 1) {
-    // if (splitChunck[1].length > decimalLength ?? 8) {
     if (amount.toString().length > maxLength)
       splitChunck[1] = splitChunck[1].substring(
         0,
         maxLength - splitChunck[0].length
       );
-    // else splitChunck[1] = splitChunck[1].substring(0, decimalLength ?? 8);
-    // }
+    else if (splitChunck[1].toString().length > decimalLength)
+      splitChunck[1] = splitChunck[1].substring(0, decimalLength);
+    else if (splitChunck[1].toString().length && pad)
+      splitChunck[1] = padDecimal(splitChunck[1], decimalLength);
+
     return splitChunck[1].length > 0
       ? `${splitChunck[0]}.${splitChunck[1]}`
       : splitChunck[0];
