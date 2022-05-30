@@ -1369,7 +1369,7 @@ class OkexConnector extends ConnectorBase {
       if (d.instId === "BTC-USDT")
         this.logger.log(
           `[${this.constructor.name}]_updateTickers d.last`,
-          d.last,
+          d.last,d.ts,
           new Date(d.ts)
         );
       if (this._findSource(d.instId) === SupportedExchange.OKEX) {
