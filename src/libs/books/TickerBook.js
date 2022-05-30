@@ -48,13 +48,17 @@ class TickerBook extends BookBase {
     );
   }
 
+  getTickerSnapshot(market){
+    return this._snapshot[market]
+  }
+
   getSnapshot() {
     const tickers = Object.keys(this._snapshot).map((market) =>
      !!this._difference[market]
         ? { ...this._snapshot[market], update: true }
         : this._snapshot[market]
     );
-    console.log(`this._difference`, this._difference)
+    // console.log(`this._difference`, this._difference)
     this._difference = {};
     return tickers;
   }
