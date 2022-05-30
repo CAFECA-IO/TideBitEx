@@ -49,13 +49,12 @@ class TickerBook extends BookBase {
   }
 
   getSnapshot() {
-    const tickers = Object.values(this._snapshot).map((ticker) =>
-      Object.values(this._difference).some(
-        (diff) => diff.instId === ticker.instId
-      )
-        ? { ...ticker, update: true }
-        : ticker
+    const tickers = Object.keys(this._snapshot).map((market) =>
+     !!this._difference[market]
+        ? { ...this._snapshot[market], update: true }
+        : this._snapshot[market]
     );
+    console.log(`this._difference`, this._difference)
     this._difference = {};
     return tickers;
   }
