@@ -82,7 +82,7 @@ class TickerBook extends BookBase {
         console.log(
           `TickerBook _updateTickers ticker.last`,
           ticker.last,
-          new Date(ticker.ts),
+          new Date(ticker.ts).toISOString(),
           this._compareFunction(this._snapshot[ticker.market], ticker)
         );
       if (this._compareFunction(this._snapshot[ticker.market], ticker)) {
