@@ -41,16 +41,12 @@ class TickerBook extends BookBase {
     return (
       valueA?.instId === valueB.instId &&
       // WORKAROUND
-      SafeMath.gt(
-        valueB?.last,
-        "0"
-      )(
-        !SafeMath.eq(valueA?.last, valueB.last) ||
-          !SafeMath.eq(valueA?.open, valueB.open) ||
-          !SafeMath.eq(valueA?.high, valueB.high) ||
-          !SafeMath.eq(valueA?.low, valueB.low) ||
-          !SafeMath.eq(valueA?.volume, valueB.volume)
-      )
+      SafeMath.gt(valueB?.last, "0") &&
+      (!SafeMath.eq(valueA?.last, valueB.last) ||
+        !SafeMath.eq(valueA?.open, valueB.open) ||
+        !SafeMath.eq(valueA?.high, valueB.high) ||
+        !SafeMath.eq(valueA?.low, valueB.low) ||
+        !SafeMath.eq(valueA?.volume, valueB.volume))
     );
   }
 
