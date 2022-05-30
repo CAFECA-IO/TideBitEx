@@ -263,8 +263,8 @@ class TibeBitConnector extends ConnectorBase {
         // ++ BUG ethhkd & btchkd OPEN will turn 0
         if (result)
           EventBus.emit(Events.tickers, this.tickerBook.getDifference());
-      }
-    // });
+      // }
+    });
   }
 
   // ++ TODO: verify function works properly
