@@ -218,6 +218,16 @@ class TibeBitConnector extends ConnectorBase {
       change,
       changePct,
       source: SupportedExchange.TIDEBIT,
+      ticker: {
+        // [about to decrepted]
+        buy: data.bidPx,
+        sell: data.askPx,
+        low: data.low,
+        high: data.high,
+        last: data.last,
+        open: data.open,
+        vol: data.volume,
+      },
     };
     return updateTicker;
     // });
