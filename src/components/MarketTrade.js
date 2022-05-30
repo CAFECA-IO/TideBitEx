@@ -47,7 +47,7 @@ const TradeForm = (props) => {
             onInput={(e) => props.onPxInput(e.target.value)}
             required={!props.readyOnly}
             disabled={!!props.readyOnly}
-            step="any"
+            step={storeCtx.selectedTicker?.tickSz}
           />
           {!props.readyOnly && (
             <div className="market-trade__input-group--append input-group-append">
@@ -69,7 +69,7 @@ const TradeForm = (props) => {
             value={props.volume}
             onInput={(e) => props.onSzInput(e.target.value)}
             required
-            step={storeCtx.selectedTicker.lotSz}
+            step={storeCtx.selectedTicker?.lotSz}
           />
           <div className="market-trade__input-group--append input-group-append">
             <span className="input-group-text">

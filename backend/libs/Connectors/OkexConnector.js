@@ -1207,11 +1207,11 @@ class OkexConnector extends ConnectorBase {
         at: parseInt(SafeMath.div(data.ts, "1000")),
         ts: data.ts,
       }
-      this.logger.debug(
-        `[${this.constructor.name}]_updateTrades`,
-        market,
-        new Date(trade.ts)
-      );
+      // this.logger.debug(
+      //   `[${this.constructor.name}]_updateTrades`,
+      //   market,
+      //   new Date(trade.ts)
+      // );
       return trade
     });
   }
