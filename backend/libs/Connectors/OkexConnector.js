@@ -25,7 +25,7 @@ class OkexConnector extends ConnectorBase {
   // _tradesTimestamp = 0;
 
   tickers = {};
-  // okexWsChannels = {};
+  okexWsChannels = {};
   instIds = [];
 
   fetchedTrades = {};
@@ -1079,15 +1079,15 @@ class OkexConnector extends ConnectorBase {
         // );
         const values = Object.values(arg);
         if (data.event === "subscribe") {
-          // this.okexWsChannels[channel] = this.okexWsChannels[channel] || {};
-          // this.okexWsChannels[channel][values[0]] =
-          //   this.okexWsChannels[channel][values[0]] || {};
+          this.okexWsChannels[channel] = this.okexWsChannels[channel] || {};
+          this.okexWsChannels[channel][values[0]] =
+            this.okexWsChannels[channel][values[0]] || {};
         } else if (data.event === "unsubscribe") {
-          // delete this.okexWsChannels[channel][values[0]];
+          delete this.okexWsChannels[channel][values[0]];
           // ++ TODO ws onClose clean channel
-          // if (!Object.keys(this.okexWsChannels[channel]).length) {
-          //   delete this.okexWsChannels[channel];
-          // }
+          if (!Object.keys(this.okexWsChannels[channel]).length) {
+            delete this.okexWsChannels[channel];
+          }
         } else if (data.event === "error") {
           this.logger.log("!!! _okexWsEventListener on event error", data);
         }
