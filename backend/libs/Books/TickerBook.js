@@ -57,7 +57,7 @@ class TickerBook extends BookBase {
     );
     this.logger.log(`[${this.constructor.name}]  ticker`, ticker);
     this.logger.log(
-      `[${this.constructor.name}]  this._compareFunction(this._snapshot[instId], ticker)`,
+      `[${this.constructor.name}]  this._compareFunction(this._snapshot[${instId}], ticker)`,
       this._compareFunction(this._snapshot[instId], ticker)
     );
     try {
