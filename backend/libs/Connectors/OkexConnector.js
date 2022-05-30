@@ -791,12 +791,12 @@ class OkexConnector extends ConnectorBase {
           ts: parseInt(data.uTime),
         };
       });
-      this.logger.log(
-        `[${this.constructor.name} getOrderList] instId:`,
-        instId,
-        `orders`,
-        orders
-      );
+      // this.logger.log(
+      //   `[${this.constructor.name} getOrderList] instId:`,
+      //   instId,
+      //   `orders`,
+      //   orders
+      // );
       this.orderBook.updateAll(memberId, instId, orders);
       // return new ResponseFormat({
       //   message: "getOrderList",
