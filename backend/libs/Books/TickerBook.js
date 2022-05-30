@@ -40,6 +40,7 @@ class TickerBook extends BookBase {
     return (
       !valueA ||
       (valueA?.instId === valueB.instId &&
+        SafeMath.eq(valueA?.open, valueB.open) &&
         (!SafeMath.eq(valueA?.last, valueB.last) ||
           // !SafeMath.eq(valueA?.open, valueB.open) ||
           !SafeMath.eq(valueA?.high, valueB.high) ||

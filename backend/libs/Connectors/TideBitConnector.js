@@ -252,17 +252,19 @@ class TibeBitConnector extends ConnectorBase {
     at: 1649742406
   },}
     */
-  this.logger.log(
-    `[${this.constructor.name}]_updateTickers data`,
-    data
-  );
+    // this.logger.log(`[${this.constructor.name}]_updateTickers data`, data);
     Object.values(data).forEach((d) => {
-      const ticker = this._formateTicker(d);
-      const result = this.tickerBook.updateByDifference(ticker.instId, ticker);
-      // ++ BUG ethhkd & btchkd OPEN will turn 0
-      if (result)
-        EventBus.emit(Events.tickers, this.tickerBook.getDifference());
-    });
+      // if (SafeMath.gt(d.volume, "0")) {
+        const ticker = this._formateTicker(d);
+        const result = this.tickerBook.updateByDifference(
+          ticker.instId,
+          ticker
+        );
+        // ++ BUG ethhkd & btchkd OPEN will turn 0
+        if (result)
+          EventBus.emit(Events.tickers, this.tickerBook.getDifference());
+      }
+    // });
   }
 
   // ++ TODO: verify function works properly
