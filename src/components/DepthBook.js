@@ -1,10 +1,63 @@
 import React, { useContext } from "react";
 import StoreContext from "../store/store-context";
 import SafeMath from "../utils/SafeMath";
-import { formateDecimal } from "../utils/Utils";
+// import { formateDecimal } from "../utils/Utils";
 import { useTranslation } from "react-i18next";
 
+const padDecimal = (n, length) => {
+  let padR = n.toString();
+  for (let i = padR.length; i < length; i++) {
+    padR += "0";
+  }
+  console.log(`padR`, padR);
+  return padR;
+};
+
+const formateDecimal = (
+  amount,
+  { maxLength = 18, decimalLength = 2, pad = false }
+) => {
+  console.log(
+    `amount[${amount.toString().length}]`,
+    amount,
+    `[>${amount.toString().length > maxLength}]maxLength`,
+    maxLength,
+    `decimalLength`,
+    decimalLength,
+    `pad`,
+    pad
+  );
+  if (isNaN(amount) || (!SafeMath.eq(amount, "0") && !amount)) return "--";
+  if (SafeMath.eq(amount, "0"))
+    return pad ? `0.${padDecimal("", decimalLength)}` : "0.00";
+  const splitChunck = amount.toString().split(".");
+  if (!maxLength) maxLength = 18;
+  if (splitChunck.length > 1) {
+    console.log(`padR`, splitChunck);
+    console.log(
+      `splitChunck[1]${splitChunck[1].toString().length}`,
+      splitChunck[1]
+    );
+    if (amount.toString().length > maxLength)
+      splitChunck[1] = splitChunck[1].substring(
+        0,
+        maxLength - splitChunck[0].length
+      );
+    else if (splitChunck[1].toString().length > decimalLength)
+      splitChunck[1] = splitChunck[1].substring(0, decimalLength);
+    else if (pad) splitChunck[1] = padDecimal(splitChunck[1], decimalLength);
+    console.log(`splitChunck2`, splitChunck);
+    return splitChunck[1].length > 0
+      ? `${splitChunck[0]}.${splitChunck[1]}`
+      : splitChunck[0];
+  }
+  return parseFloat(amount.toString()).toFixed(decimalLength);
+};
+
 const BookTile = (props) => {
+  if (props.index === 0) {
+    console.log(props);
+  }
   return (
     <li
       className={`order-book__tile flex-row ${
@@ -89,8 +142,9 @@ const DepthBook = (props) => {
         <ul className="order-book__panel">
           {storeCtx?.selectedTicker &&
             storeCtx.books?.bids &&
-            storeCtx.books.bids.map((book) => (
+            storeCtx.books.bids.map((book, index) => (
               <BookTile
+                index={index}
                 tickSz={storeCtx.selectedTicker?.tickSz}
                 lotSz={storeCtx.selectedTicker?.lotSz}
                 onClick={() => {
@@ -118,8 +172,9 @@ const DepthBook = (props) => {
         <ul className="order-book__panel">
           {storeCtx?.selectedTicker &&
             storeCtx.books?.asks &&
-            storeCtx.books.asks.map((book) => (
+            storeCtx.books.asks.map((book, index) => (
               <BookTile
+                index={index}
                 type="asks"
                 onClick={() => {
                   storeCtx.depthBookHandler(book.price, book.amount);
