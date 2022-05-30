@@ -1362,7 +1362,7 @@ class OkexConnector extends ConnectorBase {
 
   // ++ TODO: verify function works properly
   _updateTickers(data) {
-    this.logger.log(`[${this.constructor.name}]_updateTickers data`, data);
+    // this.logger.log(`[${this.constructor.name}]_updateTickers data`, data);
     data.forEach((d) => {
       if (this._findSource(d.instId) === SupportedExchange.OKEX) {
         const ticker = this._formateTicker(d);
