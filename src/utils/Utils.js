@@ -252,7 +252,7 @@ export const formateDecimal = (
         0,
         maxLength - splitChunck[0].length
       );
-    else if (splitChunck[1].toString().length > decimalLength)
+    if (splitChunck[1].toString().length > decimalLength)
       splitChunck[1] = splitChunck[1].substring(0, decimalLength);
     else if (pad) splitChunck[1] = padDecimal(splitChunck[1], decimalLength);
 

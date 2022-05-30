@@ -41,19 +41,28 @@ export const OrderTile = (props) => {
           </div>
         )}
       </li>
-      <li>{formateDecimal(props.order.price, { decimalLength: 8 })}</li>
       <li>
-        {formateDecimal(
+        {
+          // formateDecimal(props.order.price, { decimalLength: 4 })
+          props.order.price
+        }
+      </li>
+      <li>
+        {/* {formateDecimal(
           props.order.state === "wait"
             ? props.order.volume
             : props.order.origin_volume,
-          { decimalLength: 8 }
-        )}
+          { decimalLength: 4 }
+        )} */}
+        {props.order.state === "wait"
+          ? props.order.volume
+          : props.order.origin_volume}
       </li>
       <li>
-        {formateDecimal(SafeMath.mult(props.order.price, props.order.volume), {
-          decimalLength: 8,
-        })}
+        {/* {formateDecimal(SafeMath.mult(props.order.price, props.order.volume), {
+          decimalLength: 4,
+        })} */}
+        {SafeMath.mult(props.order.price, props.order.volume)}
       </li>
       {/* <li>{props.order.fillSz}</li> */}
       {/* <li>{SafeMath.minus(props.order.volume, props.order.fillSz)}</li> */}
@@ -75,9 +84,9 @@ const AccountTile = (props) => {
       <li>{props.account.currency || "--"}</li>
       {/* <li>{props.account.eq || "--"}</li>
       <li>{props.account.cashBal || "--"}</li>*/}
-      <li>{formateDecimal(props.account.total, {})}</li>
-      <li>{formateDecimal(props.account.balance, {})}</li>
-      <li>{formateDecimal(props.account.locked, {})}</li>
+      <li>{formateDecimal(props.account.total, { decimalLength: 2 })}</li>
+      <li>{formateDecimal(props.account.balance, { decimalLength: 2 })}</li>
+      <li>{formateDecimal(props.account.locked, { decimalLength: 2 })}</li>
       {/* -- TODO: check api return object */}
       {/* <li>{props.account.interest || "--"}</li> */}
     </ul>

@@ -43,15 +43,11 @@ const SelectedTicker = (props) => {
           <span>
             {!storeCtx.selectedTicker
               ? "-- %"
-              : SafeMath.gt(storeCtx.selectedTicker?.change, "0")
-              ? `+${formateDecimal(
-                  SafeMath.mult(storeCtx.selectedTicker?.changePct, "100"),
-                  { decimalLength: 2 }
-                )}%`
-              : `${formateDecimal(
-                  SafeMath.mult(storeCtx.selectedTicker?.changePct, "100"),
-                  { decimalLength: 2 }
-                )}%`}
+              : `${
+                  SafeMath.gte(storeCtx.selectedTicker?.change, "0") ? "+" : "-"
+                }${parseFloat(
+                  SafeMath.mult(storeCtx.selectedTicker?.changePct, "100")
+                ).toFixed(2)}%`}
           </span>
         </div>
       </div>

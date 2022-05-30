@@ -20,19 +20,19 @@ const BookTile = (props) => {
         <>
           <div>
             {formateDecimal(props.book.price, {
-              decimalLength:
-                props?.tickSz?.split(".").length > 1
-                  ? props?.tickSz?.split(".")[1].length
-                  : "0",
+              decimalLength: 2,
+              // props?.tickSz?.split(".").length > 1
+              //   ? props?.tickSz?.split(".")[1].length
+              //   : "0",
               pad: true,
             })}
           </div>
           <div>
             {formateDecimal(props.book.amount, {
-              decimalLength:
-                props?.lotSz?.split(".").length > 1
-                  ? props?.lotSz?.split(".")[1].length
-                  : "0",
+              decimalLength: 4,
+              // props?.lotSz?.split(".").length > 1
+              //   ? props?.lotSz?.split(".")[1].length
+              //   : "0",
               pad: true,
             })}
           </div>
@@ -40,12 +40,12 @@ const BookTile = (props) => {
             {formateDecimal(
               SafeMath.mult(props.book.price, props.book.amount),
               {
-                decimalLength:
-                  SafeMath.mult(props?.tickSz, props?.lotSz).split(".").length >
-                  1
-                    ? SafeMath.mult(props?.tickSz, props?.lotSz).split(".")[1]
-                        .length
-                    : "0",
+                decimalLength: 4,
+                // SafeMath.mult(props?.tickSz, props?.lotSz).split(".").length >
+                // 1
+                //   ? SafeMath.mult(props?.tickSz, props?.lotSz).split(".")[1]
+                //       .length
+                //   : "0",
                 pad: true,
               }
             )}
@@ -61,31 +61,31 @@ const BookTile = (props) => {
             {formateDecimal(
               SafeMath.mult(props.book.price, props.book.amount),
               {
-                decimalLength:
-                  SafeMath.mult(props?.tickSz, props?.lotSz).split(".").length >
-                  1
-                    ? SafeMath.mult(props?.tickSz, props?.lotSz).split(".")[1]
-                        .length
-                    : "0",
+                decimalLength: 4,
+                // SafeMath.mult(props?.tickSz, props?.lotSz).split(".").length >
+                // 1
+                //   ? SafeMath.mult(props?.tickSz, props?.lotSz).split(".")[1]
+                //       .length
+                //   : "0",
                 pad: true,
               }
             )}
           </div>
           <div>
             {formateDecimal(props.book.amount, {
-              decimalLength:
-                props?.lotSz?.split(".").length > 1
-                  ? props?.lotSz?.split(".")[1].length
-                  : "0",
+              decimalLength: 4,
+              // props?.lotSz?.split(".").length > 1
+              //   ? props?.lotSz?.split(".")[1].length
+              //   : "0",
               pad: true,
             })}
           </div>
           <div>
             {formateDecimal(props.book.price, {
-              decimalLength:
-                props?.tickSz?.split(".").length > 1
-                  ? props?.tickSz?.split(".")[1].length
-                  : "0",
+              decimalLength: 2,
+              // props?.tickSz?.split(".").length > 1
+              //   ? props?.tickSz?.split(".")[1].length
+              //   : "0",
               pad: true,
             })}
           </div>

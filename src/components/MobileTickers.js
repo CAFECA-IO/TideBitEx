@@ -29,18 +29,13 @@ const TickerTile = (props) => {
         </div>
       </div>
       <div className="mobile-tickers__price">
-        <div>{formateDecimal(props.ticker.last, { decimalLength: 2 })}</div>
+        <div>{formateDecimal(props.ticker?.last, { decimalLength: 2 })}</div>
         <div
-          className={SafeMath.gte(props.ticker.change, "0") ? "green" : "red"}
+          className={SafeMath.gte(props.ticker?.change, "0") ? "green" : "red"}
         >
-          {SafeMath.gte(props.ticker.change, "0")
-            ? `+${formateDecimal(
-                SafeMath.mult(props.ticker?.changePct, "100"),
-                { decimalLength: 2 }
-              )}%`
-            : `${formateDecimal(SafeMath.mult(props.ticker?.changePct, "100"), {
-                decimalLength: 2,
-              })}%`}
+          {`${SafeMath.gte(props.ticker?.change, "0") ? "+" : "-"}${parseFloat(
+            SafeMath.mult(props.ticker?.changePct, "100")
+          ).toFixed(2)}%`}
         </div>
       </div>
     </li>
