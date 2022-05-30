@@ -1107,7 +1107,7 @@ class OkexConnector extends ConnectorBase {
             }
             break;
           case this.candleChannel:
-            // this.logger.log(`this.candleChannel`, this.candleChannel, data);
+            this.logger.log(`this.candleChannel`, this.candleChannel, data);
             this._updateCandle(values[0], data.channel, data.data);
             break;
           case "tickers":
@@ -1287,7 +1287,7 @@ class OkexConnector extends ConnectorBase {
   _updateCandle(instId, channel, candleData) {
     this.candleChannel = channel;
     this.okexWsChannels[channel][instId] = candleData;
-    // this.logger.debug(`[${this.constructor.name}]_updateCandle`, instId, candleData);
+    this.logger.debug(`[${this.constructor.name}]_updateCandle  this.okexWsChannels[${channel}]`, instId, candleData);
     const formatCandle = candleData
       .map((data) => ({
         time: parseInt(data[0]),
