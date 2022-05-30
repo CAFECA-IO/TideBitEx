@@ -1112,7 +1112,7 @@ class OkexConnector extends ConnectorBase {
             break;
           case this.candleChannel:
             // this.logger.log(`this.candleChannel`, this.candleChannel, data);
-            // this._updateCandle(values[0], data.channel, data.data);
+            this._updateCandle(values[0], data.channel, data.data);
             break;
           case "tickers":
             this._updateTickers(data.data);
@@ -1289,8 +1289,8 @@ class OkexConnector extends ConnectorBase {
   }
 
   _updateCandle(instId, channel, candleData) {
-    // this.candleChannel = channel;
-    // this.okexWsChannels[channel][instId] = candleData;
+    this.candleChannel = channel;
+    this.okexWsChannels[channel][instId] = candleData;
     // this.logger.debug(`[${this.constructor.name}]_updateCandle`, instId, candleData);
     const formatCandle = candleData
       .map((data) => ({
@@ -1549,6 +1549,7 @@ class OkexConnector extends ConnectorBase {
 
       this._subscribeTrades(instId);
       this._subscribeBook(instId);
+      this._subscribeCandle1m(instId);
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeMarket [END] ++++++`
       );
@@ -1565,7 +1566,7 @@ class OkexConnector extends ConnectorBase {
       this.logger.log(`_unsubscribeMarket instId`, instId);
       this._unsubscribeTrades(instId);
       this._unsubscribeBook(instId);
-      // this._unsubscribeCandle1m(instId);
+      this._unsubscribeCandle1m(instId);
       this.logger.log(
         `---------- [${this.constructor.name}]  _unsubscribeMarket [END] ----------`
       );

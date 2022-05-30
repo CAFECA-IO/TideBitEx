@@ -110,17 +110,15 @@ class ExchangeHub extends Bot {
       });
     });
 
-    // EventBus.on(Events.candleOnUpdate, (market, formatCandle) => {
-    //   this.broadcast(market, {
-    //     type: Events.candleOnUpdate,
-    //     data: formatCandle,
-    //   });
-    // });
+    EventBus.on(Events.candleOnUpdate, (market, formatCandle) => {
+      this.broadcast(market, {
+        type: Events.candleOnUpdate,
+        data: formatCandle,
+      });
+    });
 
     // tickersOnUpdate
     EventBus.on(Events.tickers, (updateTickers) => {
-      // const filteredTickers = Utils.tickersFilterInclude(this.tidebitMarkets, updateTickers)
-      // this.logger.log(`[${this.name} Events.tickers]`, filteredTickers)
       this.broadcastAllClient({
         type: Events.tickers,
         data: updateTickers,

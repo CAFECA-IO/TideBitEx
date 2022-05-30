@@ -51,6 +51,15 @@ class TickerBook extends BookBase {
 
   updateByDifference(instId, ticker) {
     this._difference = {};
+    this.logger.log(
+      `[${this.constructor.name}]  this._snapshot[instId]`,
+      this._snapshot[instId]
+    );
+    this.logger.log(`[${this.constructor.name}]  ticker`, ticker);
+    this.logger.log(
+      `[${this.constructor.name}]  this._compareFunction(this._snapshot[instId], ticker)`,
+      this._compareFunction(this._snapshot[instId], ticker)
+    );
     try {
       if (this._compareFunction(this._snapshot[instId], ticker)) {
         this._difference[instId] = ticker;
