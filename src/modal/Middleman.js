@@ -298,6 +298,10 @@ class Middleman {
           );
           break;
         case Events.tickers:
+          console.log(
+            `middleman _updateTickers metaData.data["BTC-USDT"].last`,
+            metaData.data["BTC-USDT"].last
+          );
           this.tickerBook.updateByDifference(metaData.data);
           break;
         case Events.trades:
