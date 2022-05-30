@@ -1,58 +1,8 @@
 import React, { useContext } from "react";
 import StoreContext from "../store/store-context";
 import SafeMath from "../utils/SafeMath";
-// import { formateDecimal } from "../utils/Utils";
+import { formateDecimal } from "../utils/Utils";
 import { useTranslation } from "react-i18next";
-
-const padDecimal = (n, length) => {
-  let padR = n.toString();
-  for (let i = padR.length; i < length; i++) {
-    padR += "0";
-  }
-  console.log(`padR`, padR);
-  return padR;
-};
-
-const formateDecimal = (
-  amount,
-  { maxLength = 18, decimalLength = 2, pad = false }
-) => {
-  console.log(
-    `amount[${amount.toString().length}]`,
-    amount,
-    `[>${amount.toString().length > maxLength}]maxLength`,
-    maxLength,
-    `decimalLength`,
-    decimalLength,
-    `pad`,
-    pad
-  );
-  if (isNaN(amount) || (!SafeMath.eq(amount, "0") && !amount)) return "--";
-  if (SafeMath.eq(amount, "0"))
-    return pad ? `0.${padDecimal("", decimalLength)}` : "0.00";
-  const splitChunck = amount.toString().split(".");
-  if (!maxLength) maxLength = 18;
-  if (splitChunck.length > 1) {
-    console.log(`padR`, splitChunck);
-    console.log(
-      `splitChunck[1]${splitChunck[1].toString().length}`,
-      splitChunck[1]
-    );
-    if (amount.toString().length > maxLength)
-      splitChunck[1] = splitChunck[1].substring(
-        0,
-        maxLength - splitChunck[0].length
-      );
-    else if (splitChunck[1].toString().length > decimalLength)
-      splitChunck[1] = splitChunck[1].substring(0, decimalLength);
-    else if (pad) splitChunck[1] = padDecimal(splitChunck[1], decimalLength);
-    console.log(`splitChunck2`, splitChunck);
-    return splitChunck[1].length > 0
-      ? `${splitChunck[0]}.${splitChunck[1]}`
-      : splitChunck[0];
-  }
-  return parseFloat(amount.toString()).toFixed(decimalLength);
-};
 
 const BookTile = (props) => {
   if (props.index === 0) {
@@ -70,13 +20,19 @@ const BookTile = (props) => {
         <>
           <div>
             {formateDecimal(props.book.price, {
-              decimalLength: props?.tickSz || "0",
+              decimalLength:
+                props?.tickSz?.split(".").length > 1
+                  ? props?.tickSz?.split(".")[1].length
+                  : "0",
               pad: true,
             })}
           </div>
           <div>
             {formateDecimal(props.book.amount, {
-              decimalLength: props?.lotSz || "0",
+              decimalLength:
+                props?.lotSz?.split(".").length > 1
+                  ? props?.lotSz?.split(".")[1].length
+                  : "0",
               pad: true,
             })}
           </div>
@@ -84,7 +40,12 @@ const BookTile = (props) => {
             {formateDecimal(
               SafeMath.mult(props.book.price, props.book.amount),
               {
-                decimalLength: SafeMath.mult(props?.tickSz, props?.lotSz),
+                decimalLength:
+                  SafeMath.mult(props?.tickSz, props?.lotSz).split(".").length >
+                  1
+                    ? SafeMath.mult(props?.tickSz, props?.lotSz).split(".")[1]
+                        .length
+                    : "0",
                 pad: true,
               }
             )}
@@ -100,20 +61,31 @@ const BookTile = (props) => {
             {formateDecimal(
               SafeMath.mult(props.book.price, props.book.amount),
               {
-                decimalLength: SafeMath.mult(props?.tickSz, props?.lotSz),
+                decimalLength:
+                  SafeMath.mult(props?.tickSz, props?.lotSz).split(".").length >
+                  1
+                    ? SafeMath.mult(props?.tickSz, props?.lotSz).split(".")[1]
+                        .length
+                    : "0",
                 pad: true,
               }
             )}
           </div>
           <div>
             {formateDecimal(props.book.amount, {
-              decimalLength: props?.lotSz || "0",
+              decimalLength:
+                props?.lotSz?.split(".").length > 1
+                  ? props?.lotSz?.split(".")[1].length
+                  : "0",
               pad: true,
             })}
           </div>
           <div>
             {formateDecimal(props.book.price, {
-              decimalLength: props?.tickSz || "0",
+              decimalLength:
+                props?.tickSz?.split(".").length > 1
+                  ? props?.tickSz?.split(".")[1].length
+                  : "0",
               pad: true,
             })}
           </div>
@@ -142,9 +114,8 @@ const DepthBook = (props) => {
         <ul className="order-book__panel">
           {storeCtx?.selectedTicker &&
             storeCtx.books?.bids &&
-            storeCtx.books.bids.map((book, index) => (
+            storeCtx.books.bids.map((book) => (
               <BookTile
-                index={index}
                 tickSz={storeCtx.selectedTicker?.tickSz}
                 lotSz={storeCtx.selectedTicker?.lotSz}
                 onClick={() => {
@@ -172,9 +143,10 @@ const DepthBook = (props) => {
         <ul className="order-book__panel">
           {storeCtx?.selectedTicker &&
             storeCtx.books?.asks &&
-            storeCtx.books.asks.map((book, index) => (
+            storeCtx.books.asks.map((book) => (
               <BookTile
-                index={index}
+                tickSz={storeCtx.selectedTicker?.tickSz}
+                lotSz={storeCtx.selectedTicker?.lotSz}
                 type="asks"
                 onClick={() => {
                   storeCtx.depthBookHandler(book.price, book.amount);
