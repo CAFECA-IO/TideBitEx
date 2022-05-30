@@ -1075,7 +1075,10 @@ class OkexConnector extends ConnectorBase {
         const values = Object.values(arg);
         if (data.event === "subscribe") {
           this.okexWsChannels[channel] = this.okexWsChannels[channel] || {};
-          this.logger.log(`_okexWsEventListener this.okexWsChannels[${channel}]`, this.okexWsChannels[channel])
+          this.logger.log(
+            `_okexWsEventListener this.okexWsChannels[${channel}]`,
+            this.okexWsChannels[channel]
+          );
           this.okexWsChannels[channel][values[0]] =
             this.okexWsChannels[channel][values[0]] || {};
         } else if (data.event === "unsubscribe") {
@@ -1286,8 +1289,13 @@ class OkexConnector extends ConnectorBase {
 
   _updateCandle(instId, channel, candleData) {
     this.candleChannel = channel;
+    this.logger.debug(
+      `[${this.constructor.name}]_updateCandle  this.okexWsChannels[${channel}]`,
+      this.okexWsChannels,
+      instId,
+      candleData
+    );
     this.okexWsChannels[channel][instId] = candleData;
-    this.logger.debug(`[${this.constructor.name}]_updateCandle  this.okexWsChannels[${channel}]`, instId, candleData);
     const formatCandle = candleData
       .map((data) => ({
         time: parseInt(data[0]),
