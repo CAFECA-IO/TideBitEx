@@ -220,8 +220,8 @@ class TibeBitConnector extends ConnectorBase {
       source: SupportedExchange.TIDEBIT,
       ticker: {
         // [about to decrepted]
-        buy: data.bidPx,
-        sell: data.askPx,
+        buy: data.buy,
+        sell: data.sell,
         low: data.low,
         high: data.high,
         last: data.last,
@@ -252,12 +252,12 @@ class TibeBitConnector extends ConnectorBase {
     at: 1649742406
   },}
     */
+  this.logger.log(
+    `[${this.constructor.name}]_updateTickers data`,
+    data
+  );
     Object.values(data).forEach((d) => {
       const ticker = this._formateTicker(d);
-      this.logger.log(
-        `[${this.constructor.name}]_updateTickers ticker`,
-        ticker
-      );
       const result = this.tickerBook.updateByDifference(ticker.instId, ticker);
       // ++ BUG ethhkd & btchkd OPEN will turn 0
       if (result)
