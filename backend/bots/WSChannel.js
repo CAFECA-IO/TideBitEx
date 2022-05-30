@@ -90,10 +90,6 @@ class WSChannel extends Bot {
             }
             switch (op) {
               case "userStatusUpdate":
-                this.logger.log(
-                  `[${this.constructor.name} _onOpStatusUpdate]`,
-                  args
-                );
                 this._onOpStatusUpdate(req.headers, ws, args);
                 break;
               case "switchMarket":
@@ -145,8 +141,12 @@ class WSChannel extends Bot {
                 );
               }
             }
-            // this.logger.debug(`findClient${findClient.isPrivate}`, findClient);
             if (findClient.isPrivate) {
+              this.logger.debug(
+                `findClient isPrivate${findClient.isPrivate}`,
+                findClient
+              );
+              this.logger.debug(`this._privateClient`, this._privateClient);
               EventBus.emit(Events.userOnUnsubscribe, ws.id);
               findClient.isPrivate = false;
               Object.values(this._privateClient).forEach((member) => {
@@ -179,25 +179,19 @@ class WSChannel extends Bot {
       }
       this._channelClients[args.market][ws.id] = ws;
     }
-    // this.logger.log(
-    //   `[${this.constructor.name} _onOpStatusUpdate] findClient`,
-    //   findClient
-    // );
     this.logger.log(
       `[${this.constructor.name} _onOpStatusUpdate] memberId,`,
       memberId,
-      args
+      `args`,
+      args,
+      `ws.id`,
+      ws.id
     );
     if (memberId !== -1 && args.token) {
       findClient.isPrivate = true;
       findClient.memberId = memberId;
-      this.logger.log(
-        `[${this.constructor.name} _onOpStatusUpdate] this._privateClient,`,
-        this._privateClient
-      );
-      if (!this._privateClient[memberId]) {
-        this._privateClient[memberId] = {};
-        /**
+      if (!this._privateClient[memberId]) this._privateClient[memberId] = {};
+      /**
          * findClient = {
             ws,
             channel: "",
@@ -206,19 +200,23 @@ class WSChannel extends Bot {
             memberId: ""
           }
          */
-        this._privateClient[memberId][ws.id] = findClient;
-        EventBus.emit(Events.userOnSubscribe, {
-          headers: {
-            cookie: header.cookie,
-            "content-type": "application/json",
-            "x-csrf-token": args.token,
-          },
-          memberId,
-          wsId: ws.id,
-        });
-      } else {
-        this._privateClient[memberId][ws.id] = findClient;
-      }
+      this._privateClient[memberId][ws.id] = findClient;
+      EventBus.emit(Events.userOnSubscribe, {
+        headers: {
+          cookie: header.cookie,
+          "content-type": "application/json",
+          "x-csrf-token": args.token,
+        },
+        memberId,
+        wsId: ws.id,
+      });
+      // } else {
+      //   this._privateClient[memberId][ws.id] = findClient;
+      // }
+      this.logger.log(
+        `[${this.constructor.name} _onOpStatusUpdate] this._privateClient,`,
+        this._privateClient
+      );
     } else {
       findClient.isPrivate = false;
       EventBus.emit(Events.userOnUnsubscribe, {
@@ -255,6 +253,13 @@ class WSChannel extends Bot {
         EventBus.emit(Events.tickerOnSibscribe, args.market, ws.id);
       }
       this._channelClients[args.market][ws.id] = ws;
+    }
+    if (findClient.isPrivate) {
+      this._privateClient[findClient.memberId][ws.id] = findClient;
+      this.logger.log(
+        `[${this.constructor.name} _onOpStatusUpdate] this._privateClient,`,
+        this._privateClient
+      );
     }
   }
 

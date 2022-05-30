@@ -165,9 +165,6 @@ const TradePannel = (props) => {
   const { width } = useViewport();
   const breakpoint = 414;
   const storeCtx = useContext(StoreContext);
-  const [selectedTicker, setSelectedTicker] = useState(null);
-  const [quoteCcyAvailable, setQuoteCcyAvailable] = useState("0");
-  const [baseCcyAvailable, setBaseCcyAvailable] = useState("0");
   const [limitBuyPx, setLimitBuyPx] = useState(null);
   const [limitSellPx, setLimitSellPx] = useState(null);
   const [marketBuySz, setMarketBuySz] = useState(null);
@@ -181,7 +178,6 @@ const TradePannel = (props) => {
   const [selectedMarketSellPct, setSelectedMarketSellPct] = useState(null);
   const [buyErrorMessage, setBuyErrorMessage] = useState(null);
   const [sellErrorMessage, setSellErrorMessage] = useState(null);
-  const [refresh, setRefresh] = useState(false);
   const { t } = useTranslation();
 
   const limitBuyPxHandler = (value) => {
@@ -199,7 +195,7 @@ const TradePannel = (props) => {
     (orderType, value) => {
       let _value = SafeMath.lt(value, "0")
         ? "0"
-        : SafeMath.gt(quoteCcyAvailable, "0") &&
+        : SafeMath.gt(props.quoteCcyAvailable, "0") &&
           SafeMath.gte(
             SafeMath.mult(
               value,
@@ -207,11 +203,11 @@ const TradePannel = (props) => {
                 ? storeCtx.selectedTicker?.last
                 : limitBuyPx
             ),
-            quoteCcyAvailable
+            props.quoteCcyAvailable
           )
         ? formateDecimal(
             SafeMath.div(
-              quoteCcyAvailable,
+              props.quoteCcyAvailable,
               orderType === "market"
                 ? storeCtx.selectedTicker?.last
                 : limitBuyPx
@@ -223,10 +219,12 @@ const TradePannel = (props) => {
       else setLimitBuySz(_value);
       if (SafeMath.gt(value, "0")) {
         if (
-          !!selectedTicker?.minSz &&
-          SafeMath.lt(value, selectedTicker?.minSz)
+          !!storeCtx.selectedTicker?.minSz &&
+          SafeMath.lt(value, storeCtx.selectedTicker?.minSz)
         )
-          setBuyErrorMessage(`Minimum order size is ${selectedTicker?.minSz}`);
+          setBuyErrorMessage(
+            `Minimum order size is ${storeCtx.selectedTicker?.minSz}`
+          );
         if (
           SafeMath.gt(
             SafeMath.mult(
@@ -235,11 +233,11 @@ const TradePannel = (props) => {
                 ? storeCtx.selectedTicker?.last
                 : limitBuyPx
             ),
-            quoteCcyAvailable
+            props.quoteCcyAvailable
           )
         ) {
           setBuyErrorMessage(
-            `Available ${selectedTicker?.quote_unit?.toUpperCase()} is not enough`
+            `Available ${storeCtx.selectedTicker?.quote_unit?.toUpperCase()} is not enough`
           );
         } else setBuyErrorMessage(null);
       } else {
@@ -248,9 +246,9 @@ const TradePannel = (props) => {
     },
     [
       limitBuyPx,
-      quoteCcyAvailable,
-      selectedTicker?.minSz,
-      selectedTicker?.quote_unit,
+      props.quoteCcyAvailable,
+      storeCtx.selectedTicker?.minSz,
+      storeCtx.selectedTicker?.quote_unit,
       storeCtx.selectedTicker?.last,
     ]
   );
@@ -258,37 +256,43 @@ const TradePannel = (props) => {
     (orderType, value) => {
       let _value = SafeMath.lt(value, "0")
         ? "0"
-        : SafeMath.gt(baseCcyAvailable, "0") &&
-          SafeMath.gte(value, baseCcyAvailable)
-        ? baseCcyAvailable
+        : SafeMath.gt(props.baseCcyAvailable, "0") &&
+          SafeMath.gte(value, props.baseCcyAvailable)
+        ? props.baseCcyAvailable
         : value;
       if (orderType === "market") setMarketSellSz(_value);
       else setLimitSellSz(_value);
 
       if (SafeMath.gt(value, "0")) {
         if (
-          !!selectedTicker?.minSz &&
-          SafeMath.lt(value, selectedTicker?.minSz)
+          !!storeCtx.selectedTicker?.minSz &&
+          SafeMath.lt(value, storeCtx.selectedTicker?.minSz)
         )
-          setSellErrorMessage(`Minimum order size is ${selectedTicker?.minSz}`);
-        if (SafeMath.gt(value, baseCcyAvailable)) {
           setSellErrorMessage(
-            `Available ${selectedTicker?.base_unit?.toUpperCase()} is not enough`
+            `Minimum order size is ${storeCtx.selectedTicker?.minSz}`
+          );
+        if (SafeMath.gt(value, props.baseCcyAvailable)) {
+          setSellErrorMessage(
+            `Available ${storeCtx.selectedTicker?.base_unit?.toUpperCase()} is not enough`
           );
         } else setSellErrorMessage(null);
       } else {
         setSellErrorMessage(null);
       }
     },
-    [baseCcyAvailable, selectedTicker?.base_unit, selectedTicker?.minSz]
+    [
+      props.baseCcyAvailable,
+      storeCtx.selectedTicker?.base_unit,
+      storeCtx.selectedTicker?.minSz,
+    ]
   );
 
   const buyPctHandler = useCallback(
     (orderType, pct, buyPx, availBal) => {
       let size = "0";
-      if (SafeMath.gt(quoteCcyAvailable, 0))
+      if (SafeMath.gt(props.quoteCcyAvailable, 0))
         size = formateDecimal(
-          SafeMath.div(SafeMath.mult(pct, quoteCcyAvailable), buyPx),
+          SafeMath.div(SafeMath.mult(pct, props.quoteCcyAvailable), buyPx),
           8
         );
       else if (SafeMath.gt(availBal, 0))
@@ -304,14 +308,14 @@ const TradePannel = (props) => {
         setSelectedLimitBuyPct(pct);
       }
     },
-    [quoteCcyAvailable]
+    [props.quoteCcyAvailable]
   );
 
   const sellPctHandler = useCallback(
     (orderType, pct, availBal) => {
       let size = "0";
-      if (SafeMath.gt(baseCcyAvailable, 0))
-        size = formateDecimal(SafeMath.mult(pct, baseCcyAvailable), 8);
+      if (SafeMath.gt(props.baseCcyAvailable, 0))
+        size = formateDecimal(SafeMath.mult(pct, props.baseCcyAvailable), 8);
       else if (SafeMath.gt(availBal, 0))
         size = formateDecimal(SafeMath.mult(pct, availBal), 8);
       if (orderType === "market") {
@@ -322,7 +326,7 @@ const TradePannel = (props) => {
         setSelectedLimitSellPct(pct);
       }
     },
-    [baseCcyAvailable]
+    [props.baseCcyAvailable]
   );
 
   const onSubmit = async (event, kind) => {
@@ -361,15 +365,17 @@ const TradePannel = (props) => {
     const confirm = window.confirm(`You are going to
           ${order.kind} ${order.volume} ${order.instId.split("-")[0]}
           ${order.kind === "bid" ? "with" : "for"} ${SafeMath.mult(
-      props.orderType === "market" ? selectedTicker.last : order.price,
+      props.orderType === "market" ? storeCtx.selectedTicker.last : order.price,
       order.volume
     )} ${order.instId.split("-")[1]}
           with price ${
-            props.orderType === "market" ? selectedTicker.last : order.price
+            props.orderType === "market"
+              ? storeCtx.selectedTicker.last
+              : order.price
           } ${order.instId.split("-")[1]} per ${order.instId.split("-")[0]}`);
     if (confirm) {
       await storeCtx.postOrder(order);
-      setRefresh(true);
+      props.setRefresh(true);
     }
     if (kind === "bid") {
       if (props.orderType === "market") {
@@ -410,45 +416,6 @@ const TradePannel = (props) => {
     }
   }, [buySzHandler, sellSzHandler, storeCtx]);
 
-  useEffect(() => {
-    if (
-      (storeCtx.accounts?.length > 0 &&
-        ((storeCtx.selectedTicker && !selectedTicker) ||
-          (storeCtx.selectedTicker &&
-            storeCtx.selectedTicker.instId !== selectedTicker?.instId))) ||
-      refresh
-    ) {
-      let quoteCcyAccount = storeCtx.accounts?.find((account) => {
-        return (
-          account.currency === storeCtx.selectedTicker?.quote_unit?.toUpperCase()
-        );
-      });
-
-      if (quoteCcyAccount) {
-        setQuoteCcyAvailable(quoteCcyAccount?.balance);
-      }
-      let baseCcyAccount = storeCtx.accounts?.find(
-        (account) =>
-          account.currency === storeCtx.selectedTicker?.base_unit?.toUpperCase()
-      );
-      if (baseCcyAccount) {
-        setBaseCcyAvailable(baseCcyAccount?.balance);
-      }
-      setSelectedTicker(storeCtx.selectedTicker);
-      // limitBuyPxHandler(storeCtx.selectedTicker.last);
-      // limitSellPxHandler(storeCtx.selectedTicker.last);
-    }
-  }, [
-    storeCtx.selectedTicker,
-    storeCtx.accounts,
-    selectedTicker,
-    selectedMarketBuyPct,
-    selectedLimitBuyPct,
-    selectedMarketSellPct,
-    selectedLimitSellPct,
-    refresh,
-  ]);
-
   return (
     <div className="market-trade__panel">
       {width <= breakpoint ? (
@@ -461,8 +428,8 @@ const TradePannel = (props) => {
                   : limitBuyPx
               }
               volume={props.orderType === "market" ? marketBuySz : limitBuySz}
-              quoteCcyAvailable={quoteCcyAvailable}
-              baseCcyAvailable={baseCcyAvailable}
+              quoteCcyAvailable={props.quoteCcyAvailable}
+              baseCcyAvailable={props.baseCcyAvailable}
               selectedPct={
                 props.orderType === "market"
                   ? selectedMarketBuyPct
@@ -487,8 +454,8 @@ const TradePannel = (props) => {
                   : limitSellPx
               }
               volume={props.orderType === "market" ? marketSellSz : limitSellSz}
-              quoteCcyAvailable={quoteCcyAvailable}
-              baseCcyAvailable={baseCcyAvailable}
+              quoteCcyAvailable={props.quoteCcyAvailable}
+              baseCcyAvailable={props.baseCcyAvailable}
               selectedPct={
                 props.orderType === "market"
                   ? selectedMarketSellPct
@@ -515,8 +482,8 @@ const TradePannel = (props) => {
                 : limitBuyPx
             }
             volume={props.orderType === "market" ? marketBuySz : limitBuySz}
-            quoteCcyAvailable={quoteCcyAvailable}
-            baseCcyAvailable={baseCcyAvailable}
+            quoteCcyAvailable={props.quoteCcyAvailable}
+            baseCcyAvailable={props.baseCcyAvailable}
             selectedPct={
               props.orderType === "market"
                 ? selectedMarketBuyPct
@@ -539,8 +506,8 @@ const TradePannel = (props) => {
                 : limitSellPx
             }
             volume={props.orderType === "market" ? marketSellSz : limitSellSz}
-            quoteCcyAvailable={quoteCcyAvailable}
-            baseCcyAvailable={baseCcyAvailable}
+            quoteCcyAvailable={props.quoteCcyAvailable}
+            baseCcyAvailable={props.baseCcyAvailable}
             selectedPct={
               props.orderType === "market"
                 ? selectedMarketSellPct
@@ -563,16 +530,60 @@ const TradePannel = (props) => {
 const MarketTrade = (props) => {
   const storeCtx = useContext(StoreContext);
   const { t } = useTranslation();
+  const [selectedTicker, setSelectedTicker] = useState(null);
+  const [quoteCcyAvailable, setQuoteCcyAvailable] = useState("0");
+  const [baseCcyAvailable, setBaseCcyAvailable] = useState("0");
+  const [refresh, setRefresh] = useState(false);
+
+  useEffect(() => {
+    if (
+      (storeCtx.accounts?.length > 0 &&
+        ((storeCtx.selectedTicker && !selectedTicker) ||
+          (storeCtx.selectedTicker &&
+            storeCtx.selectedTicker.instId !== selectedTicker?.instId))) ||
+      refresh
+    ) {
+      let quoteCcyAccount = storeCtx.accounts?.find((account) => {
+        return (
+          account.currency ===
+          storeCtx.selectedTicker?.quote_unit?.toUpperCase()
+        );
+      });
+
+      if (quoteCcyAccount) {
+        setQuoteCcyAvailable(quoteCcyAccount?.balance);
+      }
+      let baseCcyAccount = storeCtx.accounts?.find(
+        (account) =>
+          account.currency === storeCtx.selectedTicker?.base_unit?.toUpperCase()
+      );
+      if (baseCcyAccount) {
+        setBaseCcyAvailable(baseCcyAccount?.balance);
+      }
+      setSelectedTicker(storeCtx.selectedTicker);
+    }
+  }, [storeCtx.selectedTicker, storeCtx.accounts, selectedTicker, refresh]);
   return (
     <div className="market-trade">
       <div className="market-trade__container">
         <div className="market-trade__header">{t("place_order")}</div>
         <Tabs defaultActiveKey="limit">
           <Tab eventKey="limit" title={t("limit")}>
-            <TradePannel orderType="limit" />
+            <TradePannel
+              orderType="limit"
+              quoteCcyAvailable={quoteCcyAvailable}
+              baseCcyAvailable={baseCcyAvailable}
+              setRefresh={setRefresh}
+            />
           </Tab>
           <Tab eventKey="market" title={t("market")}>
-            <TradePannel orderType="market" readyOnly={true} />
+            <TradePannel
+              orderType="market"
+              readyOnly={true}
+              quoteCcyAvailable={quoteCcyAvailable}
+              baseCcyAvailable={baseCcyAvailable}
+              setRefresh={setRefresh}
+            />
           </Tab>
           {/* <Tab eventKey="stop-limit" title="Stop Limit">
             <TradePannel orderType="stop-limit" />

@@ -23,7 +23,7 @@ class mysql {
           pool: {
             max: 20,
             min: 0,
-            acquire: 30000,
+            acquire: 60000,
             idle: 10000,
           },
         }
@@ -169,7 +169,7 @@ class mysql {
   }
   async getOrderList({ quoteCcy, baseCcy, memberId, orderType = "limit" }) {
     const query =
-      "SELECT * FROM `orders` WHERE `orders`.`member_id` = ? AND `orders`.`currency` = ? AND `orders`.`ask` = ? AND `orders`.`ord_type` = ?;";
+      "SELECT * FROM `orders` WHERE `orders`.`member_id` = ? AND `orders`.`bid` = ? AND `orders`.`ask` = ? AND `orders`.`ord_type` = ?;";
     try {
       this.logger.log(
         "getOrderList",
