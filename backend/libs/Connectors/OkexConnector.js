@@ -1370,7 +1370,7 @@ class OkexConnector extends ConnectorBase {
         this.logger.log(
           `[${this.constructor.name}]_updateTickers d.last`,
           d.last,
-          new Date(parseInt(d.ts))
+          new Date.toISOString(parseInt(d.ts))
         );
       if (this._findSource(d.instId) === SupportedExchange.OKEX) {
         const ticker = this._formateTicker(d);
