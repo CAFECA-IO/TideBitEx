@@ -165,7 +165,7 @@ class Middleman {
       instruments = await this.communicator.instruments(instType);
     } catch (error) {
       console.error(`get instruments error`, error);
-      // throw error;
+      throw error;
     }
     try {
       rawTickers = await this.communicator.tickers(instType, from, limit);
@@ -173,11 +173,11 @@ class Middleman {
         let instrument = instruments.find((i) => i.instId === t.instId);
         const ticker = {
           ...t,
-          tickSz: instrument.tickSz || "0.01", //下单价格精度，如 0.0001
-          lotSz: instrument.lotSz || "0.01", //下单数量精度，如 BTC-USDT-SWAP：1
-          minSz: instrument.minSz || "0.01", //最小下单数量
-          maxLmtSz: instrument.maxLmtSz || "10000", //合约或现货限价单的单笔最大委托数量
-          maxMktSz: instrument.maxMktSz || "99999", //合约或现货市价单的单笔最大委托数量
+          tickSz: instrument?.tickSz || "0.01", //下单价格精度，如 0.0001
+          lotSz: instrument?.lotSz || "0.01", //下单数量精度，如 BTC-USDT-SWAP：1
+          minSz: instrument?.minSz || "0.01", //最小下单数量
+          maxLmtSz: instrument?.maxLmtSz || "10000", //合约或现货限价单的单笔最大委托数量
+          maxMktSz: instrument?.maxMktSz || "99999", //合约或现货市价单的单笔最大委托数量
         };
         tickers[ticker.instId] = ticker;
       });
@@ -305,11 +305,11 @@ class Middleman {
           );
           break;
         case Events.tickers:
-          if (metaData.data["BTC-USDT"])
-            console.log(
-              `middleman metaData.data["BTC-USDT"].last`,
-              metaData.data["BTC-USDT"]?.last
-            );
+          // if (metaData.data["BTC-USDT"])
+          //   console.log(
+          //     `middleman metaData.data["BTC-USDT"].last`,
+          //     metaData.data["BTC-USDT"]?.last
+          //   );
           this.tickerBook.updateByDifference(metaData.data);
           break;
         case Events.trades:
