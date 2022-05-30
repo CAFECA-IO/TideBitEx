@@ -254,8 +254,8 @@ class TibeBitConnector extends ConnectorBase {
     */
     // this.logger.log(`[${this.constructor.name}]_updateTickers data`, data);
     Object.values(data).forEach((d) => {
-      // if (SafeMath.gt(d.volume, "0")) {
-        const ticker = this._formateTicker(d);
+      const ticker = this._formateTicker(d);
+      if (this._findSource(ticker.instId)===SupportedExchange.TIDEBIT) {
         const result = this.tickerBook.updateByDifference(
           ticker.instId,
           ticker
@@ -263,7 +263,7 @@ class TibeBitConnector extends ConnectorBase {
         // ++ BUG ethhkd & btchkd OPEN will turn 0
         if (result)
           EventBus.emit(Events.tickers, this.tickerBook.getDifference());
-      // }
+      }
     });
   }
 

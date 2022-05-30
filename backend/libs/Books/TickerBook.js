@@ -41,7 +41,7 @@ class TickerBook extends BookBase {
       !valueA ||
       (valueA?.instId === valueB.instId &&
         (!SafeMath.eq(valueA?.last, valueB.last) ||
-          // !SafeMath.eq(valueA?.open, valueB.open) ||
+          !SafeMath.eq(valueA?.open, valueB.open) ||
           !SafeMath.eq(valueA?.high, valueB.high) ||
           !SafeMath.eq(valueA?.low, valueB.low) ||
           !SafeMath.eq(valueA?.volume, valueB.volume)))
@@ -60,11 +60,11 @@ class TickerBook extends BookBase {
         this._snapshot[instId] = ticker;
         return true;
       } else {
-      //   this.logger.log(
-      //     `[${this.constructor.name}]  this._snapshot[instId]`,
-      //     this._snapshot[instId]
-      //   );
-      //   this.logger.log(`[${this.constructor.name}]  ticker`, ticker);
+        //   this.logger.log(
+        //     `[${this.constructor.name}]  this._snapshot[instId]`,
+        //     this._snapshot[instId]
+        //   );
+        //   this.logger.log(`[${this.constructor.name}]  ticker`, ticker);
         return false;
       }
     } catch (error) {

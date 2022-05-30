@@ -8,19 +8,10 @@ class TickerBook extends BookBase {
     this._config = { remove: false, add: false, update: true };
     this._difference = {};
     this._snapshot = {};
+    this._prevSnapshot = {};
     this._currentMarket = null;
     this._currentTicker = null;
     return this;
-  }
-
-  getSnapshot() {
-    return Object.values(this._snapshot).map((ticker) =>
-      Object.values(this._difference).some(
-        (diff) => diff.instId === ticker.instId
-      )
-        ? { ...ticker, update: true }
-        : ticker
-    );
   }
 
   /**
@@ -49,13 +40,24 @@ class TickerBook extends BookBase {
   _compareFunction(valueA, valueB) {
     return (
       valueA?.instId === valueB.instId &&
-      valueA?.source === valueB.source &&
       (!SafeMath.eq(valueA?.last, valueB.last) ||
         !SafeMath.eq(valueA?.open, valueB.open) ||
         !SafeMath.eq(valueA?.high, valueB.high) ||
         !SafeMath.eq(valueA?.low, valueB.low) ||
         !SafeMath.eq(valueA?.volume, valueB.volume))
     );
+  }
+
+  getSnapshot() {
+    const tickers = Object.values(this._snapshot).map((ticker) =>
+      Object.values(this._difference).some(
+        (diff) => diff.instId === ticker.instId
+      )
+        ? { ...ticker, update: true }
+        : ticker
+    );
+    this._difference = {};
+    return tickers;
   }
 
   getCurrentTicker() {
@@ -74,7 +76,6 @@ class TickerBook extends BookBase {
   updateByDifference(tickers) {
     Object.values(tickers).forEach((ticker) => {
       // console.log(`[TickerBook updateByDifference]`, ticker);
-      this._difference = {};
       if (this._compareFunction(this._snapshot[ticker.market], ticker)) {
         try {
           this._difference[ticker.market] = ticker;
