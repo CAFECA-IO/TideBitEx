@@ -55,7 +55,7 @@ class TickerBook extends BookBase {
       this._compareFunction(this._snapshot[instId], ticker)
     );
     try {
-      if (this._compareFunction(this._snapshot[instId], ticker)) {
+      // if (this._compareFunction(this._snapshot[instId], ticker)) {
         this.logger.log(
           `[${this.constructor.name}]  this._snapshot[instId]`,
           this._snapshot[instId]
@@ -64,7 +64,7 @@ class TickerBook extends BookBase {
         this._difference[instId] = ticker;
         this._snapshot[instId] = ticker;
         return true;
-      } else return false;
+      // } else return false;
     } catch (error) {
       this.logger.error(`[${this.constructor.name}] error`, error);
       return false;
