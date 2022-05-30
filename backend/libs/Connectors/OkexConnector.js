@@ -1067,19 +1067,15 @@ class OkexConnector extends ConnectorBase {
   _okexWsEventListener() {
     this.websocket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      // this.logger.log('_okexWsEventListener', data);
       if (data.event) {
         // subscribe return
         const arg = { ...data.arg };
         const channel = arg.channel;
         delete arg.channel;
-        // this.logger.log(
-        //   `!!! _okexWsEventListener this.okexWsChannels[${channel}]`,
-        //   this.okexWsChannels[channel]
-        // );
         const values = Object.values(arg);
         if (data.event === "subscribe") {
           this.okexWsChannels[channel] = this.okexWsChannels[channel] || {};
+          this.logger.log(`_okexWsEventListener this.okexWsChannels[${channel}]`, this.okexWsChannels[channel])
           this.okexWsChannels[channel][values[0]] =
             this.okexWsChannels[channel][values[0]] || {};
         } else if (data.event === "unsubscribe") {
@@ -1549,10 +1545,6 @@ class OkexConnector extends ConnectorBase {
       );
       this.logger.log(`_subscribeMarket instId`, instId);
       this.logger.log(`_subscribeMarket market`, market);
-
-      // this._booksTimestamp = 0;
-      // this._tradesTimestamp = 0;
-
       this._subscribeTrades(instId);
       this._subscribeBook(instId);
       this._subscribeCandle1m(instId);
