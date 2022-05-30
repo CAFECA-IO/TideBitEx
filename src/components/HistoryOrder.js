@@ -75,9 +75,9 @@ const AccountTile = (props) => {
       <li>{props.account.currency || "--"}</li>
       {/* <li>{props.account.eq || "--"}</li>
       <li>{props.account.cashBal || "--"}</li>*/}
-      <li>{formateDecimal(props.account.total)}</li>
-      <li>{formateDecimal(props.account.balance)}</li>
-      <li>{formateDecimal(props.account.locked)}</li>
+      <li>{formateDecimal(props.account.total, {})}</li>
+      <li>{formateDecimal(props.account.balance, {})}</li>
+      <li>{formateDecimal(props.account.locked, {})}</li>
       {/* -- TODO: check api return object */}
       {/* <li>{props.account.interest || "--"}</li> */}
     </ul>

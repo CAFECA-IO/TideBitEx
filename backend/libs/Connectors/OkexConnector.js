@@ -1206,13 +1206,13 @@ class OkexConnector extends ConnectorBase {
         market,
         at: parseInt(SafeMath.div(data.ts, "1000")),
         ts: data.ts,
-      }
+      };
       // this.logger.debug(
       //   `[${this.constructor.name}]_updateTrades`,
       //   market,
       //   new Date(trade.ts)
       // );
-      return trade
+      return trade;
     });
   }
 
@@ -1369,8 +1369,8 @@ class OkexConnector extends ConnectorBase {
       if (d.instId === "BTC-USDT")
         this.logger.log(
           `[${this.constructor.name}]_updateTickers d.last`,
-          d.last,d.ts,
-          new Date(d.ts)
+          d.last,
+          new Date(parseInt(d.ts))
         );
       if (this._findSource(d.instId) === SupportedExchange.OKEX) {
         const ticker = this._formateTicker(d);
