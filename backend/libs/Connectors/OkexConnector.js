@@ -1110,11 +1110,9 @@ class OkexConnector extends ConnectorBase {
             }
             break;
           case this.candleChannel:
-            // this.logger.log(`this.candleChannel`, this.candleChannel, data);
             this._updateCandle(data.arg.instId, data.arg.channel, data.data);
             break;
           case "tickers":
-            this.logger.log(`tickers`, data);
             this._updateTickers(data.data);
             break;
           default:
@@ -1367,10 +1365,10 @@ class OkexConnector extends ConnectorBase {
     data.forEach((d) => {
       if (this._findSource(d.instId) === SupportedExchange.OKEX) {
         const ticker = this._formateTicker(d);
-        this.logger.log(
-          `[${this.constructor.name}]_updateTickers ticker`,
-          ticker
-        );
+        // this.logger.log(
+        //   `[${this.constructor.name}]_updateTickers ticker`,
+        //   ticker
+        // );
         const result = this.tickerBook.updateByDifference(d.instId, ticker);
         if (result)
           EventBus.emit(Events.tickers, this.tickerBook.getDifference());
