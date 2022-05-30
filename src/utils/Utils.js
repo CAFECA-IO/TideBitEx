@@ -226,6 +226,7 @@ export const formateNumber = (number, decimalLength = 2) => {
 export const numberWithCommas = (x) => {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
+
 export const padDecimal = (n, length) => {
   let padR = n.toString();
   for (let i = padR.length; i < length; i++) {
@@ -233,6 +234,7 @@ export const padDecimal = (n, length) => {
   }
   return padR;
 };
+
 export const formateDecimal = (
   amount,
   { maxLength = 18, decimalLength = 2, pad = false }
@@ -241,6 +243,7 @@ export const formateDecimal = (
   if (SafeMath.eq(amount, "0"))
     return pad ? `0.${padDecimal("", decimalLength)}` : "0.00";
   const splitChunck = amount.toString().split(".");
+  if (!maxLength) maxLength = 18;
   if (SafeMath.gte(splitChunck[0].length, maxLength))
     return formateNumber(amount, decimalLength);
   if (splitChunck.length > 1) {
@@ -251,14 +254,13 @@ export const formateDecimal = (
       );
     else if (splitChunck[1].toString().length > decimalLength)
       splitChunck[1] = splitChunck[1].substring(0, decimalLength);
-    else if (splitChunck[1].toString().length && pad)
-      splitChunck[1] = padDecimal(splitChunck[1], decimalLength);
+    else if (pad) splitChunck[1] = padDecimal(splitChunck[1], decimalLength);
 
     return splitChunck[1].length > 0
       ? `${splitChunck[0]}.${splitChunck[1]}`
       : splitChunck[0];
   }
-  return parseFloat(amount.toString()).toFixed(2);
+  return parseFloat(amount.toString()).toFixed(decimalLength);
 };
 
 export const randomID = (n) => {

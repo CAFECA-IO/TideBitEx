@@ -198,6 +198,7 @@ const TradePannel = (props) => {
         setBuyErrorMessage(
           `Minimum order price is ${storeCtx.selectedTicker?.tickSz}`
         );
+      else setBuyErrorMessage(null);
     },
     [storeCtx.selectedTicker?.tickSz]
   );
@@ -210,6 +211,7 @@ const TradePannel = (props) => {
         setSellErrorMessage(
           `Minimum order price is ${storeCtx.selectedTicker?.tickSz}`
         );
+      else setBuyErrorMessage(null);
     },
     [storeCtx.selectedTicker?.tickSz]
   );
@@ -248,7 +250,7 @@ const TradePannel = (props) => {
           setBuyErrorMessage(
             `Minimum order size is ${storeCtx.selectedTicker?.minSz}`
           );
-        if (
+        else if (
           SafeMath.gt(
             value,
             orderType === "market"
@@ -267,6 +269,7 @@ const TradePannel = (props) => {
                 : "99999"
             }`
           );
+        else setBuyErrorMessage(null);
         if (
           SafeMath.gt(
             SafeMath.mult(
@@ -315,7 +318,7 @@ const TradePannel = (props) => {
           setSellErrorMessage(
             `Minimum order size is ${storeCtx.selectedTicker?.minSz}`
           );
-        if (
+        else if (
           SafeMath.gt(
             value,
             orderType === "market"
@@ -334,6 +337,7 @@ const TradePannel = (props) => {
                 : "99999"
             }`
           );
+        else setBuyErrorMessage(null);
         if (SafeMath.gt(value, props.baseCcyAvailable)) {
           setSellErrorMessage(
             `Available ${storeCtx.selectedTicker?.base_unit?.toUpperCase()} is not enough`
@@ -372,8 +376,38 @@ const TradePannel = (props) => {
         setLimitBuySz(size);
         setSelectedLimitBuyPct(pct);
       }
+      if (SafeMath.lt(size, storeCtx.selectedTicker?.minSz))
+        setSellErrorMessage(
+          `Minimum order size is ${storeCtx.selectedTicker?.minSz}`
+        );
+      else if (
+        SafeMath.gt(
+          size,
+          orderType === "market"
+            ? storeCtx.selectedTicker?.maxMktSz
+            : orderType === "limit"
+            ? storeCtx.selectedTicker?.maxLmtSz
+            : "99999"
+        )
+      )
+        setSellErrorMessage(
+          `Maximum order size is ${
+            orderType === "market"
+              ? storeCtx.selectedTicker?.maxMktSz
+              : orderType === "limit"
+              ? storeCtx.selectedTicker?.maxLmtSz
+              : "99999"
+          }`
+        );
+      else setBuyErrorMessage(null);
     },
-    [props.quoteCcyAvailable, storeCtx.selectedTicker?.lotSz]
+    [
+      props.quoteCcyAvailable,
+      storeCtx.selectedTicker?.lotSz,
+      storeCtx.selectedTicker?.maxLmtSz,
+      storeCtx.selectedTicker?.maxMktSz,
+      storeCtx.selectedTicker?.minSz,
+    ]
   );
 
   const sellPctHandler = useCallback(
@@ -394,8 +428,38 @@ const TradePannel = (props) => {
         setLimitSellSz(size);
         setSelectedLimitSellPct(pct);
       }
+      if (SafeMath.lt(size, storeCtx.selectedTicker?.minSz))
+        setSellErrorMessage(
+          `Minimum order size is ${storeCtx.selectedTicker?.minSz}`
+        );
+      else if (
+        SafeMath.gt(
+          size,
+          orderType === "market"
+            ? storeCtx.selectedTicker?.maxMktSz
+            : orderType === "limit"
+            ? storeCtx.selectedTicker?.maxLmtSz
+            : "99999"
+        )
+      )
+        setSellErrorMessage(
+          `Maximum order size is ${
+            orderType === "market"
+              ? storeCtx.selectedTicker?.maxMktSz
+              : orderType === "limit"
+              ? storeCtx.selectedTicker?.maxLmtSz
+              : "99999"
+          }`
+        );
+      else setBuyErrorMessage(null);
     },
-    [props.baseCcyAvailable, storeCtx.selectedTicker?.lotSz]
+    [
+      props.baseCcyAvailable,
+      storeCtx.selectedTicker?.lotSz,
+      storeCtx.selectedTicker?.maxLmtSz,
+      storeCtx.selectedTicker?.maxMktSz,
+      storeCtx.selectedTicker?.minSz,
+    ]
   );
 
   const onSubmit = async (event, kind) => {
