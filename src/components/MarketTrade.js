@@ -201,9 +201,10 @@ const TradePannel = (props) => {
     let _value = +value < 0 ? "0" : value;
     let price,
       vArr = _value.split(".");
-    if (vArr.length > 1 && vArr[1].length > precision)
+    if (vArr.length > 1 && vArr[1].length > precision) {
       price = parseFloat(_value).toFixed(precision);
-    else price = _value;
+      setErrMsg(`Price precision is ${tickSz}`);
+    } else price = _value;
     setPrice(price);
     if (SafeMath.lt(price, tickSz))
       setErrMsg(`Minimum order price is ${tickSz}`);
@@ -257,13 +258,14 @@ const TradePannel = (props) => {
       else precision = 0;
       let size,
         vArr = _value.split(".");
-      if (vArr.length > 1 && vArr[1].length > precision)
+      if (vArr.length > 1 && vArr[1].length > precision) {
         size = parseFloat(_value).toFixed(precision);
-      else size = _value;
+        setErrMsg(`Amount precision is ${lotSz}`);
+      } else size = _value;
       setSize(size);
-      if (SafeMath.lt(size, minSz)) setErrMsg(`Minimum order size is ${minSz}`);
+      if (SafeMath.lt(size, minSz)) setErrMsg(`Minimum amount is ${minSz}`);
       else if (SafeMath.gt(size, maxSz))
-        setErrMsg(`Maximum order size is ${maxSz}`);
+        setErrMsg(`Maximum amount is ${maxSz}`);
       else if (SafeMath.gt(SafeMath.mult(price, size), available))
         setBuyErrorMessage(`Available ${currency} is not enough`);
       else setErrMsg(null);
@@ -330,13 +332,14 @@ const TradePannel = (props) => {
       else precision = 0;
       let size,
         vArr = _value.split(".");
-      if (vArr.length > 1 && vArr[1].length > precision)
+      if (vArr.length > 1 && vArr[1].length > precision) {
         size = parseFloat(_value).toFixed(precision);
-      else size = _value;
+        setErrMsg(`Amount precision is ${lotSz}`);
+      } else size = _value;
       setSize(size);
-      if (SafeMath.lt(size, minSz)) setErrMsg(`Minimum order size is ${minSz}`);
+      if (SafeMath.lt(size, minSz)) setErrMsg(`Minimum amount is ${minSz}`);
       else if (SafeMath.gt(size, maxSz))
-        setErrMsg(`Maximum order size is ${maxSz}`);
+        setErrMsg(`Maximum amount is ${maxSz}`);
       else if (SafeMath.gt(size, available))
         setErrMsg(`Available ${currency} is not enough`);
       else setErrMsg(null);
@@ -417,7 +420,7 @@ const TradePannel = (props) => {
       }
       if (SafeMath.lt(size, storeCtx.selectedTicker?.minSz))
         setSellErrorMessage(
-          `Minimum order size is ${storeCtx.selectedTicker?.minSz}`
+          `Minimum amount is ${storeCtx.selectedTicker?.minSz}`
         );
       else if (
         SafeMath.gt(
@@ -430,7 +433,7 @@ const TradePannel = (props) => {
         )
       )
         setSellErrorMessage(
-          `Maximum order size is ${
+          `Maximum amount is ${
             orderType === "market"
               ? storeCtx.selectedTicker?.maxMktSz
               : orderType === "limit"
@@ -475,7 +478,7 @@ const TradePannel = (props) => {
       }
       if (SafeMath.lt(size, storeCtx.selectedTicker?.minSz))
         setSellErrorMessage(
-          `Minimum order size is ${storeCtx.selectedTicker?.minSz}`
+          `Minimum amount is ${storeCtx.selectedTicker?.minSz}`
         );
       else if (
         SafeMath.gt(
@@ -488,7 +491,7 @@ const TradePannel = (props) => {
         )
       )
         setSellErrorMessage(
-          `Maximum order size is ${
+          `Maximum amount is ${
             orderType === "market"
               ? storeCtx.selectedTicker?.maxMktSz
               : orderType === "limit"
