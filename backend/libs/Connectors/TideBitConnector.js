@@ -120,9 +120,9 @@ class TibeBitConnector extends ConnectorBase {
   getDecimal(length) {
     let num = "0.";
     for (let i = 0; i < length - 1; i++) {
-      num += 0;
+      num += "0";
     }
-    num = +1;
+    num += "1";
     return num;
   }
 
