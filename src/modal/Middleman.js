@@ -173,11 +173,11 @@ class Middleman {
         let instrument = instruments.find((i) => i.instId === t.instId);
         const ticker = {
           ...t,
-          tickSz: instrument?.tickSz || "0.01", //下单价格精度，如 0.0001
-          lotSz: instrument?.lotSz || "0.01", //下单数量精度，如 BTC-USDT-SWAP：1
-          minSz: instrument?.minSz || "0.01", //最小下单数量
-          maxLmtSz: instrument?.maxLmtSz || "10000", //合约或现货限价单的单笔最大委托数量
-          maxMktSz: instrument?.maxMktSz || "99999", //合约或现货市价单的单笔最大委托数量
+          tickSz: t.tickSz || instrument?.tickSz || "0.01", //下单价格精度，如 0.0001
+          lotSz: t.lotSz || instrument?.lotSz || "0.01", //下单数量精度，如 BTC-USDT-SWAP：1
+          minSz: t.minSz || instrument?.minSz || "0.01", //最小下单数量
+          maxLmtSz: t.maxLmtSz || instrument?.maxLmtSz || "10000", //合约或现货限价单的单笔最大委托数量
+          maxMktSz: t.maxMktSz || instrument?.maxMktSz || "99999", //合约或现货市价单的单笔最大委托数量
         };
         tickers[ticker.instId] = ticker;
       });

@@ -133,6 +133,10 @@ class TibeBitConnector extends ConnectorBase {
         tickerObj.ticker.last,
         tickerObj.ticker.open
       );
+      this.logger.log(`getTickers currId`, currId);
+      const tbTicker = this.tidebitMarkets.find(
+        (market) => market.id === currId
+      );
       const changePct = SafeMath.gt(tickerObj.ticker.open, "0")
         ? SafeMath.div(change, tickerObj.ticker.open)
         : SafeMath.eq(change, "0")
@@ -154,12 +158,19 @@ class TibeBitConnector extends ConnectorBase {
         ts: parseInt(SafeMath.mult(tickerObj.at, "1000")),
         source: SupportedExchange.TIDEBIT,
         ticker: tickerObj.ticker,
+        tickSz: tbTicker?.bid?.fixed,
+        lotSz: tbTicker?.ask?.fixed,
+        minSz: tbTicker?.ask?.fixed,
       };
       return prev;
     }, {});
     const tickers = {};
+
     optional.mask.forEach((market) => {
       let ticker = formatTickers[market.id];
+      const tbTicker = this.tidebitMarkets.find(
+        (_market) => market.id === _market.id
+      );
       if (ticker)
         tickers[market.id] = {
           ...ticker,
@@ -191,6 +202,9 @@ class TibeBitConnector extends ConnectorBase {
           changePct: "0.0",
           at: "0.0",
           source: SupportedExchange.TIDEBIT,
+          tickSz: tbTicker?.bid?.fixed,
+          lotSz: tbTicker?.ask?.fixed,
+          minSz: tbTicker?.ask?.fixed,
         };
       }
     });
