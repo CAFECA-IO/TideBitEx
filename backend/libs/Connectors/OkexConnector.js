@@ -1228,10 +1228,6 @@ class OkexConnector extends ConnectorBase {
       this.tradeBook.updateByDifference(instId, {
         add: newTrades,
       });
-      EventBus.emit(Events.tradeDifference, market, {
-        market,
-        trades: this.tradeBook.getDifference(instId),
-      });
       EventBus.emit(Events.trades, market, {
         market,
         trades: this.tradeBook.getSnapshot(instId),

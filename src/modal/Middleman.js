@@ -314,11 +314,7 @@ class Middleman {
           break;
         case Events.trades:
           // console.log(`middleman metaData.data.trades`, metaData.data.trades);
-          // this.tradeBook.updateAll(metaData.data.market, metaData.data.trades);
-          break;
-        case Events.tradeDifference:
-          // console.log(`middleman metaData.data.trades`, metaData.data.trades);
-          this.tradeBook.updateByDifference(metaData.data.market, metaData.data.trades);
+          this.tradeBook.updateAll(metaData.data.market, metaData.data.trades);
           break;
         case Events.trade:
           this.tradeBook.updateByDifference(
