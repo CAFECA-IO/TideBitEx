@@ -124,12 +124,12 @@ class BookBase {
    */
   // ++ TODO: verify function works properly
   updateByDifference(instId, difference) {
-    this.logger.log(
-      `[${this.constructor.name}] updateByDifference[${instId}] this._config`,
-      this._config,
-      `difference`,
-      difference
-    );
+    // this.logger.log(
+    //   `[${this.constructor.name}] updateByDifference[${instId}] this._config`,
+    //   this._config,
+    //   `difference`,
+    //   difference
+    // );
     let updateSnapshot;
     try {
       if (this._config.remove) {

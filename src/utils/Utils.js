@@ -239,40 +239,47 @@ export const formateDecimal = (
   amount,
   { maxLength = 18, decimalLength = 2, pad = false, withSign = false }
 ) => {
-  // !!!TODO return once
-  let formatAmount;
-  // 非數字
-  if (isNaN(amount) || (!SafeMath.eq(amount, "0") && !amount))
-    formatAmount = "--";
-  else {
-    formatAmount = SafeMath.eq(amount, "0") ? "0" : amount;
-    // 以小數點為界分成兩部份
-    const splitChunck = amount.toString().split(".");
-    // 限制總長度
-    if (SafeMath.lt(splitChunck[0].length, maxLength)) {
-      // 小數點前的長度不超過 maxLength
-      const maxDecimalLength = SafeMath.minus(maxLength, splitChunck[0].length);
-      const _decimalLength = SafeMath.lt(maxDecimalLength, decimalLength)
-        ? maxDecimalLength
-        : decimalLength;
-      if (splitChunck.length === 1) splitChunck[1] = 0;
-      // 限制小數位數
-      splitChunck[1] = splitChunck[1].substring(0, _decimalLength);
-      // 小數補零
-      if (pad) {
-        splitChunck[1] = padDecimal(splitChunck[1], _decimalLength);
+  try {
+    let formatAmount;
+    // 非數字
+    if (isNaN(amount) || (!SafeMath.eq(amount, "0") && !amount))
+      formatAmount = "--";
+    else {
+      formatAmount = SafeMath.eq(amount, "0") ? "0" : amount;
+      // 以小數點為界分成兩部份
+      const splitChunck = amount.toString().split(".");
+      // 限制總長度
+      if (SafeMath.lt(splitChunck[0].length, maxLength)) {
+        // 小數點前的長度不超過 maxLength
+        const maxDecimalLength = SafeMath.minus(
+          maxLength,
+          splitChunck[0].length
+        );
+        const _decimalLength = SafeMath.lt(maxDecimalLength, decimalLength)
+          ? maxDecimalLength
+          : decimalLength;
+        if (splitChunck.length === 1) splitChunck[1] = "0";
+        // 限制小數位數
+        splitChunck[1] = splitChunck[1].substring(0, _decimalLength);
+        // 小數補零
+        if (pad) {
+          splitChunck[1] = padDecimal(splitChunck[1], _decimalLength);
+        }
+        formatAmount =
+          splitChunck[1].length > 0
+            ? `${splitChunck[0]}.${splitChunck[1]}`
+            : splitChunck[0];
+      } else {
+        // 小數點前的長度超過 maxLength
+        formatAmount = formateNumber(amount, decimalLength);
       }
-      formatAmount =
-        splitChunck[1].length > 0
-          ? `${splitChunck[0]}.${splitChunck[1]}`
-          : splitChunck[0];
-    } else {
-      // 小數點前的長度超過 maxLength
-      formatAmount = formateNumber(amount, decimalLength);
+      if (withSign && SafeMath.gt(amount, 0)) formatAmount = `+${formatAmount}`;
     }
-    if (withSign && SafeMath.gt(amount, 0)) formatAmount = `+${formatAmount}`;
+    return formatAmount;
+  } catch (error) {
+    console.log(`formateDecimal error`, error, amount);
+    return amount;
   }
-  return formatAmount;
 };
 
 export const randomID = (n) => {

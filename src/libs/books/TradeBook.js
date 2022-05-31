@@ -60,7 +60,8 @@ class TradeBook extends BookBase {
           } else return trade;
         });
       } else trades = [];
-      delete this.difference[market];
+      console.log(`[TradeBook getSnapshot] this._difference[market]`, this.difference[market]);
+      delete this._difference[market];
       return trades;
     } catch (error) {
       console.error(`[TradeBook getSnapshot]`, error);

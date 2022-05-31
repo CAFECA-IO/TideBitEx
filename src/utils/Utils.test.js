@@ -4,6 +4,13 @@ import { formateDecimal } from "./Utils";
 describe("formate number to desire length", () => {
   test("true is working properly", () => {
     expect(
+      formateDecimal("31552", {
+        maxLength: 18,
+        decimalLength: 4,
+        pad: true,
+      })
+    ).toBe("31552.0000");
+    expect(
       formateDecimal("31552.5", {
         maxLength: 6,
         decimalLength: 4,

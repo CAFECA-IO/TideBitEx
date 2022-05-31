@@ -1217,11 +1217,16 @@ class OkexConnector extends ConnectorBase {
   }
 
   // ++ TODO: verify function works properly
-  async _updateTrades(instId, newTrades) {
+  async _updateTrades(instId, trades) {
     try {
       const market = instId.replace("-", "").toLowerCase();
+      const newTrades = this._formateTrades(market, trades);
+      this.logger.debug(
+        `[${this.constructor.name}]_updateTrades`,
+        newTrades,
+      );
       this.tradeBook.updateByDifference(instId, {
-        add: this._formateTrades(market, newTrades),
+        add: newTrades,
       });
 
       EventBus.emit(Events.trades, market, {
