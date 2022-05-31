@@ -50,6 +50,7 @@ class TibeBitConnector extends ConnectorBase {
     tradeBook,
     accountBook,
     orderBook,
+    tidebitMarkets,
   }) {
     await super.init();
     this.app = app;
@@ -69,6 +70,7 @@ class TibeBitConnector extends ConnectorBase {
     this.tradeBook = tradeBook;
     this.accountBook = accountBook;
     this.orderBook = orderBook;
+    this.tidebitMarkets = tidebitMarkets;
     return this;
   }
 
@@ -115,7 +117,7 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async getTickers({ optional }) {
-    this.logger.log(`getTickers markets`, this.markets);
+    this.logger.log(`getTickers tidebitMarkets`, this.tidebitMarkets);
     const tBTickersRes = await axios.get(`${this.peatio}/api/v2/tickers`);
     if (!tBTickersRes || !tBTickersRes.data) {
       return new ResponseFormat({

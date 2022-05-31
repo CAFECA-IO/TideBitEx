@@ -207,6 +207,7 @@ class ExchangeHub extends Bot {
           tradeBook: this.tradeBook,
           orderBook: this.orderBook,
           accountBook: this.accountBook,
+          tidebitMarkets: this.tidebitMarkets,
         });
         this.currencies = this.tideBitConnector.currencies;
         return this;
