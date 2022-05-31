@@ -267,7 +267,7 @@ const TradePannel = (props) => {
       else if (SafeMath.gt(size, maxSz))
         setErrMsg(`Maximum amount is ${maxSz}`);
       else if (SafeMath.gt(SafeMath.mult(price, size), available))
-        setBuyErrorMessage(`Available ${currency} is not enough`);
+        setErrMsg(`Available ${currency} is not enough`);
       else setErrMsg(null);
     },
     []
