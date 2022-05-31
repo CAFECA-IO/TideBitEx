@@ -1075,10 +1075,10 @@ class OkexConnector extends ConnectorBase {
         const values = Object.values(arg);
         if (data.event === "subscribe") {
           this.okexWsChannels[channel] = this.okexWsChannels[channel] || {};
-          this.logger.log(
-            `_okexWsEventListener this.okexWsChannels[${channel}]`,
-            this.okexWsChannels[channel]
-          );
+          // this.logger.log(
+          //   `_okexWsEventListener this.okexWsChannels[${channel}]`,
+          //   this.okexWsChannels[channel]
+          // );
           this.okexWsChannels[channel][values[0]] =
             this.okexWsChannels[channel][values[0]] || {};
         } else if (data.event === "unsubscribe") {
