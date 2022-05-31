@@ -25,10 +25,32 @@ class TradeBook extends BookBase {
     return valueA.id === valueB.id;
   }
 
-  getSnapshot(market) {
+  updateByDifference(market, difference) {
+    if (!this._snapshot[market]) this._snapshot[market] = [];
+    let updateSnapshot;
     try {
-      if (this._snapshot[market])
-        return this._snapshot[market].map((trade) => {
+      if (this._config.add) {
+        updateSnapshot = this._snapshot[market]
+          .filter(
+            (data) =>
+              !difference.add?.some((diff) => this._isEqual(data.id, diff.id))
+          )
+          .concat(difference.add);
+        this.difference[market].add.concat(difference.add);
+      }
+      this._snapshot[market] = this._trim(updateSnapshot);
+      return true;
+    } catch (error) {
+      console.error(`[TradeBook] updateByDifference[${market}] error`, error);
+      return false;
+    }
+  }
+
+  getSnapshot(market) {
+    let trades;
+    try {
+      if (this._snapshot[market]) {
+        trades = this._snapshot[market].map((trade) => {
           if (
             this._difference[market].add.some((_trade) =>
               this._compareFunction(trade, _trade)
@@ -37,7 +59,9 @@ class TradeBook extends BookBase {
             return { ...trade, update: true };
           } else return trade;
         });
-      else return [];
+      } else trades = [];
+      delete this.difference[market];
+      return trades;
     } catch (error) {
       console.error(`[TradeBook getSnapshot]`, error);
       return false;

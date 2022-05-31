@@ -127,7 +127,7 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async getTickers({ optional }) {
-    this.logger.log(`getTickers tidebitMarkets`, this.tidebitMarkets);
+    // this.logger.log(`getTickers tidebitMarkets`, this.tidebitMarkets);
     const tBTickersRes = await axios.get(`${this.peatio}/api/v2/tickers`);
     if (!tBTickersRes || !tBTickersRes.data) {
       return new ResponseFormat({
@@ -143,7 +143,7 @@ class TibeBitConnector extends ConnectorBase {
         tickerObj.ticker.last,
         tickerObj.ticker.open
       );
-      this.logger.log(`getTickers currId`, currId);
+      // this.logger.log(`getTickers currId`, currId);
       const tbTicker = this.tidebitMarkets.find(
         (market) => market.id === currId
       );

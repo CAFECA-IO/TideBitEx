@@ -71,10 +71,10 @@ class TradeBook extends BookBase {
     //   instId,
     //   difference
     // );
-    const add = difference.add.filter(
-      (diff) => !this._snapshot[instId].some((trade) => trade.id === diff.id)
-    );
-    return super.updateByDifference(instId, { add });
+    // const add = difference.add.filter(
+    //   (diff) => !this._snapshot[instId].some((trade) => trade.id === diff.id)
+    // );
+    return super.updateByDifference(instId, difference);
   }
 
   /**

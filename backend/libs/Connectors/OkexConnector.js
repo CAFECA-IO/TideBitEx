@@ -1366,12 +1366,12 @@ class OkexConnector extends ConnectorBase {
   // ++ TODO: verify function works properly
   _updateTickers(data) {
     data.forEach((d) => {
-      if (d.instId === "BTC-USDT")
-        this.logger.log(
-          `[${this.constructor.name}]_updateTickers d.last`,
-          d.last,
-          new Date(parseInt(d.ts)).toISOString()
-        );
+      // if (d.instId === "BTC-USDT")
+      //   this.logger.log(
+      //     `[${this.constructor.name}]_updateTickers d.last`,
+      //     d.last,
+      //     new Date(parseInt(d.ts)).toISOString()
+      //   );
       if (this._findSource(d.instId) === SupportedExchange.OKEX) {
         const ticker = this._formateTicker(d);
         const result = this.tickerBook.updateByDifference(d.instId, ticker);
