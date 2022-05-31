@@ -7,9 +7,9 @@ describe("formate number to desire length", () => {
       formateDecimal("31552", {
         maxLength: 18,
         decimalLength: 4,
-        pad: true,
+        pad: false,
       })
-    ).toBe("31552.0000");
+    ).toBe("31552.0");
     expect(
       formateDecimal("31552.5", {
         maxLength: 6,
