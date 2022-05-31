@@ -566,6 +566,10 @@ class TibeBitConnector extends ConnectorBase {
       market,
       trades: this.tradeBook.getSnapshot(instId),
     });
+    EventBus.emit(Events.tradeDifference, market, {
+      market,
+      trades: this.tradeBook.getDifference(instId),
+    });
     this.logger.log(
       `---------- [${this.constructor.name}]  _updateTrades [END] ----------`
     );

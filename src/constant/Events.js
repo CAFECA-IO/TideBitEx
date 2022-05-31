@@ -6,5 +6,6 @@ module.exports = {
   account: "account",
   order: "order",
   trade: "trade",
+  tradeDifference: "tradeDifference",
   candleOnUpdate: "candleOnUpdate",
 };

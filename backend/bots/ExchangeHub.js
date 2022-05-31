@@ -89,6 +89,13 @@ class ExchangeHub extends Bot {
       }
     });
 
+    EventBus.on(Events.tradeDifference, (market, difference) => {
+      this.broadcast(market, {
+        type: Events.trades,
+        data: difference,
+      });
+    });
+
     // ++ TODO TEST
     EventBus.on(Events.trades, (market, tradesData) => {
       this.broadcast(market, {
