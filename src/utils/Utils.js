@@ -239,6 +239,11 @@ export const formateDecimal = (
   amount,
   { maxLength = 18, decimalLength = 2, pad = false }
 ) => {
+  // !!!TODO return once
+  // 獨立以下三件事的邏輯
+  // 限制總長度
+  // 限制小數位數
+  // 小數補零
   if (isNaN(amount) || (!SafeMath.eq(amount, "0") && !amount)) return "--";
   if (SafeMath.eq(amount, "0"))
     return pad ? `0.${padDecimal("", decimalLength)}` : "0.00";
