@@ -301,10 +301,6 @@ class OkexConnector extends ConnectorBase {
           });
         }
         const [data] = res.data.data;
-        this.logger.log(
-          `[${this.constructor.name}] getDepthBooks data[${instId}]`,
-          data
-        );
         this.depthBook.updateAll(instId, data);
       } catch (error) {
         this.logger.error(error);
@@ -318,7 +314,7 @@ class OkexConnector extends ConnectorBase {
       }
     }
     this.logger.log(
-      `[${this.constructor.name}] getDepthBooks this.depthBook.getSnapshot([${instId}]`,
+      `[${this.constructor.name}] getDepthBooks API response snapshot([${instId}]`,
       this.depthBook.getSnapshot(instId)
     );
     return new ResponseFormat({
@@ -1233,8 +1229,8 @@ class OkexConnector extends ConnectorBase {
   _updateBooks(instId, data) {
     const [updateBooks] = data;
     const market = instId.replace("-", "").toLowerCase();
-    this.logger.log(`_updateBooks data.asks`, data.asks);
-    this.logger.log(`_updateBooks data.bids`, data.bids);
+    this.logger.log(`_updateBooks updateBooks.asks`, updateBooks.asks);
+    this.logger.log(`_updateBooks updateBooks.bids`, updateBooks.bids);
     try {
       const difference = {
         updates: [],

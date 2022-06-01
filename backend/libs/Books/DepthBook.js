@@ -104,12 +104,12 @@ class DepthBook extends BookBase {
       bids = [];
     data.forEach((d) => {
       //-- TEST
-      if (d.side === "asks" && asks.length < 10) {
+      if (d.side === "asks" && asks.length < 20) {
         // if (d.side === "asks" && asks.length < 100) {
         asks.push(d);
       }
       //-- TEST
-      if (d.side === "bids" && bids.length < 10) {
+      if (d.side === "bids" && bids.length < 20) {
         // if (d.side === "bids" && bids.length < 100) {
         bids.push(d);
       }
@@ -153,7 +153,18 @@ class DepthBook extends BookBase {
    * @param {Array<Depth>} data
    */
   updateAll(instId, data) {
-    // console.log(`[DepthBook updateAll]`, instId, data);
+    this.logger.log(
+      `[${this.constructor.name} ]getDepthBooks API response updateAll[${instId}] data`,
+      data
+    );
+    this.logger.log(
+      `[${this.constructor.name} ]getDepthBooks API response updateAll[${instId}] data.asks`,
+      data.asks
+    );
+    this.logger.log(
+      `[${this.constructor.name} ]getDepthBooks API response updateAll[${instId}] data.bids`,
+      data.bids
+    );
     return super.updateAll(instId, this._formateBooks(data));
   }
 }
