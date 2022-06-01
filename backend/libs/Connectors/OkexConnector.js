@@ -1272,7 +1272,7 @@ class OkexConnector extends ConnectorBase {
         }
       });
       this.depthBook.updateByDifference(instId, difference);
-      this.logger.log(`_updateBooks difference`, difference);
+      // this.logger.log(`_updateBooks difference`, difference);
     } catch (error) {
       // ++
       this.logger.error(`_updateBooks`, error);

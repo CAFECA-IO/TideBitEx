@@ -196,7 +196,7 @@ class Middleman {
 
   async _getTrades(id, limit) {
     try {
-      const trades = await this.communicator.trades(id, limit);
+      const trades = await this.communicator.getTrades(id, limit);
       this.tradeBook.updateAll(id, trades);
     } catch (error) {
       console.error(`_getTrades error`, error);
@@ -204,18 +204,18 @@ class Middleman {
     }
   }
 
-  getBooks(market) {
+  getDepthBooks(market) {
     if (!market) market = this.tickerBook.getCurrentTicker()?.market;
     // console.log(`getBooks current market`, market)
     return this.depthBook.getSnapshot(market);
   }
 
-  async _getBooks(id, sz) {
+  async _getDepthBooks(id, sz) {
     try {
-      const depthBook = await this.communicator.books(id, sz);
+      const depthBook = await this.communicator.getDepthBooks(id, sz);
       this.depthBook.updateAll(id, depthBook);
     } catch (error) {
-      console.error(`_getBooks error`, error);
+      console.error(`_getDepthBooks error`, error);
       // throw error;
     }
   }
@@ -260,8 +260,8 @@ class Middleman {
     this.tbWebSocket.setCurrentMarket(market);
     this.tickerBook.setCurrentMarket(market);
     if (!this.tickerBook.getCurrentTicker()) await this._getTicker(market);
-    await this._getBooks(market);
-    await this._getTrades(market);
+    await this._getDepthBooks(market, 30);
+    await this._getTrades(market, 30);
     // if (this.isLogin) {
     // TODO to verify if user is not login would be a problem
     await this._getOrderList(market);
