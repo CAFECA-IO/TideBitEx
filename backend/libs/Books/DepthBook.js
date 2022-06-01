@@ -133,6 +133,8 @@ class DepthBook extends BookBase {
    * @returns {Difference} difference
    */
   _getDifference(preArr, newArr) {
+    this.logger.log(`_getDifference preArr`, preArr)
+    this.logger.log(`_getDifference newArr`, newArr)
     const difference = {
       add: [],
       update: [],
