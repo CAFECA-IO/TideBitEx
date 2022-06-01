@@ -374,10 +374,10 @@ class OkexConnector extends ConnectorBase {
 
   async getTrades({ query }) {
     const { instId, limit } = query;
-    this.logger.log(
-      `[${this.constructor.name}] getTrades this.fetchedTrades[${instId}]`,
-      this.fetchedTrades[instId]
-    );
+    // this.logger.log(
+    //   `[${this.constructor.name}] getTrades this.fetchedTrades[${instId}]`,
+    //   this.fetchedTrades[instId]
+    // );
     if (!this.fetchedTrades[instId]) {
       const method = "GET";
       const path = "/api/v5/market/trades";
@@ -1230,8 +1230,14 @@ class OkexConnector extends ConnectorBase {
   _updateBooks(instId, data) {
     const [updateBooks] = data;
     const market = instId.replace("-", "").toLowerCase();
-    this.logger.log(`_updateBooks updateBooks.asks`, updateBooks.asks);
-    this.logger.log(`_updateBooks updateBooks.bids`, updateBooks.bids);
+    this.logger.log(
+      `[FROM][OKEx] _updateBooks updateBooks.asks`,
+      updateBooks.asks
+    );
+    this.logger.log(
+      `[FROM][OKEx] _updateBooks updateBooks.bids`,
+      updateBooks.bids
+    );
     try {
       const difference = {
         updates: [],
@@ -1280,7 +1286,7 @@ class OkexConnector extends ConnectorBase {
     }
 
     this.logger.log(
-      `_updateBooks this.depthBook.getSnapshot(${instId})`,
+      `[AFTER UPDATE] depthBook snapshot(${instId})`,
       this.depthBook.getSnapshot(instId)
     );
 
