@@ -1218,7 +1218,7 @@ class OkexConnector extends ConnectorBase {
     try {
       const market = instId.replace("-", "").toLowerCase();
       const newTrades = this._formateTrades(market, trades);
-      this.logger.debug(`[${this.constructor.name}]_updateTrades`, newTrades);
+      // this.logger.debug(`[${this.constructor.name}]_updateTrades`, newTrades);
       this.tradeBook.updateByDifference(instId, {
         add: newTrades,
       });
@@ -1233,7 +1233,8 @@ class OkexConnector extends ConnectorBase {
   _updateBooks(instId, data) {
     const [updateBooks] = data;
     const market = instId.replace("-", "").toLowerCase();
-    this.logger.log(`_updateBooks data`, data);
+    this.logger.log(`_updateBooks data.asks`, data.asks);
+    this.logger.log(`_updateBooks data.bids`, data.bids);
     try {
       const difference = {
         updates: [],
