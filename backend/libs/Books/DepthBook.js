@@ -150,11 +150,12 @@ class DepthBook extends BookBase {
       }
       if (index !== -1) {
         if (SafeMath.eq(data.amount, "0")) {
-          update.split(index, 1);
+          update.splice(index, 1);
           difference.remove.push(data);
-        } else if (!SafeMath.eq(data.amount, preArr[index].amount))
+        } else if (!SafeMath.eq(data.amount, preArr[index].amount)) {
           update[index] = data;
-        difference.update.push(data);
+          difference.update.push(data);
+        }
       }
     });
     return { difference, update };
