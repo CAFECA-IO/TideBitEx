@@ -175,7 +175,7 @@ class DepthBook extends BookBase {
         [...this._snapshot[instId]],
         this._formateBooks(data)
       );
-      this.logger.log(`_getDifference result`, result);
+      this.logger.log(`_getDifference update`, result.update);
       this._snapshot[instId] = this._trim(result.update);
       this._difference[instId] = this.result.difference;
       return true;
