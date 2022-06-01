@@ -64,6 +64,29 @@ class DepthBook extends BookBase {
     return bids.concat(asks);
   }
 
+  // ++ TODO: verify function works properly
+  _calculateDifference(arrayA, arrayB) {
+    try {
+      const onlyInLeft = (left, right) =>
+        left.filter(
+          (leftValue) =>
+            !right.some((rightValue) =>
+              this._compareFunction(leftValue, rightValue)
+            )
+        );
+      const onlyInB = onlyInLeft(arrayB, arrayA);
+      return {
+        update: onlyInB,
+      };
+    } catch (error) {
+      console.error(`[BookBase] _calculateDifference error`, error);
+      return {
+        remove: [],
+        add: [],
+      };
+    }
+  }
+
   /**
    * @typedef {Object} Book
    * @property {string} market
@@ -78,7 +101,6 @@ class DepthBook extends BookBase {
     const bookArr = [];
     bookObj.asks.forEach((ask) => {
       bookArr.push({
-        id: ask[0],
         price: ask[0],
         amount: ask[1],
         total: ask[2],
@@ -87,7 +109,6 @@ class DepthBook extends BookBase {
     });
     bookObj.bids.forEach((bid) => {
       bookArr.push({
-        id: bid[0],
         price: bid[0],
         amount: bid[1],
         total: bid[2],
