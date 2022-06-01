@@ -133,8 +133,8 @@ class DepthBook extends BookBase {
    * @returns {Difference} difference
    */
   _getDifference(preArr, newArr) {
-    this.logger.log(`_getDifference preArr`, preArr)
-    this.logger.log(`_getDifference newArr`, newArr)
+    this.logger.log(`_getDifference preArr`, preArr);
+    this.logger.log(`_getDifference newArr`, newArr);
     const difference = {
       add: [],
       update: [],
@@ -146,8 +146,8 @@ class DepthBook extends BookBase {
         (_data) =>
           SafeMath.eq(data.price, _data.price) && data.side === _data.side
       );
-      this.logger.log(`_getDifference index,data`, index,data)
-      if (index === -1 && SafeMath.gt(data.amount)) {
+      this.logger.log(`_getDifference index,data`, index, data);
+      if (index === -1 && SafeMath.gt(data.amount, "0")) {
         update.push(data);
         difference.add.push(data);
       }
@@ -178,7 +178,7 @@ class DepthBook extends BookBase {
         [...this._snapshot[instId]],
         this._formateBooks(data)
       );
-      this.logger.log(`_getDifference result`, result)
+      this.logger.log(`_getDifference result`, result);
       this._snapshot[instId] = this._trim(result.update);
       this._difference[instId] = this.result.difference;
       return true;
