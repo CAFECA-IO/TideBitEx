@@ -315,7 +315,7 @@ class OkexConnector extends ConnectorBase {
       }
     }
     this.logger.log(
-      `[${this.constructor.name}][API][UPDATE] depthBook snapshot(${instId})`,
+      `---[${this.constructor.name}][UPDATE][API] snapshot(${instId})`,
       this.depthBook.getSnapshot(instId)
     );
     return new ResponseFormat({
@@ -747,7 +747,6 @@ class OkexConnector extends ConnectorBase {
         url: `${this.domain}${path}${qs}`,
         headers: this.getHeaders(true, { timeString, okAccessSign }),
       });
-      this.logger.debug(res.data);
       if (res.data && res.data.code !== "0") {
         const message = JSON.stringify(res.data);
         this.logger.trace(message);
@@ -856,7 +855,6 @@ class OkexConnector extends ConnectorBase {
         url: `${this.domain}${path}${qs}`,
         headers: this.getHeaders(true, { timeString, okAccessSign }),
       });
-      this.logger.debug(res.data);
       if (res.data && res.data.code !== "0") {
         const message = JSON.stringify(res.data);
         this.logger.trace(message);
@@ -1231,11 +1229,11 @@ class OkexConnector extends ConnectorBase {
     const [updateBooks] = data;
     const market = instId.replace("-", "").toLowerCase();
     this.logger.log(
-      `[FROM][OKEx] _updateBooks updateBooks.asks`,
+      `[FROM][OKEx][WS] _updateBooks updateBooks.asks`,
       updateBooks.asks
     );
     this.logger.log(
-      `[FROM][OKEx] _updateBooks updateBooks.bids`,
+      `[FROM][OKEx][WS] _updateBooks updateBooks.bids`,
       updateBooks.bids
     );
     try {
@@ -1286,7 +1284,7 @@ class OkexConnector extends ConnectorBase {
     }
 
     this.logger.log(
-      `[AFTER UPDATE] depthBook snapshot(${instId})`,
+      `[AFTER WS UPDATE] depthBook snapshot(${instId})`,
       this.depthBook.getSnapshot(instId)
     );
 
@@ -1405,7 +1403,7 @@ class OkexConnector extends ConnectorBase {
         instId,
       },
     ];
-    // this.logger.debug(`[${this.constructor.name}]_subscribeTrades`, args)
+    this.logger.debug(`[${this.constructor.name}]_subscribeTrades`, args)
     this.websocket.ws.send(
       JSON.stringify({
         op: "subscribe",
@@ -1431,7 +1429,7 @@ class OkexConnector extends ConnectorBase {
     );
   }
 
-  _subscribeCandle1m(instId, resolution) {
+  _subscribeCandle1m(instId) {
     this.candleChannel = `candle1m`;
     const args = [
       {
@@ -1439,10 +1437,7 @@ class OkexConnector extends ConnectorBase {
         instId,
       },
     ];
-    // this.logger.debug(
-    //   `[${this.constructor.name}]_subscribeCandle${resolution}`,
-    //   args
-    // );
+    this.logger.debug(`[${this.constructor.name}]_subscribeCandle`, args);
     this.websocket.ws.send(
       JSON.stringify({
         op: "subscribe",
@@ -1456,7 +1451,7 @@ class OkexConnector extends ConnectorBase {
       channel: "tickers",
       instId,
     }));
-    // this.logger.debug(`[${this.constructor.name}]_subscribeTickers`, args)
+    this.logger.debug(`[${this.constructor.name}]_subscribeTickers`, args);
     this.websocket.ws.send(
       JSON.stringify({
         op: "subscribe",
@@ -1472,7 +1467,7 @@ class OkexConnector extends ConnectorBase {
         instId,
       },
     ];
-    // this.logger.debug(`[${this.constructor.name}]_unsubscribeTrades`, args)
+    this.logger.debug(`[${this.constructor.name}]_unsubscribeTrades`, args);
     this.websocket.ws.send(
       JSON.stringify({
         op: "unsubscribe",

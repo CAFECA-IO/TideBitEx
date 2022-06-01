@@ -154,7 +154,7 @@ class DepthBook extends BookBase {
    */
   updateAll(instId, data) {
     this.logger.log(
-      `[${this.constructor.name} ][API][RESPONSE] data(${instId})`,
+      `---[FROM][OKEx][API] data(${instId})`,
       data
     );
     return super.updateAll(instId, this._formateBooks(data));
