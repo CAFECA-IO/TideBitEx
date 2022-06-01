@@ -315,7 +315,7 @@ class OkexConnector extends ConnectorBase {
       }
     }
     this.logger.log(
-      `[${this.constructor.name}] getDepthBooks API response snapshot([${instId}]`,
+      `[${this.constructor.name}][API][UPDATE] depthBook snapshot(${instId})`,
       this.depthBook.getSnapshot(instId)
     );
     return new ResponseFormat({
