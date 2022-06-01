@@ -538,10 +538,10 @@ class TibeBitConnector extends ConnectorBase {
 
   // ++ TODO: verify function works properly
   _updateTrades(market, data) {
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _updateTrades [START] ----------`
-    );
-    this.logger.log(`[FROM TideBit market:${market}] data`, data);
+    // this.logger.log(
+    //   `---------- [${this.constructor.name}]  _updateTrades [START] ----------`
+    // );
+    // this.logger.log(`[FROM TideBit market:${market}] data`, data);
     /**
     {
        trades: [
@@ -566,9 +566,9 @@ class TibeBitConnector extends ConnectorBase {
       market,
       trades: this.tradeBook.getSnapshot(instId),
     });
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _updateTrades [END] ----------`
-    );
+    // this.logger.log(
+    //   `---------- [${this.constructor.name}]  _updateTrades [END] ----------`
+    // );
     // }
   }
 

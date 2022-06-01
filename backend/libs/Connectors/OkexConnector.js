@@ -284,10 +284,7 @@ class OkexConnector extends ConnectorBase {
     if (instId) arr.push(`instId=${instId}`);
     if (sz) arr.push(`sz=${sz}`);
     const qs = !!arr.length ? `?${arr.join("&")}` : "";
-    // this.logger.log(
-    //   `[${this.constructor.name}] getDepthBooks this.fetchedBook[${instId}]`,`url`,`${this.domain}${path}${qs}`,
-    //   this.fetchedBook[instId]
-    // );
+
     if (!this.fetchedBook[instId]) {
       try {
         const res = await axios({
@@ -304,10 +301,10 @@ class OkexConnector extends ConnectorBase {
           });
         }
         const [data] = res.data.data;
-        // const depthBooks = [];
-        // depthBooks["market"] = instId.replace("-", "").toLowerCase();
-        // depthBooks["asks"] = data.asks.map((ask) => [ask[0], ask[1]]);
-        // depthBooks["bids"] = data.bids.map((bid) => [bid[0], bid[1]]);
+        this.logger.log(
+          `[${this.constructor.name}] getDepthBooks data[${instId}]`,
+          data
+        );
         this.depthBook.updateAll(instId, data);
       } catch (error) {
         this.logger.error(error);
@@ -320,10 +317,10 @@ class OkexConnector extends ConnectorBase {
         });
       }
     }
-    // this.logger.log(
-    //   `[${this.constructor.name}] getDepthBooks this.depthBook.getSnapshot([${instId}]`,
-    //   this.depthBook.getSnapshot(instId)
-    // );
+    this.logger.log(
+      `[${this.constructor.name}] getDepthBooks this.depthBook.getSnapshot([${instId}]`,
+      this.depthBook.getSnapshot(instId)
+    );
     return new ResponseFormat({
       message: "getDepthBooks",
       payload: this.depthBook.getSnapshot(instId),
@@ -1221,10 +1218,7 @@ class OkexConnector extends ConnectorBase {
     try {
       const market = instId.replace("-", "").toLowerCase();
       const newTrades = this._formateTrades(market, trades);
-      this.logger.debug(
-        `[${this.constructor.name}]_updateTrades`,
-        newTrades,
-      );
+      this.logger.debug(`[${this.constructor.name}]_updateTrades`, newTrades);
       this.tradeBook.updateByDifference(instId, {
         add: newTrades,
       });
@@ -1239,7 +1233,7 @@ class OkexConnector extends ConnectorBase {
   _updateBooks(instId, data) {
     const [updateBooks] = data;
     const market = instId.replace("-", "").toLowerCase();
-
+    this.logger.log(`_updateBooks data`, data);
     try {
       const difference = {
         updates: [],
@@ -1281,16 +1275,18 @@ class OkexConnector extends ConnectorBase {
         }
       });
       this.depthBook.updateByDifference(instId, difference);
+      this.logger.log(`_updateBooks difference`, difference);
     } catch (error) {
       // ++
       this.logger.error(`_updateBooks`, error);
     }
 
-    // const timestamp = Date.now();
-    // if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
-    //   this._booksTimestamp = timestamp;
+    this.logger.log(
+      `_updateBooks this.depthBook.getSnapshot(${instId})`,
+      this.depthBook.getSnapshot(instId)
+    );
+
     EventBus.emit(Events.update, market, this.depthBook.getSnapshot(instId));
-    // }
   }
 
   _updateCandle(instId, channel, candleData) {
