@@ -19,7 +19,7 @@ class DepthBook extends BookBase {
       };
       this._snapshot[market]?.forEach((data) => {
         if (
-          this._difference[market].add.some((d) =>
+          this._difference[market].update.some((d) =>
             this._compareFunction(d, data)
           )
         )
@@ -50,19 +50,20 @@ class DepthBook extends BookBase {
       return false;
     }
   }
-  _trim(data) {
-    let asks = [],
-      bids = [];
-    data.forEach((d) => {
-      if (d.side === "asks" && asks.length < 100) {
-        asks.push(d);
-      }
-      if (d.side === "bids" && bids.length < 100) {
-        bids.push(d);
-      }
-    });
-    return bids.concat(asks);
-  }
+
+  // _trim(data) {
+  //   let asks = [],
+  //     bids = [];
+  //   data.forEach((d) => {
+  //     if (d.side === "asks" && asks.length < 100) {
+  //       asks.push(d);
+  //     }
+  //     if (d.side === "bids" && bids.length < 100) {
+  //       bids.push(d);
+  //     }
+  //   });
+  //   return bids.concat(asks);
+  // }
 
   // ++ TODO: verify function works properly
   _calculateDifference(arrayA, arrayB) {
@@ -79,10 +80,9 @@ class DepthBook extends BookBase {
         update: onlyInB,
       };
     } catch (error) {
-      console.error(`[BookBase] _calculateDifference error`, error);
+      console.error(`[DepthBook] _calculateDifference error`, error);
       return {
-        remove: [],
-        add: [],
+        update: [],
       };
     }
   }

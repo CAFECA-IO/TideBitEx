@@ -146,8 +146,7 @@ class BookBase {
         this._snapshot[market],
         data
       );
-      // this._snapshot[market] = this._trim(data);
-      this._snapshot[market] = data;
+      this._snapshot[market] = this._trim(data);
     } catch (error) {
       console.error(`[BookBase] updateAll error`, error);
       return false;
