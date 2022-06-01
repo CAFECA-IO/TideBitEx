@@ -58,7 +58,7 @@ class TradeBook extends BookBase {
 
   /**
    * @typedef {Object} Difference
-   * @property {Arrary<Trade>} updates
+   * @property {Arrary<Trade>} update
    * @property {Arrary<Trade>} add
    * @property {Arrary<Trade>} remove
    *

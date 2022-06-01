@@ -400,7 +400,7 @@ class TibeBitConnector extends ConnectorBase {
     // );
     const instId = this._findInstId(market);
     // const difference = {
-    //   updates: [],
+    //   update: [],
     //   add: [],
     //   remove: [],
     // };

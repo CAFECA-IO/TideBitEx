@@ -1236,46 +1236,10 @@ class OkexConnector extends ConnectorBase {
       updateBooks.bids
     );
     try {
-      const difference = {
-        updates: [],
-        add: [],
-        remove: [],
-      };
-      updateBooks.asks.forEach((ask) => {
-        if (SafeMath.eq(ask[1], 0)) {
-          difference.remove.push({
-            id: ask[0],
-            price: ask[0],
-            amount: ask[1],
-            side: "asks",
-          });
-        } else {
-          difference.add.push({
-            id: ask[0],
-            price: ask[0],
-            amount: ask[1],
-            side: "asks",
-          });
-        }
-      });
-      updateBooks.bids.forEach((bid) => {
-        if (SafeMath.eq(bid[1], 0)) {
-          difference.remove.push({
-            id: bid[0],
-            price: bid[0],
-            amount: bid[1],
-            side: "bids",
-          });
-        } else {
-          difference.add.push({
-            id: bid[0],
-            price: bid[0],
-            amount: bid[1],
-            side: "bids",
-          });
-        }
-      });
-      this.depthBook.updateByDifference(instId, difference);
+
+
+
+      this.depthBook.updateByDifference(instId, updateBooks);
       // this.logger.log(`_updateBooks difference`, difference);
     } catch (error) {
       // ++

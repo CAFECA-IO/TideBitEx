@@ -101,7 +101,7 @@ class ExchangeHub extends Bot {
     // ++ TODO TEST
     EventBus.on(Events.update, (market, booksData) => {
       // this.logger.debug(
-      //   `[${this.name}]_updateBooks booksData`,
+      //   `[${this.name}]_dadks booksData`,
       //   booksData
       // );
       this.broadcast(market, {
