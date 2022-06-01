@@ -1236,11 +1236,7 @@ class OkexConnector extends ConnectorBase {
       updateBooks.bids
     );
     try {
-
-
-
       this.depthBook.updateByDifference(instId, updateBooks);
-      // this.logger.log(`_updateBooks difference`, difference);
     } catch (error) {
       // ++
       this.logger.error(`_updateBooks`, error);
