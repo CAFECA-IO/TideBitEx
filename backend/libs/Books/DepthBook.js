@@ -142,7 +142,7 @@ class DepthBook extends BookBase {
     };
     const update = preArr;
     newArr.forEach((data) => {
-      const index = preArr.find(
+      const index = preArr.findIndex(
         (_data) =>
           SafeMath.eq(data.price, _data.price) && data.side === _data.side
       );
