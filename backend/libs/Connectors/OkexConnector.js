@@ -282,7 +282,8 @@ class OkexConnector extends ConnectorBase {
 
     const arr = [];
     if (instId) arr.push(`instId=${instId}`);
-    if (sz) arr.push(`sz=${sz}`);
+    if (sz) arr.push(`sz=${25}`);
+    // if (sz) arr.push(`sz=${sz}`); // -- TEST
     const qs = !!arr.length ? `?${arr.join("&")}` : "";
 
     if (!this.fetchedBook[instId]) {
