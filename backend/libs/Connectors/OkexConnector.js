@@ -326,46 +326,23 @@ class OkexConnector extends ConnectorBase {
     });
   }
 
-  async getTradingViewConfig({ query }) {
-    return new Promise(
-      resolve({
-        name: query.symbol,
-        timezone: "Asia/Hong_Kong",
-        session: "24x7",
-        ticker: query.id,
-        minmov: 1,
-        minmove2: 0,
-        volume_precision: 8,
-        pricescale: query.market?.price_group_fixed
-          ? 10 ** query.market.price_group_fixed
-          : 10000,
-        has_intraday: true,
-        has_daily: true,
-        intraday_multipliers: ["1", "5", "15", "30", "60"],
-        has_weekly_and_monthly: true,
-      })
-    );
-  }
-
   async getTradingViewSymbol({ query }) {
-    return new Promise(
-      resolve({
-        name: query.symbol,
-        timezone: "Asia/Hong_Kong",
-        session: "24x7",
-        ticker: query.id,
-        minmov: 1,
-        minmove2: 0,
-        volume_precision: 8,
-        pricescale: query.market?.price_group_fixed
-          ? 10 ** query.market.price_group_fixed
-          : 10000,
-        has_intraday: true,
-        has_daily: true,
-        intraday_multipliers: ["1", "5", "15", "30", "60"],
-        has_weekly_and_monthly: true,
-      })
-    );
+    return Promise.resolve({
+      name: query.symbol,
+      timezone: "Asia/Hong_Kong",
+      session: "24x7",
+      ticker: query.id,
+      minmov: 1,
+      minmove2: 0,
+      volume_precision: 8,
+      pricescale: query.market?.price_group_fixed
+        ? 10 ** query.market.price_group_fixed
+        : 10000,
+      has_intraday: true,
+      has_daily: true,
+      intraday_multipliers: ["1", "5", "15", "30", "60"],
+      has_weekly_and_monthly: true,
+    });
   }
 
   getBar(resolution) {
@@ -407,8 +384,8 @@ class OkexConnector extends ConnectorBase {
     const arr = [];
     if (instId) arr.push(`instId=${instId}`);
     if (resolution) arr.push(`bar=${this.getBar(resolution)}`);
-    if (from) arr.push(`after=${parseInt(from)*1000}`);
-    if (to) arr.push(`before=${parseInt(to)*1000}`);
+    if (from) arr.push(`after=${parseInt(from) * 1000}`);
+    if (to) arr.push(`before=${parseInt(to) * 1000}`);
     const qs = !!arr.length ? `?${arr.join("&")}` : "";
 
     try {
@@ -1321,14 +1298,14 @@ class OkexConnector extends ConnectorBase {
   _updateBooks(instId, data) {
     const [updateBooks] = data;
     const market = instId.replace("-", "").toLowerCase();
-    this.logger.log(
-      `[FROM][OKEx][WS] _updateBooks updateBooks.asks`,
-      updateBooks.asks
-    );
-    this.logger.log(
-      `[FROM][OKEx][WS] _updateBooks updateBooks.bids`,
-      updateBooks.bids
-    );
+    // this.logger.log(
+    //   `[FROM][OKEx][WS] _updateBooks updateBooks.asks`,
+    //   updateBooks.asks
+    // );
+    // this.logger.log(
+    //   `[FROM][OKEx][WS] _updateBooks updateBooks.bids`,
+    //   updateBooks.bids
+    // );
     try {
       this.depthBook.updateByDifference(instId, updateBooks);
     } catch (error) {
@@ -1336,10 +1313,10 @@ class OkexConnector extends ConnectorBase {
       this.logger.error(`_updateBooks`, error);
     }
 
-    this.logger.log(
-      `[AFTER WS UPDATE] depthBook snapshot(${instId})`,
-      this.depthBook.getSnapshot(instId)
-    );
+    // this.logger.log(
+    //   `[AFTER WS UPDATE] depthBook snapshot(${instId})`,
+    //   this.depthBook.getSnapshot(instId)
+    // );
 
     EventBus.emit(Events.update, market, this.depthBook.getSnapshot(instId));
   }

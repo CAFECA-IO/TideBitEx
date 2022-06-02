@@ -420,7 +420,7 @@ class ExchangeHub extends Bot {
   }
 
   async getTradingViewConfig({ query }) {
-    return new Promise({
+    return Promise.resolve({
       supported_resolutions: ["1", "5", "15", "30", "60", "1D", "1W"],
       supports_group_request: false,
       supports_marks: false,
