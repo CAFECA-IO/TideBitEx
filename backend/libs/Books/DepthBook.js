@@ -123,9 +123,14 @@ class DepthBook extends BookBase {
   }
   /**
    *
-   * @param {*} preArr
-   * @param {*} newArr
-   * @param {*} side
+   *   
+   * {
+    price: '10'
+    amount: '1'
+    side: 'bids',
+  }
+   * @param {Array<Depth>} preArr
+   * @param {Array<Depth>} newArr
    * @returns {Difference} difference
    */
   _getDifference(preArr, newArr) {

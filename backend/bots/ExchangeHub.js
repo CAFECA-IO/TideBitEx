@@ -419,17 +419,42 @@ class ExchangeHub extends Bot {
     }
   }
 
-  async getCandlesticks({ params, query }) {
-    switch (this._findSource(query.instId)) {
+  async getTradingViewConfig({ query }) {
+    return new Promise({
+      supported_resolutions: ["1", "5", "15", "30", "60", "1D", "1W"],
+      supports_group_request: false,
+      supports_marks: false,
+      supports_timescale_marks: false,
+      supports_search: true,
+    });
+  }
+
+  async getTradingViewSymbol({ query }) {
+    const id = query.symbol.replace("/", "").toLowerCase();
+    const instId = this._findInstId(id);
+    const market = this.tidebitMarkets.find((market) => market.id === id);
+    switch (this._findSource(instId)) {
       case SupportedExchange.OKEX:
-        return this.okexConnector.router("getCandlesticks", { params, query });
-      case SupportedExchange.TIDEBIT:
-        return this.tideBitConnector.router("getTrades", {
-          query: { ...query, increase: true },
+        return this.okexConnector.router("getTradingViewConfig", {
+          query: { ...query, instId, id, market },
         });
+      case SupportedExchange.TIDEBIT:
       default:
         return new ResponseFormat({
-          message: "getCandlesticks",
+          message: "getTradingViewConfig",
+          payload: [],
+        });
+    }
+  }
+
+  async getTradingViewHistory({ query }) {
+    switch (this._findSource(query.symbol)) {
+      case SupportedExchange.OKEX:
+        return this.okexConnector.router("getCandlesticks", { query });
+      case SupportedExchange.TIDEBIT:
+      default:
+        return new ResponseFormat({
+          message: "getTradingViewHistory",
           payload: [],
         });
     }

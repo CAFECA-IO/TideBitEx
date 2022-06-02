@@ -84,13 +84,15 @@ const SelectedTicker = (props) => {
         <div className="tickerItemLabel">{`${t("24_volume_quote")}(${
           storeCtx.selectedTicker?.quote_unit?.toUpperCase() || "--"
         })`}</div>
-        <div className="tickerPriceText">
-          {!storeCtx.selectedTicker
-            ? "--"
-            : formateDecimal(storeCtx.selectedTicker?.volume, {
-                decimalLength: 2,
-              })}
-        </div>
+        {storeCtx.selectedTicker?.volumeCcy && (
+          <div className="tickerPriceText">
+            {!storeCtx.selectedTicker
+              ? "--"
+              : formateDecimal(storeCtx.selectedTicker?.volumeCcy, {
+                  decimalLength: 2,
+                })}
+          </div>
+        )}
       </div>
     </div>
   );

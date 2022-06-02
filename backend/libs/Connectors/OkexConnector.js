@@ -12,6 +12,7 @@ const SafeMath = require("../SafeMath");
 const SupportedExchange = require("../../constants/SupportedExchange");
 const Utils = require("../Utils");
 const { waterfallPromise } = require("../Utils");
+const { resolve } = require("path");
 
 const HEART_BEAT_TIME = 25000;
 
@@ -314,8 +315,10 @@ class OkexConnector extends ConnectorBase {
         });
       }
     }
-    this.logger.log(`=+===+===+== [UPDATE][API][START](${instId})  =+===+===+==`);
-    this.logger.log( this.depthBook.getSnapshot(instId));
+    this.logger.log(
+      `=+===+===+== [UPDATE][API][START](${instId})  =+===+===+==`
+    );
+    this.logger.log(this.depthBook.getSnapshot(instId));
     this.logger.log(`=+===+===+== [UPDATE][API][END](${instId})  =+===+===+==`);
     return new ResponseFormat({
       message: "getDepthBooks",
@@ -323,17 +326,89 @@ class OkexConnector extends ConnectorBase {
     });
   }
 
+  async getTradingViewConfig({ query }) {
+    return new Promise(
+      resolve({
+        name: query.symbol,
+        timezone: "Asia/Hong_Kong",
+        session: "24x7",
+        ticker: query.id,
+        minmov: 1,
+        minmove2: 0,
+        volume_precision: 8,
+        pricescale: query.market?.price_group_fixed
+          ? 10 ** query.market.price_group_fixed
+          : 10000,
+        has_intraday: true,
+        has_daily: true,
+        intraday_multipliers: ["1", "5", "15", "30", "60"],
+        has_weekly_and_monthly: true,
+      })
+    );
+  }
+
+  async getTradingViewSymbol({ query }) {
+    return new Promise(
+      resolve({
+        name: query.symbol,
+        timezone: "Asia/Hong_Kong",
+        session: "24x7",
+        ticker: query.id,
+        minmov: 1,
+        minmove2: 0,
+        volume_precision: 8,
+        pricescale: query.market?.price_group_fixed
+          ? 10 ** query.market.price_group_fixed
+          : 10000,
+        has_intraday: true,
+        has_daily: true,
+        intraday_multipliers: ["1", "5", "15", "30", "60"],
+        has_weekly_and_monthly: true,
+      })
+    );
+  }
+
+  getBar(resolution) {
+    let bar;
+    switch (resolution) {
+      case "1":
+        bar = "1m";
+        break;
+      case "5":
+        bar = "5m";
+        break;
+      case "15":
+        bar = "15m";
+        break;
+      case "30":
+        bar = "30m";
+        break;
+      case "60":
+        bar = "1H";
+        break;
+      case "1W":
+      case "W":
+        bar = "1W";
+        break;
+      case "1D":
+      case "D":
+      default:
+        bar = "1D";
+        break;
+    }
+    return bar;
+  }
+
   async getCandlesticks({ query }) {
     const method = "GET";
     const path = "/api/v5/market/candles";
-    const { instId, bar, after, before, limit } = query;
+    const { instId, resolution, from, to, symbol } = query;
 
     const arr = [];
     if (instId) arr.push(`instId=${instId}`);
-    if (bar) arr.push(`bar=${bar}`);
-    if (after) arr.push(`after=${after}`);
-    if (before) arr.push(`before=${before}`);
-    if (limit) arr.push(`limit=${limit}`);
+    if (resolution) arr.push(`bar=${this.getBar(resolution)}`);
+    if (from) arr.push(`after=${parseInt(from)*1000}`);
+    if (to) arr.push(`before=${parseInt(to)*1000}`);
     const qs = !!arr.length ? `?${arr.join("&")}` : "";
 
     try {
@@ -350,14 +425,33 @@ class OkexConnector extends ConnectorBase {
           code: Codes.THIRD_PARTY_API_ERROR,
         });
       }
+      const data = {
+        s: "ok",
+        t: [],
+        o: [],
+        h: [],
+        l: [],
+        c: [],
+        v: [],
+      };
 
-      const payload = res.data.data.map((data) => {
-        const ts = data.shift();
-        return [parseInt(ts), ...data];
+      res.data.data.forEach((data) => {
+        const ts = parseInt(data[0]);
+        const o = parseFloat(data[1]);
+        const h = parseFloat(data[2]);
+        const l = parseFloat(data[3]);
+        const c = parseFloat(data[4]);
+        const v = parseFloat(data[5]);
+        data.t.push(ts);
+        data.o.push(o);
+        data.h.push(h);
+        data.l.push(l);
+        data.c.push(c);
+        data.v.push(v);
       });
       return new ResponseFormat({
         message: "getCandlestick",
-        payload,
+        payload: data,
       });
     } catch (error) {
       this.logger.error(error);
@@ -1305,6 +1399,7 @@ class OkexConnector extends ConnectorBase {
       high: data.high24h,
       low: data.low24h,
       volume: data.vol24h,
+      volumeCcy: data.volCcy24h,
       at: parseInt(SafeMath.div(data.ts, "1000")),
       ts: parseInt(data.ts),
       source: SupportedExchange.OKEX,
@@ -1362,7 +1457,7 @@ class OkexConnector extends ConnectorBase {
         instId,
       },
     ];
-    this.logger.debug(`[${this.constructor.name}]_subscribeTrades`, args)
+    this.logger.debug(`[${this.constructor.name}]_subscribeTrades`, args);
     this.websocket.ws.send(
       JSON.stringify({
         op: "subscribe",
