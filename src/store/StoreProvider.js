@@ -269,8 +269,8 @@ const StoreProvider = (props) => {
       setSelectedTicker(middleman.getTicker());
     }
     if (time - depthTs > depthInterval) {
-      // console.log(`middleman.getBooks()`, middleman.getBooks());
-      setBooks(middleman.getBooks());
+      // console.log(`middleman.getDepthBooks()`, middleman.getDepthBooks());
+      setBooks(middleman.getDepthBooks());
     }
     if (time - tradeTs > tradeInterval) {
       // console.log(`middleman.getTrades()`, middleman.getTrades());

@@ -282,12 +282,10 @@ class OkexConnector extends ConnectorBase {
 
     const arr = [];
     if (instId) arr.push(`instId=${instId}`);
-    if (sz) arr.push(`sz=${sz}`);
+    if (sz) arr.push(`sz=${25}`);
+    // if (sz) arr.push(`sz=${sz}`); // -- TEST
     const qs = !!arr.length ? `?${arr.join("&")}` : "";
-    // this.logger.log(
-    //   `[${this.constructor.name}] getDepthBooks this.fetchedBook[${instId}]`,`url`,`${this.domain}${path}${qs}`,
-    //   this.fetchedBook[instId]
-    // );
+
     if (!this.fetchedBook[instId]) {
       try {
         const res = await axios({
@@ -304,10 +302,6 @@ class OkexConnector extends ConnectorBase {
           });
         }
         const [data] = res.data.data;
-        // const depthBooks = [];
-        // depthBooks["market"] = instId.replace("-", "").toLowerCase();
-        // depthBooks["asks"] = data.asks.map((ask) => [ask[0], ask[1]]);
-        // depthBooks["bids"] = data.bids.map((bid) => [bid[0], bid[1]]);
         this.depthBook.updateAll(instId, data);
       } catch (error) {
         this.logger.error(error);
@@ -320,10 +314,9 @@ class OkexConnector extends ConnectorBase {
         });
       }
     }
-    // this.logger.log(
-    //   `[${this.constructor.name}] getDepthBooks this.depthBook.getSnapshot([${instId}]`,
-    //   this.depthBook.getSnapshot(instId)
-    // );
+    this.logger.log(`=+===+===+== [UPDATE][API][START](${instId})  =+===+===+==`);
+    this.logger.log( this.depthBook.getSnapshot(instId));
+    this.logger.log(`=+===+===+== [UPDATE][API][END](${instId})  =+===+===+==`);
     return new ResponseFormat({
       message: "getDepthBooks",
       payload: this.depthBook.getSnapshot(instId),
@@ -380,10 +373,10 @@ class OkexConnector extends ConnectorBase {
 
   async getTrades({ query }) {
     const { instId, limit } = query;
-    this.logger.log(
-      `[${this.constructor.name}] getTrades this.fetchedTrades[${instId}]`,
-      this.fetchedTrades[instId]
-    );
+    // this.logger.log(
+    //   `[${this.constructor.name}] getTrades this.fetchedTrades[${instId}]`,
+    //   this.fetchedTrades[instId]
+    // );
     if (!this.fetchedTrades[instId]) {
       const method = "GET";
       const path = "/api/v5/market/trades";
@@ -753,7 +746,6 @@ class OkexConnector extends ConnectorBase {
         url: `${this.domain}${path}${qs}`,
         headers: this.getHeaders(true, { timeString, okAccessSign }),
       });
-      this.logger.debug(res.data);
       if (res.data && res.data.code !== "0") {
         const message = JSON.stringify(res.data);
         this.logger.trace(message);
@@ -862,7 +854,6 @@ class OkexConnector extends ConnectorBase {
         url: `${this.domain}${path}${qs}`,
         headers: this.getHeaders(true, { timeString, okAccessSign }),
       });
-      this.logger.debug(res.data);
       if (res.data && res.data.code !== "0") {
         const message = JSON.stringify(res.data);
         this.logger.trace(message);
@@ -1221,10 +1212,7 @@ class OkexConnector extends ConnectorBase {
     try {
       const market = instId.replace("-", "").toLowerCase();
       const newTrades = this._formateTrades(market, trades);
-      this.logger.debug(
-        `[${this.constructor.name}]_updateTrades`,
-        newTrades,
-      );
+      // this.logger.debug(`[${this.constructor.name}]_updateTrades`, newTrades);
       this.tradeBook.updateByDifference(instId, {
         add: newTrades,
       });
@@ -1239,58 +1227,27 @@ class OkexConnector extends ConnectorBase {
   _updateBooks(instId, data) {
     const [updateBooks] = data;
     const market = instId.replace("-", "").toLowerCase();
-
+    this.logger.log(
+      `[FROM][OKEx][WS] _updateBooks updateBooks.asks`,
+      updateBooks.asks
+    );
+    this.logger.log(
+      `[FROM][OKEx][WS] _updateBooks updateBooks.bids`,
+      updateBooks.bids
+    );
     try {
-      const difference = {
-        updates: [],
-        add: [],
-        remove: [],
-      };
-      updateBooks.asks.forEach((ask) => {
-        if (SafeMath.eq(ask[1], 0)) {
-          difference.remove.push({
-            id: ask[0],
-            price: ask[0],
-            amount: ask[1],
-            side: "asks",
-          });
-        } else {
-          difference.add.push({
-            id: ask[0],
-            price: ask[0],
-            amount: ask[1],
-            side: "asks",
-          });
-        }
-      });
-      updateBooks.bids.forEach((bid) => {
-        if (SafeMath.eq(bid[1], 0)) {
-          difference.remove.push({
-            id: bid[0],
-            price: bid[0],
-            amount: bid[1],
-            side: "bids",
-          });
-        } else {
-          difference.add.push({
-            id: bid[0],
-            price: bid[0],
-            amount: bid[1],
-            side: "bids",
-          });
-        }
-      });
-      this.depthBook.updateByDifference(instId, difference);
+      this.depthBook.updateByDifference(instId, updateBooks);
     } catch (error) {
       // ++
       this.logger.error(`_updateBooks`, error);
     }
 
-    // const timestamp = Date.now();
-    // if (timestamp - this._booksTimestamp > this._booksUpdateInterval) {
-    //   this._booksTimestamp = timestamp;
+    this.logger.log(
+      `[AFTER WS UPDATE] depthBook snapshot(${instId})`,
+      this.depthBook.getSnapshot(instId)
+    );
+
     EventBus.emit(Events.update, market, this.depthBook.getSnapshot(instId));
-    // }
   }
 
   _updateCandle(instId, channel, candleData) {
@@ -1405,7 +1362,7 @@ class OkexConnector extends ConnectorBase {
         instId,
       },
     ];
-    // this.logger.debug(`[${this.constructor.name}]_subscribeTrades`, args)
+    this.logger.debug(`[${this.constructor.name}]_subscribeTrades`, args)
     this.websocket.ws.send(
       JSON.stringify({
         op: "subscribe",
@@ -1431,7 +1388,7 @@ class OkexConnector extends ConnectorBase {
     );
   }
 
-  _subscribeCandle1m(instId, resolution) {
+  _subscribeCandle1m(instId) {
     this.candleChannel = `candle1m`;
     const args = [
       {
@@ -1439,10 +1396,7 @@ class OkexConnector extends ConnectorBase {
         instId,
       },
     ];
-    // this.logger.debug(
-    //   `[${this.constructor.name}]_subscribeCandle${resolution}`,
-    //   args
-    // );
+    this.logger.debug(`[${this.constructor.name}]_subscribeCandle`, args);
     this.websocket.ws.send(
       JSON.stringify({
         op: "subscribe",
@@ -1456,7 +1410,7 @@ class OkexConnector extends ConnectorBase {
       channel: "tickers",
       instId,
     }));
-    // this.logger.debug(`[${this.constructor.name}]_subscribeTickers`, args)
+    this.logger.debug(`[${this.constructor.name}]_subscribeTickers`, args);
     this.websocket.ws.send(
       JSON.stringify({
         op: "subscribe",
@@ -1472,7 +1426,7 @@ class OkexConnector extends ConnectorBase {
         instId,
       },
     ];
-    // this.logger.debug(`[${this.constructor.name}]_unsubscribeTrades`, args)
+    this.logger.debug(`[${this.constructor.name}]_unsubscribeTrades`, args);
     this.websocket.ws.send(
       JSON.stringify({
         op: "unsubscribe",

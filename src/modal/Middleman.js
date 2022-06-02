@@ -36,58 +36,6 @@ class Middleman {
     }
   }
 
-  handleBooks(rawBooks) {
-    let totalAsks = "0",
-      totalBids = "0",
-      asks = [],
-      bids = [],
-      askPx,
-      bidPx;
-    // asks is increase
-    let _asks = rawBooks.asks.splice(0, 100);
-    let _bids = rawBooks.bids.splice(0, 100);
-    _asks?.forEach((d, i) => {
-      totalAsks = SafeMath.plus(d[1], totalAsks);
-      let ask = {
-        price: d[0],
-        amount: d[1],
-        total: totalAsks,
-        update: !!d[2],
-      };
-      if (d[0] === askPx) {
-        asks[asks.length - 1] = ask;
-      } else {
-        askPx = d[0];
-        asks.push(ask);
-      }
-      if (_asks[i][2]) _asks[i].splice(2, 1);
-    });
-    // bids is decrease
-    _bids?.forEach((d, i) => {
-      totalBids = SafeMath.plus(d[1], totalBids);
-      let bid = {
-        price: d[0],
-        amount: d[1],
-        total: totalBids,
-        update: !!d[2],
-      };
-      if (d[0] === bidPx) {
-        bids[bids.length - 1] = bid;
-      } else {
-        bidPx = d[0];
-        bids.push(bid);
-      }
-      if (_bids[i][2]) _bids[i].splice(2, 1);
-    });
-    const updateBooks = {
-      asks,
-      bids,
-      ts: Date.now(),
-      total: SafeMath.plus(totalAsks, totalBids),
-    };
-    return updateBooks;
-  }
-
   async postOrder(order) {
     if (this.isLogin) return await this.communicator.order(order);
   }
@@ -196,7 +144,7 @@ class Middleman {
 
   async _getTrades(id, limit) {
     try {
-      const trades = await this.communicator.trades(id, limit);
+      const trades = await this.communicator.getTrades(id, limit);
       this.tradeBook.updateAll(id, trades);
     } catch (error) {
       console.error(`_getTrades error`, error);
@@ -204,18 +152,18 @@ class Middleman {
     }
   }
 
-  getBooks(market) {
+  getDepthBooks(market) {
     if (!market) market = this.tickerBook.getCurrentTicker()?.market;
     // console.log(`getBooks current market`, market)
     return this.depthBook.getSnapshot(market);
   }
 
-  async _getBooks(id, sz) {
+  async _getDepthBooks(id, sz) {
     try {
-      const depthBook = await this.communicator.books(id, sz);
+      const depthBook = await this.communicator.getDepthBooks(id, sz);
       this.depthBook.updateAll(id, depthBook);
     } catch (error) {
-      console.error(`_getBooks error`, error);
+      console.error(`_getDepthBooks error`, error);
       // throw error;
     }
   }
@@ -260,8 +208,8 @@ class Middleman {
     this.tbWebSocket.setCurrentMarket(market);
     this.tickerBook.setCurrentMarket(market);
     if (!this.tickerBook.getCurrentTicker()) await this._getTicker(market);
-    await this._getBooks(market);
-    await this._getTrades(market);
+    await this._getDepthBooks(market, 30);
+    await this._getTrades(market, 30);
     // if (this.isLogin) {
     // TODO to verify if user is not login would be a problem
     await this._getOrderList(market);

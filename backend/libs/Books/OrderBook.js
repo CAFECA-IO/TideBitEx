@@ -34,12 +34,12 @@ class OrderBook extends BookBase {
     data
       .sort((a, b) => +b.at - +a.at)
       .forEach((d) => {
-        if (pendingOrders.length >= 100 && historyOrders.length >= 100) return;
-        if (d.state === "wait" && pendingOrders.length < 100)
+        if (pendingOrders.length >= 30 && historyOrders.length >= 30) return;
+        if (d.state === "wait" && pendingOrders.length < 30)
           pendingOrders.push(d);
         if (
           (d.state === "canceled" || d.state === "done") &&
-          historyOrders.length < 100
+          historyOrders.length < 30
         )
           historyOrders.push(d);
       });

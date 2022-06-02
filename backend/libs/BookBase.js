@@ -34,14 +34,6 @@ class BookBase {
   // ++ TODO: verify function works properly
   _calculateDifference(arrayA, arrayB) {
     try {
-      // this.logger.log(
-      //   `[${this.constructor.name}] _calculateDifference arrayA`,
-      //   arrayA
-      // );
-      // this.logger.log(
-      //   `[${this.constructor.name}] _calculateDifference arrayB`,
-      //   arrayB
-      // );
       const onlyInLeft = (left, right) =>
         left.filter(
           (leftValue) =>
@@ -52,14 +44,6 @@ class BookBase {
 
       const onlyInA = this._config.remove ? onlyInLeft(arrayA, arrayB) : [];
       const onlyInB = this._config.add ? onlyInLeft(arrayB, arrayA) : [];
-      // this.logger.log(
-      //   `[${this.constructor.name}] _calculateDifference onlyInA`,
-      //   onlyInA
-      // );
-      // this.logger.log(
-      //   `[${this.constructor.name}] _calculateDifference onlyInB`,
-      //   onlyInB
-      // );
       return {
         remove: onlyInA,
         add: onlyInB,
@@ -111,7 +95,7 @@ class BookBase {
       : str1 === str2;
   }
 
-  // control data length 
+  // control data length
   // implement in TradeBook & DepthBook
   _trim(data) {
     return data;
@@ -124,12 +108,6 @@ class BookBase {
    */
   // ++ TODO: verify function works properly
   updateByDifference(instId, difference) {
-    // this.logger.log(
-    //   `[${this.constructor.name}] updateByDifference[${instId}] this._config`,
-    //   this._config,
-    //   `difference`,
-    //   difference
-    // );
     let updateSnapshot;
     try {
       if (this._config.remove) {
@@ -147,10 +125,6 @@ class BookBase {
           .concat(difference.add);
       }
       this._snapshot[instId] = this._trim(updateSnapshot);
-      // this.logger.log(
-      //   `[${this.constructor.name}] updateByDifference[${instId}]  this._snapshot[instId]`,
-      //    this._snapshot[instId]
-      // );
       this._difference[instId] = difference;
       return true;
     } catch (error) {
@@ -169,37 +143,12 @@ class BookBase {
    */
   // ++ TODO: verify function works properly
   updateAll(instId, data) {
-    // this.logger.log(
-    //   `[${this.constructor.name}] updateAll[${instId}] this._snapshot[instId]`,
-    //   this._snapshot[instId]
-    // );
-    // this.logger.log(
-    //   `[${this.constructor.name}] updateAll[${instId}] data`,
-    //   data
-    // );
     try {
       this._difference[instId] = this._calculateDifference(
         this._snapshot[instId],
         data
       );
-      // this.logger.log(
-      //   `[${this.constructor.name}] updateAll this._difference[${instId}]`,
-      //   this._difference[instId]
-      // );
-      // this.logger.log(
-      //   `[${this.constructor.name}] updateAll data[${instId}]`,
-      //   data[instId]
-      // );
       this._snapshot[instId] = this._trim(data);
-      // this.logger.log(
-      //   `[${this.constructor.name}] updateAll this._snapshot[${instId}]`,
-      //   this._snapshot[instId]
-      // );
-      // return {
-      //   success: true,
-      //   snapshot: this._snapshot[instId],
-      //   difference: this._difference[instId],
-      // };
     } catch (error) {
       this.logger.error(`[${this.constructor.name}] updateAll error`, error);
       return false;
