@@ -428,12 +428,15 @@ class OkexConnector extends ConnectorBase {
     const path = "/api/v5/market/candles";
     const { instId, resolution, from, to, symbol } = query;
 
+    this.logger.log(`from - to > 0`, from - to > 0);
+
     const arr = [];
     if (instId) arr.push(`instId=${instId}`);
     if (resolution) arr.push(`bar=${this.getBar(resolution)}`);
     if (from) arr.push(`after=${parseInt(from) * 1000}`);
     if (to) arr.push(`before=${parseInt(to) * 1000}`);
     const qs = !!arr.length ? `?${arr.join("&")}` : "";
+    this.logger.log(`getTradingViewHistory arr`, arr);
 
     try {
       const res = await axios({
@@ -449,7 +452,7 @@ class OkexConnector extends ConnectorBase {
           code: Codes.THIRD_PARTY_API_ERROR,
         });
       }
-      this.logger.log(`getTradingViewHistory res.data.data`, res.data.data);
+
       const data = {
         s: "ok",
         t: [],
@@ -460,13 +463,13 @@ class OkexConnector extends ConnectorBase {
         v: [],
       };
 
-      res.data.data.forEach((data) => {
-        const ts = parseInt(data[0]);
-        const o = parseFloat(data[1]);
-        const h = parseFloat(data[2]);
-        const l = parseFloat(data[3]);
-        const c = parseFloat(data[4]);
-        const v = parseFloat(data[5]);
+      res.data.data.forEach((d) => {
+        const ts = parseInt(d[0]);
+        const o = parseFloat(d[1]);
+        const h = parseFloat(d[2]);
+        const l = parseFloat(d[3]);
+        const c = parseFloat(d[4]);
+        const v = parseFloat(d[5]);
         data.t.push(ts);
         data.o.push(o);
         data.h.push(h);
