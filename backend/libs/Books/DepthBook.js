@@ -191,13 +191,13 @@ class DepthBook extends BookBase {
    * @param {Array<Depth>} data
    */
   updateAll(instId, data) {
-    this.logger.log(
-      `=*===*===*== [FROM][OKEx][API][START](${instId})  =*===*===*==`
-    );
-    this.logger.log(data);
-    this.logger.log(
-      `=*===*===*== [FROM][OKEx][API][END](${instId})  =*===*===*==`
-    );
+    // this.logger.log(
+    //   `=*===*===*== [FROM][OKEx][API][START](${instId})  =*===*===*==`
+    // );
+    // this.logger.log(data);
+    // this.logger.log(
+    //   `=*===*===*== [FROM][OKEx][API][END](${instId})  =*===*===*==`
+    // );
     return super.updateAll(instId, this._formateBooks(data));
   }
 }
