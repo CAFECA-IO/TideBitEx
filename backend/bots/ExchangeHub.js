@@ -266,10 +266,6 @@ class ExchangeHub extends Bot {
     }
   }
 
-  async getMemberIdFromRedis(peatioSession) {
-    return this.tideBitConnector.getMemberIdFromRedis(peatioSession);
-  }
-
   async getUsersAccounts() {
     // return new ResponseFormat({
     //   message:'test',
@@ -431,6 +427,8 @@ class ExchangeHub extends Bot {
 
   async getTradingViewSymbol({ query }) {
     const id = decodeURIComponent(query.symbol).replace("/", "").toLowerCase();
+    this.logger.log(`getTradingViewSymbol query`,query)
+    this.logger.log(`getTradingViewSymbol id`,id)
     const instId = this._findInstId(id);
     const market = this.tidebitMarkets.find((market) => market.id === id);
     switch (this._findSource(instId)) {
