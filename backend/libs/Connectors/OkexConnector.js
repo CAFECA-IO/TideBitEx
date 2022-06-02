@@ -428,7 +428,6 @@ class OkexConnector extends ConnectorBase {
     const path = "/api/v5/market/candles";
     const { instId, resolution, from, to, symbol } = query;
 
-
     const arr = [];
     if (instId) arr.push(`instId=${instId}`);
     if (resolution) arr.push(`bar=${this.getBar(resolution)}`);
@@ -465,20 +464,22 @@ class OkexConnector extends ConnectorBase {
         v: [],
       };
       // this.logger.log(`getTradingViewHistory res.data.data`, res.data.data);
-      res.data.data.sort((a,b)=> a[0]-b[0]).forEach((d) => {
-        const ts = parseInt(d[0])/1000;
-        const o = parseFloat(d[1]);
-        const h = parseFloat(d[2]);
-        const l = parseFloat(d[3]);
-        const c = parseFloat(d[4]);
-        const v = parseFloat(d[5]);
-        data.t.push(ts);
-        data.o.push(o);
-        data.h.push(h);
-        data.l.push(l);
-        data.c.push(c);
-        data.v.push(v);
-      });
+      res.data.data
+        .sort((a, b) => a[0] - b[0])
+        .forEach((d) => {
+          const ts = parseInt(d[0]) / 1000;
+          const o = parseFloat(d[1]);
+          const h = parseFloat(d[2]);
+          const l = parseFloat(d[3]);
+          const c = parseFloat(d[4]);
+          const v = parseFloat(d[5]);
+          data.t.push(ts);
+          data.o.push(o);
+          data.h.push(h);
+          data.l.push(l);
+          data.c.push(c);
+          data.v.push(v);
+        });
       // this.logger.log(`getTradingViewHistory data`, data);
       return data;
     } catch (error) {
