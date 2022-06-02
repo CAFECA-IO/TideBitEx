@@ -451,7 +451,10 @@ class ExchangeHub extends Bot {
     const instId = this._findInstId(query.symbol);
     switch (this._findSource(instId)) {
       case SupportedExchange.OKEX:
-        return this.okexConnector.router("getTradingViewHistory", { query });
+        return this.okexConnector.router("getTradingViewHistory", {
+          query,
+          instId,
+        });
       case SupportedExchange.TIDEBIT:
       default:
         return new ResponseFormat({

@@ -325,6 +325,54 @@ class OkexConnector extends ConnectorBase {
     });
   }
 
+  async getCandlesticks({ query }) {
+    const method = "GET";
+    const path = "/api/v5/market/candles";
+    const { instId, bar, after, before, limit } = query;
+
+    const arr = [];
+    if (instId) arr.push(`instId=${instId}`);
+    if (bar) arr.push(`bar=${bar}`);
+    if (after) arr.push(`after=${after}`);
+    if (before) arr.push(`before=${before}`);
+    if (limit) arr.push(`limit=${limit}`);
+    const qs = !!arr.length ? `?${arr.join("&")}` : "";
+
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}${qs}`,
+        headers: this.getHeaders(false),
+      });
+      if (res.data && res.data.code !== "0") {
+        const message = JSON.stringify(res.data);
+        this.logger.trace(message);
+        return new ResponseFormat({
+          message,
+          code: Codes.THIRD_PARTY_API_ERROR,
+        });
+      }
+
+      const payload = res.data.data.map((data) => {
+        const ts = data.shift();
+        return [parseInt(ts), ...data];
+      });
+      return new ResponseFormat({
+        message: "getCandlestick",
+        payload,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      let message = error.message;
+      if (error.response && error.response.data)
+        message = error.response.data.msg;
+      return new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
   async getTradingViewSymbol({ query }) {
     return Promise.resolve({
       name: query.symbol,
@@ -373,54 +421,6 @@ class OkexConnector extends ConnectorBase {
         break;
     }
     return bar;
-  }
-
-  async getCandlesticks({ query }) {
-    const method = "GET";
-    const path = "/api/v5/market/candles";
-    const { instId, bar, after, before, limit } = query;
-
-    const arr = [];
-    if (instId) arr.push(`instId=${instId}`);
-    if (bar) arr.push(`bar=${bar}`);
-    if (after) arr.push(`after=${after}`);
-    if (before) arr.push(`before=${before}`);
-    if (limit) arr.push(`limit=${limit}`);
-    const qs = !!arr.length ? `?${arr.join("&")}` : "";
-
-    try {
-      const res = await axios({
-        method: method.toLocaleLowerCase(),
-        url: `${this.domain}${path}${qs}`,
-        headers: this.getHeaders(false),
-      });
-      if (res.data && res.data.code !== "0") {
-        const message = JSON.stringify(res.data);
-        this.logger.trace(message);
-        return new ResponseFormat({
-          message,
-          code: Codes.THIRD_PARTY_API_ERROR,
-        });
-      }
-
-      const payload = res.data.data.map((data) => {
-        const ts = data.shift();
-        return [parseInt(ts), ...data];
-      });
-      return new ResponseFormat({
-        message: "getCandlestick",
-        payload,
-      });
-    } catch (error) {
-      this.logger.error(error);
-      let message = error.message;
-      if (error.response && error.response.data)
-        message = error.response.data.msg;
-      return new ResponseFormat({
-        message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
-    }
   }
 
   async getTradingViewHistory({ query }) {
