@@ -25,7 +25,7 @@ class OkexConnector extends ConnectorBase {
   // _tradesTimestamp = 0;
 
   tickers = {};
-  // okexWsChannels = {};
+  okexWsChannels = {};
   instIds = [];
 
   fetchedTrades = {};
@@ -791,12 +791,12 @@ class OkexConnector extends ConnectorBase {
           ts: parseInt(data.uTime),
         };
       });
-      this.logger.log(
-        `[${this.constructor.name} getOrderList] instId:`,
-        instId,
-        `orders`,
-        orders
-      );
+      // this.logger.log(
+      //   `[${this.constructor.name} getOrderList] instId:`,
+      //   instId,
+      //   `orders`,
+      //   orders
+      // );
       this.orderBook.updateAll(memberId, instId, orders);
       // return new ResponseFormat({
       //   message: "getOrderList",
@@ -1067,27 +1067,26 @@ class OkexConnector extends ConnectorBase {
   _okexWsEventListener() {
     this.websocket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      // this.logger.log('_okexWsEventListener', data);
       if (data.event) {
         // subscribe return
         const arg = { ...data.arg };
         const channel = arg.channel;
         delete arg.channel;
-        // this.logger.log(
-        //   `!!! _okexWsEventListener this.okexWsChannels[${channel}]`,
-        //   this.okexWsChannels[channel]
-        // );
         const values = Object.values(arg);
         if (data.event === "subscribe") {
-          // this.okexWsChannels[channel] = this.okexWsChannels[channel] || {};
-          // this.okexWsChannels[channel][values[0]] =
-          //   this.okexWsChannels[channel][values[0]] || {};
+          this.okexWsChannels[channel] = this.okexWsChannels[channel] || {};
+          this.logger.log(
+            `_okexWsEventListener this.okexWsChannels[${channel}]`,
+            this.okexWsChannels[channel]
+          );
+          this.okexWsChannels[channel][values[0]] =
+            this.okexWsChannels[channel][values[0]] || {};
         } else if (data.event === "unsubscribe") {
-          // delete this.okexWsChannels[channel][values[0]];
+          delete this.okexWsChannels[channel][values[0]];
           // ++ TODO ws onClose clean channel
-          // if (!Object.keys(this.okexWsChannels[channel]).length) {
-          //   delete this.okexWsChannels[channel];
-          // }
+          if (!Object.keys(this.okexWsChannels[channel]).length) {
+            delete this.okexWsChannels[channel];
+          }
         } else if (data.event === "error") {
           this.logger.log("!!! _okexWsEventListener on event error", data);
         }
@@ -1111,8 +1110,7 @@ class OkexConnector extends ConnectorBase {
             }
             break;
           case this.candleChannel:
-            // this.logger.log(`this.candleChannel`, this.candleChannel, data);
-            // this._updateCandle(values[0], data.channel, data.data);
+            this._updateCandle(data.arg.instId, data.arg.channel, data.data);
             break;
           case "tickers":
             this._updateTickers(data.data);
@@ -1196,27 +1194,30 @@ class OkexConnector extends ConnectorBase {
 
   // ++ TODO: verify function works properly
   _formateTrades(market, trades) {
-    return trades.map((data) => ({
-      tid: data.tradeId, // [about to decrepted]
-      type: data.side, // [about to decrepted]
-      date: data.ts, // [about to decrepted]
-      amount: data.sz, // [about to decrepted]
-      id: data.tradeId,
-      price: data.px,
-      volume: data.sz,
-      market,
-      at: parseInt(SafeMath.div(data.ts, "1000")),
-      ts: data.ts,
-    }));
+    return trades.map((data) => {
+      const trade = {
+        tid: data.tradeId, // [about to decrepted]
+        type: data.side, // [about to decrepted]
+        date: data.ts, // [about to decrepted]
+        amount: data.sz, // [about to decrepted]
+        id: data.tradeId,
+        price: data.px,
+        volume: data.sz,
+        market,
+        at: parseInt(SafeMath.div(data.ts, "1000")),
+        ts: data.ts,
+      };
+      // this.logger.debug(
+      //   `[${this.constructor.name}]_updateTrades`,
+      //   market,
+      //   new Date(trade.ts)
+      // );
+      return trade;
+    });
   }
 
   // ++ TODO: verify function works properly
   async _updateTrades(instId, newTrades) {
-    // this.logger.debug(
-    //   `[${this.constructor.name}]_updateTrades`,
-    //   instId,
-    //   newTrades
-    // );
     try {
       const market = instId.replace("-", "").toLowerCase();
       this.tradeBook.updateByDifference(instId, {
@@ -1290,8 +1291,14 @@ class OkexConnector extends ConnectorBase {
 
   _updateCandle(instId, channel, candleData) {
     // this.candleChannel = channel;
-    // this.okexWsChannels[channel][instId] = candleData;
-    // this.logger.debug(`[${this.constructor.name}]_updateCandle`, instId, candleData);
+    // this.logger.debug(
+    //   `[${this.constructor.name}]_updateCandle  this.okexWsChannels[${this.candleChannel}]`,
+    //   this.okexWsChannels,
+    //   instId,
+    //   channel,
+    //   candleData
+    // );
+    this.okexWsChannels[this.candleChannel][instId] = candleData;
     const formatCandle = candleData
       .map((data) => ({
         time: parseInt(data[0]),
@@ -1359,10 +1366,18 @@ class OkexConnector extends ConnectorBase {
   // ++ TODO: verify function works properly
   _updateTickers(data) {
     data.forEach((d) => {
-      const updateTicker = this._formateTicker(d);
-      const result = this.tickerBook.updateByDifference(d.instId, updateTicker);
-      if (result)
-        EventBus.emit(Events.tickers, this.tickerBook.getDifference());
+      if (d.instId === "BTC-USDT")
+        this.logger.log(
+          `[${this.constructor.name}]_updateTickers d.last`,
+          d.last,
+          new Date(parseInt(d.ts)).toISOString()
+        );
+      if (this._findSource(d.instId) === SupportedExchange.OKEX) {
+        const ticker = this._formateTicker(d);
+        const result = this.tickerBook.updateByDifference(d.instId, ticker);
+        if (result)
+          EventBus.emit(Events.tickers, this.tickerBook.getDifference());
+      }
     });
   }
 
@@ -1543,12 +1558,9 @@ class OkexConnector extends ConnectorBase {
       );
       this.logger.log(`_subscribeMarket instId`, instId);
       this.logger.log(`_subscribeMarket market`, market);
-
-      // this._booksTimestamp = 0;
-      // this._tradesTimestamp = 0;
-
       this._subscribeTrades(instId);
       this._subscribeBook(instId);
+      this._subscribeCandle1m(instId);
       this.logger.log(
         `++++++++ [${this.constructor.name}]  _subscribeMarket [END] ++++++`
       );
@@ -1565,7 +1577,7 @@ class OkexConnector extends ConnectorBase {
       this.logger.log(`_unsubscribeMarket instId`, instId);
       this._unsubscribeTrades(instId);
       this._unsubscribeBook(instId);
-      // this._unsubscribeCandle1m(instId);
+      this._unsubscribeCandle1m(instId);
       this.logger.log(
         `---------- [${this.constructor.name}]  _unsubscribeMarket [END] ----------`
       );

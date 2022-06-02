@@ -38,30 +38,35 @@ class TickerBook extends BookBase {
    */
   _compareFunction(valueA, valueB) {
     return (
-      valueA?.instId === valueB.instId &&
-      valueA?.source === valueB.source &&
-      SafeMath.eq(valueA?.open, valueB.open) &&
-      (!SafeMath.eq(valueA?.last, valueB.last) ||
-        // !SafeMath.eq(valueA?.open, valueB.open) ||
-        !SafeMath.eq(valueA?.high, valueB.high) ||
-        !SafeMath.eq(valueA?.low, valueB.low) ||
-        !SafeMath.eq(valueA?.volume, valueB.volume))
+      !valueA ||
+      (valueA?.instId === valueB.instId &&
+        (!SafeMath.eq(valueA?.last, valueB.last) ||
+          !SafeMath.eq(valueA?.open, valueB.open) ||
+          !SafeMath.eq(valueA?.high, valueB.high) ||
+          !SafeMath.eq(valueA?.low, valueB.low) ||
+          !SafeMath.eq(valueA?.volume, valueB.volume)))
     );
   }
 
   updateByDifference(instId, ticker) {
     this._difference = {};
+    // this.logger.log(
+    //   `[${this.constructor.name}]  this._compareFunction(this._snapshot[${instId}], ticker)`,
+    //   this._compareFunction(this._snapshot[instId], ticker)
+    // );
     try {
       if (this._compareFunction(this._snapshot[instId], ticker)) {
         this._difference[instId] = ticker;
         this._snapshot[instId] = ticker;
-        // if (ticker.market === "ethhkd")
-        //   this.logger.log(
-        //     `[${this.constructor.name}]  this._difference`,
-        //     this._difference
-        //   );
         return true;
-      } else return false;
+      } else {
+        //   this.logger.log(
+        //     `[${this.constructor.name}]  this._snapshot[instId]`,
+        //     this._snapshot[instId]
+        //   );
+        //   this.logger.log(`[${this.constructor.name}]  ticker`, ticker);
+        return false;
+      }
     } catch (error) {
       this.logger.error(`[${this.constructor.name}] error`, error);
       return false;

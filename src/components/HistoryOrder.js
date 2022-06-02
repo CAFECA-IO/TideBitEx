@@ -41,20 +41,28 @@ export const OrderTile = (props) => {
           </div>
         )}
       </li>
-      <li>{formateDecimal(props.order.price, 8)}</li>
       <li>
-        {formateDecimal(
+        {
+          // formateDecimal(props.order.price, { decimalLength: 4 })
+          props.order.price
+        }
+      </li>
+      <li>
+        {/* {formateDecimal(
           props.order.state === "wait"
             ? props.order.volume
             : props.order.origin_volume,
-          8
-        )}
+          { decimalLength: 4 }
+        )} */}
+        {props.order.state === "wait"
+          ? props.order.volume
+          : props.order.origin_volume}
       </li>
       <li>
-        {formateDecimal(
-          SafeMath.mult(props.order.price, props.order.volume),
-          8
-        )}
+        {/* {formateDecimal(SafeMath.mult(props.order.price, props.order.volume), {
+          decimalLength: 4,
+        })} */}
+        {SafeMath.mult(props.order.price, props.order.volume)}
       </li>
       {/* <li>{props.order.fillSz}</li> */}
       {/* <li>{SafeMath.minus(props.order.volume, props.order.fillSz)}</li> */}
@@ -76,9 +84,9 @@ const AccountTile = (props) => {
       <li>{props.account.currency || "--"}</li>
       {/* <li>{props.account.eq || "--"}</li>
       <li>{props.account.cashBal || "--"}</li>*/}
-      <li>{formateDecimal(props.account.total)}</li>
-      <li>{formateDecimal(props.account.balance)}</li>
-      <li>{formateDecimal(props.account.locked)}</li>
+      <li>{formateDecimal(props.account.total, { decimalLength: 2 })}</li>
+      <li>{formateDecimal(props.account.balance, { decimalLength: 2 })}</li>
+      <li>{formateDecimal(props.account.locked, { decimalLength: 2 })}</li>
       {/* -- TODO: check api return object */}
       {/* <li>{props.account.interest || "--"}</li> */}
     </ul>
@@ -99,11 +107,11 @@ export const AccountMobileTile = (props) => {
       </div>
       <div className="mobile-account__subtitle">
         <div className="mobile-account__balance">
-          {formateDecimal(props.account?.balance, 8)}
+          {formateDecimal(props.account?.balance, { decimalLength: 8 })}
         </div>
         <div className="mobile-account__locked">
           <BiLock />
-          {formateDecimal(props.account?.locked, 8)}
+          {formateDecimal(props.account?.locked, { decimalLength: 8 })}
         </div>
       </div>
     </li>

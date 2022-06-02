@@ -218,6 +218,16 @@ class TibeBitConnector extends ConnectorBase {
       change,
       changePct,
       source: SupportedExchange.TIDEBIT,
+      ticker: {
+        // [about to decrepted]
+        buy: data.buy,
+        sell: data.sell,
+        low: data.low,
+        high: data.high,
+        last: data.last,
+        open: data.open,
+        vol: data.volume,
+      },
     };
     return updateTicker;
     // });
@@ -242,14 +252,18 @@ class TibeBitConnector extends ConnectorBase {
     at: 1649742406
   },}
     */
+    // this.logger.log(`[${this.constructor.name}]_updateTickers data`, data);
     Object.values(data).forEach((d) => {
       const ticker = this._formateTicker(d);
-      const result = this.tickerBook.updateByDifference(ticker.instId, ticker);
-      // ++ BUG ethhkd & btchkd OPEN will turn 0
-      // if (ticker.market === "ethhkd")
-      //   this.logger.error(`_updateTickers updateTicker`, ticker);
-      if (result)
-        EventBus.emit(Events.tickers, this.tickerBook.getDifference());
+      if (this._findSource(ticker.instId)===SupportedExchange.TIDEBIT) {
+        const result = this.tickerBook.updateByDifference(
+          ticker.instId,
+          ticker
+        );
+        // ++ BUG ethhkd & btchkd OPEN will turn 0
+        if (result)
+          EventBus.emit(Events.tickers, this.tickerBook.getDifference());
+      }
     });
   }
 
@@ -1131,6 +1145,10 @@ class TibeBitConnector extends ConnectorBase {
   _unregisterMarketChannel(market, wsId) {
     if (!this.isStart || !this.market_channel[`market-${market}-global`])
       return;
+    this.logger.log(
+      `_unregisterMarketChannel this.market_channel[market-${market}-global]`,
+      this.market_channel[`market-${market}-global`]
+    );
     try {
       if (
         this.market_channel[`market-${market}-global`]["listener"]?.length > 0
@@ -1143,16 +1161,23 @@ class TibeBitConnector extends ConnectorBase {
             index,
             1
           );
-      } else {
+      }
+      if (
+        this.market_channel[`market-${market}-global`]["listener"]?.length === 0
+      ) {
         this.market_channel[`market-${market}-global`]["channel"]?.unbind();
         this.public_pusher?.unsubscribe(`market-${market}-global`);
         delete this.market_channel[`market-${market}-global`];
       }
+      this.logger.log(
+        `_unregisterMarketChannel this.market_channel`,
+        this.market_channel
+      );
       if (Object.keys(this.market_channel).length === 0) {
-        this.start = false;
         this._unregisterGlobalChannel();
-        delete this.public_pusher;
+        this.market_channel = {};
         this.public_pusher = null;
+        this.isStart = false;
       }
     } catch (error) {
       this.logger.error(`_unregisterMarketChannel error`, error);

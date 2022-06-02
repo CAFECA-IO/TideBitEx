@@ -154,7 +154,7 @@ class Middleman {
   }
 
   getTickers() {
-    return Object.values(this.tickerBook.getSnapshot());
+    return this.tickerBook.getSnapshot();
   }
 
   async _getTickers(instType = "SPOT", from, limit) {
@@ -165,13 +165,20 @@ class Middleman {
       instruments = await this.communicator.instruments(instType);
     } catch (error) {
       console.error(`get instruments error`, error);
-      // throw error;
+      throw error;
     }
     try {
       rawTickers = await this.communicator.tickers(instType, from, limit);
       Object.values(rawTickers).forEach((t) => {
         let instrument = instruments.find((i) => i.instId === t.instId);
-        const ticker = { ...t, minSz: instrument?.minSz || "0.001" };
+        const ticker = {
+          ...t,
+          tickSz: instrument?.tickSz || "0.01", //下单价格精度，如 0.0001
+          lotSz: instrument?.lotSz || "0.01", //下单数量精度，如 BTC-USDT-SWAP：1
+          minSz: instrument?.minSz || "0.01", //最小下单数量
+          maxLmtSz: instrument?.maxLmtSz || "10000", //合约或现货限价单的单笔最大委托数量
+          maxMktSz: instrument?.maxMktSz || "99999", //合约或现货市价单的单笔最大委托数量
+        };
         tickers[ticker.instId] = ticker;
       });
       this.tickerBook.updateAll(tickers);
@@ -268,27 +275,45 @@ class Middleman {
       // console.log(metaData);
       switch (metaData.type) {
         case Events.account:
-          console.log(`_tbWSEventListener Events.account`, metaData)
-          console.log(`_tbWSEventListener this.accountBook.getSnapshot`, this.accountBook.getSnapshot())
+          console.log(`_tbWSEventListener Events.account`, metaData);
+          console.log(
+            `_tbWSEventListener this.accountBook.getSnapshot`,
+            this.accountBook.getSnapshot()
+          );
           this.accountBook.updateByDifference(metaData.data);
-          console.log(`_tbWSEventListener this.accountBook.getSnapshot`, this.accountBook.getSnapshot())
+          console.log(
+            `_tbWSEventListener this.accountBook.getSnapshot`,
+            this.accountBook.getSnapshot()
+          );
           break;
         case Events.update:
           this.depthBook.updateAll(metaData.data.market, metaData.data);
           break;
         case Events.order:
-          console.log(`_tbWSEventListener Events.order`, metaData)
-          console.log(`_tbWSEventListener this.orderBook.getSnapshot`, this.orderBook.getSnapshot(metaData.data.market))
+          console.log(`_tbWSEventListener Events.order`, metaData);
+          console.log(
+            `_tbWSEventListener this.orderBook.getSnapshot`,
+            this.orderBook.getSnapshot(metaData.data.market)
+          );
           this.orderBook.updateByDifference(
             metaData.data.market,
             metaData.data.difference
           );
-          console.log(`_tbWSEventListener this.orderBook.getSnapshot`, this.orderBook.getSnapshot(metaData.data.market))
+          console.log(
+            `_tbWSEventListener this.orderBook.getSnapshot`,
+            this.orderBook.getSnapshot(metaData.data.market)
+          );
           break;
         case Events.tickers:
+          // if (metaData.data["BTC-USDT"])
+          //   console.log(
+          //     `middleman metaData.data["BTC-USDT"].last`,
+          //     metaData.data["BTC-USDT"]?.last
+          //   );
           this.tickerBook.updateByDifference(metaData.data);
           break;
         case Events.trades:
+          // console.log(`middleman metaData.data.trades`, metaData.data.trades);
           this.tradeBook.updateAll(metaData.data.market, metaData.data.trades);
           break;
         case Events.trade:
