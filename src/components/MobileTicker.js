@@ -24,11 +24,14 @@ const MobileTicker = (props) => {
         >
           {!storeCtx.selectedTicker
             ? "-- %"
-            : `${
-                SafeMath.gte(props.ticker?.change, "0") ? "+" : "-"
-              }${parseFloat(
-                SafeMath.mult(props.ticker?.changePct, "100")
-              ).toFixed(2)}%`}
+            : `${formateDecimal(
+                SafeMath.mult(storeCtx.selectedTicker?.changePct, "100"),
+                {
+                  decimalLength: 2,
+                  pad: true,
+                  withSign: true,
+                }
+              )}%`}
         </div>
       </div>
       <div className="mobile-ticker__container">

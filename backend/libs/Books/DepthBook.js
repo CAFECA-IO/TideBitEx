@@ -4,14 +4,13 @@ const SafeMath = require("../SafeMath");
 class DepthBook extends BookBase {
   constructor({ logger, markets }) {
     super({ logger, markets });
-    this._config = { remove: true, add: true, update: false };
+    this._config = { remove: true, add: true, update: true };
     this.name = `DepthBook`;
     return this;
   }
 
   /**
    * @typedef {Object} Depth
-   * @property {string} id = price
    * @property {string} price
    * @property {string} amount
    * @property {string} side 'asks' || 'bids'
@@ -78,7 +77,6 @@ class DepthBook extends BookBase {
     const bookArr = [];
     bookObj.asks.forEach((ask) => {
       bookArr.push({
-        id: ask[0],
         price: ask[0],
         amount: ask[1],
         side: "asks",
@@ -86,7 +84,6 @@ class DepthBook extends BookBase {
     });
     bookObj.bids.forEach((bid) => {
       bookArr.push({
-        id: bid[0],
         price: bid[0],
         amount: bid[1],
         side: "bids",
@@ -103,10 +100,10 @@ class DepthBook extends BookBase {
       asks = [],
       bids = [];
     data.forEach((d) => {
-      if (d.side === "asks" && asks.length < 100) {
+      if (d.side === "asks" && asks.length < 25) {// ++ 30 -- TEST
         asks.push(d);
       }
-      if (d.side === "bids" && bids.length < 100) {
+      if (d.side === "bids" && bids.length < 25) {// -- TEST
         bids.push(d);
       }
     });
@@ -124,32 +121,78 @@ class DepthBook extends BookBase {
       });
     return bids.concat(asks);
   }
+  /**
+   *
+   * @param {*} preArr
+   * @param {*} newArr
+   * @param {*} side
+   * @returns {Difference} difference
+   */
+  _getDifference(preArr, newArr) {
+    const difference = {
+      add: [],
+      update: [],
+      remove: [],
+    };
+    const update = preArr;
+    newArr.forEach((data) => {
+      const index = preArr.findIndex(
+        (_data) =>
+          SafeMath.eq(data.price, _data.price) && data.side === _data.side
+      );
+      if (index === -1 && SafeMath.gt(data.amount, "0")) {
+        update.push(data);
+        difference.add.push(data);
+      }
+      if (index !== -1) {
+        if (SafeMath.eq(data.amount, "0")) {
+          update.splice(index, 1);
+          difference.remove.push(data);
+        } else if (!SafeMath.eq(data.amount, preArr[index].amount)) {
+          update[index] = data;
+          difference.update.push(data);
+        }
+      }
+    });
+    return { difference, update };
+  }
 
   /**
    * @typedef {Object} Difference
-   * @property {Arrary<Depth>} updates
+   * @property {Arrary<Depth>} update
    * @property {Arrary<Depth>} add
    * @property {Arrary<Depth>} remove
    *
    * @param {String} instId BTC-USDT
    * @param {Difference} difference
    */
-  //  updateByDifference(instId, difference) {
-  //   try {
-  //     super.updateByDifference(instId, difference);
-  //     this._snapshot[instId] = this._trim(this._snapshot[instId]);
-  //     return true;
-  //   } catch (error) {
-  //     return false;
-  //   }
-  // }
+  updateByDifference(instId, data) {
+    try {
+      const result = this._getDifference(
+        [...this._snapshot[instId]],
+        this._formateBooks(data)
+      );
+      // this.logger.log(`_getDifference update`, result.update);
+      this._snapshot[instId] = this._trim(result.update);
+      this._difference[instId] = this.result.difference;
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
 
   /**
    * @param {String} instId BTC-USDT
    * @param {Array<Depth>} data
    */
   updateAll(instId, data) {
-    // console.log(`[DepthBook updateAll]`, instId, data);
+    this.logger.log(
+      `=*===*===*== [FROM][OKEx][API][START](${instId})  =*===*===*==`
+    );
+    this.logger.log(data);
+    this.logger.log(
+      `=*===*===*== [FROM][OKEx][API][END](${instId})  =*===*===*==`
+    );
     return super.updateAll(instId, this._formateBooks(data));
   }
 }

@@ -6,6 +6,7 @@ class TradeBook extends BookBase {
     super();
     this.name = `TradeBook`;
     this._config = { remove: false, add: true, update: false };
+    this._prevSnapshot = {};
     return this;
   }
 
@@ -25,19 +26,39 @@ class TradeBook extends BookBase {
     return valueA.id === valueB.id;
   }
 
+  updateAll(market, data) {
+    if (!this._snapshot[market]) this._snapshot[market] = [];
+
+    try {
+      this._difference[market] = this._calculateDifference(
+        this._snapshot[market],
+        data
+      );
+      this._snapshot[market] = this._trim(data);
+      if (!this._prevSnapshot[market])
+        this._prevSnapshot[market] = this._snapshot[market];
+    } catch (error) {
+      console.error(`[BookBase] updateAll error`, error);
+      return false;
+    }
+  }
+
   getSnapshot(market) {
     try {
-      if (this._snapshot[market])
-        return this._snapshot[market].map((trade) => {
+      let trades;
+      if (this._snapshot[market]) {
+        trades = this._snapshot[market].map((trade) => {
           if (
-            this._difference[market].add.some((_trade) =>
+            !this._prevSnapshot[market].some((_trade) =>
               this._compareFunction(trade, _trade)
             )
           ) {
             return { ...trade, update: true };
           } else return trade;
         });
-      else return [];
+        this._prevSnapshot[market] = this._snapshot[market];
+      } else trades = [];
+      return trades;
     } catch (error) {
       console.error(`[TradeBook getSnapshot]`, error);
       return false;

@@ -123,7 +123,7 @@ const DepthBook = (props) => {
                 }}
                 type="bids"
                 book={book}
-                key={`bids-${storeCtx.selectedTicker.instId}-${book.id}`}
+                key={`bids-${storeCtx.selectedTicker.instId}-${book.price}`}
                 dataWidth={`${parseFloat(
                   SafeMath.mult(
                     SafeMath.div(book.total, storeCtx.books.total),
@@ -152,7 +152,7 @@ const DepthBook = (props) => {
                   storeCtx.depthBookHandler(book.price, book.amount);
                 }}
                 book={book}
-                key={`asks-${storeCtx.selectedTicker.instId}-${book.id}`}
+                key={`asks-${storeCtx.selectedTicker.instId}-${book.price}`}
                 dataWidth={`${parseFloat(
                   SafeMath.mult(
                     SafeMath.div(book.total, storeCtx.books.total),

@@ -9,6 +9,7 @@ const Utils = require("../Utils");
 const ResponseFormat = require("../ResponseFormat");
 const Codes = require("../../constants/Codes");
 const TideBitLegacyAdapter = require("../TideBitLegacyAdapter");
+const { lte } = require("../SafeMath");
 
 class TibeBitConnector extends ConnectorBase {
   isStart = false;
@@ -50,6 +51,7 @@ class TibeBitConnector extends ConnectorBase {
     tradeBook,
     accountBook,
     orderBook,
+    tidebitMarkets,
   }) {
     await super.init();
     this.app = app;
@@ -69,6 +71,7 @@ class TibeBitConnector extends ConnectorBase {
     this.tradeBook = tradeBook;
     this.accountBook = accountBook;
     this.orderBook = orderBook;
+    this.tidebitMarkets = tidebitMarkets;
     return this;
   }
 
@@ -114,7 +117,17 @@ class TibeBitConnector extends ConnectorBase {
     });
   }
 
+  getDecimal(length) {
+    let num = "0.";
+    for (let i = 0; i < length - 1; i++) {
+      num += "0";
+    }
+    num += "1";
+    return num;
+  }
+
   async getTickers({ optional }) {
+    // this.logger.log(`getTickers tidebitMarkets`, this.tidebitMarkets);
     const tBTickersRes = await axios.get(`${this.peatio}/api/v2/tickers`);
     if (!tBTickersRes || !tBTickersRes.data) {
       return new ResponseFormat({
@@ -129,6 +142,10 @@ class TibeBitConnector extends ConnectorBase {
       const change = SafeMath.minus(
         tickerObj.ticker.last,
         tickerObj.ticker.open
+      );
+      // this.logger.log(`getTickers currId`, currId);
+      const tbTicker = this.tidebitMarkets.find(
+        (market) => market.id === currId
       );
       const changePct = SafeMath.gt(tickerObj.ticker.open, "0")
         ? SafeMath.div(change, tickerObj.ticker.open)
@@ -151,12 +168,19 @@ class TibeBitConnector extends ConnectorBase {
         ts: parseInt(SafeMath.mult(tickerObj.at, "1000")),
         source: SupportedExchange.TIDEBIT,
         ticker: tickerObj.ticker,
+        tickSz: this.getDecimal(tbTicker?.bid?.fixed),
+        lotSz: this.getDecimal(tbTicker?.ask?.fixed),
+        minSz: this.getDecimal(tbTicker?.ask?.fixed),
       };
       return prev;
     }, {});
     const tickers = {};
+
     optional.mask.forEach((market) => {
       let ticker = formatTickers[market.id];
+      const tbTicker = this.tidebitMarkets.find(
+        (_market) => market.id === _market.id
+      );
       if (ticker)
         tickers[market.id] = {
           ...ticker,
@@ -188,6 +212,9 @@ class TibeBitConnector extends ConnectorBase {
           changePct: "0.0",
           at: "0.0",
           source: SupportedExchange.TIDEBIT,
+          tickSz: this.getDecimal(tbTicker?.bid?.fixed),
+          lotSz: this.getDecimal(tbTicker?.ask?.fixed),
+          minSz: this.getDecimal(tbTicker?.ask?.fixed),
         };
       }
     });
@@ -255,7 +282,7 @@ class TibeBitConnector extends ConnectorBase {
     // this.logger.log(`[${this.constructor.name}]_updateTickers data`, data);
     Object.values(data).forEach((d) => {
       const ticker = this._formateTicker(d);
-      if (this._findSource(ticker.instId)===SupportedExchange.TIDEBIT) {
+      if (this._findSource(ticker.instId) === SupportedExchange.TIDEBIT) {
         const result = this.tickerBook.updateByDifference(
           ticker.instId,
           ticker
@@ -373,7 +400,7 @@ class TibeBitConnector extends ConnectorBase {
     // );
     const instId = this._findInstId(market);
     // const difference = {
-    //   updates: [],
+    //   update: [],
     //   add: [],
     //   remove: [],
     // };
@@ -511,10 +538,10 @@ class TibeBitConnector extends ConnectorBase {
 
   // ++ TODO: verify function works properly
   _updateTrades(market, data) {
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _updateTrades [START] ----------`
-    );
-    this.logger.log(`[FROM TideBit market:${market}] data`, data);
+    // this.logger.log(
+    //   `---------- [${this.constructor.name}]  _updateTrades [START] ----------`
+    // );
+    // this.logger.log(`[FROM TideBit market:${market}] data`, data);
     /**
     {
        trades: [
@@ -539,9 +566,9 @@ class TibeBitConnector extends ConnectorBase {
       market,
       trades: this.tradeBook.getSnapshot(instId),
     });
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _updateTrades [END] ----------`
-    );
+    // this.logger.log(
+    //   `---------- [${this.constructor.name}]  _updateTrades [END] ----------`
+    // );
     // }
   }
 

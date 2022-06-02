@@ -119,11 +119,11 @@ class ExchangeHub extends Bot {
 
     // tickersOnUpdate
     EventBus.on(Events.tickers, (updateTickers) => {
-      if (updateTickers["BTC-USDT"])
-        this.logger.log(
-          `[${this.constructor.name}]_updateTickers updateTickers["BTC-USDT"].last`,
-          updateTickers["BTC-USDT"].last
-        );
+      // if (updateTickers["BTC-USDT"])
+      //   this.logger.log(
+      //     `[${this.constructor.name}]_updateTickers updateTickers["BTC-USDT"].last`,
+      //     updateTickers["BTC-USDT"].last
+      //   );
       this.broadcastAllClient({
         type: Events.tickers,
         data: updateTickers,
@@ -207,6 +207,7 @@ class ExchangeHub extends Bot {
           tradeBook: this.tradeBook,
           orderBook: this.orderBook,
           accountBook: this.accountBook,
+          tidebitMarkets: this.tidebitMarkets,
         });
         this.currencies = this.tideBitConnector.currencies;
         return this;

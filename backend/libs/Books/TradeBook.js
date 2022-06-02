@@ -39,7 +39,7 @@ class TradeBook extends BookBase {
   _trim(data) {
     const trimed = data
       .sort((a, b) => +b.at - +a.at)
-      .slice(0, 100)
+      .slice(0, 30)
       .map((trade, i) =>
         !trade.side
           ? {
@@ -58,7 +58,7 @@ class TradeBook extends BookBase {
 
   /**
    * @typedef {Object} Difference
-   * @property {Arrary<Trade>} updates
+   * @property {Arrary<Trade>} update
    * @property {Arrary<Trade>} add
    * @property {Arrary<Trade>} remove
    *
@@ -71,10 +71,10 @@ class TradeBook extends BookBase {
     //   instId,
     //   difference
     // );
-    const add = difference.add.filter(
-      (diff) => !this._snapshot[instId].some((trade) => trade.id === diff.id)
-    );
-    return super.updateByDifference(instId, { add });
+    // const add = difference.add.filter(
+    //   (diff) => !this._snapshot[instId].some((trade) => trade.id === diff.id)
+    // );
+    return super.updateByDifference(instId, difference);
   }
 
   /**
