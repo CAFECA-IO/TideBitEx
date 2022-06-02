@@ -449,6 +449,7 @@ class OkexConnector extends ConnectorBase {
           code: Codes.THIRD_PARTY_API_ERROR,
         });
       }
+      this.logger.log(`getTradingViewHistory res.data.data`, res.data.data);
       const data = {
         s: "ok",
         t: [],
@@ -474,7 +475,7 @@ class OkexConnector extends ConnectorBase {
         data.v.push(v);
       });
       return new ResponseFormat({
-        message: "getCandlestick",
+        message: "getTradingViewHistory",
         payload: data,
       });
     } catch (error) {
