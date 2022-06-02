@@ -430,7 +430,7 @@ class ExchangeHub extends Bot {
   }
 
   async getTradingViewSymbol({ query }) {
-    const id = query.symbol.replace("/", "").toLowerCase();
+    const id = decodeURIComponent(query.symbol).replace("/", "").toLowerCase();
     const instId = this._findInstId(id);
     const market = this.tidebitMarkets.find((market) => market.id === id);
     switch (this._findSource(instId)) {
