@@ -448,13 +448,27 @@ class ExchangeHub extends Bot {
   }
 
   async getTradingViewHistory({ query }) {
-    switch (this._findSource(query.symbol)) {
+    const instId = this._findInstId(query.symbol);
+    switch (this._findSource(instId)) {
       case SupportedExchange.OKEX:
         return this.okexConnector.router("getCandlesticks", { query });
       case SupportedExchange.TIDEBIT:
       default:
         return new ResponseFormat({
           message: "getTradingViewHistory",
+          payload: [],
+        });
+    }
+  }
+
+  async getCandlesticks({ query }) {
+    switch (this._findSource(query.instId)) {
+      case SupportedExchange.OKEX:
+        return this.okexConnector.router("getCandlesticks", { query });
+      case SupportedExchange.TIDEBIT:
+      default:
+        return new ResponseFormat({
+          message: "getCandlesticks",
           payload: [],
         });
     }
