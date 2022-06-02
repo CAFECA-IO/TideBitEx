@@ -427,19 +427,20 @@ class ExchangeHub extends Bot {
 
   async getTradingViewSymbol({ query }) {
     const id = decodeURIComponent(query.symbol).replace("/", "").toLowerCase();
-    this.logger.log(`getTradingViewSymbol query`,query)
-    this.logger.log(`getTradingViewSymbol id`,id)
+    this.logger.log(`getTradingViewSymbol query`, query);
+    this.logger.log(`getTradingViewSymbol id`, id);
     const instId = this._findInstId(id);
     const market = this.tidebitMarkets.find((market) => market.id === id);
+    this.logger.log(`getTradingViewSymbol market`, market);
     switch (this._findSource(instId)) {
       case SupportedExchange.OKEX:
-        return this.okexConnector.router("getTradingViewConfig", {
+        return this.okexConnector.router("getTradingViewSymbol", {
           query: { ...query, instId, id, market },
         });
       case SupportedExchange.TIDEBIT:
       default:
         return new ResponseFormat({
-          message: "getTradingViewConfig",
+          message: "getTradingViewSymbol",
           payload: [],
         });
     }

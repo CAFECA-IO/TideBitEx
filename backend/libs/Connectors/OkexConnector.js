@@ -428,15 +428,17 @@ class OkexConnector extends ConnectorBase {
     const path = "/api/v5/market/candles";
     const { instId, resolution, from, to, symbol } = query;
 
-    this.logger.log(`from - to > 0`, from - to > 0);
 
     const arr = [];
     if (instId) arr.push(`instId=${instId}`);
     if (resolution) arr.push(`bar=${this.getBar(resolution)}`);
-    if (from) arr.push(`after=${parseInt(from) * 1000}`);
-    if (to) arr.push(`before=${parseInt(to) * 1000}`);
+    // before	String	否	请求此时间戳之后（更新的数据）的分页内容，传的值为对应接口的ts
+    // if (from) arr.push(`before=${parseInt(from) * 1000}`); //5/23
+    //after	String	否	请求此时间戳之前（更旧的数据）的分页内容，传的值为对应接口的ts
+    if (to) arr.push(`after=${parseInt(to) * 1000}`); //6/2
+    // if (limit) arr.push(`limit=${limit}`);
     const qs = !!arr.length ? `?${arr.join("&")}` : "";
-    this.logger.log(`getTradingViewHistory arr`, arr);
+    // this.logger.log(`getTradingViewHistory arr`, arr);
 
     try {
       const res = await axios({
@@ -462,9 +464,9 @@ class OkexConnector extends ConnectorBase {
         c: [],
         v: [],
       };
-
-      res.data.data.forEach((d) => {
-        const ts = parseInt(d[0]);
+      // this.logger.log(`getTradingViewHistory res.data.data`, res.data.data);
+      res.data.data.sort((a,b)=> a[0]-b[0]).forEach((d) => {
+        const ts = parseInt(d[0])/1000;
         const o = parseFloat(d[1]);
         const h = parseFloat(d[2]);
         const l = parseFloat(d[3]);
@@ -477,10 +479,8 @@ class OkexConnector extends ConnectorBase {
         data.c.push(c);
         data.v.push(v);
       });
-      return new ResponseFormat({
-        message: "getTradingViewHistory",
-        payload: data,
-      });
+      // this.logger.log(`getTradingViewHistory data`, data);
+      return data;
     } catch (error) {
       this.logger.error(error);
       let message = error.message;
