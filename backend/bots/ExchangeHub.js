@@ -650,11 +650,13 @@ class ExchangeHub extends Bot {
         }
       /* !!! HIGH RISK (end) !!! */
       case SupportedExchange.TIDEBIT: // ++ TODO 待驗證
+        await t.commit();
         return this.tideBitConnector.router("postPlaceOrder", {
           header,
           body: { ...body, market: this._findMarket(body.instId) },
         });
       default:
+        await t.rollback();
         return new ResponseFormat({
           message: "instId not Support now",
           code: Codes.API_NOT_SUPPORTED,
@@ -873,6 +875,7 @@ class ExchangeHub extends Bot {
     } catch (error) {
       await t.rollback();
     }
+    await t.commit();
     return t;
     /* !!! HIGH RISK (end) !!! */
   }
