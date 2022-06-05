@@ -314,8 +314,10 @@ class OkexConnector extends ConnectorBase {
         });
       }
     }
-    this.logger.log(`=+===+===+== [UPDATE][API][START](${instId})  =+===+===+==`);
-    this.logger.log( this.depthBook.getSnapshot(instId));
+    this.logger.log(
+      `=+===+===+== [UPDATE][API][START](${instId})  =+===+===+==`
+    );
+    this.logger.log(this.depthBook.getSnapshot(instId));
     this.logger.log(`=+===+===+== [UPDATE][API][END](${instId})  =+===+===+==`);
     return new ResponseFormat({
       message: "getDepthBooks",
@@ -359,6 +361,127 @@ class OkexConnector extends ConnectorBase {
         message: "getCandlestick",
         payload,
       });
+    } catch (error) {
+      this.logger.error(error);
+      let message = error.message;
+      if (error.response && error.response.data)
+        message = error.response.data.msg;
+      return new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+  }
+
+  async getTradingViewSymbol({ query }) {
+    return Promise.resolve({
+      name: query.symbol,
+      timezone: "Asia/Hong_Kong",
+      session: "24x7",
+      ticker: query.id,
+      minmov: 1,
+      minmove2: 0,
+      volume_precision: 8,
+      pricescale: query.market?.price_group_fixed
+        ? 10 ** query.market.price_group_fixed
+        : 10000,
+      has_intraday: true,
+      has_daily: true,
+      intraday_multipliers: ["1", "5", "15", "30", "60"],
+      has_weekly_and_monthly: true,
+    });
+  }
+
+  getBar(resolution) {
+    let bar;
+    switch (resolution) {
+      case "1":
+        bar = "1m";
+        break;
+      case "5":
+        bar = "5m";
+        break;
+      case "15":
+        bar = "15m";
+        break;
+      case "30":
+        bar = "30m";
+        break;
+      case "60":
+        bar = "1H";
+        break;
+      case "1W":
+      case "W":
+        bar = "1W";
+        break;
+      case "1D":
+      case "D":
+      default:
+        bar = "1D";
+        break;
+    }
+    return bar;
+  }
+
+  async getTradingViewHistory({ query }) {
+    const method = "GET";
+    const path = "/api/v5/market/candles";
+    const { instId, resolution, from, to, symbol } = query;
+
+    const arr = [];
+    if (instId) arr.push(`instId=${instId}`);
+    if (resolution) arr.push(`bar=${this.getBar(resolution)}`);
+    // before	String	否	请求此时间戳之后（更新的数据）的分页内容，传的值为对应接口的ts
+    // if (from) arr.push(`before=${parseInt(from) * 1000}`); //5/23
+    //after	String	否	请求此时间戳之前（更旧的数据）的分页内容，传的值为对应接口的ts
+    if (to) arr.push(`after=${parseInt(to) * 1000}`); //6/2
+    // if (limit) arr.push(`limit=${limit}`);
+    const qs = !!arr.length ? `?${arr.join("&")}` : "";
+    // this.logger.log(`getTradingViewHistory arr`, arr);
+
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}${qs}`,
+        headers: this.getHeaders(false),
+      });
+      if (res.data && res.data.code !== "0") {
+        const message = JSON.stringify(res.data);
+        this.logger.trace(message);
+        return new ResponseFormat({
+          message,
+          code: Codes.THIRD_PARTY_API_ERROR,
+        });
+      }
+
+      const data = {
+        s: "ok",
+        t: [],
+        o: [],
+        h: [],
+        l: [],
+        c: [],
+        v: [],
+      };
+      // this.logger.log(`getTradingViewHistory res.data.data`, res.data.data);
+      res.data.data
+        .sort((a, b) => a[0] - b[0])
+        .forEach((d) => {
+          const ts = parseInt(d[0]) / 1000;
+          const o = parseFloat(d[1]);
+          const h = parseFloat(d[2]);
+          const l = parseFloat(d[3]);
+          const c = parseFloat(d[4]);
+          const v = parseFloat(d[5]);
+          data.t.push(ts);
+          data.o.push(o);
+          data.h.push(h);
+          data.l.push(l);
+          data.c.push(c);
+          data.v.push(v);
+        });
+      // this.logger.log(`getTradingViewHistory data`, data);
+      return data;
     } catch (error) {
       this.logger.error(error);
       let message = error.message;
@@ -1227,14 +1350,14 @@ class OkexConnector extends ConnectorBase {
   _updateBooks(instId, data) {
     const [updateBooks] = data;
     const market = instId.replace("-", "").toLowerCase();
-    this.logger.log(
-      `[FROM][OKEx][WS] _updateBooks updateBooks.asks`,
-      updateBooks.asks
-    );
-    this.logger.log(
-      `[FROM][OKEx][WS] _updateBooks updateBooks.bids`,
-      updateBooks.bids
-    );
+    // this.logger.log(
+    //   `[FROM][OKEx][WS] _updateBooks updateBooks.asks`,
+    //   updateBooks.asks
+    // );
+    // this.logger.log(
+    //   `[FROM][OKEx][WS] _updateBooks updateBooks.bids`,
+    //   updateBooks.bids
+    // );
     try {
       this.depthBook.updateByDifference(instId, updateBooks);
     } catch (error) {
@@ -1242,10 +1365,10 @@ class OkexConnector extends ConnectorBase {
       this.logger.error(`_updateBooks`, error);
     }
 
-    this.logger.log(
-      `[AFTER WS UPDATE] depthBook snapshot(${instId})`,
-      this.depthBook.getSnapshot(instId)
-    );
+    // this.logger.log(
+    //   `[AFTER WS UPDATE] depthBook snapshot(${instId})`,
+    //   this.depthBook.getSnapshot(instId)
+    // );
 
     EventBus.emit(Events.update, market, this.depthBook.getSnapshot(instId));
   }
@@ -1305,6 +1428,7 @@ class OkexConnector extends ConnectorBase {
       high: data.high24h,
       low: data.low24h,
       volume: data.vol24h,
+      volumeCcy: data.volCcy24h,
       at: parseInt(SafeMath.div(data.ts, "1000")),
       ts: parseInt(data.ts),
       source: SupportedExchange.OKEX,
@@ -1362,7 +1486,7 @@ class OkexConnector extends ConnectorBase {
         instId,
       },
     ];
-    this.logger.debug(`[${this.constructor.name}]_subscribeTrades`, args)
+    this.logger.debug(`[${this.constructor.name}]_subscribeTrades`, args);
     this.websocket.ws.send(
       JSON.stringify({
         op: "subscribe",

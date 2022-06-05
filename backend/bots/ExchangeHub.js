@@ -266,10 +266,6 @@ class ExchangeHub extends Bot {
     }
   }
 
-  async getMemberIdFromRedis(peatioSession) {
-    return this.tideBitConnector.getMemberIdFromRedis(peatioSession);
-  }
-
   async getUsersAccounts() {
     // return new ResponseFormat({
     //   message:'test',
@@ -419,14 +415,56 @@ class ExchangeHub extends Bot {
     }
   }
 
-  async getCandlesticks({ params, query }) {
+  async getTradingViewConfig({ query }) {
+    return Promise.resolve({
+      supported_resolutions: ["1", "5", "15", "30", "60", "1D", "1W"],
+      supports_group_request: false,
+      supports_marks: false,
+      supports_timescale_marks: false,
+      supports_search: true,
+    });
+  }
+
+  async getTradingViewSymbol({ query }) {
+    const id = decodeURIComponent(query.symbol).replace("/", "").toLowerCase();
+    const instId = this._findInstId(id);
+    const market = this.tidebitMarkets.find((market) => market.id === id);
+    this.logger.log(`getTradingViewSymbol market`, market);
+    switch (this._findSource(instId)) {
+      case SupportedExchange.OKEX:
+        return this.okexConnector.router("getTradingViewSymbol", {
+          query: { ...query, instId, id, market },
+        });
+      case SupportedExchange.TIDEBIT:
+      default:
+        return new ResponseFormat({
+          message: "getTradingViewSymbol",
+          payload: [],
+        });
+    }
+  }
+
+  async getTradingViewHistory({ query }) {
+    const instId = this._findInstId(query.symbol);
+    switch (this._findSource(instId)) {
+      case SupportedExchange.OKEX:
+        return this.okexConnector.router("getTradingViewHistory", {
+          query: { ...query, instId },
+        });
+      case SupportedExchange.TIDEBIT:
+      default:
+        return new ResponseFormat({
+          message: "getTradingViewHistory",
+          payload: [],
+        });
+    }
+  }
+
+  async getCandlesticks({ query }) {
     switch (this._findSource(query.instId)) {
       case SupportedExchange.OKEX:
-        return this.okexConnector.router("getCandlesticks", { params, query });
+        return this.okexConnector.router("getCandlesticks", { query });
       case SupportedExchange.TIDEBIT:
-        return this.tideBitConnector.router("getTrades", {
-          query: { ...query, increase: true },
-        });
       default:
         return new ResponseFormat({
           message: "getCandlesticks",

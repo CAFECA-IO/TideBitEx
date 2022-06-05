@@ -80,18 +80,20 @@ const SelectedTicker = (props) => {
               })}
         </div>
       </div>
-      <div className="ticker__details">
-        <div className="tickerItemLabel">{`${t("24_volume_quote")}(${
-          storeCtx.selectedTicker?.quote_unit?.toUpperCase() || "--"
-        })`}</div>
-        <div className="tickerPriceText">
-          {!storeCtx.selectedTicker
-            ? "--"
-            : formateDecimal(storeCtx.selectedTicker?.volume, {
-                decimalLength: 2,
-              })}
+      {storeCtx.selectedTicker?.volumeCcy && (
+        <div className="ticker__details">
+          <div className="tickerItemLabel">{`${t("24_volume_quote")}(${
+            storeCtx.selectedTicker?.quote_unit?.toUpperCase() || "--"
+          })`}</div>
+          <div className="tickerPriceText">
+            {!storeCtx.selectedTicker
+              ? "--"
+              : formateDecimal(storeCtx.selectedTicker?.volumeCcy, {
+                  decimalLength: 2,
+                })}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
