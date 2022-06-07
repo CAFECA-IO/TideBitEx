@@ -107,7 +107,8 @@ const DepthChart = (props) => {
             // type: "numeric",
             // floating: true,
             // tickPlacement: "between",
-            rotate: -0,
+            trim: true,
+            rotate: 0,
             tickAmount: 3,
             labels: {
               formatter: function (value) {
