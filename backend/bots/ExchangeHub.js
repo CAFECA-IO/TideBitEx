@@ -887,7 +887,6 @@ class ExchangeHub extends Bot {
   // ++ TODO: fix multi return
   async postCancelOrder({ header, params, query, body, memberId }) {
     const source = this._findSource(body.instId);
-
     // const t = await this.database.transaction();
     try {
       // 1. get orderId from body.clOrdId

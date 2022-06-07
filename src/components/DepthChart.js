@@ -108,9 +108,9 @@ const DepthChart = (props) => {
             // floating: true,
             // tickPlacement: "between",
             trim: true,
-            rotate: 0,
             tickAmount: 3,
             labels: {
+              rotate: 0,
               formatter: function (value) {
                 return formateDecimal(value, {
                   maxLength: 2,
@@ -118,7 +118,7 @@ const DepthChart = (props) => {
                 });
               },
               hideOverlappingLabels: true,
-              maxHeight: 40,
+              maxHeight: 32,
             },
           },
           yaxis: {

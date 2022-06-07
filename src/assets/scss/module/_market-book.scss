@@ -35,7 +35,7 @@
   &__tile > * {
     flex: 1;
     text-indent: 2px;
-    max-width: 78px;
+    width: 78px;
   }
   &__bids > &__header,
   &__bids > &__panel > &__tile {
@@ -115,7 +115,7 @@
 
     &__header > *,
     &__tile > * {
-      max-width: 66px;
+      width: 54px;
     }
   }
 }
