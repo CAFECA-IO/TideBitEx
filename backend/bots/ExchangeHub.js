@@ -875,7 +875,7 @@ class ExchangeHub extends Bot {
     } catch (error) {
       await t.rollback();
     }
-    await t.commit();
+    // await t.commit();
     return t;
     /* !!! HIGH RISK (end) !!! */
   }
