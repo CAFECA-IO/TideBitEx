@@ -23,7 +23,7 @@
     background-color: #4597e6;
     color: white;
     font-weight: 700;
-    font-size: 14;
+    font-size: 14px;
     padding: 8px 0px;
   }
   &__tile {
@@ -35,7 +35,7 @@
   &__tile > * {
     flex: 1;
     text-indent: 2px;
-    width: 78px;
+    max-width: 78px;
   }
   &__bids > &__header,
   &__bids > &__panel > &__tile {
@@ -112,8 +112,9 @@
       border-bottom: 1px solid #ddd;
     }
 
-    // &__header > *,
-    // &__tile > * {
-    // }
+    &__header > *,
+    &__tile > * {
+      max-width: 66px;
+    }
   }
 }
