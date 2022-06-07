@@ -40,6 +40,7 @@
   &__bids > &__header,
   &__bids > &__panel > &__tile {
     text-align: right;
+    justify-content: flex-end;
   }
   &__asks > &__header,
   &__asks > &__panel > &__tile {
