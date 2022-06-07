@@ -118,7 +118,7 @@ const DepthChart = (props) => {
                 });
               },
               hideOverlappingLabels: true,
-              maxHeight: 32,
+              maxHeight: 28,
             },
           },
           yaxis: {
