@@ -1,23 +1,9 @@
 .order-book {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  flex: auto;
   height: 100%;
-  overflow: hidden;
   border: 1px solid #333;
-  &__table {
-    display: flex;
-    flex-direction: column;
-    flex: auto;
-    height: calc(50vh - 59px);
-    min-height: 398px;
-  }
-  &__panel {
-    display: flex;
-    flex-direction: column;
-    flex: auto;
-    overflow: auto;
-    // padding: 0 5px;
-  }
   &__header {
     border-bottom: 1px solid #333;
     background-color: #4597e6;
@@ -26,31 +12,48 @@
     font-size: 14px;
     padding: 8px 0px;
   }
+  &__table {
+    display: flex;
+    flex-direction: row;
+    flex: auto;
+    height: calc(50vh - 97px);
+    min-height: 398px;
+    position: relative;
+    overflow: auto;
+  }
+  &__panel {
+    display: flex;
+    flex-direction: column;
+    flex: auto;
+  }
   &__tile {
     position: relative;
     font-size: 12px;
     cursor: pointer;
   }
-  &__header > *,
+  &__header--bids > *,
+  &__header--asks > *,
   &__tile > * {
     flex: 1;
     text-indent: 2px;
-    width: 78px;
+    width: 80px;
   }
-  &__bids > &__header,
-  &__bids > &__panel > &__tile {
+  &__header--bids,
+  &__panel--bids > &__tile {
     text-align: right;
     justify-content: flex-end;
+    padding-right: 2px;
   }
-  &__asks > &__header,
-  &__asks > &__panel > &__tile {
+  &__header--asks,
+  &__panel--asks > &__tile {
     text-align: left;
+    padding-left: 2px;
   }
-  &__bids > &__panel > &__tile > *:nth-child(3) {
+  &__panel--bids > &__tile > *:nth-child(3) {
     color: #03a363;
     font-weight: 500;
   }
-  &__asks > &__panel > &__tile > *:nth-child(1) {
+  &__panel--asks > &__tile > *:nth-child(1) {
     color: #d0021b;
     font-weight: 500;
   }
@@ -60,11 +63,11 @@
     // height: -webkit-fill-available;
     height: 18px;
   }
-  &__bids &__tile--cover {
+  &__panel--bids &__tile--cover {
     background: #26de8225;
     right: 0;
   }
-  &__asks &__tile--cover {
+  &__panel--asks &__tile--cover {
     background: #de262625;
     left: 0;
   }
@@ -94,7 +97,6 @@
   // If [device width] is less than or equal to 600px, then do
   .order-book {
     border: 1px solid #ddd;
-
     &--mobile {
       margin: 0 10px 10px;
       flex: auto;
