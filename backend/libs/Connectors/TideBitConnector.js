@@ -117,15 +117,6 @@ class TibeBitConnector extends ConnectorBase {
     });
   }
 
-  getDecimal(length) {
-    let num = "0.";
-    for (let i = 0; i < length - 1; i++) {
-      num += "0";
-    }
-    num += "1";
-    return num;
-  }
-
   async getTickers({ optional }) {
     // this.logger.log(`getTickers tidebitMarkets`, this.tidebitMarkets);
     const tBTickersRes = await axios.get(`${this.peatio}/api/v2/tickers`);
@@ -168,9 +159,9 @@ class TibeBitConnector extends ConnectorBase {
         ts: parseInt(SafeMath.mult(tickerObj.at, "1000")),
         source: SupportedExchange.TIDEBIT,
         ticker: tickerObj.ticker,
-        tickSz: this.getDecimal(tbTicker?.bid?.fixed),
-        lotSz: this.getDecimal(tbTicker?.ask?.fixed),
-        minSz: this.getDecimal(tbTicker?.ask?.fixed),
+        tickSz: Utils.getDecimal(tbTicker?.bid?.fixed),
+        lotSz: Utils.getDecimal(tbTicker?.ask?.fixed),
+        minSz: Utils.getDecimal(tbTicker?.ask?.fixed),
       };
       return prev;
     }, {});
@@ -212,9 +203,9 @@ class TibeBitConnector extends ConnectorBase {
           changePct: "0.0",
           at: "0.0",
           source: SupportedExchange.TIDEBIT,
-          tickSz: this.getDecimal(tbTicker?.bid?.fixed),
-          lotSz: this.getDecimal(tbTicker?.ask?.fixed),
-          minSz: this.getDecimal(tbTicker?.ask?.fixed),
+          tickSz: Utils.getDecimal(tbTicker?.bid?.fixed),
+          lotSz: Utils.getDecimal(tbTicker?.ask?.fixed),
+          minSz: Utils.getDecimal(tbTicker?.ask?.fixed),
         };
       }
     });

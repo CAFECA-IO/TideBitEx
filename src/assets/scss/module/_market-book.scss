@@ -5,6 +5,9 @@
   height: 100%;
   border: 1px solid #333;
   &__header {
+    display: flex;
+    flex-direction: row;
+    flex: auto;
     border-bottom: 1px solid #333;
     background-color: #4597e6;
     color: white;

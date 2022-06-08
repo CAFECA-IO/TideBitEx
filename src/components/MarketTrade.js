@@ -99,6 +99,8 @@ const TradeForm = (props) => {
               if (props.isMobile) {
                 inputAmount.current.focus();
                 console.log(inputAmount.current);
+                console.log(inputAmount.current.focus);
+                window.inputAmount = inputAmount
               }
             }}
             onInput={(e) =>

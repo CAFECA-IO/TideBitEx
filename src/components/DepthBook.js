@@ -7,21 +7,24 @@ import { useTranslation } from "react-i18next";
 const BookTile = (props) => {
   const tickSz =
     props?.tickSz?.split(".").length > 1
-      ? props?.tickSz?.split(".")[1].length > 2
-        ? 2
-        : props?.tickSz?.split(".")[1].length
+      ? // props?.tickSz?.split(".")[1].length > 2
+        //   ? 2
+        //   :
+        props?.tickSz?.split(".")[1].length
       : "0";
   const lotSz =
     props?.lotSz?.split(".").length > 1
-      ? props?.lotSz?.split(".")[1].length > 4
-        ? 4
-        : props?.lotSz?.split(".")[1].length
+      ? //  props?.lotSz?.split(".")[1].length > 4
+        //   ? 4
+        //   :
+        props?.lotSz?.split(".")[1].length
       : "0";
   const amountSz =
     SafeMath.mult(props?.tickSz, props?.lotSz).split(".").length > 1
-      ? SafeMath.mult(props?.tickSz, props?.lotSz).split(".")[1].length > 4
-        ? 4
-        : SafeMath.mult(props?.tickSz, props?.lotSz).split(".")[1].length
+      ? // SafeMath.mult(props?.tickSz, props?.lotSz).split(".")[1].length > 4
+        //   ? 4
+        //   :
+        SafeMath.mult(props?.tickSz, props?.lotSz).split(".")[1].length
       : "0";
   return (
     <li
