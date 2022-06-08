@@ -88,24 +88,31 @@ const CustomKeyboard = (props) => {
           <span>9</span>
         </div>
       </div>
-      <div className="keyboard__row">
+      <div className="custom-keyboard__row">
         <div
-          className="keyboard__btn keyboard__btn--corner"
+          className="custom-keyboard__btn custom-keyboard__btn--corner"
           data="."
           onClick={() => handleClick(".")}
         >
           <span>.</span>
         </div>
-        <div className="keyboard__btn" data={0} onClick={() => handleClick(0)}>
+        <div
+          className="custom-keyboard__btn"
+          data={0}
+          onClick={() => handleClick(0)}
+        >
           <span>0</span>
         </div>
         <div
-          className="keyboard__btn keyboard__btn--corner"
+          className="custom-keyboard__btn custom-keyboard__btn--corner"
           data="bksp"
           onClick={() => handleClick("bksp")}
         >
           <span>
-            <img src="/assets/images/backspace.svg" alt="Backspace"></img>
+            <img
+              src='/assets/images/backspace.svg'
+              alt="Backspace"
+            ></img>
           </span>
         </div>
       </div>

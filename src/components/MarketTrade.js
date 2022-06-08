@@ -73,9 +73,9 @@ const TradeForm = (props) => {
             disabled={!!props.readyOnly}
             step={storeCtx.selectedTicker?.tickSz}
           />
-          {document.activeElement === inputPrice.current && (
+          {/* {document.activeElement === inputPrice.current && (
             <CustomKeyboard inputEl={inputPrice} />
-          )}
+          )} */}
           {!props.readyOnly && (
             <div className="market-trade__input-group--append input-group-append">
               <span className="input-group-text">
@@ -109,9 +109,9 @@ const TradeForm = (props) => {
             required
             step={storeCtx.selectedTicker?.lotSz}
           />
-          {document.activeElement === inputAmount.current && (
+          {/* {document.activeElement === inputAmount.current && (
             <CustomKeyboard inputEl={inputAmount} />
-          )}
+          )} */}
           <div className="market-trade__input-group--append input-group-append">
             <span className="input-group-text">
               {storeCtx.selectedTicker?.base_unit?.toUpperCase() || "--"}
