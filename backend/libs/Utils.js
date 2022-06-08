@@ -772,6 +772,15 @@ class Utils {
     const doc = yaml.load(fs.readFileSync(p, "utf8"));
     return doc;
   }
+  
+  getDecimal(length) {
+    let num = "0.";
+    for (let i = 0; i < length - 1; i++) {
+      num += "0";
+    }
+    num += "1";
+    return num;
+  }
 
   static tickersFilterInclude(masks, tickersObj) {
     let updateTickers = {};
@@ -781,6 +790,9 @@ class Utils {
         updateTickers[id] = {
           ...tickersObj[id],
           pricescale: maskData["price_group_fixed"],
+          tickSz: maskData["bid"]["fixed"],
+          lotSz: maskData["ask"]["fixed"],
+          minSz: maskData["ask"]["fixed"],
         };
     });
     return updateTickers;

@@ -13,14 +13,14 @@ const BookTile = (props) => {
       : "0";
   const lotSz =
     props?.lotSz?.split(".").length > 1
-      ? props?.lotSz?.split(".")[1].length > 6
-        ? 6
+      ? props?.lotSz?.split(".")[1].length > 4
+        ? 4
         : props?.lotSz?.split(".")[1].length
       : "0";
   const amountSz =
     SafeMath.mult(props?.tickSz, props?.lotSz).split(".").length > 1
-      ? SafeMath.mult(props?.tickSz, props?.lotSz).split(".")[1].length > 6
-        ? 6
+      ? SafeMath.mult(props?.tickSz, props?.lotSz).split(".")[1].length > 4
+        ? 4
         : SafeMath.mult(props?.tickSz, props?.lotSz).split(".")[1].length
       : "0";
   return (

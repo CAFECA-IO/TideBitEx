@@ -1,10 +1,17 @@
-import React, { useContext, useState, useEffect, useCallback } from "react";
+import React, {
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
 import StoreContext from "../store/store-context";
 import { Tabs, Tab, Nav } from "react-bootstrap";
 import { formateDecimal } from "../utils/Utils";
 import SafeMath from "../utils/SafeMath";
 import { useTranslation } from "react-i18next";
 import { useViewport } from "../store/ViewportProvider";
+import CustomKeyboard from "./CustomKeyboard";
 
 //  ++ TODO
 // validation 邏輯獨立成function
@@ -13,6 +20,8 @@ import { useViewport } from "../store/ViewportProvider";
 const TradeForm = (props) => {
   const { t } = useTranslation();
   const storeCtx = useContext(StoreContext);
+  const inputPrice = useRef();
+  const inputAmount = useRef();
   return (
     <form
       onSubmit={(e) => {
@@ -43,16 +52,30 @@ const TradeForm = (props) => {
         <label htmlFor="price">{t("price")}:</label>
         <div className="market-trade__input-group--box">
           <input
+            ref={props.isMobile ? inputPrice : null}
             name="price"
-            type={props.readyOnly ? "text" : "number"}
+            type={props.isMobile ? null : props.readyOnly ? "text" : "number"}
             className="market-trade__input form-control"
             // placeholder={t("price")}
             value={props.readyOnly ? t("market") : props.price}
-            onInput={(e) => props.onPxInput(e.target.value)}
+            onClick={() => {
+              if (props.isMobile) {
+                inputPrice.current.focus();
+                console.log(inputPrice.current);
+              }
+            }}
+            onInput={(e) =>
+              props.onPxInput(
+                props.isMobile ? inputPrice.current.value : e.target.value
+              )
+            }
             required={!props.readyOnly}
             disabled={!!props.readyOnly}
             step={storeCtx.selectedTicker?.tickSz}
           />
+          {inputAmount?.current?.focus && (
+            <CustomKeyboard inputEl={inputPrice} />
+          )}
           {!props.readyOnly && (
             <div className="market-trade__input-group--append input-group-append">
               <span className="input-group-text">
@@ -66,15 +89,29 @@ const TradeForm = (props) => {
         <label htmlFor="trade_amount">{t("trade_amount")}:</label>
         <div className="market-trade__input-group--box">
           <input
+            ref={props.isMobile ? inputAmount : null}
             name="trade_amount"
-            type="number"
+            type={props.isMobile ? null : "number"}
             className="market-trade__input form-control"
             // placeholder={t("trade_amount")}
             value={props.volume}
-            onInput={(e) => props.onSzInput(e.target.value)}
+            onClick={() => {
+              if (props.isMobile) {
+                inputAmount.current.focus();
+                console.log(inputAmount.current);
+              }
+            }}
+            onInput={(e) =>
+              props.onSzInput(
+                props.isMobile ? inputAmount.current.value : e.target.value
+              )
+            }
             required
             step={storeCtx.selectedTicker?.lotSz}
           />
+          {inputAmount?.current?.focus && (
+            <CustomKeyboard inputEl={inputAmount} />
+          )}
           <div className="market-trade__input-group--append input-group-append">
             <span className="input-group-text">
               {storeCtx.selectedTicker?.base_unit?.toUpperCase() || "--"}
@@ -632,6 +669,7 @@ const TradePannel = (props) => {
               kind="bid"
               readyOnly={!!props.readyOnly}
               errorMessage={buyErrorMessage}
+              isMobile={true}
             />
           </Tab>
           <Tab eventKey="sell" title={t("sell")}>
@@ -659,6 +697,7 @@ const TradePannel = (props) => {
               kind="ask"
               readyOnly={!!props.readyOnly}
               errorMessage={sellErrorMessage}
+              isMobile={true}
             />
           </Tab>
         </Tabs>

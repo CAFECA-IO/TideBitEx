@@ -1,0 +1,56 @@
+.custom-keyboard {
+  background-color: #eeeeee;
+  padding: 5px;
+  border-radius: 5px;
+
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  z-index: 1051;
+
+  user-select: none;
+  box-sizing: border-box;
+  overflow: hidden;
+  touch-action: manipulation;
+  &__row {
+    display: flex;
+  }
+  &__btn {
+    width: 33.3%;
+    height: 56px;
+    -webkit-align-items: center;
+    align-items: center;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: center;
+    justify-content: center;
+
+    box-shadow: 0 0 3px -1px rgb(0 0 0 / 30%);
+    height: 40px;
+    border-radius: 5px;
+    box-sizing: border-box;
+    padding: 5px;
+    background: #fff;
+    border-bottom: 1px solid #b5b5b5;
+    cursor: pointer;
+
+    flex-grow: 1;
+  }
+  &__btn:not(:last-child) {
+    margin-right: 5px;
+  }
+  &__btn > span{
+    pointer-events: none;
+    font-size: 14px;
+  }
+  &__btn--corner {
+    background: unset !important;
+    border: unset !important;
+    box-shadow: unset !important;
+  }
+  &__btn--corner > span > img {
+    width: 2.2rem;
+    vertical-align: middle;
+    border: 0;
+  }
+}
