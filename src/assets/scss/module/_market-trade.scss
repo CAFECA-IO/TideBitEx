@@ -23,6 +23,7 @@
     flex-direction: column;
     flex: auto;
     height: 100%;
+    min-width: 494px;
   }
   &__header {
     border-bottom: 1px solid #333;
@@ -58,6 +59,7 @@
     flex-direction: row;
   }
   &__form {
+    position: relative;
     height: calc(50vh - 132px);
     min-height: 325px;
     flex: auto;
@@ -219,6 +221,9 @@
     &__panel {
       flex-direction: column;
       // gap: 2px;
+    }
+    & > &__container {
+      min-width: 0px;
     }
     & > &__container > nav.nav-tabs > a.nav-link {
       flex: 1;

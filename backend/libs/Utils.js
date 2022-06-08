@@ -772,15 +772,27 @@ class Utils {
     const doc = yaml.load(fs.readFileSync(p, "utf8"));
     return doc;
   }
+  
+  static getDecimal(length) {
+    let num = "0.";
+    for (let i = 0; i < length - 1; i++) {
+      num += "0";
+    }
+    num += "1";
+    return num;
+  }
 
   static tickersFilterInclude(masks, tickersObj) {
     let updateTickers = {};
     Object.keys(tickersObj).forEach((id) => {
       const maskData = masks.find((mask) => mask.id === id);
-      if (maskData)
+      if (maskData)  
         updateTickers[id] = {
           ...tickersObj[id],
           pricescale: maskData["price_group_fixed"],
+          tickSz: Utils.getDecimal(maskData["bid"]["fixed"]),
+          lotSz:Utils.getDecimal( maskData["ask"]["fixed"]),
+          minSz:Utils.getDecimal( maskData["ask"]["fixed"]),
         };
     });
     return updateTickers;
