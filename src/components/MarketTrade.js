@@ -109,7 +109,7 @@ const TradeForm = (props) => {
             required
             step={storeCtx.selectedTicker?.lotSz}
           />
-          {document.activeElement === inputPrice.current && (
+          {document.activeElement === inputAmount.current && (
             <CustomKeyboard inputEl={inputAmount} />
           )}
           <div className="market-trade__input-group--append input-group-append">

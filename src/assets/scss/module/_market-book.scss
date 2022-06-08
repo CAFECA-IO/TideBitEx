@@ -11,6 +11,7 @@
     font-weight: 700;
     font-size: 14px;
     padding: 8px 0px;
+    padding-right: 10px;
   }
   &__table {
     display: flex;
@@ -21,7 +22,7 @@
     position: relative;
     overflow: auto;
   }
-  
+
   &__header--bids,
   &__header--asks,
   &__panel {
@@ -119,7 +120,8 @@
       border-bottom: 1px solid #ddd;
     }
 
-    &__header > *,
+    &__header--bids > *,
+    &__header--asks > *,
     &__tile > * {
       width: 54px;
     }
