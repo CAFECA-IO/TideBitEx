@@ -3,6 +3,7 @@ import StoreContext from "../store/store-context";
 import ApexCharts from "react-apexcharts";
 import { useTranslation } from "react-i18next";
 import SafeMath from "../utils/SafeMath";
+import { formateDecimal } from "../utils/Utils";
 
 const DepthChart = (props) => {
   const storeCtx = useContext(StoreContext);
@@ -53,8 +54,6 @@ const DepthChart = (props) => {
           });
         }
       }
-      // console.log(`_asks[length: ${_asks.length}]`, _asks);
-      // console.log(`_bids[length: ${_bids.length}]`, _bids);
       const _bs = _bids
         .map((b) => ({
           x: b.price,
@@ -84,7 +83,7 @@ const DepthChart = (props) => {
   return (
     <div className="depth-chart">
       <ApexCharts
-        height="130"
+        height="100%"
         width="100%"
         type="area"
         options={{
@@ -96,9 +95,39 @@ const DepthChart = (props) => {
               enabled: false,
             },
           },
+          grid: {
+            padding: {
+              right: 0,
+              top: 0,
+              bottom: 0,
+              left: 0,
+            },
+          },
           xaxis: {
-            type: "numeric",
-            tickAmount: 4,
+            // type: "numeric",
+            // floating: true,
+            // tickPlacement: "between",
+            trim: true,
+            tickAmount: 3,
+            labels: {
+              rotate: 0,
+              formatter: function (value) {
+                return formateDecimal(value, {
+                  maxLength: 2,
+                  decimalLength: 4,
+                });
+              },
+              hideOverlappingLabels: true,
+              maxHeight: 28,
+            },
+          },
+          yaxis: {
+            labels: {
+              offsetX: -10,
+              formatter: function (value) {
+                return value.toFixed(2);
+              },
+            },
           },
           colors: ["#03a66d", "#cf304a"],
           dataLabels: {

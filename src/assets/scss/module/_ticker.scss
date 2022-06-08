@@ -46,6 +46,7 @@
   }
   .showPrice {
     font-size: 20px;
+    min-width: 80px;
     &.decrease {
       color: rgb(207, 48, 74);
     }

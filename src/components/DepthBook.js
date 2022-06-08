@@ -111,7 +111,7 @@ const DepthBook = (props) => {
           <li>{t("volume")}</li>
           <li>{t("bid")}</li>
         </ul>
-        <ul className="order-book__panel">
+        <ul className="order-book__panel scrollbar-hidden">
           {storeCtx?.selectedTicker &&
             storeCtx.books?.bids &&
             storeCtx.books.bids.map((book) => (
@@ -140,7 +140,7 @@ const DepthBook = (props) => {
           <li>{t("volume")}</li>
           <li>{t("amount")}</li>
         </ul>
-        <ul className="order-book__panel">
+        <ul className="order-book__panel scrollbar-hidden">
           {storeCtx?.selectedTicker &&
             storeCtx.books?.asks &&
             storeCtx.books.asks.map((book) => (

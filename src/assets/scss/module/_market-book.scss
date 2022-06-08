@@ -23,8 +23,8 @@
     background-color: #4597e6;
     color: white;
     font-weight: 700;
-    font-size: 14;
-    padding: 8px 5px;
+    font-size: 14px;
+    padding: 8px 0px;
   }
   &__tile {
     position: relative;
@@ -35,17 +35,19 @@
   &__tile > * {
     flex: 1;
     text-indent: 2px;
+    width: 78px;
   }
   &__bids > &__header,
   &__bids > &__panel > &__tile {
     text-align: right;
+    justify-content: flex-end;
   }
   &__asks > &__header,
   &__asks > &__panel > &__tile {
     text-align: left;
   }
   &__bids > &__panel > &__tile > *:nth-child(3) {
-    color: #00ce7d;
+    color: #03a363;
     font-weight: 500;
   }
   &__asks > &__panel > &__tile > *:nth-child(1) {
@@ -59,22 +61,34 @@
     height: 18px;
   }
   &__bids &__tile--cover {
-    background: #26de8163;
+    background: #26de8225;
     right: 0;
   }
   &__asks &__tile--cover {
-    background: #de262663;
+    background: #de262625;
     left: 0;
   }
 }
 
-@media only screen and (min-width: 820px) {
-  // If [device width] is greater than or equal to 600px,
-}
-// ipad air & ipad mini
+// @media only screen and (min-width: 820px) {
+//   // If [device width] is greater than or equal to 820px,
+//   .order-book {
+//     &__header > *,
+//     &__tile > * {
+//     }
+//   }
+// }
+
+// // ipad air & ipad mini
 // @media only screen and (max-width: 820px) and (min-width: 414px) {
 //   // The query above will trigger only for screens that are 600-400px wide. This can be used to target specific devices with known widths.
+//   .order-book {
+//     &__header > *,
+//     &__tile > * {
+//     }
+//   }
 // }
+
 // iphone XR
 @media only screen and (max-width: 414px) {
   // If [device width] is less than or equal to 600px, then do
@@ -99,26 +113,9 @@
       border-bottom: 1px solid #ddd;
     }
 
-    // font-size: 10px;
-    // flex-direction: column;
-    // &__bids > &__header,
-    // &__bids > &__panel > &__tile {
-    //   text-align: left;
-    // }
-    // &__bids &__tile--cover {
-    //   left: 0;
-    // }
-    // &__bids > &__panel > &__tile > *:nth-child(1) {
-    //   color: #00ce7d;
-    //   font-weight: 500;
-    // }
-    // &__bids > &__panel > &__tile > *:nth-child(3) {
-    //   color: #18214d;
-    //   font-weight: 500;
-    // }
-    // &__asks > &__panel &__tile--cover {
-    //   right: 0;
-    //   left: auto;
-    // }
+    &__header > *,
+    &__tile > * {
+      width: 54px;
+    }
   }
 }

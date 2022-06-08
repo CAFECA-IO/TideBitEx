@@ -780,7 +780,7 @@ class ExchangeHub extends Bot {
     }
   }
 
-  async updateOrderStatus({ orderId, memberId, orderData }) {
+  async updateOrderStatus({ transacion, orderId, memberId, orderData }) {
     /* !!! HIGH RISK (start) !!! */
     // 1. get orderId from body
     // 2. get order data from table
@@ -790,21 +790,22 @@ class ExchangeHub extends Bot {
     // 6. add account_version
     // 7. update account balance and locked
     // 8. post okex cancel order
-    const t = await this.database.transaction();
+    // const t = await this.database.transaction();
     /*******************************************
      * body.clOrdId: custom orderId for okex
      * locked: value from order.locked, used for unlock balance, negative in account_version
      * balance: order.locked
      *******************************************/
+    let result = false;
     const order = await this.database.getOrder(orderId, {
-      dbTransaction: t,
+      dbTransaction: transacion,
     });
     const currencyId =
       order?.type === this.database.TYPE.ORDER_ASK ? order?.ask : order?.bid;
     const account = await this.database.getAccountByMemberIdCurrency(
       memberId,
       currencyId,
-      { dbTransaction: t }
+      { dbTransaction: transacion }
     );
     const newOrder = {
       id: orderId,
@@ -837,7 +838,7 @@ class ExchangeHub extends Bot {
     });
 
     try {
-      await this.database.updateOrder(newOrder, { dbTransaction: t });
+      await this.database.updateOrder(newOrder, { dbTransaction: transacion });
       if (account) {
         let _updateAccount = {
           balance: SafeMath.plus(account.balance, balance),
@@ -862,7 +863,7 @@ class ExchangeHub extends Bot {
 
         await this._updateAccount(
           account,
-          t,
+          transacion,
           balance,
           locked,
           fee,
@@ -872,16 +873,20 @@ class ExchangeHub extends Bot {
           this.database.FUNC.UNLOCK_FUNDS
         );
       }
+      result = true;
     } catch (error) {
-      await t.rollback();
+      this.logger.error(
+        `[${this.constructor.name} updateOrderStatus] error`,
+        error
+      );
     }
-    await t.commit();
-    return t;
+    // await t.commit();
+    return result;
     /* !!! HIGH RISK (end) !!! */
   }
+  // ++ TODO: fix multi return
   async postCancelOrder({ header, params, query, body, memberId }) {
     const source = this._findSource(body.instId);
-
     // const t = await this.database.transaction();
     try {
       // 1. get orderId from body.clOrdId
@@ -892,24 +897,34 @@ class ExchangeHub extends Bot {
       switch (source) {
         case SupportedExchange.OKEX:
           /* !!! HIGH RISK (start) !!! */
-          let t = await this.updateOrderStatus({
+          let transacion = await this.database.transaction();
+          let result = await this.updateOrderStatus({
+            transacion,
             orderId,
             memberId,
             orderData: body,
           });
-          /* !!! HIGH RISK (end) !!! */
-          const okexCancelOrderRes = await this.okexConnector.router(
-            "postCancelOrder",
-            { params, query, body }
-          );
-          this.logger.log(`postCancelOrder`, body);
-          this.logger.log(`okexCancelOrderRes`, okexCancelOrderRes);
-          if (!okexCancelOrderRes.success) {
-            await t.rollback();
+          if (result) {
+            /* !!! HIGH RISK (end) !!! */
+            const okexCancelOrderRes = await this.okexConnector.router(
+              "postCancelOrder",
+              { params, query, body }
+            );
+            this.logger.log(`postCancelOrder`, body);
+            this.logger.log(`okexCancelOrderRes`, okexCancelOrderRes);
+            if (!okexCancelOrderRes.success) {
+              await transacion.rollback();
+            } else {
+              await transacion.commit();
+            }
+            return okexCancelOrderRes;
           } else {
-            await t.commit();
+            await transacion.rollback();
+            return new ResponseFormat({
+              message: "DB ERROR",
+              code: Codes.CANCEL_ORDER_FAIL,
+            });
           }
-          return okexCancelOrderRes;
         case SupportedExchange.TIDEBIT:
           return this.tideBitConnector.router(`postCancelOrder`, {
             header,
