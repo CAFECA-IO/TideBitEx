@@ -59,6 +59,7 @@
     flex-direction: row;
   }
   &__form {
+    position: relative;
     height: calc(50vh - 132px);
     min-height: 325px;
     flex: auto;

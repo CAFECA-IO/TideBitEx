@@ -61,19 +61,19 @@ const TradeForm = (props) => {
             onClick={() => {
               if (props.isMobile) {
                 inputPrice.current.focus();
-                console.log(inputPrice.current);
               }
             }}
-            onInput={(e) =>
-              props.onPxInput(
-                props.isMobile ? inputPrice.current.value : e.target.value
-              )
-            }
+            onInput={(e) => {
+              if (!props.isMobile)
+                props.onPxInput(
+                  props.isMobile ? inputPrice.current.value : e.target.value
+                );
+            }}
             required={!props.readyOnly}
             disabled={!!props.readyOnly}
             step={storeCtx.selectedTicker?.tickSz}
           />
-          {inputAmount?.current?.focus && (
+          {document.activeElement === inputPrice.current && (
             <CustomKeyboard inputEl={inputPrice} />
           )}
           {!props.readyOnly && (
@@ -98,20 +98,18 @@ const TradeForm = (props) => {
             onClick={() => {
               if (props.isMobile) {
                 inputAmount.current.focus();
-                console.log(inputAmount.current);
-                console.log(inputAmount.current.focus);
-                window.inputAmount = inputAmount
               }
             }}
-            onInput={(e) =>
-              props.onSzInput(
-                props.isMobile ? inputAmount.current.value : e.target.value
-              )
-            }
+            onInput={(e) => {
+              if (!props.isMobile)
+                props.onSzInput(
+                  props.isMobile ? inputAmount.current.value : e.target.value
+                );
+            }}
             required
             step={storeCtx.selectedTicker?.lotSz}
           />
-          {inputAmount?.current?.focus && (
+          {document.activeElement === inputPrice.current && (
             <CustomKeyboard inputEl={inputAmount} />
           )}
           <div className="market-trade__input-group--append input-group-append">

@@ -6,9 +6,9 @@ import { useTranslation } from "react-i18next";
 const TradeTile = (props) => {
   return (
     <li
-      className={`market-history__tile flex-row ${
-        props.trade.update ? "update" : ""
-      }`}
+      className={`market-history__tile flex-row 
+      ${props.trade.update ? "++TODO" : ""}
+      `}
       trade-id={props.trade.id}
     >
       <div className="market-history__tile--time">

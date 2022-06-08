@@ -106,26 +106,19 @@ class Middleman {
   }
 
   async _getTickers(instType = "SPOT", from, limit) {
-    let instruments,
-      rawTickers,
+    let rawTickers,
       tickers = {};
-    try {
-      instruments = await this.communicator.instruments(instType);
-    } catch (error) {
-      console.error(`get instruments error`, error);
-      throw error;
-    }
+
     try {
       rawTickers = await this.communicator.tickers(instType, from, limit);
       Object.values(rawTickers).forEach((t) => {
-        let instrument = instruments.find((i) => i.instId === t.instId);
         const ticker = {
           ...t,
-          tickSz: t.tickSz || instrument?.tickSz || "0.01", //下单价格精度，如 0.0001
-          lotSz: t.lotSz || instrument?.lotSz || "0.01", //下单数量精度，如 BTC-USDT-SWAP：1
-          minSz: t.minSz || instrument?.minSz || "0.01", //最小下单数量
-          maxLmtSz: t.maxLmtSz || instrument?.maxLmtSz || "10000", //合约或现货限价单的单笔最大委托数量
-          maxMktSz: t.maxMktSz || instrument?.maxMktSz || "99999", //合约或现货市价单的单笔最大委托数量
+          tickSz: t.tickSz || "0.01", //下单价格精度，如 0.0001
+          lotSz: t.lotSz || "0.01", //下单数量精度，如 BTC-USDT-SWAP：1
+          minSz: t.minSz || "0.01", //最小下单数量
+          maxLmtSz: t.maxLmtSz || "10000", //合约或现货限价单的单笔最大委托数量
+          maxMktSz: t.maxMktSz || "99999", //合约或现货市价单的单笔最大委托数量
         };
         tickers[ticker.instId] = ticker;
       });
