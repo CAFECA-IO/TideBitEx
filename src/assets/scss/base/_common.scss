@@ -33,3 +33,13 @@ body {
 body::-webkit-scrollbar {
   display: none; /* for Chrome, Safari, and Opera */
 }
+/* hide scrollbar but allow scrolling */
+.scrollbar-hidden {
+  -ms-overflow-style: none;/* for Internet Explorer, Edge */
+  scrollbar-width: none; /* Firefox */
+  overflow: -moz-scrollbars-none; /* Firefox */
+}
+.scrollbar-hidden::-webkit-scrollbar {
+  width: 0 !important;
+  display: none; /* for Chrome, Safari, and Opera */
+}
