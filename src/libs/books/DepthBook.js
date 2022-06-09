@@ -30,11 +30,16 @@ class DepthBook extends BookBase {
       result = [];
       for (let i = 0; i < length; i++) {
         const price = SafeMath.plus(start, SafeMath.mult(unit, i));
+        console.log(`1price${i}`, price);
         const data = { price, amount: "0" };
         result.push(data);
       }
-      arr.forEach((p) => {
-        const price = SafeMath.mult(SafeMath.div(p.price, unit), unit);
+      arr.forEach((p,i) => {
+        const price = SafeMath.mult(
+          parseInt(SafeMath.div(p.price, unit)),
+          unit
+        );
+        console.log(`2price${i}`, price);
         const index = result.find((v) => SafeMath.eq(v.price, price));
         if (index > -1) {
           result[index].amount = SafeMath.plus(result[index].amount, p.amount);
@@ -67,6 +72,7 @@ class DepthBook extends BookBase {
           depthBooks.bids.push(data);
         }
       });
+      console.log(`getSnapshot range`, this.unit);
       return {
         asks: this.range(depthBooks.asks, this.unit),
         bids: this.range(depthBooks.bids, this.unit),

@@ -94,10 +94,6 @@ const TradeForm = (props) => {
               }
             }}
             onChange={(e) => {
-              console.log(
-                `inputAmount.current.value`,
-                inputAmount.current.value
-              );
               props.onSzInput(e.target.value);
             }}
             step={storeCtx.selectedTicker?.lotSz}

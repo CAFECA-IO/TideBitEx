@@ -120,7 +120,6 @@ const DepthBook = (props) => {
   const [selectedTicker, setSelectedTicker] = useState(null);
 
   const changeRange = (range) => {
-    console.log(`changeRange range`, range);
     setRange(range);
     storeCtx.changeRange(range);
   };
@@ -149,7 +148,7 @@ const DepthBook = (props) => {
       }
       setRangeOptions(options);
     }
-  }, [storeCtx, storeCtx.selectedTicker]);
+  }, [selectedTicker, storeCtx, storeCtx.selectedTicker]);
 
   return (
     <section className="order-book">

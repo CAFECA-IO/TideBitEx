@@ -20,7 +20,6 @@ const DropDown = (props) => {
   const selectHandler = (option) => {
     setChecked(false);
     props.onSelect(option);
-    console.log(`[DropDown] selectHandler option`, option);
   };
   const clickHandler = () => {
     setChecked((prev) => !prev);

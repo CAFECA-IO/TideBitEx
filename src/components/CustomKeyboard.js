@@ -20,6 +20,9 @@ const CustomKeyboard = (props) => {
     } else {
       v = value + data.toString();
     }
+    if(v.toString().startsWith('0')&& !v.includes(".")){
+      v = v.substring(1)
+    }
     console.log(`CustomKeyboard v`, v);
     props.onInput(v);
   };
