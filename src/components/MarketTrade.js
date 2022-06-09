@@ -48,6 +48,7 @@ const TradeForm = (props) => {
         <label htmlFor="price">{t("price")}:</label>
         <div className="market-trade__input-group--box">
           <input
+            inputMode={props.isMobile ? "none" : "numeric"}
             ref={inputPrice}
             name="price"
             type={props.isMobile ? null : props.readyOnly ? "text" : "number"}
@@ -56,15 +57,11 @@ const TradeForm = (props) => {
             value={props.readyOnly ? t("market") : props.price}
             onClick={() => {
               if (props.isMobile) {
-                console.log(`inputPrice onClick`);
                 storeCtx.setFocusEl(inputPrice);
               }
             }}
             onChange={(e) => {
-              console.log(
-                `inputPrice.current.value`,
-                inputPrice.current.value
-              );
+              console.log(`inputPrice.current.value`, inputPrice.current.value);
               props.onPxInput(e.target.value);
             }}
             required={!props.readyOnly}
@@ -84,6 +81,7 @@ const TradeForm = (props) => {
         <label htmlFor="trade_amount">{t("trade_amount")}:</label>
         <div className="market-trade__input-group--box">
           <input
+            inputMode={props.isMobile ? "none" : "numeric"}
             ref={inputAmount}
             name="trade_amount"
             type={props.isMobile ? null : "number"}
@@ -171,7 +169,19 @@ const TradeForm = (props) => {
         </li>
       </ul>
       <div style={{ flex: "auto" }}></div>
-      {storeCtx.focusEl && <CustomKeyboard inputEl={storeCtx.focusEl} />}
+      {storeCtx.focusEl && (
+        <CustomKeyboard
+          inputEl={storeCtx.focusEl}
+          onInput={(v) => {
+            if (storeCtx.focusEl === inputPrice) {
+              props.onPxInput(v);
+            }
+            if (storeCtx.focusEl === inputAmount) {
+              props.onSzInput(v);
+            }
+          }}
+        />
+      )}
       <button
         type="submit"
         className="btn market-trade__button"

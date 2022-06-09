@@ -11,7 +11,7 @@
     font-weight: 700;
     font-size: 14px;
     padding: 8px 0px;
-    padding-right: 10px;
+    padding-right: 5px;
   }
   &__table {
     display: flex;
@@ -20,7 +20,9 @@
     height: calc(50vh - 97px);
     min-height: 388px;
     position: relative;
-    overflow: auto;
+    // overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   &__header--bids,

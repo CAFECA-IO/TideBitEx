@@ -9,7 +9,7 @@ const CustomKeyboard = (props) => {
     storeCtx.setFocusEl(props.inputEl);
     let v,
       value = props.inputEl.current.value;
-      console.log(`CustomKeyboard value`, value);
+    console.log(`CustomKeyboard value`, value);
     if (data === "bksp") {
       v = value.substring(0, value.length - 1);
     } else if (data === ".") {
@@ -20,12 +20,8 @@ const CustomKeyboard = (props) => {
     } else {
       v = value + data.toString();
     }
-    props.inputEl.current.value = v;
     console.log(`CustomKeyboard v`, v);
-    console.log(
-      `CustomKeyboard props.inputEl.current.value`,
-      props.inputEl.current.value
-    );
+    props.onInput(v);
   };
   return (
     <div className="custom-keyboard">
