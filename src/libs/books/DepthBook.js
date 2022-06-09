@@ -16,28 +16,33 @@ class DepthBook extends BookBase {
   }
 
   range = (arr, unit) => {
-    const max = Math.max(arr.map((d) => parseFloat(d.price)));
-    const min = Math.min(arr.map((d) => parseFloat(d.price)));
+    let result = [...arr];
+    if (unit) {
+      const max = Math.max(arr.map((d) => d.price));
+      const min = Math.min(arr.map((d) => d.price));
 
-    const start = min - (min % unit);
-    const end = max % unit === 0 ? max : max - (max % unit) + 1;
-    const length = parseInt((end - start) / unit);
+      const start = SafeMath.minus(min, SafeMath.mod(min, unit));
+      const end = SafeMath.eq(SafeMath.mod(max, unit), "0")
+        ? max
+        : SafeMath.plus(SafeMath.minus(max, SafeMath.mod(max, unit)), "1");
+      const length = parseInt(SafeMath.div(SafeMath.minus(end, start), unit));
 
-    const result = [];
-    for (let i = 0; i < length; i++) {
-      const price = start + unit * i;
-      const data = { price, amount: 0 };
-      result.push(data);
-    }
-    arr.forEach((p) => {
-      const price = SafeMath.mult(SafeMath.div(p.price, unit), unit);
-      const index = result.find((v) => SafeMath.eq(v.price, price));
-      if (index > -1) {
-        result[index].amount += p.amount;
-      } else {
-        result.push(p);
+      result = [];
+      for (let i = 0; i < length; i++) {
+        const price = SafeMath.plus(start, SafeMath.mult(unit, i));
+        const data = { price, amount: "0" };
+        result.push(data);
       }
-    });
+      arr.forEach((p) => {
+        const price = SafeMath.mult(SafeMath.div(p.price, unit), unit);
+        const index = result.find((v) => SafeMath.eq(v.price, price));
+        if (index > -1) {
+          result[index].amount = SafeMath.plus(result[index].amount, p.amount);
+        } else {
+          result.push(p);
+        }
+      });
+    }
     return result;
   };
 
@@ -62,15 +67,9 @@ class DepthBook extends BookBase {
           depthBooks.bids.push(data);
         }
       });
-      // console.log(`[DepthBook] getSnapshot[${market}]`, {
-      //   ...depthBooks,
-      //   total: SafeMath.plus(
-      //     depthBooks.asks[depthBooks.asks.length - 1]?.total,
-      //     depthBooks.bids[depthBooks.bids.length - 1]?.total
-      //   ),
-      // });
       return {
-        ...depthBooks,
+        asks: this.range(depthBooks.asks, this.unit),
+        bids: this.range(depthBooks.bids, this.unit),
         total: SafeMath.plus(
           depthBooks.asks[depthBooks.asks.length - 1]?.total,
           depthBooks.bids[depthBooks.bids.length - 1]?.total

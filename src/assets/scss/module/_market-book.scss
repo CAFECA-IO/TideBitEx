@@ -8,6 +8,11 @@
   &__tool-bar {
     background-color: #4597e6;
     border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: flex-end;
+  }
+  &__range-options{
+    max-width: 100px;
   }
   &__range-options > .header-dropdown__button {
     background-color: transparent;
@@ -27,8 +32,8 @@
     display: flex;
     flex-direction: row;
     flex: auto;
-    height: calc(50vh - 97px);
-    min-height: 388px;
+    height: calc(50vh - 135px);
+    min-height: 350px;
     position: relative;
     // overflow: auto;
     overflow-y: auto;

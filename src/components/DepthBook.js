@@ -117,14 +117,21 @@ const DepthBook = (props) => {
   const { t } = useTranslation();
   const [range, setRange] = useState("");
   const [rangeOptions, setRangeOptions] = useState([]);
+  const [selectedTicker, setSelectedTicker] = useState(null);
 
   const changeRange = (range) => {
+    console.log(`changeRange range`, range);
     setRange(range);
     storeCtx.changeRange(range);
   };
 
   useEffect(() => {
-    if (storeCtx.selectedTicker) {
+    if (
+      (!selectedTicker && storeCtx.selectedTicker) ||
+      (selectedTicker &&
+        selectedTicker?.instId !== storeCtx.selectedTicker?.instId)
+    ) {
+      setSelectedTicker(storeCtx.selectedTicker);
       setRange(storeCtx.selectedTicker?.tickSz);
       storeCtx.changeRange(storeCtx.selectedTicker?.tickSz);
       const options = [];
@@ -136,7 +143,7 @@ const DepthBook = (props) => {
       for (let i = fixed; i > 0; i--) {
         options.push(getDecimal(i));
       }
-      options.push(getDecimal(1));
+      options.push(1);
       if (fixed < 2) {
         options.push(10);
       }
@@ -152,7 +159,7 @@ const DepthBook = (props) => {
           options={rangeOptions}
           selected={range}
           onSelect={changeRange}
-          placeholder={range}
+          // placeholder={range}
         >
           {(range) => <div>{range}</div>}
         </DropDown>
