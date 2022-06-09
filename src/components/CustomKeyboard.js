@@ -33,6 +33,7 @@ const CustomKeyboard = (props) => {
       >
         x
       </div>
+      {/* <div className="custom-keyboard__container"> */}
       <div className="custom-keyboard__row">
         <div
           className="custom-keyboard__btn"
@@ -128,6 +129,7 @@ const CustomKeyboard = (props) => {
         </div>
       </div>
     </div>
+    // </div>
   );
 };
 export default CustomKeyboard;

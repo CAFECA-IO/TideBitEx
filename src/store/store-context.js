@@ -236,6 +236,7 @@ const StoreContext = React.createContext({
   getExAccounts: async (exchange) => {},
   getUsersAccounts: async () => {},
   setFocusEl: () => {},
+  changeRange: () => {},
 });
 
 export default StoreContext;

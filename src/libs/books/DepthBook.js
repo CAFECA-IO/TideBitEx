@@ -3,12 +3,43 @@ import SafeMath from "../../utils/SafeMath";
 import BookBase from "../BookBase";
 
 class DepthBook extends BookBase {
+  unit;
   constructor() {
     super();
     this.name = `DepthBook`;
     this._config = { remove: true, add: true, update: false };
     return this;
   }
+
+  changeRange(unit) {
+    this.unit = unit;
+  }
+
+  range = (arr, unit) => {
+    const max = Math.max(arr.map((d) => parseFloat(d.price)));
+    const min = Math.min(arr.map((d) => parseFloat(d.price)));
+
+    const start = min - (min % unit);
+    const end = max % unit === 0 ? max : max - (max % unit) + 1;
+    const length = parseInt((end - start) / unit);
+
+    const result = [];
+    for (let i = 0; i < length; i++) {
+      const price = start + unit * i;
+      const data = { price, amount: 0 };
+      result.push(data);
+    }
+    arr.forEach((p) => {
+      const price = SafeMath.mult(SafeMath.div(p.price, unit), unit);
+      const index = result.find((v) => SafeMath.eq(v.price, price));
+      if (index > -1) {
+        result[index].amount += p.amount;
+      } else {
+        result.push(p);
+      }
+    });
+    return result;
+  };
 
   getSnapshot(market) {
     try {

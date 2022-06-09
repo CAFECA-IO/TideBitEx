@@ -14,7 +14,7 @@ const randomID = (n) => {
 };
 
 const DropDown = (props) => {
-  const id = randomID(6);
+  // const id = randomID(6);
 
   const [checked, setChecked] = useState(false);
   const selectHandler = (option) => {
@@ -25,17 +25,25 @@ const DropDown = (props) => {
     setChecked((prev) => !prev);
   };
   return (
-    <div className="header-dropdown">
+    <div
+      className={`header-dropdown${
+        props.className ? ` ${props.className}` : ""
+      }`}
+    >
       <input
         className="header-dropdown__controller"
         type="checkbox"
-        id="header-dropdown-controller"
+        id={`header-dropdown-controller${
+          props.className ? ` ${props.className}` : ""
+        }`}
         checked={checked}
         readOnly
       />
       <label
         className="header-dropdown__button"
-        htmlFor={id}
+        htmlFor={`header-dropdown-controller${
+          props.className ? ` ${props.className}` : ""
+        }`}
         onClick={clickHandler}
       >
         {props.selected && props.children(props.selected)}

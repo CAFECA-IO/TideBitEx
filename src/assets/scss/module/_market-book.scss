@@ -4,14 +4,24 @@
   flex: auto;
   height: 100%;
   border: 1px solid #333;
-  &__header {
-    border-bottom: 1px solid #333;
+
+  &__tool-bar {
     background-color: #4597e6;
+    border-bottom: 1px solid #333;
+  }
+  &__range-options > .header-dropdown__button {
+    background-color: transparent;
+    border: none;
+  }
+
+  &__header {
+    border-bottom: 1px solid #dee2e6;
     color: white;
     font-weight: 700;
     font-size: 14px;
     padding: 8px 0px;
     padding-right: 5px;
+    color: #555;
   }
   &__table {
     display: flex;
