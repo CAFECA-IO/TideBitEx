@@ -289,6 +289,9 @@ const TradePannel = (props) => {
         : // : SafeMath.gte(SafeMath.mult(value, price), available)
           // ? SafeMath.div(available, price)
           value;
+      if (_value.toString().startsWith("0") && !_value.includes(".")) {
+        _value = _value.substring(1);
+      }
       let precision,
         arr = lotSz.split(".");
       if (arr.length > 1) precision = arr[1].length;
@@ -363,6 +366,9 @@ const TradePannel = (props) => {
         : // : SafeMath.gte(value, available)
           // ? available
           value;
+      if (_value.toString().startsWith("0") && !_value.includes(".")) {
+        _value = _value.substring(1);
+      }
       let precision,
         pArr = lotSz.split(".");
       if (pArr.length > 1) precision = pArr[1].length;
