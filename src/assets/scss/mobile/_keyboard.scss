@@ -8,11 +8,24 @@
   right: 0;
   width: 100%;
   z-index: 1051;
+  padding-top: 24px;
 
   user-select: none;
   box-sizing: border-box;
   overflow: hidden;
   touch-action: manipulation;
+  &__close {
+    position: absolute;
+    top: 4px;
+    right: 5px;
+    text-align: left;
+    width: 15px;
+    height: 15px;
+    border-radius: 15px;
+    border: 1px solid;
+    text-align: center;
+    line-height: 1;
+  }
   &__row {
     display: flex;
   }
@@ -40,7 +53,7 @@
   &__btn:not(:last-child) {
     margin-right: 5px;
   }
-  &__btn > span{
+  &__btn > span {
     pointer-events: none;
     font-size: 14px;
   }
@@ -50,7 +63,7 @@
     box-shadow: unset !important;
   }
   &__btn--corner > span > img {
-    width: 2.2rem;
+    width: 22px;
     vertical-align: middle;
     border: 0;
   }

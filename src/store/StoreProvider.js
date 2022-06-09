@@ -36,6 +36,7 @@ const StoreProvider = (props) => {
   const [activePage, setActivePage] = useState("market");
   const [depthBook, setDepthbook] = useState(null);
   const [languageKey, setLanguageKey] = useState("en");
+  const [focusEl, setFocusEl] = useState(null);
 
   const action = useCallback(
     (key) => (
@@ -329,6 +330,7 @@ const StoreProvider = (props) => {
         activePage,
         depthBook,
         languageKey,
+        focusEl,
         setIsLogin,
         start,
         stop,
@@ -341,6 +343,7 @@ const StoreProvider = (props) => {
         activePageHandler,
         getExAccounts,
         getUsersAccounts,
+        setFocusEl
       }}
     >
       {props.children}

@@ -17,6 +17,7 @@ const StoreContext = React.createContext({
   depthBook: null,
   // sellPx: null,
   orderType: null,
+  focusEl: null,
   // orderTypeHandler: (orderType) => {},
   setIsLogin: () => {},
   start: () => {},
@@ -234,6 +235,7 @@ const StoreContext = React.createContext({
   activePageHandler: () => {},
   getExAccounts: async (exchange) => {},
   getUsersAccounts: async () => {},
+  setFocusEl: () => {},
 });
 
 export default StoreContext;

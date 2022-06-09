@@ -13,10 +13,6 @@ import { useTranslation } from "react-i18next";
 import { useViewport } from "../store/ViewportProvider";
 import CustomKeyboard from "./CustomKeyboard";
 
-//  ++ TODO
-// validation 邏輯獨立成function
-// 超過小數精度的要在畫面上切掉
-
 const TradeForm = (props) => {
   const { t } = useTranslation();
   const storeCtx = useContext(StoreContext);
@@ -52,7 +48,7 @@ const TradeForm = (props) => {
         <label htmlFor="price">{t("price")}:</label>
         <div className="market-trade__input-group--box">
           <input
-            ref={props.isMobile ? inputPrice : null}
+            ref={inputPrice}
             name="price"
             type={props.isMobile ? null : props.readyOnly ? "text" : "number"}
             className="market-trade__input form-control"
@@ -60,22 +56,21 @@ const TradeForm = (props) => {
             value={props.readyOnly ? t("market") : props.price}
             onClick={() => {
               if (props.isMobile) {
-                inputPrice.current.focus();
+                console.log(`inputPrice onClick`);
+                storeCtx.setFocusEl(inputPrice);
               }
             }}
-            onInput={(e) => {
-              if (!props.isMobile)
-                props.onPxInput(
-                  props.isMobile ? inputPrice.current.value : e.target.value
-                );
+            onChange={(e) => {
+              console.log(
+                `inputPrice.current.value`,
+                inputPrice.current.value
+              );
+              props.onPxInput(e.target.value);
             }}
             required={!props.readyOnly}
             disabled={!!props.readyOnly}
             step={storeCtx.selectedTicker?.tickSz}
           />
-          {/* {document.activeElement === inputPrice.current && (
-            <CustomKeyboard inputEl={inputPrice} />
-          )} */}
           {!props.readyOnly && (
             <div className="market-trade__input-group--append input-group-append">
               <span className="input-group-text">
@@ -89,7 +84,7 @@ const TradeForm = (props) => {
         <label htmlFor="trade_amount">{t("trade_amount")}:</label>
         <div className="market-trade__input-group--box">
           <input
-            ref={props.isMobile ? inputAmount : null}
+            ref={inputAmount}
             name="trade_amount"
             type={props.isMobile ? null : "number"}
             className="market-trade__input form-control"
@@ -97,21 +92,19 @@ const TradeForm = (props) => {
             value={props.volume}
             onClick={() => {
               if (props.isMobile) {
-                inputAmount.current.focus();
+                storeCtx.setFocusEl(inputAmount);
               }
             }}
-            onInput={(e) => {
-              if (!props.isMobile)
-                props.onSzInput(
-                  props.isMobile ? inputAmount.current.value : e.target.value
-                );
+            onChange={(e) => {
+              console.log(
+                `inputAmount.current.value`,
+                inputAmount.current.value
+              );
+              props.onSzInput(e.target.value);
             }}
-            required
             step={storeCtx.selectedTicker?.lotSz}
+            required
           />
-          {/* {document.activeElement === inputAmount.current && (
-            <CustomKeyboard inputEl={inputAmount} />
-          )} */}
           <div className="market-trade__input-group--append input-group-append">
             <span className="input-group-text">
               {storeCtx.selectedTicker?.base_unit?.toUpperCase() || "--"}
@@ -178,6 +171,7 @@ const TradeForm = (props) => {
         </li>
       </ul>
       <div style={{ flex: "auto" }}></div>
+      {storeCtx.focusEl && <CustomKeyboard inputEl={storeCtx.focusEl} />}
       <button
         type="submit"
         className="btn market-trade__button"

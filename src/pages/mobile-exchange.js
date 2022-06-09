@@ -16,7 +16,13 @@ const MobileExchange = (props) => {
   const storeCtx = useContext(StoreContext);
   const { t } = useTranslation();
   return (
-    <main className="main">
+    <main
+      className="main"
+      // onClick={() => {
+      //   console.log(`MobileExchange onClick`);
+      //   storeCtx.setFocusEl(null);
+      // }}
+    >
       {(storeCtx.activePage === "chart" ||
         storeCtx.activePage === "market" ||
         storeCtx.activePage === "trade") && <MobileTickers />}
