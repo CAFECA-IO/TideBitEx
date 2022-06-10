@@ -3,6 +3,8 @@ TideBit Exchange
 
 ## General Requirements
 
+### remove build/index.html
+
 - [TideBit-Legacy](https://github.com/CAFECA-IO/TideBit-Lagacy)
 - Node.js: v14.17.6
 - pm2
