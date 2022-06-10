@@ -36,6 +36,7 @@ const StoreProvider = (props) => {
   const [activePage, setActivePage] = useState("market");
   const [depthBook, setDepthbook] = useState(null);
   const [languageKey, setLanguageKey] = useState("en");
+  const [focusEl, setFocusEl] = useState(null);
 
   const action = useCallback(
     (key) => (
@@ -80,6 +81,10 @@ const StoreProvider = (props) => {
     },
     [middleman]
   );
+
+  const changeRange = (range) => {
+    middleman.depthBook.changeRange(range);
+  };
 
   const getUsersAccounts = useCallback(async () => {
     let usersAccounts = {};
@@ -289,25 +294,21 @@ const StoreProvider = (props) => {
   }, [middleman]);
 
   const start = useCallback(async () => {
-    console.log(`STORE location.pathname start`, location.pathname);
-    let market;
     if (location.pathname.includes("/markets")) {
+      console.log(`StoreProvider start`, location.pathname);
+      let market;
       market = location.pathname.includes("/markets/")
         ? location.pathname.replace("/markets/", "")
         : "ethhkd";
-    } else {
-      // add default market: ethhkd
-      market = "ethhkd";
+      history.push({
+        pathname: `/markets/${market}`,
+      });
+      await middleman.start(market);
+      setIsLogin(middleman.isLogin);
+      // ++ TODO: verify function works properly
+      sync();
+      interval = setInterval(sync, 100);
     }
-    history.push({
-      pathname: `/markets/${market}`,
-    });
-    await middleman.start(market);
-    setIsLogin(middleman.isLogin);
-    // ++ TODO: verify function works properly
-    sync();
-    interval = setInterval(sync, 100);
-    // console.log(`interval`, interval);
   }, [history, location.pathname, middleman, sync]);
 
   const stop = useCallback(() => {
@@ -329,6 +330,7 @@ const StoreProvider = (props) => {
         activePage,
         depthBook,
         languageKey,
+        focusEl,
         setIsLogin,
         start,
         stop,
@@ -341,6 +343,8 @@ const StoreProvider = (props) => {
         activePageHandler,
         getExAccounts,
         getUsersAccounts,
+        setFocusEl,
+        changeRange,
       }}
     >
       {props.children}

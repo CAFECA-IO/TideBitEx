@@ -3,12 +3,57 @@ import SafeMath from "../../utils/SafeMath";
 import BookBase from "../BookBase";
 
 class DepthBook extends BookBase {
+  unit;
   constructor() {
     super();
     this.name = `DepthBook`;
     this._config = { remove: true, add: true, update: false };
     return this;
   }
+
+  changeRange(unit) {
+    this.unit = unit;
+  }
+
+  range = (arr, unit) => {
+    let result = [...arr];
+
+    if (unit) {
+      const max = Math.max(...arr.map((d) => parseFloat(d.price)));
+      const min = Math.min(...arr.map((d) => parseFloat(d.price)));
+      console.log(`range max`, max);
+      console.log(`range min`, min);
+      const start = SafeMath.minus(min, SafeMath.mod(min, unit));
+      const end = SafeMath.eq(SafeMath.mod(max, unit), "0")
+        ? max
+        : SafeMath.plus(SafeMath.minus(max, SafeMath.mod(max, unit)), "1");
+      const length = parseInt(SafeMath.div(SafeMath.minus(end, start), unit));
+      console.log(`range start`, start);
+      console.log(`range end`, end);
+      console.log(`range length`, length);
+      result = [];
+      for (let i = 0; i < length; i++) {
+        const price = SafeMath.plus(start, SafeMath.mult(unit, i));
+        // console.log(`1price${i}`, price);
+        const data = { price, amount: "0" };
+        result.push(data);
+      }
+      arr.forEach((p,i) => {
+        const price = SafeMath.mult(
+          parseInt(SafeMath.div(p.price, unit)),
+          unit
+        );
+        // console.log(`2price${i}`, price);
+        const index = result.find((v) => SafeMath.eq(v.price, price));
+        if (index > -1) {
+          result[index].amount = SafeMath.plus(result[index].amount, p.amount);
+        } else {
+          result.push(p);
+        }
+      });
+    }
+    return result;
+  };
 
   getSnapshot(market) {
     try {
@@ -31,14 +76,10 @@ class DepthBook extends BookBase {
           depthBooks.bids.push(data);
         }
       });
-      // console.log(`[DepthBook] getSnapshot[${market}]`, {
-      //   ...depthBooks,
-      //   total: SafeMath.plus(
-      //     depthBooks.asks[depthBooks.asks.length - 1]?.total,
-      //     depthBooks.bids[depthBooks.bids.length - 1]?.total
-      //   ),
-      // });
+      console.log(`getSnapshot range`, this.unit);
       return {
+        // asks: this.range(depthBooks.asks, this.unit),
+        // bids: this.range(depthBooks.bids, this.unit),
         ...depthBooks,
         total: SafeMath.plus(
           depthBooks.asks[depthBooks.asks.length - 1]?.total,

@@ -23,7 +23,7 @@
     flex-direction: column;
     flex: auto;
     height: 100%;
-    min-width: 494px;
+    min-width: 489px;
   }
   &__header {
     border-bottom: 1px solid #333;
@@ -110,6 +110,7 @@
     font-weight: 300;
     border-radius: 0px;
     text-align: right;
+    pointer-events: auto;
     // border-top-right-radius: 0px;
     // border-bottom-right-radius: 0px;
   }

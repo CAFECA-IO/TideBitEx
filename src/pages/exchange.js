@@ -4,25 +4,28 @@ import DesktopExchange from "./desktop-exchange";
 import MobileExchange from "./mobile-exchange";
 import Layout from "../components/Layout";
 import StoreContext from "../store/store-context";
+import { useLocation } from "react-router-dom";
 
 const Exchange = () => {
   const storeCtx = useContext(StoreContext);
+  const location = useLocation();
   const [isStart, setIsStart] = useState(false);
   const { width } = useViewport();
   const breakpoint = 414;
 
   useEffect(() => {
-    if (!isStart) {
-      window.storeCtx = storeCtx;
-      storeCtx.start();
-      setIsStart(true);
+    if (location.pathname.includes("/markets")) {
+      if (!isStart) {
+        window.storeCtx = storeCtx;
+        storeCtx.start();
+        setIsStart(true);
+      }
     }
-
     // ++TODO never called
     return () => {
       // storeCtx.stop();
     };
-  }, [isStart, storeCtx]);
+  }, [isStart, location.pathname, storeCtx]);
 
   return (
     <Layout>

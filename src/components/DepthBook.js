@@ -1,8 +1,9 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import StoreContext from "../store/store-context";
 import SafeMath from "../utils/SafeMath";
 import { formateDecimal } from "../utils/Utils";
 import { useTranslation } from "react-i18next";
+import DropDown from "./DropDown";
 
 const BookTile = (props) => {
   const tickSz =
@@ -102,12 +103,66 @@ const BookTile = (props) => {
   );
 };
 
+const getDecimal = (length) => {
+  let num = "0.";
+  for (let i = 0; i < length - 1; i++) {
+    num += "0";
+  }
+  num += "1";
+  return num;
+};
+
 const DepthBook = (props) => {
   const storeCtx = useContext(StoreContext);
   const { t } = useTranslation();
+  const [range, setRange] = useState("");
+  const [rangeOptions, setRangeOptions] = useState([]);
+  const [selectedTicker, setSelectedTicker] = useState(null);
+
+  const changeRange = (range) => {
+    setRange(range);
+    storeCtx.changeRange(range);
+  };
+
+  useEffect(() => {
+    if (
+      (!selectedTicker && storeCtx.selectedTicker) ||
+      (selectedTicker &&
+        selectedTicker?.instId !== storeCtx.selectedTicker?.instId)
+    ) {
+      setSelectedTicker(storeCtx.selectedTicker);
+      setRange(storeCtx.selectedTicker?.tickSz);
+      storeCtx.changeRange(storeCtx.selectedTicker?.tickSz);
+      const options = [];
+      let fixed =
+        storeCtx.selectedTicker?.tickSz?.split(".").length > 1
+          ? storeCtx.selectedTicker?.tickSz?.split(".")[1].length
+          : 0;
+
+      for (let i = fixed; i > 0; i--) {
+        options.push(getDecimal(i));
+      }
+      options.push(1);
+      if (fixed < 2) {
+        options.push(10);
+      }
+      setRangeOptions(options);
+    }
+  }, [selectedTicker, storeCtx, storeCtx.selectedTicker]);
 
   return (
     <section className="order-book">
+      <div className="order-book__tool-bar">
+        <DropDown
+          className="order-book__range-options"
+          options={rangeOptions}
+          selected={range}
+          onSelect={changeRange}
+          // placeholder={range}
+        >
+          {(range) => <div>{range}</div>}
+        </DropDown>
+      </div>
       <ul className="order-book__header table__header flex-row">
         <ul className="order-book__header--bids flex-row">
           <li>{t("amount")}</li>

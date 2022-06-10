@@ -13,10 +13,6 @@ import { useTranslation } from "react-i18next";
 import { useViewport } from "../store/ViewportProvider";
 import CustomKeyboard from "./CustomKeyboard";
 
-//  ++ TODO
-// validation 邏輯獨立成function
-// 超過小數精度的要在畫面上切掉
-
 const TradeForm = (props) => {
   const { t } = useTranslation();
   const storeCtx = useContext(StoreContext);
@@ -52,7 +48,8 @@ const TradeForm = (props) => {
         <label htmlFor="price">{t("price")}:</label>
         <div className="market-trade__input-group--box">
           <input
-            ref={props.isMobile ? inputPrice : null}
+            inputMode={props.isMobile ? "none" : "numeric"}
+            ref={inputPrice}
             name="price"
             type={props.isMobile ? null : props.readyOnly ? "text" : "number"}
             className="market-trade__input form-control"
@@ -60,22 +57,17 @@ const TradeForm = (props) => {
             value={props.readyOnly ? t("market") : props.price}
             onClick={() => {
               if (props.isMobile) {
-                inputPrice.current.focus();
+                storeCtx.setFocusEl(inputPrice);
               }
             }}
-            onInput={(e) => {
-              if (!props.isMobile)
-                props.onPxInput(
-                  props.isMobile ? inputPrice.current.value : e.target.value
-                );
+            onChange={(e) => {
+              console.log(`inputPrice.current.value`, inputPrice.current.value);
+              props.onPxInput(e.target.value);
             }}
             required={!props.readyOnly}
             disabled={!!props.readyOnly}
             step={storeCtx.selectedTicker?.tickSz}
           />
-          {/* {document.activeElement === inputPrice.current && (
-            <CustomKeyboard inputEl={inputPrice} />
-          )} */}
           {!props.readyOnly && (
             <div className="market-trade__input-group--append input-group-append">
               <span className="input-group-text">
@@ -89,7 +81,8 @@ const TradeForm = (props) => {
         <label htmlFor="trade_amount">{t("trade_amount")}:</label>
         <div className="market-trade__input-group--box">
           <input
-            ref={props.isMobile ? inputAmount : null}
+            inputMode={props.isMobile ? "none" : "numeric"}
+            ref={inputAmount}
             name="trade_amount"
             type={props.isMobile ? null : "number"}
             className="market-trade__input form-control"
@@ -97,21 +90,15 @@ const TradeForm = (props) => {
             value={props.volume}
             onClick={() => {
               if (props.isMobile) {
-                inputAmount.current.focus();
+                storeCtx.setFocusEl(inputAmount);
               }
             }}
-            onInput={(e) => {
-              if (!props.isMobile)
-                props.onSzInput(
-                  props.isMobile ? inputAmount.current.value : e.target.value
-                );
+            onChange={(e) => {
+              props.onSzInput(e.target.value);
             }}
-            required
             step={storeCtx.selectedTicker?.lotSz}
+            required
           />
-          {/* {document.activeElement === inputAmount.current && (
-            <CustomKeyboard inputEl={inputAmount} />
-          )} */}
           <div className="market-trade__input-group--append input-group-append">
             <span className="input-group-text">
               {storeCtx.selectedTicker?.base_unit?.toUpperCase() || "--"}
@@ -178,6 +165,19 @@ const TradeForm = (props) => {
         </li>
       </ul>
       <div style={{ flex: "auto" }}></div>
+      {storeCtx.focusEl && (
+        <CustomKeyboard
+          inputEl={storeCtx.focusEl}
+          onInput={(v) => {
+            if (storeCtx.focusEl === inputPrice) {
+              props.onPxInput(v);
+            }
+            if (storeCtx.focusEl === inputAmount) {
+              props.onSzInput(v);
+            }
+          }}
+        />
+      )}
       <button
         type="submit"
         className="btn market-trade__button"
@@ -289,6 +289,9 @@ const TradePannel = (props) => {
         : // : SafeMath.gte(SafeMath.mult(value, price), available)
           // ? SafeMath.div(available, price)
           value;
+      if (_value.toString().startsWith("0") && !_value.includes(".")) {
+        _value = _value.substring(1);
+      }
       let precision,
         arr = lotSz.split(".");
       if (arr.length > 1) precision = arr[1].length;
@@ -363,6 +366,9 @@ const TradePannel = (props) => {
         : // : SafeMath.gte(value, available)
           // ? available
           value;
+      if (_value.toString().startsWith("0") && !_value.includes(".")) {
+        _value = _value.substring(1);
+      }
       let precision,
         pArr = lotSz.split(".");
       if (pArr.length > 1) precision = pArr[1].length;

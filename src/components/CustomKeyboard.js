@@ -1,25 +1,42 @@
-import React, { useState } from "react";
+import React, { useContext } from "react";
+import StoreContext from "../store/store-context";
 
 const CustomKeyboard = (props) => {
-  const [value, setValue] = useState("");
+  const storeCtx = useContext(StoreContext);
   const handleClick = (e, data) => {
-    e.preventDefault();
-    let v;
+    // e.preventDefault();
+    console.log(`CustomKeyboard props.inputEl`, props.inputEl);
+    storeCtx.setFocusEl(props.inputEl);
+    let v,
+      value = props.inputEl.current.value;
+    console.log(`CustomKeyboard value`, value);
     if (data === "bksp") {
       v = value.substring(0, value.length - 1);
     } else if (data === ".") {
       if (!value.includes(".")) {
         if (value.length === 0) v = "0" + data.toString();
         else v = value + data.toString();
-      }
+      } else v = value;
     } else {
       v = value + data.toString();
     }
-    setValue(v);
-    props.inputEl.current.value = v;
+    if(v.toString().startsWith('0')&& !v.includes(".")){
+      v = v.substring(1)
+    }
+    console.log(`CustomKeyboard v`, v);
+    props.onInput(v);
   };
   return (
     <div className="custom-keyboard">
+      <div
+        className="custom-keyboard__close"
+        onClick={() => {
+          storeCtx.setFocusEl(null);
+        }}
+      >
+        x
+      </div>
+      {/* <div className="custom-keyboard__container"> */}
       <div className="custom-keyboard__row">
         <div
           className="custom-keyboard__btn"
@@ -110,11 +127,12 @@ const CustomKeyboard = (props) => {
           onClick={(e) => handleClick(e, "bksp")}
         >
           <span>
-            <img src="/assets/images/backspace.svg" alt="Backspace"></img>
+            <img src="/img/backspace.svg" alt="Backspace"></img>
           </span>
         </div>
       </div>
     </div>
+    // </div>
   );
 };
 export default CustomKeyboard;
