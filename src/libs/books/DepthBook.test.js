@@ -180,45 +180,41 @@ const getDifference = (preArr, newArr) => {
   return { snapshot };
 };
 
-const range = (arr, unit) => {
+const range = (arr, unit, startTime) => {
   let result = arr;
   let _arr = arr?.map((d) => parseFloat(d.price)) || [];
   if (unit) {
     const max = Math.max(..._arr);
     const min = Math.min(..._arr);
-    const start = SafeMath.minus(min, SafeMath.mod(min, unit));
-    const end = SafeMath.eq(SafeMath.mod(max, unit), "0")
-      ? max
-      : SafeMath.plus(SafeMath.minus(max, SafeMath.mod(max, unit)), "1");
-    const length = parseInt(SafeMath.div(SafeMath.minus(end, start), unit));
-
-    result = [];
+    const start = min - (min % unit);
+    const end = max % unit === 0 ? max : max - (max % unit) + 1;
+    const length = parseInt((end - start) / unit);
+console.log(`max`,max)
+console.log(`min`,min)
+console.log(`length`,length)
+    result = {};
     for (let i = 0; i < length; i++) {
-      const price = SafeMath.plus(start, SafeMath.mult(unit, i));
+      const price = start + unit * i;
       const data = { amount: "0", price, side: "" };
-      result.push(data);
+      result[price] = data;
     }
-
-    arr.forEach((p) => {
-      const price = SafeMath.mult(parseInt(SafeMath.div(p.price, unit)), unit);
-      const index = result.findIndex(
-        (v) =>
-          (!v.side && SafeMath.eq(v.price, price)) ||
-          (v.side === p.side && SafeMath.eq(v.price, price))
-      );
-
-      if (index > -1) {
-        if (SafeMath.eq(result[index].amount, "0")) {
-          result[index] = { ...p, price };
+    console.log(`result`,result)
+    for (let i = 0; i < arr.length; i++) {
+      const p = arr[i];
+      const price = parseInt(parseFloat(p.price) / unit) * unit;
+      console.log(`result[${price}]`,result[price])
+      if (result[price]) {
+        if (SafeMath.eq(result[price].amount, "0")) {
+          result[price] = { ...p, price };
         } else {
-          result[index].amount = SafeMath.plus(result[index].amount, p.amount);
+          result[price].amount = parseFloat(result[price].amount) + p.amount;
         }
       } else {
-        result.push({ ...p, price });
+        result[price] = { ...p, price };
       }
-    });
+    }
   }
-  return result;
+  return Object.values(result);
 };
 
 const getSnapshot = (arr) => {
@@ -226,27 +222,50 @@ const getSnapshot = (arr) => {
     asks: [],
     bids: [],
   };
-  range(arr, 1).forEach((data) => {
+  const rangedArr = range(arr, 1);
+  for (let i = 0; i < rangedArr.length; i++) {
+    const data = rangedArr[i];
     if (data.side === "asks") {
       depthBooks.asks.push([data.price, data.amount]);
     }
     if (data.side === "bids") {
       depthBooks.bids.push([data.price, data.amount]);
     }
-  });
+  }
   return depthBooks;
 };
 
 describe("test range", () => {
   test("if true", () => {
+    const startTime = Date.now();
     const arr = [
-      { price: "1789.11", amount: "0.033084", total: "0.033084", side: "asks" },
+      {
+        price: "1789.11",
+        amount: "0.033084",
+        total: "0.033084",
+        side: "asks",
+      },
       { price: "1789.26", amount: "0.636", total: "0.669084", side: "asks" },
-      { price: "1789.31", amount: "1.212906", total: "1.88199", side: "asks" },
+      {
+        price: "1789.31",
+        amount: "1.212906",
+        total: "1.88199",
+        side: "asks",
+      },
       { price: "1789.36", amount: "0.149", total: "2.03099", side: "asks" },
       { price: "1789.44", amount: "0.86", total: "2.89099", side: "asks" },
-      { price: "1789.46", amount: "2.797034", total: "5.688024", side: "asks" },
-      { price: "1789.64", amount: "2.25221", total: "7.940234", side: "asks" },
+      {
+        price: "1789.46",
+        amount: "2.797034",
+        total: "5.688024",
+        side: "asks",
+      },
+      {
+        price: "1789.64",
+        amount: "2.25221",
+        total: "7.940234",
+        side: "asks",
+      },
       { price: "1789.71", amount: "0.149", total: "8.089234", side: "asks" },
       {
         price: "1789.9",
@@ -641,7 +660,12 @@ describe("test range", () => {
         side: "bids",
       },
       { price: "1788.46", amount: "0.149", total: "85.67063", side: "bids" },
-      { price: "1788.47", amount: "4.195383", total: "85.52163", side: "bids" },
+      {
+        price: "1788.47",
+        amount: "4.195383",
+        total: "85.52163",
+        side: "bids",
+      },
       {
         price: "1788.48",
         amount: "1.533548",
@@ -654,7 +678,12 @@ describe("test range", () => {
         total: "79.792699",
         side: "bids",
       },
-      { price: "1788.5", amount: "0.001611", total: "41.392164", side: "bids" },
+      {
+        price: "1788.5",
+        amount: "0.001611",
+        total: "41.392164",
+        side: "bids",
+      },
       {
         price: "1788.52",
         amount: "10.030229",
@@ -662,8 +691,18 @@ describe("test range", () => {
         side: "bids",
       },
       { price: "1788.57", amount: "4.992", total: "31.360324", side: "bids" },
-      { price: "1788.58", amount: "0.4457", total: "26.368324", side: "bids" },
-      { price: "1788.6", amount: "0.109401", total: "25.922624", side: "bids" },
+      {
+        price: "1788.58",
+        amount: "0.4457",
+        total: "26.368324",
+        side: "bids",
+      },
+      {
+        price: "1788.6",
+        amount: "0.109401",
+        total: "25.922624",
+        side: "bids",
+      },
       {
         price: "1788.61",
         amount: "0.099994",
@@ -683,7 +722,12 @@ describe("test range", () => {
         total: "25.093986",
         side: "bids",
       },
-      { price: "1788.7", amount: "0.017382", total: "24.261281", side: "bids" },
+      {
+        price: "1788.7",
+        amount: "0.017382",
+        total: "24.261281",
+        side: "bids",
+      },
       {
         price: "1788.75",
         amount: "0.005523",
@@ -703,7 +747,12 @@ describe("test range", () => {
         total: "23.864769",
         side: "bids",
       },
-      { price: "1788.88", amount: "0.006075", total: "17.49882", side: "bids" },
+      {
+        price: "1788.88",
+        amount: "0.006075",
+        total: "17.49882",
+        side: "bids",
+      },
       {
         price: "1788.89",
         amount: "0.010249",
@@ -719,12 +768,37 @@ describe("test range", () => {
       { price: "1788.94", amount: "0.004", total: "16.556859", side: "bids" },
       { price: "1788.96", amount: "2.793", total: "16.552859", side: "bids" },
       { price: "1789", amount: "0.158352", total: "13.759859", side: "bids" },
-      { price: "1789.03", amount: "0.0013", total: "13.601507", side: "bids" },
-      { price: "1789.05", amount: "5.20934", total: "13.600207", side: "bids" },
-      { price: "1789.06", amount: "0.001999", total: "8.390867", side: "bids" },
-      { price: "1789.08", amount: "0.111788", total: "8.388868", side: "bids" },
+      {
+        price: "1789.03",
+        amount: "0.0013",
+        total: "13.601507",
+        side: "bids",
+      },
+      {
+        price: "1789.05",
+        amount: "5.20934",
+        total: "13.600207",
+        side: "bids",
+      },
+      {
+        price: "1789.06",
+        amount: "0.001999",
+        total: "8.390867",
+        side: "bids",
+      },
+      {
+        price: "1789.08",
+        amount: "0.111788",
+        total: "8.388868",
+        side: "bids",
+      },
       { price: "1789.09", amount: "8.27708", total: "8.27708", side: "bids" },
     ];
+    // for (let i = 0; i < 10000; i++) {
+    //   getSnapshot(arr);
+    // }
+    const endTime = Date.now();
+    console.log(endTime - startTime);
     expect(getSnapshot(arr)).toBe();
   });
 });
