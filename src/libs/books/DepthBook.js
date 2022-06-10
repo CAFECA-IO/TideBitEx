@@ -16,10 +16,11 @@ class DepthBook extends BookBase {
   }
 
   range = (arr, unit) => {
-    let result = [...arr];
+    let result = arr;
+    let _arr = arr?.map((d) => parseFloat(d.price)) || [];
     if (unit) {
-      const max = Math.max(...arr.map((d) => parseFloat(d.price)));
-      const min = Math.min(...arr.map((d) => parseFloat(d.price)));
+      const max = Math.max(..._arr);
+      const min = Math.min(..._arr);
       const start = SafeMath.minus(min, SafeMath.mod(min, unit));
       const end = SafeMath.eq(SafeMath.mod(max, unit), "0")
         ? max
@@ -38,13 +39,15 @@ class DepthBook extends BookBase {
           parseInt(SafeMath.div(p.price, unit)),
           unit
         );
-        const index = result.findIndex((v) => SafeMath.eq(v.price, price));
+        const index = result.findIndex(
+          (v) =>
+            (!v.side && SafeMath.eq(v.price, price)) ||
+            (v.side === p.side && SafeMath.eq(v.price, price))
+        );
 
         if (index > -1) {
           if (SafeMath.eq(result[index].amount, "0")) {
-            result[index] = { ...p, price: result[index].price };
-          } else if (result[index].side !== p.side) {
-            result.push({ ...p, price: result[index].price });
+            result[index] = { ...p, price };
           } else {
             result[index].amount = SafeMath.plus(
               result[index].amount,
@@ -52,7 +55,7 @@ class DepthBook extends BookBase {
             );
           }
         } else {
-          result.push(p);
+          result.push({ ...p, price });
         }
       });
     }
@@ -82,8 +85,6 @@ class DepthBook extends BookBase {
       });
       console.log(`getSnapshot range`, this.unit);
       return {
-        // asks: this.range(depthBooks.asks, this.unit),
-        // bids: this.range(depthBooks.bids, this.unit),
         ...depthBooks,
         total: SafeMath.plus(
           depthBooks.asks[depthBooks.asks.length - 1]?.total,
