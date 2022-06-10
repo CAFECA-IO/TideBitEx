@@ -180,7 +180,7 @@ const getDifference = (preArr, newArr) => {
   return { snapshot };
 };
 
-const range = (arr, unit, startTime) => {
+const range = (arr, unit) => {
   let result = arr;
   let _arr = arr?.map((d) => parseFloat(d.price)) || [];
   if (unit) {
@@ -189,20 +189,24 @@ const range = (arr, unit, startTime) => {
     const start = min - (min % unit);
     const end = max % unit === 0 ? max : max - (max % unit) + 1;
     const length = parseInt((end - start) / unit);
-console.log(`max`,max)
-console.log(`min`,min)
-console.log(`length`,length)
+
     result = {};
     for (let i = 0; i < length; i++) {
       const price = start + unit * i;
       const data = { amount: "0", price, side: "" };
       result[price] = data;
     }
-    console.log(`result`,result)
+    console.log(`result`, result);
     for (let i = 0; i < arr.length; i++) {
       const p = arr[i];
-      const price = parseInt(parseFloat(p.price) / unit) * unit;
-      console.log(`result[${price}]`,result[price])
+      let price = parseInt(parseFloat(p.price) / unit) * unit;
+      if (p.side === "asks" && parseFloat(p.price) % unit > 0) price += unit; //++TODO
+      console.log(
+        `result[${price}](${
+          p.side === "asks" && parseFloat(p.price) % unit > 0
+        })`,
+        result[price]
+      );
       if (result[price]) {
         if (SafeMath.eq(result[price].amount, "0")) {
           result[price] = { ...p, price };

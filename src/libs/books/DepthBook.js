@@ -24,25 +24,25 @@ class DepthBook extends BookBase {
       const start = min - (min % unit);
       const end = max % unit === 0 ? max : max - (max % unit) + 1;
       const length = parseInt((end - start) / unit);
-  
+
       result = {};
       for (let i = 0; i < length; i++) {
         const price = start + unit * i;
         const data = { amount: "0", price, side: "" };
         result[price] = data;
       }
-  
+
       for (let i = 0; i < arr.length; i++) {
         const p = arr[i];
-        const price = parseInt(parseFloat(p.price) / unit) * unit;
+        let price = parseInt(parseFloat(p.price) / unit) * unit;
+        // if (p.side === "asks" && parseFloat(p.price) % unit > 0) price += unit; //++TODO
         if (result[price]) {
           if (SafeMath.eq(result[price].amount, "0")) {
             result[price] = { ...p, price };
           } else {
-            result[price].amount = parseFloat(result[price].amount) + parseFloat(p.amount);
+            result[price].amount =
+              parseFloat(result[price].amount) + parseFloat(p.amount);
           }
-        } else {
-          result[price] = { ...p, price };
         }
       }
     }
@@ -74,8 +74,12 @@ class DepthBook extends BookBase {
         }
       }
       return {
-        asks: depthBooks.asks.sort((a,b)=> parseFloat(a.price) - parseFloat(b.price) ),
-        bids: depthBooks.bids.sort((a,b)=> parseFloat(b.price) - parseFloat(a.price) ),
+        asks: depthBooks.asks.sort(
+          (a, b) => parseFloat(a.price) - parseFloat(b.price)
+        ),
+        bids: depthBooks.bids.sort(
+          (a, b) => parseFloat(b.price) - parseFloat(a.price)
+        ),
         total: SafeMath.plus(
           depthBooks.asks[depthBooks.asks.length - 1]?.total,
           depthBooks.bids[depthBooks.bids.length - 1]?.total
