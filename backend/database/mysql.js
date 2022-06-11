@@ -12,7 +12,6 @@ class mysql {
       initDB.dialect = initDB.protocal;
       initDB.username = initDB.user;
       initDB.database = initDB.dbName;
-      this.logger.log("initDB", initDB);
       const initDBSequelize = new Sequelize(
         initDB.dbName,
         initDB.user,
@@ -31,15 +30,15 @@ class mysql {
 
       await initDBSequelize.authenticate();
       this.logger.log(
-        `\x1b[1m\x1b[32mDB   \x1b[0m\x1b[21m ${initDB.dbName} connect success`
+        `\x1b[1m\x1b[32mDB\x1b[0m\x1b[21m ${initDB.dbName} connect success`
       );
       this.db = initDBSequelize;
       return this;
     } catch (error) {
       this.logger.error(
-        "\x1b[1m\x1b[31mDB   \x1b[0m\x1b[21m \x1b[1m\x1b[31mconnect fails\x1b[0m\x1b[21m"
+        "\x1b[1m\x1b[31mDB\x1b[0m\x1b[21m \x1b[1m\x1b[31mconnect fails\x1b[0m\x1b[21m"
       );
-      throw error;
+      //throw error;
     }
   }
 
