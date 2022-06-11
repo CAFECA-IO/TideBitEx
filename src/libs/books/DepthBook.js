@@ -16,43 +16,37 @@ class DepthBook extends BookBase {
   }
 
   range = (arr, unit) => {
-    let result = [...arr];
-
+    let result = arr;
+    let _arr = arr?.map((d) => parseFloat(d.price)) || [];
     if (unit) {
-      const max = Math.max(...arr.map((d) => parseFloat(d.price)));
-      const min = Math.min(...arr.map((d) => parseFloat(d.price)));
-      console.log(`range max`, max);
-      console.log(`range min`, min);
-      const start = SafeMath.minus(min, SafeMath.mod(min, unit));
-      const end = SafeMath.eq(SafeMath.mod(max, unit), "0")
-        ? max
-        : SafeMath.plus(SafeMath.minus(max, SafeMath.mod(max, unit)), "1");
-      const length = parseInt(SafeMath.div(SafeMath.minus(end, start), unit));
-      console.log(`range start`, start);
-      console.log(`range end`, end);
-      console.log(`range length`, length);
-      result = [];
+      const max = Math.max(..._arr);
+      const min = Math.min(..._arr);
+      const start = min - (min % unit);
+      const end = max % unit === 0 ? max : max - (max % unit) + 1;
+      const length = parseInt((end - start) / unit);
+
+      result = {};
       for (let i = 0; i < length; i++) {
-        const price = SafeMath.plus(start, SafeMath.mult(unit, i));
-        // console.log(`1price${i}`, price);
-        const data = { price, amount: "0" };
-        result.push(data);
+        const price = start + unit * i;
+        const data = { amount: "0", price, side: "" };
+        result[price] = data;
       }
-      arr.forEach((p,i) => {
-        const price = SafeMath.mult(
-          parseInt(SafeMath.div(p.price, unit)),
-          unit
-        );
-        // console.log(`2price${i}`, price);
-        const index = result.find((v) => SafeMath.eq(v.price, price));
-        if (index > -1) {
-          result[index].amount = SafeMath.plus(result[index].amount, p.amount);
-        } else {
-          result.push(p);
+
+      for (let i = 0; i < arr.length; i++) {
+        const p = arr[i];
+        let price = parseInt(parseFloat(p.price) / unit) * unit;
+        // if (p.side === "asks" && parseFloat(p.price) % unit > 0) price += unit; //++TODO
+        if (result[price]) {
+          if (SafeMath.eq(result[price].amount, "0")) {
+            result[price] = { ...p, price };
+          } else {
+            result[price].amount =
+              parseFloat(result[price].amount) + parseFloat(p.amount);
+          }
         }
-      });
+      }
     }
-    return result;
+    return Object.values(result);
   };
 
   getSnapshot(market) {
@@ -62,7 +56,10 @@ class DepthBook extends BookBase {
         asks: [],
         bids: [],
       };
-      this._snapshot[market]?.forEach((data) => {
+      if (!this._snapshot[market]) this._snapshot[market] = [];
+      const rangedArr = this.range(this._snapshot[market], this.unit);
+      for (let i = 0; i < rangedArr.length; i++) {
+        let data = rangedArr[i];
         if (
           this._difference[market].update.some((d) =>
             this._compareFunction(d, data)
@@ -75,12 +72,14 @@ class DepthBook extends BookBase {
         if (data.side === "bids") {
           depthBooks.bids.push(data);
         }
-      });
-      console.log(`getSnapshot range`, this.unit);
+      }
       return {
-        // asks: this.range(depthBooks.asks, this.unit),
-        // bids: this.range(depthBooks.bids, this.unit),
-        ...depthBooks,
+        asks: depthBooks.asks.sort(
+          (a, b) => parseFloat(a.price) - parseFloat(b.price)
+        ),
+        bids: depthBooks.bids.sort(
+          (a, b) => parseFloat(b.price) - parseFloat(a.price)
+        ),
         total: SafeMath.plus(
           depthBooks.asks[depthBooks.asks.length - 1]?.total,
           depthBooks.bids[depthBooks.bids.length - 1]?.total
