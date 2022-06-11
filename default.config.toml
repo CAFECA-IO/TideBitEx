@@ -69,8 +69,11 @@ pathname = [
   "get | /api/v1/users/account/list | Bot.ExchangeHub.getUsersAccounts",
   "get | /api/v1/users/subaccount/list | Bot.ExchangeHub.getExAccounts",
 
-# tradingview
+  # tradingview
   "get | /api/v1/tradingview/config | Bot.ExchangeHub.getTradingViewConfig",
   "get | /api/v1/tradingview/symbols | Bot.ExchangeHub.getTradingViewSymbol",
   "get | /api/v1/tradingview/history | Bot.ExchangeHub.getTradingViewHistory",
+
+  # UI
+  "get | /markets, /markets/:market | Static.Utils.renderMarket",
 ]

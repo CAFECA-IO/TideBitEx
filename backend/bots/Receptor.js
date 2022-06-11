@@ -104,7 +104,6 @@ class Receptor extends Bot {
   }
 
   register({ pathname, options, operation }) {
-    this.logger.log(`register options`, options);
     const method = options.method.toLowerCase();
     this.router[method](
       pathname,
@@ -122,7 +121,14 @@ class Receptor extends Bot {
           memberId: ctx.memberId,
         };
         return operation(inputs).then((rs) => {
-          ctx.body = rs;
+          if(rs.html) {
+            ctx.body = rs.html;
+            ctx.type = 'html';
+          }
+          else {
+            ctx.body = rs;
+          }
+          
           // ++ TODO 需新增寫入 session 的功能
           next();
         });

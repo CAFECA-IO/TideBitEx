@@ -53,7 +53,7 @@
   "scripts": {
     "start": "bin/main.js",
     "debug": "react-scripts start",
-    "build": "react-scripts --max_old_space_size=4096 build",
+    "build": "react-scripts --max_old_space_size=4096 build && mv build/index.html build/market.html",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

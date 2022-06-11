@@ -333,6 +333,15 @@ class Utils {
     return Promise.resolve({});
   }
 
+  static renderMarket() {
+    const filePath = path.resolve(__dirname, "../../build/market.html");
+    return this.readFile({ filePath }).then((rs) => {
+      return {
+        html: rs
+      };
+    });
+  }
+
   static listProcess() {
     return this.readPackageInfo().then((packageInfo) => {
       const PIDFolder = path.resolve(os.homedir(), packageInfo.name, "PIDs");
