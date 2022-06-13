@@ -1,0 +1,17 @@
+.screen {
+  display: flex;
+  flex: auto;
+  overflow: hidden;
+  &__header {
+    text-align: center;
+    font-size: 30px;
+    letter-spacing: 0px;
+    color: #767676;
+    padding: 52px 0;
+  }
+  &__section {
+    flex: auto;
+    overflow: hidden;
+    padding-right: 30px;
+  }
+}

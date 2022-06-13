@@ -66,7 +66,51 @@ body::-webkit-scrollbar {
   background: #555;
 }
 
-// .scrollbar-custom {
-//   scrollbar-width: thin;
-//   scrollbar-color: #555 #888;
-// }
+*,
+*::after,
+*::before {
+  margin: 0;
+  padding: 0;
+  box-sizing: inherit;
+}
+
+body {
+  box-sizing: border-box;
+}
+
+ul,
+li {
+  list-style: none;
+  padding: 0;
+}
+
+a,
+a:hover,
+a:active {
+  color: #fff;
+  text-decoration: none;
+}
+
+button {
+  background: none;
+  color: inherit;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  outline: inherit;
+}
+
+input,
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  border: none;
+  outline: none;
+  width: 100%;
+  background-color: rgba(#fff, 0.3);
+  -webkit-box-shadow: 0 0 0 30px rgba(#fff, 0.3) inset;
+  color: #767676 !important;
+  -webkit-text-fill-color: #767676 !important;
+}

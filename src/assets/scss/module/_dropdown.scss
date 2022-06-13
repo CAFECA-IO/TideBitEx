@@ -1,0 +1,39 @@
+.dropdown {
+  position: relative;
+  &__controller {
+    display: none;
+  }
+  &__options {
+    display: none;
+    // gap: 10px;
+  }
+  &__option{
+    padding: 8px 20px;
+    border-left: 5px solid transparent;
+  }
+  &__option.active{
+    color: #2699FB;
+    border-left: 5px solid #2699FB;
+  }
+  &__controller:checked ~ &__options {
+    display: flex;
+    flex-direction: column;
+  }
+  &__label {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+  }
+  &__icon {
+    width: 5px;
+    height: 5px;
+    transform: rotate(-45deg) translate(3px, 0px);
+    padding: 1px;
+    border-left: 2px solid #767676;
+    border-bottom: 2px solid #767676;
+  }
+  &__controller:checked ~ &__label &__icon {
+    transform: rotate(135deg) translate(-3px, -3px);
+  }
+}
