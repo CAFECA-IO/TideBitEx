@@ -37,7 +37,10 @@ class DepthBook extends BookBase {
       for (let i = 0; i < arr.length; i++) {
         const p = arr[i];
         let price = parseFloat(
-          (p.side === "asks"
+          (p.side === "asks" &&
+          ((p.price * 10 ** decimal) % (unit * 10 ** decimal)) /
+            10 ** decimal !==
+            0
             ? parseInt(parseFloat(p.price) / unit) * unit + unit
             : parseInt(parseFloat(p.price) / unit) * unit
           ).toFixed(decimal)
