@@ -18,24 +18,30 @@ class DepthBook extends BookBase {
   range = (arr, unit) => {
     let result = arr;
     let _arr = arr?.map((d) => parseFloat(d.price)) || [];
+    let decimal;
+    decimal = unit.toString().includes(".")
+      ? unit.toString().split(".")[1].length
+      : 0;
     if (unit) {
       const max = Math.max(..._arr);
       const min = Math.min(..._arr);
       const start = min - (min % unit);
-      const end = max % unit === 0 ? max : max - (max % unit) + 1;
+      const end = max % unit === 0 ? max : max - (max % unit) + unit;
       const length = parseInt((end - start) / unit);
-
       result = {};
       for (let i = 0; i < length; i++) {
         const price = start + unit * i;
         const data = { amount: "0", price, side: "" };
         result[price] = data;
       }
-
       for (let i = 0; i < arr.length; i++) {
         const p = arr[i];
-        let price = parseInt(parseFloat(p.price) / unit) * unit;
-        // if (p.side === "asks" && parseFloat(p.price) % unit > 0) price += unit; //++TODO
+        let price = parseFloat(
+          (p.side === "asks"
+            ? parseInt(parseFloat(p.price) / unit) * unit + unit
+            : parseInt(parseFloat(p.price) / unit) * unit
+          ).toFixed(decimal)
+        );
         if (result[price]) {
           if (SafeMath.eq(result[price].amount, "0")) {
             result[price] = { ...p, price };
@@ -57,7 +63,10 @@ class DepthBook extends BookBase {
         bids: [],
       };
       if (!this._snapshot[market]) this._snapshot[market] = [];
-      const rangedArr = this.range(this._snapshot[market], this.unit);
+      const rangedArr = this.range(
+        this._snapshot[market],
+        parseFloat(this.unit)
+      );
       for (let i = 0; i < rangedArr.length; i++) {
         let data = rangedArr[i];
         if (
