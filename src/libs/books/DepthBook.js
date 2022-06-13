@@ -32,7 +32,7 @@ class DepthBook extends BookBase {
       for (let i = 0; i < length; i++) {
         const price = start + unit * i;
         const data = { amount: "0", price, side: "" };
-        result[price] = data;
+        result[parseFloat(price.toFixed(decimal))] = data;
       }
       for (let i = 0; i < arr.length; i++) {
         const p = arr[i];

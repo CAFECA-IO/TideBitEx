@@ -13,7 +13,7 @@ const Sidebar = (props) => {
   };
   return (
     <section className="admin-sidebar">
-      <div className="btn btn--dropdown dropdown">
+      <div className="dropdown">
         <input
           className="dropdown__controller"
           type="checkbox"
@@ -49,7 +49,7 @@ const Sidebar = (props) => {
         </ul>
       </div>
       <div
-        className={`btn admin-sidebar__btn${
+        className={`admin-sidebar__btn${
           props.activePage === "deposit" ? " active" : ""
         }`}
         onClick={() => selectPageHandler("deposit")}
@@ -57,7 +57,7 @@ const Sidebar = (props) => {
         <div className="admin-sidebar__text">入金管理</div>
       </div>
       <div
-        className={`btn admin-sidebar__btn${
+        className={`admin-sidebar__btn${
           props.activePage === "sub-account" ? " active" : ""
         }`}
         onClick={() => selectPageHandler("sub-account")}
@@ -65,7 +65,7 @@ const Sidebar = (props) => {
         <div className="admin-sidebar__text">子帳號管理</div>
       </div>
       <div
-        className={`btn admin-sidebar__btn${
+        className={`admin-sidebar__btn${
           props.activePage === "assets-overview" ? " active" : ""
         }`}
         onClick={() => selectPageHandler("assets-overview")}
@@ -73,7 +73,7 @@ const Sidebar = (props) => {
         <div className="admin-sidebar__text">資產總覽</div>
       </div>
       <div
-        className={`btn admin-sidebar__btn${
+        className={`admin-sidebar__btn${
           props.activePage === "info-setting" ? " active" : ""
         }`}
         onClick={() => selectPageHandler("info-setting")}
