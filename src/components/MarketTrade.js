@@ -237,7 +237,7 @@ const TradePannel = (props) => {
     else precision = 0;
     let _value = +value < 0 ? "0" : value;
     let price,
-      vArr = _value.split(".");
+      vArr = _value.toString().split(".");
     if (vArr.length > 1 && vArr[1].length > precision) {
       price = parseFloat(_value).toFixed(precision);
       setErrMsg(`Price precision is ${tickSz}`);

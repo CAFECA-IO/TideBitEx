@@ -14,7 +14,8 @@ import TermsAndConditions from "./terms-and-conditions";
 import NewsDetails from "./news-details";
 import Signup from "./signup";
 import Notfound from "./notfound";
-import Analysis from "./analysis";
+// import Analysis from "./analysis";s
+import Admin from "./admin";
 
 export default function index() {
   return (
@@ -26,7 +27,8 @@ export default function index() {
         <Exchange />
       </Route>
       <Route path="/analysis">
-        <Analysis />
+        {/* <Analysis /> */}
+        <Admin/>
       </Route>
       <Route path="/profile">
         <Profile />

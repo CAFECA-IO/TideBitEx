@@ -1,0 +1,27 @@
+.admin-header {
+    position: fixed;
+    width: 100vw;
+    top: 0;
+  
+    padding: 12px 30px;
+    background-color: teal;
+    color: white;
+  
+    display: flex;
+    align-items: center;
+  
+    &__logo-box {
+      margin-right: 60px;
+    }
+    &__button-box {
+      display: flex;
+      gap: 10px;
+    }
+    &__button{
+      padding: 10px;
+    }
+    &__button.active{
+      border-bottom: 1px solid #fff;
+    }
+  }
+  
