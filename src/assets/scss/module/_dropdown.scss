@@ -7,13 +7,13 @@
     display: none;
     // gap: 10px;
   }
-  &__option{
+  &__option {
     padding: 8px 20px;
     border-left: 5px solid transparent;
   }
-  &__option.active{
-    color: #2699FB;
-    border-left: 5px solid #2699FB;
+  &__option.active {
+    color: #2699fb;
+    border-left: 5px solid #2699fb;
   }
   &__controller:checked ~ &__options {
     display: flex;
@@ -26,8 +26,8 @@
     justify-content: center;
   }
   &__icon {
-    width: 5px;
-    height: 5px;
+    width: 7px;
+    height: 7px;
     transform: rotate(-45deg) translate(3px, 0px);
     padding: 1px;
     border-left: 2px solid #767676;
