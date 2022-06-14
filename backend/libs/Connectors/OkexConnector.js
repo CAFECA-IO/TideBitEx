@@ -1416,11 +1416,6 @@ class OkexConnector extends ConnectorBase {
       name: data.instId.replace("-", "/"),
       base_unit: data.instId.split("-")[0].toLowerCase(),
       quote_unit: data.instId.split("-")[1].toLowerCase(),
-      group:
-        data.instId.split("-")[1].toLowerCase().includes("usd") &&
-        data.instId.split("-")[1].toLowerCase().length > 3
-          ? "usdx"
-          : data.instId.split("-")[1].toLowerCase(),
       last: data.last,
       change,
       changePct,

@@ -386,8 +386,31 @@ const Deposit = () => {
           <li className="screen__table-header">平台入金數量</li>
           <li className="screen__table-header">入金交易所</li>
           <li className="screen__table-header-btn">
-            <span className="">全部開啟</span> /{" "}
-            <span className="">全部關閉</span>
+            <span
+              onClick={() => {
+                const updateCurrencies = { ...currencies };
+                Object.values(updateCurrencies).forEach(
+                  (currency) => (currency.status = "open")
+                );
+                setCurrencies(updateCurrencies);
+                filter(filterOption, updateCurrencies);
+              }}
+            >
+              全部開啟
+            </span>
+            /
+            <span
+              onClick={() => {
+                const updateCurrencies = { ...currencies };
+                Object.values(updateCurrencies).forEach(
+                  (currency) => (currency.status = "close")
+                );
+                setCurrencies(updateCurrencies);
+                filter(filterOption, updateCurrencies);
+              }}
+            >
+              全部關閉
+            </span>
           </li>
         </ul>
         <ul className="screen__table-rows">

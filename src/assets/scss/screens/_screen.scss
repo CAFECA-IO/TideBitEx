@@ -51,7 +51,7 @@
   }
   &__select-bar-icon {
     height: 30px;
-    width: 60px;
+    min-width: 20px;
     cursor: pointer;
     & > img {
       height: 100%;
@@ -195,7 +195,8 @@
     justify-content: space-between;
     align-items: center;
   }
-  &__table-switch,&__table-header-btn{
+  &__table-switch,
+  &__table-header-btn {
     min-width: 142px;
   }
 }

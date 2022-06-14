@@ -337,7 +337,7 @@ class Utils {
     const filePath = path.resolve(__dirname, "../../build/market.html");
     return this.readFile({ filePath }).then((rs) => {
       return {
-        html: rs
+        html: rs,
       };
     });
   }
@@ -747,7 +747,7 @@ class Utils {
           .toString("hex");
         const memberId = parseInt(memberIdString, 16);
         return memberId;
-      } else throw Error('memberId not found');
+      } else throw Error("memberId not found");
     } catch (error) {
       try {
         await client.quit();
@@ -781,7 +781,7 @@ class Utils {
     const doc = yaml.load(fs.readFileSync(p, "utf8"));
     return doc;
   }
-  
+
   static getDecimal(length) {
     let num = "0.";
     for (let i = 0; i < length - 1; i++) {
@@ -795,13 +795,15 @@ class Utils {
     let updateTickers = {};
     Object.keys(tickersObj).forEach((id) => {
       const maskData = masks.find((mask) => mask.id === id);
-      if (maskData)  
+      if (maskData)
         updateTickers[id] = {
           ...tickersObj[id],
           pricescale: maskData["price_group_fixed"],
           tickSz: Utils.getDecimal(maskData["bid"]["fixed"]),
-          lotSz:Utils.getDecimal( maskData["ask"]["fixed"]),
-          minSz:Utils.getDecimal( maskData["ask"]["fixed"]),
+          lotSz: Utils.getDecimal(maskData["ask"]["fixed"]),
+          minSz:
+            maskData["minSz"] || Utils.getDecimal(maskData["ask"]["fixed"]),
+          group: maskData["tab_category"],
         };
     });
     return updateTickers;
