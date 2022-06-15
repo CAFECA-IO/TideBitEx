@@ -77,6 +77,7 @@ class TideBitWS {
    * @param {(msg: any) => void} cb
    */
   set onmessage(cb) {
+    this.cb = cb || this.cb;
     this.ws.onmessage = cb;
   }
 
@@ -89,8 +90,9 @@ class TideBitWS {
       this.setCurrentMarket(this.currentMarket);
     }
     if (this.currentUser) {
-      this.setCurrentMarket(this.currentUser);
+      this.setCurrentUser(this.currentUser);
     }
+    this.onmessage = this.cb;
     return new Promise((resolve) => {
       this.ws.onopen = (r) => {
         console.log("Socket is open");
