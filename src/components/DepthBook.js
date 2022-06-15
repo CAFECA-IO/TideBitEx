@@ -179,46 +179,50 @@ const DepthBook = (props) => {
         <ul className="order-book__panel order-book__panel--bids">
           {storeCtx?.selectedTicker &&
             storeCtx.books?.bids &&
-            storeCtx.books.bids.map((book) => (
-              <BookTile
-                tickSz={storeCtx.selectedTicker?.tickSz}
-                lotSz={storeCtx.selectedTicker?.lotSz}
-                onClick={() => {
-                  storeCtx.depthBookHandler(book.price, book.amount);
-                }}
-                type="bids"
-                book={book}
-                key={`bids-${storeCtx.selectedTicker.instId}-${book.price}`}
-                dataWidth={`${parseFloat(
-                  SafeMath.mult(
-                    SafeMath.div(book.total, storeCtx.books.total),
-                    "100"
-                  )
-                ).toFixed(2)}%`}
-              />
-            ))}
+            storeCtx.books.bids
+              .filter((book) => book.amount > storeCtx.selectedTicker?.minSz)
+              .map((book) => (
+                <BookTile
+                  tickSz={storeCtx.selectedTicker?.tickSz}
+                  lotSz={storeCtx.selectedTicker?.lotSz}
+                  onClick={() => {
+                    storeCtx.depthBookHandler(book.price, book.amount);
+                  }}
+                  type="bids"
+                  book={book}
+                  key={`bids-${storeCtx.selectedTicker.instId}-${book.price}`}
+                  dataWidth={`${parseFloat(
+                    SafeMath.mult(
+                      SafeMath.div(book.total, storeCtx.books.total),
+                      "100"
+                    )
+                  ).toFixed(2)}%`}
+                />
+              ))}
         </ul>
         <ul className="order-book__panel order-book__panel--asks">
           {storeCtx?.selectedTicker &&
             storeCtx.books?.asks &&
-            storeCtx.books.asks.map((book) => (
-              <BookTile
-                tickSz={storeCtx.selectedTicker?.tickSz}
-                lotSz={storeCtx.selectedTicker?.lotSz}
-                type="asks"
-                onClick={() => {
-                  storeCtx.depthBookHandler(book.price, book.amount);
-                }}
-                book={book}
-                key={`asks-${storeCtx.selectedTicker.instId}-${book.price}`}
-                dataWidth={`${parseFloat(
-                  SafeMath.mult(
-                    SafeMath.div(book.total, storeCtx.books.total),
-                    "100"
-                  )
-                ).toFixed(2)}%`}
-              />
-            ))}
+            storeCtx.books.asks
+              .filter((book) => book.amount > storeCtx.selectedTicker?.minSz)
+              .map((book) => (
+                <BookTile
+                  tickSz={storeCtx.selectedTicker?.tickSz}
+                  lotSz={storeCtx.selectedTicker?.lotSz}
+                  type="asks"
+                  onClick={() => {
+                    storeCtx.depthBookHandler(book.price, book.amount);
+                  }}
+                  book={book}
+                  key={`asks-${storeCtx.selectedTicker.instId}-${book.price}`}
+                  dataWidth={`${parseFloat(
+                    SafeMath.mult(
+                      SafeMath.div(book.total, storeCtx.books.total),
+                      "100"
+                    )
+                  ).toFixed(2)}%`}
+                />
+              ))}
         </ul>
       </div>
     </section>

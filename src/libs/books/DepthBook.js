@@ -86,10 +86,10 @@ class DepthBook extends BookBase {
         }
       }
       return {
-        asks: depthBooks.asks.sort(
+        asks: depthBooks.asks.filter(data=>parseFloat(data.amount) < parseFloat(this.range)).sort(
           (a, b) => parseFloat(a.price) - parseFloat(b.price)
         ),
-        bids: depthBooks.bids.sort(
+        bids: depthBooks.bids.filter(data=>parseFloat(data.amount) < parseFloat(this.range)).sort(
           (a, b) => parseFloat(b.price) - parseFloat(a.price)
         ),
         total: SafeMath.plus(
