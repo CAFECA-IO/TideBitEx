@@ -95,7 +95,7 @@ class TideBitWS {
       this.setCurrentMarket(this.currentMarket);
     }
     if (this.currentUser) {
-      this.setCurrentUser(this.currentUser);
+      this.setCurrentUser(this.currentMarket, this.currentUser);
     }
     this.onmessage = this.cb;
     return new Promise((resolve) => {
