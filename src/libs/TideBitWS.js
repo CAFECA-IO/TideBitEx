@@ -3,6 +3,7 @@ class TideBitWS {
   currentMarket;
   timeout;
   connection_resolvers = [];
+  wsReConnectTimeout;
   constructor() {
     return this;
   }
@@ -38,10 +39,11 @@ class TideBitWS {
       "Socket is closed. Reconnect will be attempted in 1 second.",
       msg.reason
     );
+    clearTimeout(this.wsReConnectTimeout);
     if (this.interval) clearInterval(this.interval);
     // in case connection is broken
     if (msg.code === 1006 || msg.reason === "" || msg.wasClean === false)
-      setTimeout(async () => {
+      this.wsReConnectTimeout = setTimeout(async () => {
         await this.init({ url: this.url });
       }, 1000);
   }
@@ -51,7 +53,10 @@ class TideBitWS {
     this.ws.onerror = async (err) => {
       if (this.interval) clearInterval(this.interval);
       console.error(`[TideBitWS] this.ws.onerror`, err);
-      // await this.init({ url: this.url });
+      clearTimeout(this.wsReConnectTimeout);
+      this.wsReConnectTimeout = setTimeout(async () => {
+        await this.init({ url: this.url });
+      }, 1000);
     };
   }
 

@@ -5,6 +5,7 @@ const HEART_BEAT_TIME = 25000;
 class WebSocket {
   constructor({ logger }) {
     this.logger = logger;
+    this.wsReConnectTimeout = null;
     return this;
   }
 
@@ -28,7 +29,8 @@ class WebSocket {
     this.ws.on("close", async (event) => await this.clear(event));
     this.ws.on("error", async (err) => {
       this.logger.error(err);
-      setTimeout(async () => {
+      clearTimeout(this.wsReConnectTimeout);
+      this.wsReConnectTimeout = setTimeout(async () => {
         await this.init({ url: this.url });
       }, 1000);
     });
@@ -43,6 +45,7 @@ class WebSocket {
   }
 
   async clear(event) {
+    clearTimeout(this.wsReConnectTimeout);
     if (event.wasClean) {
       this.logger.debug(
         `[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`
@@ -52,7 +55,7 @@ class WebSocket {
       // e.g. server process killed or network down
       // event.code is usually 1006 in this case
       this.logger.error("[close] Connection died");
-      setTimeout(async () => {
+      this.wsReConnectTimeout = setTimeout(async () => {
         await this.init({ url: this.url });
       }, 1000);
     }
