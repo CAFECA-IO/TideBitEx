@@ -17,7 +17,7 @@ const TickerTile = (props) => {
     <li
       onClick={props.onClick}
       className={`market-tile ${props.active ? "active" : ""} ${
-        props.update ? "update" : ""
+        props.update ? "" : ""
       }`}
     >
       <div>{props.ticker.name}</div>
