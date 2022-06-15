@@ -85,6 +85,12 @@ class TideBitWS {
     this.url = url;
     this.ws = new WebSocket(url);
     this.eventListener();
+    if (this.currentMarket) {
+      this.setCurrentMarket(this.currentMarket);
+    }
+    if (this.currentUser) {
+      this.setCurrentMarket(this.currentUser);
+    }
     return new Promise((resolve) => {
       this.ws.onopen = (r) => {
         console.log("Socket is open");

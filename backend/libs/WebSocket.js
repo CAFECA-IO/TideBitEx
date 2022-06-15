@@ -28,7 +28,9 @@ class WebSocket {
     this.ws.on("close", async (event) => await this.clear(event));
     this.ws.on("error", async (err) => {
       this.logger.error(err);
-      await this.init({ url: this.url });
+      setTimeout(async () => {
+        await this.init({ url: this.url });
+      }, 1000);
     });
   }
 
@@ -50,7 +52,9 @@ class WebSocket {
       // e.g. server process killed or network down
       // event.code is usually 1006 in this case
       this.logger.error("[close] Connection died");
-      await this.init({ url: this.url });
+      setTimeout(async () => {
+        await this.init({ url: this.url });
+      }, 1000);
     }
   }
 
