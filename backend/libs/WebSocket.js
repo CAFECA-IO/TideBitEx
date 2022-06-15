@@ -3,9 +3,9 @@ const ws = require("ws");
 const HEART_BEAT_TIME = 25000;
 
 class WebSocket {
+  wsReConnectTimeout;
   constructor({ logger }) {
     this.logger = logger;
-    this.wsReConnectTimeout = null;
     return this;
   }
 
