@@ -1,7 +1,20 @@
 .screen {
+  position: relative;
   display: flex;
   flex: auto;
   overflow: hidden;
+  &__floating-btn {
+    position: absolute;
+    bottom: 22px;
+    right: 30px;
+    height: 50px;
+    width: 50px;
+    cursor: pointer;
+    & > img {
+      height: 100%;
+      width: 100%;
+    }
+  }
   &__header {
     text-align: center;
     font-size: 30px;
@@ -13,5 +26,177 @@
     flex: auto;
     overflow: hidden;
     padding-right: 30px;
+  }
+  &__select-options-box {
+    display: flex;
+    align-items: center;
+  }
+  &__select-bar {
+    display: flex;
+    overflow-x: auto;
+    margin: 0;
+    gap: 2px;
+    min-height: 41px;
+    padding-right: 20px;
+    scroll-behavior: smooth;
+  }
+  &__sorting {
+    cursor: pointer;
+    height: 16px;
+    width: 24px;
+    & > img {
+      height: 100%;
+      width: 100%;
+    }
+  }
+  &__select-bar-icon {
+    height: 30px;
+    min-width: 20px;
+    cursor: pointer;
+    & > img {
+      height: 100%;
+      width: 100%;
+    }
+  }
+  &__select-option {
+    min-width: 120px;
+    width: 180px;
+    padding: 10px 0px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    text-align: center;
+
+    font-size: 16px;
+    color: #767676;
+    cursor: pointer;
+  }
+  &__display-option.active,
+  &__select-option.active {
+    background-color: #2699fb;
+    border: 1px solid #2699fb;
+    color: #fff;
+  }
+  &__search-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 32px;
+    margin-bottom: 24px;
+  }
+  &__search-box {
+    position: relative;
+    border: 1px solid #707070;
+    border-radius: 17px;
+    width: 214px;
+    // height: 33px;
+    padding: 0 10px;
+    padding-right: 35px;
+  }
+  &__search-input {
+    line-height: 2;
+  }
+  &__search-icon {
+    position: absolute;
+    transform: translateY(-50%);
+    top: 60%;
+    right: 10px;
+    text-align: center;
+
+    width: 25px;
+    height: 25px;
+    margin: 0 auto;
+    &--circle {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #707070;
+      border-radius: 100px;
+    }
+    &--rectangle {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      width: 6px;
+      transform: rotate(40deg);
+      border: 1px solid #707070;
+      border-top-right-radius: 3px;
+      border-bottom-right-radius: 3px;
+    }
+  }
+  &__tool-bar {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #767676;
+    margin-bottom: 15px;
+    align-items: center;
+  }
+  &__display,
+  &__display-options {
+    display: flex;
+    align-items: center;
+  }
+  &__display-options {
+    gap: 10px;
+  }
+  &__display-title {
+    font-size: 16px;
+  }
+  &__display-option {
+    font-size: 12px;
+    border: 1px solid #707070;
+    border-radius: 5px;
+    padding: 2px 5px;
+    cursor: pointer;
+  }
+  &__table {
+    display: flex;
+    flex-direction: column;
+    flex: auto;
+    border: 1px solid #707070;
+    color: #767676;
+    overflow: hidden;
+  }
+  &__table-text {
+    font-size: 16px;
+    padding: 10px 0px;
+    color: #767676;
+  }
+  &__table-headers {
+    display: flex;
+    background-color: #fff;
+    border-bottom: 1px solid #707070;
+    padding: 10px 20px;
+    justify-content: space-between;
+  }
+  &__table-item,
+  &__table-header {
+    min-width: 120px;
+  }
+  &__table-header-btn > span {
+    text-decoration: underline;
+    color: #4597e6;
+    display: inline-block;
+    cursor: pointer;
+  }
+  &__table-btn {
+    text-align: center;
+    border-top: 1px solid #707070;
+    background-color: #fff;
+    cursor: pointer;
+  }
+  &__table-rows {
+    flex: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+  }
+  &__table-row {
+    display: flex;
+    padding: 10px 20px;
+    justify-content: space-between;
+    align-items: center;
+  }
+  &__table-switch,
+  &__table-header-btn {
+    min-width: 142px;
   }
 }

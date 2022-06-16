@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import SafeMath from "../utils/SafeMath";
+import SafeMath from "../Utils/SafeMath";
 
 const exchanges = [
   `OKEx`,
@@ -42,6 +42,9 @@ const SubAccounts = () => {
   const [exchange, setExchange] = useState(null);
   const [subAccounts, setSubAccounts] = useState(null);
   const [filterOption, setFilterOption] = useState("all");
+  const filter = (option) => {
+    setFilterOption(option);
+  };
 
   const getSubAccounts = useCallback(
     async (ex) => {
@@ -121,10 +124,10 @@ const SubAccounts = () => {
   return (
     <section className="screen__section sub-accounts">
       <div className="screen__header">子帳號管理</div>
-      <ul className="sub-accounts__exchanges">
+      <ul className="screen__select-bar">
         {exchanges.map((ex) => (
           <li
-            className={`sub-accounts__exchange${
+            className={`screen__select-option${
               ex === exchange ? " active" : ""
             }`}
             key={ex}
@@ -134,35 +137,37 @@ const SubAccounts = () => {
           </li>
         ))}
       </ul>
-      <div className="sub-accounts__search-bar">
-        <div className="sub-accounts__search-box">
+      <div className="screen__search-bar">
+        <div className="screen__search-box">
           <input
             type="text"
             inputMode="search"
-            className="sub-accounts__search-input"
+            className="screen__search-input"
             placeholder="輸入欲搜尋的關鍵字"
           />
-          <div className="sub-accounts__search-icon">
-            <div className="sub-accounts__search-icon--circle"></div>
-            <div className="sub-accounts__search-icon--rectangle"></div>
+          <div className="screen__search-icon">
+            <div className="screen__search-icon--circle"></div>
+            <div className="screen__search-icon--rectangle"></div>
           </div>
         </div>
       </div>
-      <div className="sub-accounts__tool-bar">
-        <div className="sub-accounts__display">
-          <div className="sub-accounts__display-title">顯示：</div>
-          <ul className="sub-accounts__display-options">
+      <div className="screen__tool-bar">
+        <div className="screen__display">
+          <div className="screen__display-title">顯示：</div>
+          <ul className="screen__display-options">
             <li
-              className={`sub-accounts__display-option${
+              className={`screen__display-option${
                 filterOption === "all" ? " active" : ""
               }`}
+              onClick={() => filter("all")}
             >
               全部
             </li>
             <li
-              className={`sub-accounts__display-option${
+              className={`screen__display-option${
                 filterOption === "alert" ? " active" : ""
               }`}
+              onClick={() => filter("alert")}
             >
               警示
             </li>
