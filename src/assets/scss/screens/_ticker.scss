@@ -1,0 +1,33 @@
+.admin-ticker {
+  margin-bottom: 100px;
+  & .screen__search-bar {
+    justify-content: space-between;
+  }
+  &__filter {
+    display: flex;
+    font-size: 24px;
+    color: #767676;
+    &--tag {
+      display: flex;
+      padding: 0px 10px;
+      gap: 5px;
+      align-items: center;
+    }
+    &--tag:first-child {
+      padding-left: 0px;
+    }
+    &--text {
+    }
+    &--icon {
+      width: 7px;
+      height: 7px;
+      transform: rotate(-45deg) translate(3px, 0px);
+      padding: 1px;
+      border-left: 1.5px solid #767676;
+      border-bottom: 1.5px solid #767676;
+    }
+  }
+  & .screen__table {
+    overflow: auto;
+  }
+}

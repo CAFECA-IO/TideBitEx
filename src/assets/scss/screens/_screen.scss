@@ -26,6 +26,8 @@
     flex: auto;
     overflow: hidden;
     padding-right: 30px;
+    display: flex;
+    flex-direction: column;
   }
   &__select-options-box {
     display: flex;
@@ -51,6 +53,7 @@
   }
   &__select-bar-icon {
     height: 30px;
+    width: 20px;
     min-width: 20px;
     cursor: pointer;
     & > img {
