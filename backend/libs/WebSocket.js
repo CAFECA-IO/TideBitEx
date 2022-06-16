@@ -1,19 +1,20 @@
-const ws = require('ws');
+const ws = require("ws");
 
 const HEART_BEAT_TIME = 25000;
 
 class WebSocket {
+  wsReConnectTimeout;
   constructor({ logger }) {
     this.logger = logger;
     return this;
   }
 
   init({ url, heartBeat = HEART_BEAT_TIME }) {
-    if (!url) throw new Error('Invalid input');
+    if (!url) throw new Error("Invalid input");
     this.url = url;
     this.heartBeatTime = heartBeat;
     this.ws = new ws(this.url);
-    
+
     return new Promise((resolve) => {
       this.ws.onopen = (r) => {
         this.heartbeat();
@@ -24,11 +25,14 @@ class WebSocket {
   }
 
   eventListener() {
-    this.ws.on('pong', () => this.heartbeat());
-    this.ws.on('close', () => this.clear());
-    this.ws.on('error', async (err) => {
+    this.ws.on("pong", () => this.heartbeat());
+    this.ws.on("close", async (event) => await this.clear(event));
+    this.ws.on("error", async (err) => {
       this.logger.error(err);
-      await this.init({ url: this.url });
+      clearTimeout(this.wsReConnectTimeout);
+      this.wsReConnectTimeout = setTimeout(async () => {
+        await this.init({ url: this.url });
+      }, 1000);
     });
   }
 
@@ -40,13 +44,29 @@ class WebSocket {
     }, this.heartBeatTime);
   }
 
-  clear() {
-    this.logger.debug('on close!!!, close timeout!!!');
-    clearTimeout(this.pingTimeout);
+  async clear(event) {
+    clearTimeout(this.wsReConnectTimeout);
+    if (event.wasClean) {
+      this.logger.debug(
+        `[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`
+      );
+      clearTimeout(this.pingTimeout);
+    } else {
+      // e.g. server process killed or network down
+      // event.code is usually 1006 in this case
+      this.logger.error("[close] Connection died");
+      this.wsReConnectTimeout = setTimeout(async () => {
+        await this.init({ url: this.url });
+      }, 1000);
+    }
   }
 
-  async send(data, cb) { return this.ws.send(data, cb) };
-  set onmessage(cb) { this.ws.onmessage = cb };
+  async send(data, cb) {
+    return this.ws.send(data, cb);
+  }
+  set onmessage(cb) {
+    this.ws.onmessage = cb;
+  }
 }
 
 module.exports = WebSocket;

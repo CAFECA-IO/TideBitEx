@@ -222,9 +222,11 @@ class OkexConnector extends ConnectorBase {
   // account api end
   // market api
   async getTickers({ query, optional }) {
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  getTickers [START] ----------`
-    // );
+    let instruments,
+      instrumentsRes = await this.getInstruments({ query });
+    if (instrumentsRes.success) {
+      instruments = instrumentsRes.payload;
+    }
     const method = "GET";
     const path = "/api/v5/market/tickers";
     const { instType, uly } = query;
@@ -256,7 +258,8 @@ class OkexConnector extends ConnectorBase {
       }, defaultObj);
       const filteredTickers = Utils.tickersFilterInclude(
         optional.mask,
-        tickers
+        tickers,
+        instruments
       );
       // this.tickerBook.updateAll(tickers);
       return new ResponseFormat({
@@ -1416,6 +1419,11 @@ class OkexConnector extends ConnectorBase {
       name: data.instId.replace("-", "/"),
       base_unit: data.instId.split("-")[0].toLowerCase(),
       quote_unit: data.instId.split("-")[1].toLowerCase(),
+      group:
+        data.instId.split("-")[1].toLowerCase().includes("usd") &&
+        data.instId.split("-")[1].toLowerCase().length > 3
+          ? "usdx"
+          : data.instId.split("-")[1].toLowerCase(),
       last: data.last,
       change,
       changePct,

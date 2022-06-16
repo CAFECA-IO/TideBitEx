@@ -791,20 +791,29 @@ class Utils {
     return num;
   }
 
-  static tickersFilterInclude(masks, tickersObj) {
+  static tickersFilterInclude(masks, tickersObj, instruments) {
     let updateTickers = {};
     Object.keys(tickersObj).forEach((id) => {
       const maskData = masks.find((mask) => mask.id === id);
-      if (maskData)
+      const instData = instruments?.find(
+        (inst) => inst.instId === tickersObj[id].instId
+      );
+      if (maskData) {
         updateTickers[id] = {
           ...tickersObj[id],
           pricescale: maskData["price_group_fixed"],
-          tickSz: Utils.getDecimal(maskData["bid"]["fixed"]),
-          lotSz: Utils.getDecimal(maskData["ask"]["fixed"]),
-          minSz:
-            maskData["minSz"] || Utils.getDecimal(maskData["ask"]["fixed"]),
+          tickSz: Math.max(
+            instData.tickSz,
+            Utils.getDecimal(maskData["bid"]["fixed"])
+          ).toString(),
+          lotSz: Math.max(
+            instData.lotSz,
+            Utils.getDecimal(maskData["ask"]["fixed"])
+          ).toString(),
+          minSz: instData.minSz,
           group: maskData["tab_category"],
         };
+      }
     });
     return updateTickers;
   }
