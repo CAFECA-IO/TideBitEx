@@ -29,12 +29,12 @@ class DepthBook extends BookBase {
       const end = max % unit === 0 ? max : max - (max % unit) + unit;
       const length = parseInt((end - start) / unit);
       result = {};
-      for (let i = 0; i < length; i++) {
+      for (let i = 0; i < length + 1; i++) {
         const price = start + unit * i;
         const data = { amount: "0", price, side: "" };
         result[parseFloat(price.toFixed(decimal))] = data;
       }
-      for (let i = 0; i < arr.length + 1; i++) {
+      for (let i = 0; i < arr.length; i++) {
         const p = arr[i];
         let price = parseFloat(
           (p.side === "asks" &&
