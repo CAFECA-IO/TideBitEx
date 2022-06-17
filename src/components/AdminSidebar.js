@@ -22,7 +22,7 @@ const Sidebar = (props) => {
           readOnly
         />
         <label
-          className="admin-dropdown__label sidebar__btn"
+          className="admin-dropdown__label admin-sidebar__btn"
           htmlFor="admin-dropdown-btn"
           onClick={() => setOpenDropDown((prev) => !prev)}
         >
