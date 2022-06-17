@@ -3,7 +3,7 @@ import React from "react";
 const TableSwitch = (props) => {
   return (
     <div
-      className={`deposit__currency-switch ${
+      className={`switch ${
         props.className ? props.className : ""
       }`}
     >

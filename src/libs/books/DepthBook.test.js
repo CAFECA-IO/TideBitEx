@@ -191,12 +191,12 @@ const range = (arr, unit) => {
     const length = parseInt((end - start) / unit);
 
     result = {};
-    for (let i = 0; i < length+1; i++) {
+    for (let i = 0; i < length + 1; i++) {
       const price = start + unit * i;
       const data = { amount: "0", price, side: "" };
       result[price] = data;
     }
-
+    console.log(`result`, result);
     for (let i = 0; i < arr.length; i++) {
       const p = arr[i];
       let price = parseInt(parseFloat(p.price) / unit) * unit;
@@ -243,8 +243,8 @@ describe("test range", () => {
   test("if true", () => {
     const startTime = Date.now();
     const arr = [
-      { amount: "1.0", price: "1000.0", side: "asks", total: "1" },
-      { amount: "1.0", price: "100.0", side: "bids", total: "1" },
+      { amount: "1.0", price: "12.0", side: "bids", total: "1" },
+      { amount: "1.0", price: "11.0", side: "bids", total: "1" },
       { amount: "1.0", price: "10.0", side: "bids", total: "2" },
     ];
     const endTime = Date.now();

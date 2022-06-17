@@ -225,15 +225,8 @@ const TickerSetting = () => {
       <div className="screen__header">交易對設定</div>
       <div className="screen__search-bar">
         <div className="admin-ticker__filter">
-          <div className="admin-ticker__filter--tag">
-            <div className="admin-ticker__filter--text">{baseCurr}</div>
-            <div className="admin-ticker__filter--icon"></div>
-          </div>
-          /
-          <div className="admin-ticker__filter--tag">
-            <div className="admin-ticker__filter--text">{quoteCurr}</div>
-            <div className="admin-ticker__filter--icon"></div>
-          </div>
+          <div className="admin-ticker__filter--text">{quoteCurr}</div>
+          <div className="admin-ticker__filter--icon"></div>
         </div>
         <div className="screen__search-box">
           <input
