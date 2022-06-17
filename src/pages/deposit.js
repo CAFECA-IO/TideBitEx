@@ -4,6 +4,7 @@ import TableDropdown from "../components/TableDropdown";
 import ScreenTags from "../components/ScreenTags";
 
 const Deposit = () => {
+  const [showMore, setShowMore] = useState(false);
   const [isInit, setIsInit] = useState(null);
   const [selectedTag, setSelectedTag] = useState("ALL");
   const [currencies, setCurrencies] = useState(null);
@@ -195,15 +196,12 @@ const Deposit = () => {
 
   return (
     <section className="screen__section deposit">
-      <div className="screen__floating-btn">
-        <img src="/img/floating-btn@2x.png" alt="arrow" />
-      </div>
       <div className="screen__header">入金管理</div>
-      <ScreenTags
+      {/* <ScreenTags
         selectedTag={selectedTag}
         selectTagHandler={selectTagHandler}
         currencies={currencies}
-      />
+      /> */}
       <div className="screen__search-bar">
         <div className="screen__search-box">
           <input
@@ -252,27 +250,21 @@ const Deposit = () => {
           <img src="/img/sorting@2x.png" alt="sorting" />
         </div>
       </div>
-      <div className="screen__table">
+      <div className={`screen__table${showMore ? " show" : ""}`}>
         <ul className="screen__table-headers">
           <li className="screen__table-header">幣種</li>
           <li className="screen__table-header">代號</li>
           <li className="screen__table-header">平台入金數量</li>
           <li className="screen__table-header">入金交易所</li>
           <li className="screen__table-header-btn">
-            <span
-              onClick={() => {
-                const updateCurrencies = { ...currencies };
-                Object.values(updateCurrencies).forEach(
-                  (currency) => (currency.status = "open")
-                );
-                setCurrencies(updateCurrencies);
-                filter(filterOption, updateCurrencies);
-              }}
-            >
-              全部開啟
-            </span>
-            /
-            <span
+            <button
+              disabled={`${
+                !Object.values(currencies || {}).some(
+                  (currency) => currency.status === "open"
+                )
+                  ? "disable"
+                  : ""
+              }`}
               onClick={() => {
                 const updateCurrencies = { ...currencies };
                 Object.values(updateCurrencies).forEach(
@@ -283,7 +275,27 @@ const Deposit = () => {
               }}
             >
               全部關閉
-            </span>
+            </button>
+            /
+            <button
+              disabled={`${
+                !Object.values(currencies || {}).some(
+                  (currency) => currency.status === "close"
+                )
+                  ? "disable"
+                  : ""
+              }`}
+              onClick={() => {
+                const updateCurrencies = { ...currencies };
+                Object.values(updateCurrencies).forEach(
+                  (currency) => (currency.status = "open")
+                );
+                setCurrencies(updateCurrencies);
+                filter(filterOption, updateCurrencies);
+              }}
+            >
+              全部開啟
+            </button>
           </li>
         </ul>
         <ul className="screen__table-rows">
@@ -320,7 +332,25 @@ const Deposit = () => {
               </div>
             ))}
         </ul>
-        <div className="screen__table-btn screen__table-text">顯示更多</div>
+        <div
+          className="screen__table-btn screen__table-text"
+          onClick={() => setShowMore((prev) => !prev)}
+        >
+          {showMore ? "顯示更少" : "顯示更多"}
+        </div>
+      </div>
+      <div className="screen__floating-box">
+        <div
+          className="screen__floating-btn"
+          onClick={() => {
+            const screenSection =
+              window.document.querySelector(".screen__section");
+            // console.log(screenSection.scrollTop)
+            screenSection.scroll(0, 0);
+          }}
+        >
+          <img src="/img/floating-btn@2x.png" alt="arrow" />
+        </div>
       </div>
     </section>
   );

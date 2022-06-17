@@ -8,33 +8,33 @@ const TableDropdown = (props) => {
   };
   return (
     <div
-      className={`dropdown deposit__currency-dropdown ${
+      className={`admin-dropdown admin-dropdown--float ${
         props.className ? props.className : ""
       }`}
     >
       <input
-        className="dropdown__controller"
+        className="admin-dropdown__controller"
         type="checkbox"
-        id="dropdown-btn"
+        id="admin-dropdown-btn"
         checked={openDropDown}
         readOnly
       />
       <label
-        className="dropdown__label"
-        htmlFor="dropdown-btn"
+        className="admin-dropdown__label"
+        htmlFor="admin-dropdown-btn"
         onClick={() => setOpenDropDown((prev) => !prev)}
       >
-        <div className="dropdown__text">{props.selected || "-"}</div>
-        {props.options?.length > 0 && <div className="dropdown__icon"></div>}
+        <div className="admin-dropdown__text">{props.selected || "-"}</div>
+        {props.options?.length > 0 && <div className="admin-dropdown__icon"></div>}
       </label>
-      <ul className="dropdown__options">
+      <ul className="admin-dropdown__options">
         {props.options?.map((option) => (
           <div
-            className={`dropdown__option${
+            className={`admin-dropdown__option${
               props.activePage === "ticker-setting" ? " active" : ""
             }`}
             onClick={() => onSelect(option)}
-            key={`dropdown-${option}`}
+            key={`admin-dropdown-${option}`}
           >
             {option}
           </div>

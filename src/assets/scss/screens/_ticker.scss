@@ -1,15 +1,15 @@
 .admin-ticker {
-  margin-bottom: 100px;
   & .screen__search-bar {
     justify-content: space-between;
   }
   &__filter {
+    position: relative;
     display: flex;
     font-size: 24px;
-    color: #767676;
-    padding: 0px 10px;
+    color: #c6c6c6;
     gap: 5px;
     align-items: center;
+    cursor: pointer;
 
     &--icon {
       width: 7px;
@@ -20,7 +20,18 @@
       border-bottom: 1.5px solid #767676;
     }
   }
-  & .screen__table {
-    overflow: auto;
+  &__tile.increase > div:nth-child(2),
+  &__tile.increase > div:nth-child(4) {
+    color: #5ad998;
+  }
+  &__tile.descrease > div:nth-child(2),
+  &__tile.descrease > div:nth-child(4) {
+    color: #DC484E;
+  }
+  & .admin-dropdown__label{
+    justify-content: start;
+  }
+  & .admin-dropdown__options{
+    top:40px
   }
 }

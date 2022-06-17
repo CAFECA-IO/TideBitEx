@@ -5,11 +5,14 @@ import TableSwitch from "../components/TableSwitch";
 const CurrencyDropdown = (props) => {
   const [openDropDown, setOpenDropDown] = useState(false);
   return (
-    <div className="currency-dropdown dropdown" key={props.currency.symbol}>
+    <div
+      className="currency-dropdown admin-dropdown"
+      key={props.currency.symbol}
+    >
       <input
-        className="dropdown__controller"
+        className="admin-dropdown__controller"
         type="checkbox"
-        id="dropdown-btn"
+        id="admin-dropdown-btn"
         checked={openDropDown}
         readOnly
       />
@@ -489,11 +492,11 @@ const CurrencySetting = () => {
         <img src="/img/floating-btn@2x.png" alt="arrow" />
       </div>
       <div className="screen__header">支援幣種設定</div>
-      <ScreenTags
+      {/* <ScreenTags
         selectedTag={selectedTag}
         selectTagHandler={selectTagHandler}
         data={currencies}
-      />
+      /> */}
       <div className="screen__search-bar">
         <div className="screen__search-box">
           <input

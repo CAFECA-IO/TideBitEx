@@ -13,25 +13,25 @@ const Sidebar = (props) => {
   };
   return (
     <section className="admin-sidebar">
-      <div className="dropdown">
+      <div className="btn btn--dropdown admin-dropdown">
         <input
-          className="dropdown__controller"
+          className="admin-dropdown__controller"
           type="checkbox"
           id="dropdown-btn"
           checked={openDropDown}
           readOnly
         />
         <label
-          className="dropdown__label admin-sidebar__btn"
-          htmlFor="dropdown-btn"
+          className="admin-dropdown__label sidebar__btn"
+          htmlFor="admin-dropdown-btn"
           onClick={() => setOpenDropDown((prev) => !prev)}
         >
-          <div className="admin-sidebar__text dropdown__text">交易管理</div>
-          <div className="dropdown__icon"></div>
+          <div className="sidebar__text admin-dropdown__text">交易管理</div>
+          <div className="admin-dropdown__icon"></div>
         </label>
-        <ul className="dropdown__options">
+        <ul className="admin-dropdown__options">
           <div
-            className={`admin-sidebar__text dropdown__option${
+            className={`sidebar__text admin-dropdown__option${
               props.activePage === "ticker-setting" ? " active" : ""
             }`}
             onClick={() => selectPageHandler("ticker-setting")}
@@ -39,7 +39,7 @@ const Sidebar = (props) => {
             交易對設定
           </div>
           <div
-            className={`admin-sidebar__text dropdown__option${
+            className={`sidebar__text admin-dropdown__option${
               props.activePage === "currency-setting" ? " active" : ""
             }`}
             onClick={() => selectPageHandler("currency-setting")}
