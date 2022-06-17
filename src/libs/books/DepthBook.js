@@ -34,7 +34,7 @@ class DepthBook extends BookBase {
         const data = { amount: "0", price, side: "" };
         result[parseFloat(price.toFixed(decimal))] = data;
       }
-      for (let i = 0; i < arr.length; i++) {
+      for (let i = 0; i < arr.length + 1; i++) {
         const p = arr[i];
         let price = parseFloat(
           (p.side === "asks" &&

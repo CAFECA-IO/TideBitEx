@@ -261,6 +261,7 @@ class OkexConnector extends ConnectorBase {
         tickers,
         instruments
       );
+      console.log(`filteredTickers`, filteredTickers)
       // this.tickerBook.updateAll(tickers);
       return new ResponseFormat({
         message: "getTickers from OKEx",
