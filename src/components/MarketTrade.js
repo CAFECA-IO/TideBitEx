@@ -238,6 +238,13 @@ const TradePannel = (props) => {
     let _value = +value < 0 ? "0" : value;
     let price,
       vArr = _value.toString().split(".");
+    if (
+      _value.toString().length > 2 &&
+      _value.toString().startsWith("0") &&
+      !_value.includes(".")
+    ) {
+      _value = _value.substring(1);
+    }
     if (vArr.length > 1 && vArr[1].length > precision) {
       price = parseFloat(_value).toFixed(precision);
       setErrMsg(`Price precision is ${tickSz}`);
@@ -361,20 +368,22 @@ const TradePannel = (props) => {
 
   const formatSellSize = useCallback(
     (value, available, currency, minSz, maxSz, lotSz, setSize, setErrMsg) => {
-      let _value = SafeMath.lt(value, "0")
-        ? "0"
-        : // : SafeMath.gte(value, available)
-          // ? available
-          value;
-      if (_value.toString().startsWith("0") && !_value.includes(".")) {
-        _value = _value.substring(1);
-      }
       let precision,
-        pArr = lotSz.split(".");
-      if (pArr.length > 1) precision = pArr[1].length;
+        arr = lotSz.split(".");
+      if (arr.length > 1) precision = arr[1].length;
       else precision = 0;
+      let _value = +value < 0 ? "0" : value;
       let size,
         vArr = _value.split(".");
+
+      if (
+        _value.toString().length > 2 &&
+        _value.toString().startsWith("0") &&
+        !_value.includes(".")
+      ) {
+        _value = _value.substring(1);
+      }
+
       if (vArr.length > 1 && vArr[1].length > precision) {
         size = parseFloat(_value).toFixed(precision);
         setErrMsg(`Amount precision is ${lotSz}`);
