@@ -183,20 +183,29 @@ const getDifference = (preArr, newArr) => {
 const range = (arr, unit) => {
   let result = arr;
   let _arr = arr?.map((d) => parseFloat(d.price)) || [];
+  let decimal;
+  decimal = unit.toString().includes(".")
+    ? unit.toString().split(".")[1].length
+    : 0;
   if (unit) {
     const max = Math.max(..._arr);
     const min = Math.min(..._arr);
-    const start = min - (min % unit);
-    const end = max % unit === 0 ? max : max - (max % unit) + 1;
-    const length = parseInt((end - start) / unit);
-
+    const start =
+    (min * 10 ** decimal) % (unit * 10 ** decimal) /10 ** decimal === 0 ? min : min - (min % unit);
+    const end =  (max * 10 ** decimal) % (unit * 10 ** decimal) /10 ** decimal === 0  ? max+ unit : max - (max % unit) + unit;
+    const length = parseInt((end - start) / unit) +1;
+    console.log(`max`, max);
+    console.log(`min`, min, (min * 10 ** decimal) % (unit * 10 ** decimal) /10 ** decimal);
+    console.log(`start`, start);
+    console.log(`end`, end);
+    console.log(`length`, length);
     result = {};
-    for (let i = 0; i < length + 1; i++) {
+    for (let i = 0; i < length ; i++) {
       const price = start + unit * i;
       const data = { amount: "0", price, side: "" };
       result[price] = data;
     }
-    console.log(`result`, result);
+    console.log(`result[${Object.values(result).length}]`, result);
     for (let i = 0; i < arr.length; i++) {
       const p = arr[i];
       let price = parseInt(parseFloat(p.price) / unit) * unit;
@@ -211,10 +220,9 @@ const range = (arr, unit) => {
         if (SafeMath.eq(result[price].amount, "0")) {
           result[price] = { ...p, price };
         } else {
-          result[price].amount = parseFloat(result[price].amount) + p.amount;
+          result[price].amount =
+            parseFloat(result[price].amount) + parseFloat(p.amount);
         }
-      } else {
-        result[price] = { ...p, price };
       }
     }
   }
@@ -226,7 +234,7 @@ const getSnapshot = (arr) => {
     asks: [],
     bids: [],
   };
-  const rangedArr = range(arr, 1);
+  const rangedArr = range(arr, 0.01);
   for (let i = 0; i < rangedArr.length; i++) {
     const data = rangedArr[i];
     if (data.side === "asks") {

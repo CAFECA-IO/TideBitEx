@@ -25,9 +25,18 @@ class DepthBook extends BookBase {
     if (unit) {
       const max = Math.max(..._arr);
       const min = Math.min(..._arr);
-      const start = min - (min % unit);
-      const end = max % unit === 0 ? max : max - (max % unit) + unit;
-      const length = parseInt((end - start) / unit);
+      const start =
+        ((min * 10 ** decimal) % (unit * 10 ** decimal)) / 10 ** decimal === 0
+          ? min
+          : min -
+            ((min * 10 ** decimal) % (unit * 10 ** decimal)) / 10 ** decimal;
+      const end =
+        ((max * 10 ** decimal) % (unit * 10 ** decimal)) / 10 ** decimal === 0
+          ? max + unit
+          : max -
+            ((max * 10 ** decimal) % (unit * 10 ** decimal)) / 10 ** decimal +
+            unit;
+      const length = parseInt((end - start) / unit) + 1;
       result = {};
       for (let i = 0; i < length + 1; i++) {
         const price = start + unit * i;
