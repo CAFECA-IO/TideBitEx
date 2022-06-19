@@ -1,0 +1,110 @@
+.currency-dropdown {
+  display: flex;
+  flex-direction: column;
+
+  &__icon {
+    background-image: url("../../images/plus@2x.png");
+    width: 20px;
+    height: 20px;
+    background-position: center;
+    background-size: contain;
+  }
+  &__icon.active {
+    background-image: url("../../images/minus@2x.png");
+  }
+  &__label,
+  &__label-icon,
+  &__label-option,
+  &__label-options {
+    display: flex;
+  }
+  &__label-item {
+    display: flex;
+    flex-direction: column;
+    padding: 0 20px;
+    gap: 10px;
+  }
+  &__label-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  &__label {
+    border: 1px solid #707070;
+    border-radius: 15px;
+    padding: 15px 20px;
+    background-color: #fff;
+    justify-content: space-between;
+    cursor: pointer;
+    align-items: center;
+    z-index: 10;
+  }
+  &__label-item {
+    min-width: 120px;
+  }
+  &__label-icon {
+    width: 20px;
+    height: 20px;
+    // & > img {
+    //   width: 100%;
+    //   height: 100%;
+    // }
+    background-image: url("../../images/circle_button@2x.png");
+    background-position: center;
+    background-size: contain;
+  }
+  &__label-options {
+    gap: 10px;
+  }
+  &__label-option {
+    gap: 5px;
+    cursor: pointer;
+  }
+  &__label-option.active {
+    color: #70cc78;
+  }
+  .active &__label-icon {
+    background-image: url("../../images/circle_button_green@2x.png");
+  }
+  &__contain {
+    display: none;
+    border: 1px solid #707070;
+    background-color: #fff;
+    padding: 20px;
+    padding-top: 40px;
+    transform: translateY(-12px);
+  }
+  .admin-dropdown__controller:checked ~ &__contain {
+    display: block;
+  }
+  &__container {
+    display: flex;
+    gap: 40px;
+  }
+  &__section-btn {
+    text-decoration: underline;
+    color: #4597e6;
+    display: inline-block;
+    cursor: pointer;
+  }
+  &__section-btn-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  &__section-option {
+    flex: auto;
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #e6e6e6;
+  }
+  &__section:first-child {
+    padding: 0 20px;
+  }
+  &__section:last-child {
+    flex: auto;
+  }
+}

@@ -76,4 +76,5 @@ pathname = [
 
   # UI
   "get | /markets, /markets/:market | Static.Utils.renderMarket",
+  "get | /analysis, /analysis | Static.Utils.renderMarket",
 ]

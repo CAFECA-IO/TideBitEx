@@ -906,12 +906,12 @@ class TibeBitConnector extends ConnectorBase {
       //   SafeMath.eq(data.volume, "0") ? data.origin_volume : data.volume
       // ),
       filled: data.volume !== data.origin_volume,
-      // state:
-      //   data.state === "wait"
-      //     ? "wait"
-      //     : SafeMath.eq(data.volume, "0")
-      //     ? "done"
-      //     : "canceled",
+      state_text:
+        data.state === "wait"
+          ? "Waiting"
+          : data.state === "done"
+          ? "Done"
+          : "Canceled",
     };
     this.logger.log(
       `[TO FRONTEND][OnEvent: ${Events.order}] updateOrder`,

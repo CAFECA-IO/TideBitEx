@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Tabs, Tab } from "react-bootstrap";
 import StoreContext from "../store/store-context";
 import SafeMath from "../utils/SafeMath";
@@ -9,6 +9,15 @@ import { useViewport } from "../store/ViewportProvider";
 import { BiLock } from "react-icons/bi";
 
 export const OrderTile = (props) => {
+  const tickSz =
+    props?.tickSz?.split(".").length > 1
+      ? props?.tickSz?.split(".")[1].length
+      : 0;
+  const lotSz =
+    props?.lotSz?.split(".").length > 1
+      ? props?.lotSz?.split(".")[1].length
+      : 0;
+  const amountSz = Math.min(tickSz, lotSz);
   return (
     <ul
       className="d-flex justify-content-between market-order-item"
@@ -42,27 +51,26 @@ export const OrderTile = (props) => {
         )}
       </li>
       <li>
-        {
-          // formateDecimal(props.order.price, { decimalLength: 4 })
-          props.order.price
-        }
+        {formateDecimal(props.order.price, {
+          decimalLength: tickSz,
+          pad: true,
+        })}
       </li>
       <li>
-        {/* {formateDecimal(
+        {formateDecimal(
           props.order.state === "wait"
             ? props.order.volume
             : props.order.origin_volume,
-          { decimalLength: 4 }
-        )} */}
-        {props.order.state === "wait"
-          ? props.order.volume
-          : props.order.origin_volume}
+          {
+            decimalLength: lotSz,
+            pad: true,
+          }
+        )}
       </li>
       <li>
-        {/* {formateDecimal(SafeMath.mult(props.order.price, props.order.volume), {
-          decimalLength: 4,
-        })} */}
-        {SafeMath.mult(props.order.price, props.order.volume)}
+        {formateDecimal(SafeMath.mult(props.order.price, props.order.volume), {
+          decimalLength: amountSz,
+        })}
       </li>
       {/* <li>{props.order.fillSz}</li> */}
       {/* <li>{SafeMath.minus(props.order.volume, props.order.fillSz)}</li> */}
@@ -177,6 +185,7 @@ export const PendingOrders = (props) => {
     }
   };
   const { t } = useTranslation();
+
   return (
     <div className="pending-orders">
       <ul className="d-flex justify-content-between market-order-item market-order__title table__header">
@@ -197,7 +206,12 @@ export const PendingOrders = (props) => {
           storeCtx.pendingOrders
             .filter((order) => !(order.price === "NaN" || !order.price)) // ++ WORKAROUND
             .map((order) => (
-              <OrderTile order={order} cancelOrder={cancelOrder} />
+              <OrderTile
+                order={order}
+                cancelOrder={cancelOrder}
+                tickSz={storeCtx.selectedTicker?.tickSz}
+                lotSz={storeCtx.selectedTicker?.lotSz}
+              />
             ))}
       </ul>
       {storeCtx.selectedTicker?.source === "TideBit" && (
@@ -246,7 +260,13 @@ export const ClosedOrders = (props) => {
         {!!storeCtx.closeOrders?.length &&
           storeCtx.closeOrders
             .filter((order) => !(order.price === "NaN" || !order.price)) // ++ WORKAROUND
-            .map((order) => <OrderTile order={order} />)}
+            .map((order) => (
+              <OrderTile
+                order={order}
+                tickSz={storeCtx.selectedTicker?.tickSz}
+                lotSz={storeCtx.selectedTicker?.lotSz}
+              />
+            ))}
       </ul>
     </div>
   );

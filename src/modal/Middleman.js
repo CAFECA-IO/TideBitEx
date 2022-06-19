@@ -216,34 +216,34 @@ class Middleman {
       // console.log(metaData);
       switch (metaData.type) {
         case Events.account:
-          console.log(`_tbWSEventListener Events.account`, metaData);
-          console.log(
-            `_tbWSEventListener this.accountBook.getSnapshot`,
-            this.accountBook.getSnapshot()
-          );
+          // console.log(`_tbWSEventListener Events.account`, metaData);
+          // console.log(
+          //   `_tbWSEventListener this.accountBook.getSnapshot`,
+          //   this.accountBook.getSnapshot()
+          // );
           this.accountBook.updateByDifference(metaData.data);
-          console.log(
-            `_tbWSEventListener this.accountBook.getSnapshot`,
-            this.accountBook.getSnapshot()
-          );
+          // console.log(
+          //   `_tbWSEventListener this.accountBook.getSnapshot`,
+          //   this.accountBook.getSnapshot()
+          // );
           break;
         case Events.update:
           this.depthBook.updateAll(metaData.data.market, metaData.data);
           break;
         case Events.order:
-          console.log(`_tbWSEventListener Events.order`, metaData);
-          console.log(
-            `_tbWSEventListener this.orderBook.getSnapshot`,
-            this.orderBook.getSnapshot(metaData.data.market)
-          );
+          // console.log(`_tbWSEventListener Events.order`, metaData);
+          // console.log(
+          //   `_tbWSEventListener this.orderBook.getSnapshot`,
+          //   this.orderBook.getSnapshot(metaData.data.market)
+          // );
           this.orderBook.updateByDifference(
             metaData.data.market,
             metaData.data.difference
           );
-          console.log(
-            `_tbWSEventListener this.orderBook.getSnapshot`,
-            this.orderBook.getSnapshot(metaData.data.market)
-          );
+          // console.log(
+          //   `_tbWSEventListener this.orderBook.getSnapshot`,
+          //   this.orderBook.getSnapshot(metaData.data.market)
+          // );
           break;
         case Events.tickers:
           // if (metaData.data["BTC-USDT"])

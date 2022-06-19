@@ -814,6 +814,20 @@ class Utils {
           group: maskData["tab_category"],
         };
       }
+      // if(id==='btcusdt'){
+      //   console.log(`maskData`, maskData)
+      //   console.log(`instData`, instData)
+      //   console.log(`Utils.getDecimal(maskData["bid"]["fixed"])`, Utils.getDecimal(maskData["bid"]["fixed"]))
+      //   console.log(`instData.tickSz`, instData.tickSz)
+      //   console.log(`Math.max(
+      //       instData.tickSz,
+      //       Utils.getDecimal(maskData["bid"]["fixed"])
+      //     )`, Math.max(
+      //       instData.tickSz,
+      //       Utils.getDecimal(maskData["bid"]["fixed"])
+      //     ))
+      //     console.log(`updateTickers[${id}]`, updateTickers[id])
+      // }
     });
     return updateTickers;
   }

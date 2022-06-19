@@ -3,10 +3,16 @@
   display: flex;
   flex: auto;
   overflow: hidden;
+  &__floating-box {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+  }
   &__floating-btn {
-    position: absolute;
-    bottom: 22px;
-    right: 30px;
+    // position: absolute;
+    // bottom: 22px;
+    // right: 30px;
+    margin-top: 40px;
     height: 50px;
     width: 50px;
     cursor: pointer;
@@ -24,12 +30,16 @@
   }
   &__section {
     flex: auto;
-    overflow: hidden;
+    overflow: auto;
     padding-right: 30px;
+    // scroll-behavior: smooth;
+    /* display: flex; */
+    /* flex-direction: column;*/
   }
   &__select-options-box {
     display: flex;
     align-items: center;
+    margin-bottom: 20px;
   }
   &__select-bar {
     display: flex;
@@ -51,6 +61,7 @@
   }
   &__select-bar-icon {
     height: 30px;
+    width: 20px;
     min-width: 20px;
     cursor: pointer;
     & > img {
@@ -79,7 +90,7 @@
   &__search-bar {
     display: flex;
     justify-content: flex-end;
-    margin-top: 32px;
+    // margin-top: 32px;
     margin-bottom: 24px;
   }
   &__search-box {
@@ -92,7 +103,7 @@
     padding-right: 35px;
   }
   &__search-input {
-    line-height: 2;
+    line-height: 2.2;
   }
   &__search-icon {
     position: absolute;
@@ -154,6 +165,11 @@
     border: 1px solid #707070;
     color: #767676;
     overflow: hidden;
+    height: 57vh;
+    min-height: 500px;
+  }
+  &__table.show {
+    height: fit-content;
   }
   &__table-text {
     font-size: 16px;
@@ -171,11 +187,15 @@
   &__table-header {
     min-width: 120px;
   }
-  &__table-header-btn > span {
+  &__table-header-btn > button {
     text-decoration: underline;
     color: #4597e6;
     display: inline-block;
     cursor: pointer;
+    padding: 0 5px;
+  }
+  &__table-header-btn > button:disabled {
+    text-decoration: none;
   }
   &__table-btn {
     text-align: center;
@@ -187,7 +207,7 @@
     flex: auto;
     display: flex;
     flex-direction: column;
-    overflow: auto;
+    overflow: hidden;
   }
   &__table-row {
     display: flex;
@@ -197,6 +217,6 @@
   }
   &__table-switch,
   &__table-header-btn {
-    min-width: 142px;
+    min-width: 154px;
   }
 }

@@ -2,10 +2,14 @@
 @import "./base/animation";
 @import "./layout/layout";
 @import "./module/module";
+@import "./module/switch";
+@import "./module/currency-dropdown";
 @import "./mobile/mobile";
 @import "./theme/theme";
 @import "./screens/screen";
 @import "./screens/admin";
+@import "./screens/ticker";
 @import "./screens/manager";
 @import "./screens/sub-accounts";
 @import "./screens/deposit";
+@import "./screens/currency-settings";

@@ -1,80 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
-
-const tags = [
-  "Meme", //A meme coin is a type of cryptocurrency that originated from an online meme or viral image.
-  "GameFi", //GameFi is a combination of the terms gaming and decentralized finance (DeFi) and describes the integration of blockchain applications in the gaming sector for monetization purposes,
-  "Blockchain",
-  "Layer2", //Layer 2 refers to a secondary framework or protocol that is built on top of an existing blockchain system.
-  "Storage", //Blockchain storage is a way of saving data in a decentralized network, which utilizes the unused hard disk space of users across the world to store files.
-  "Defi",
-  "Greyscale", //Grayscale Investments calls it a traditional investment vehicle with shares titled in the investor's name.
-  "Polkadot", //Polkadot is a protocol that connects blockchains — allowing value and data to be sent across previously incompatible networks (Bitcoin and Ethereum, for example). It's also designed to be fast and scalable. T
-  "NFT", //NFT stands for non-fungible token.
-];
-
-const TableDropdown = (props) => {
-  const [openDropDown, setOpenDropDown] = useState(false);
-  const onSelect = (exchange) => {
-    props.selectHandler(exchange);
-    setOpenDropDown(false);
-  };
-  return (
-    <div
-      className={`dropdown deposit__currency-dropdown ${
-        props.className ? props.className : ""
-      }`}
-    >
-      <input
-        className="dropdown__controller"
-        type="checkbox"
-        id="dropdown-btn"
-        checked={openDropDown}
-        readOnly
-      />
-      <label
-        className="dropdown__label"
-        htmlFor="dropdown-btn"
-        onClick={() => setOpenDropDown((prev) => !prev)}
-      >
-        <div className="dropdown__text">{props.selected || "-"}</div>
-        {props.options?.length > 0 && <div className="dropdown__icon"></div>}
-      </label>
-      <ul className="dropdown__options">
-        {props.options?.map((option) => (
-          <div
-            className={`dropdown__option${
-              props.activePage === "ticker-setting" ? " active" : ""
-            }`}
-            onClick={() => onSelect(option)}
-          >
-            {option}
-          </div>
-        ))}
-      </ul>
-    </div>
-  );
-};
-
-const TableSwitch = (props) => {
-  return (
-    <div
-      className={`deposit__currency-switch ${
-        props.className ? props.className : ""
-      }`}
-    >
-      <input
-        className="switch__controller"
-        type="checkbox"
-        id="switch-btn"
-        checked={props.status === "open"}
-        readOnly
-      />
-      <div className="switch__btn" onClick={props.toggleStatus}></div>
-    </div>
-  );
-};
+import TableSwitch from "../components/TableSwitch";
+import TableDropdown from "../components/TableDropdown";
+import ScreenTags from "../components/ScreenTags";
 
 const Deposit = () => {
+  const [showMore, setShowMore] = useState(false);
   const [isInit, setIsInit] = useState(null);
   const [selectedTag, setSelectedTag] = useState("ALL");
   const [currencies, setCurrencies] = useState(null);
@@ -266,71 +196,12 @@ const Deposit = () => {
 
   return (
     <section className="screen__section deposit">
-      <div className="screen__floating-btn">
-        <img src="/img/floating-btn@2x.png" alt="arrow" />
-      </div>
       <div className="screen__header">入金管理</div>
-      <div className="screen__select-options-box">
-        <ul className="screen__select-bar">
-          <li
-            className={`screen__select-option${
-              "ALL" === selectedTag ? " active" : ""
-            }`}
-            key="ALL"
-            onClick={() =>
-              selectTagHandler(
-                "ALL",
-                currencies ? Object.values(currencies) : null
-              )
-            }
-          >
-            ALL
-          </li>
-          <li
-            className={`screen__select-option${
-              "Top" === selectedTag ? " active" : ""
-            }`}
-            key="Top"
-            onClick={() =>
-              selectTagHandler(
-                "Top",
-                currencies ? Object.values(currencies) : null
-              )
-            }
-          >
-            Top
-          </li>
-          {tags.map((option) => (
-            <li
-              className={`screen__select-option${
-                option === selectedTag ? " active" : ""
-              }`}
-              key={option}
-              onClick={() =>
-                selectTagHandler(
-                  option,
-                  currencies ? Object.values(currencies) : null
-                )
-              }
-            >
-              {option}
-            </li>
-          ))}
-        </ul>
-        <div
-          className="screen__select-bar-icon"
-          onClick={() => {
-            const selectBar = window.document.querySelector(
-              ".screen__select-bar"
-            );
-            // const scrollWidth = selectBar.scrollWidth;
-            const scrollLeft = selectBar.scrollLeft;
-            selectBar.scroll(scrollLeft + 200, 0);
-          }}
-        >
-          <img src="/img/arrow_box@2x.png" alt="arrow" />
-        </div>
-      </div>
+      {/* <ScreenTags
+        selectedTag={selectedTag}
+        selectTagHandler={selectTagHandler}
+        currencies={currencies}
+      /> */}
       <div className="screen__search-bar">
         <div className="screen__search-box">
           <input
@@ -379,27 +250,21 @@ const Deposit = () => {
           <img src="/img/sorting@2x.png" alt="sorting" />
         </div>
       </div>
-      <div className="screen__table">
+      <div className={`screen__table${showMore ? " show" : ""}`}>
         <ul className="screen__table-headers">
           <li className="screen__table-header">幣種</li>
           <li className="screen__table-header">代號</li>
           <li className="screen__table-header">平台入金數量</li>
           <li className="screen__table-header">入金交易所</li>
           <li className="screen__table-header-btn">
-            <span
-              onClick={() => {
-                const updateCurrencies = { ...currencies };
-                Object.values(updateCurrencies).forEach(
-                  (currency) => (currency.status = "open")
-                );
-                setCurrencies(updateCurrencies);
-                filter(filterOption, updateCurrencies);
-              }}
-            >
-              全部開啟
-            </span>
-            /
-            <span
+            <button
+              disabled={`${
+                !Object.values(currencies || {}).some(
+                  (currency) => currency.status === "open"
+                )
+                  ? "disable"
+                  : ""
+              }`}
               onClick={() => {
                 const updateCurrencies = { ...currencies };
                 Object.values(updateCurrencies).forEach(
@@ -410,7 +275,27 @@ const Deposit = () => {
               }}
             >
               全部關閉
-            </span>
+            </button>
+            /
+            <button
+              disabled={`${
+                !Object.values(currencies || {}).some(
+                  (currency) => currency.status === "close"
+                )
+                  ? "disable"
+                  : ""
+              }`}
+              onClick={() => {
+                const updateCurrencies = { ...currencies };
+                Object.values(updateCurrencies).forEach(
+                  (currency) => (currency.status = "open")
+                );
+                setCurrencies(updateCurrencies);
+                filter(filterOption, updateCurrencies);
+              }}
+            >
+              全部開啟
+            </button>
           </li>
         </ul>
         <ul className="screen__table-rows">
@@ -439,7 +324,7 @@ const Deposit = () => {
                 />
                 <TableSwitch
                   className="screen__table-switch"
-                  status={currency.status}
+                  status={currency.status === "open"}
                   toggleStatus={() =>
                     toggleStatus(currency.status, currency.symbol)
                   }
@@ -447,7 +332,25 @@ const Deposit = () => {
               </div>
             ))}
         </ul>
-        <div className="screen__table-btn screen__table-text">顯示更多</div>
+        <div
+          className="screen__table-btn screen__table-text"
+          onClick={() => setShowMore((prev) => !prev)}
+        >
+          {showMore ? "顯示更少" : "顯示更多"}
+        </div>
+      </div>
+      <div className="screen__floating-box">
+        <div
+          className="screen__floating-btn"
+          onClick={() => {
+            const screenSection =
+              window.document.querySelector(".screen__section");
+            // console.log(screenSection.scrollTop)
+            screenSection.scroll(0, 0);
+          }}
+        >
+          <img src="/img/floating-btn@2x.png" alt="arrow" />
+        </div>
       </div>
     </section>
   );
