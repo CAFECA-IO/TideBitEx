@@ -116,6 +116,8 @@ class OkexConnector extends ConnectorBase {
     const method = "GET";
     const path = "/api/v5/account/balance";
     const { ccy } = query;
+    let result;
+    let summary = [];
 
     const arr = [];
     if (ccy) arr.push(`ccy=${ccy}`);
@@ -135,7 +137,7 @@ class OkexConnector extends ConnectorBase {
         url: `${this.domain}${path}${qs}`,
         headers: this.getHeaders(true, { timeString, okAccessSign }),
       });
-      this.logger.debug(res.data);
+
       if (res.data && res.data.code !== "0") {
         const message = JSON.stringify(res.data);
         this.logger.trace(message);
@@ -144,36 +146,45 @@ class OkexConnector extends ConnectorBase {
           code: Codes.THIRD_PARTY_API_ERROR,
         });
       }
-      const payload = res.data.data.map((data) => {
-        const details = data.details.map((dtl) => {
-          return {
+
+      const subAccounts = res.data.data.map((v) => {
+        return v.details.map((dtl) => {
+          const ccyData = {
             ccy: dtl.ccy,
             totalBal: dtl.cashBal,
             availBal: dtl.availBal,
             frozenBal: dtl.frozenBal,
             uTime: parseInt(dtl.uTime),
           };
+
+          const summaryIndex = summary.findIndex((v) => v.ccy == dtl.ccy);
+          if(summaryIndex > -1) {
+            summary[summaryIndex].totalBal += ccyData.cashBal;
+            summary[summaryIndex].availBal += ccyData.availBal;
+            summary[summaryIndex].frozenBal += ccyData.frozenBal;
+            uTime = Math.max(summary[summaryIndex].uTime, ccyData.uTime);
+          } else {
+            summary.push(ccyData);
+          }
+          return ccyData;
         });
-        return {
-          ...data,
-          details,
-          uTime: parseInt(data.uTime),
-        };
       });
-      return new ResponseFormat({
-        message: "getBalance",
-        payload,
-      });
+      result = {
+        summary,
+        subAccounts
+      };
     } catch (error) {
       this.logger.error(error);
       let message = error.message;
       if (error.response && error.response.data)
         message = error.response.data.msg;
-      return new ResponseFormat({
+      result = new ResponseFormat({
         message,
         code: Codes.API_UNKNOWN_ERROR,
       });
     }
+
+    return result;
   }
 
   async getTicker({ query, optional }) {
@@ -828,7 +839,40 @@ class OkexConnector extends ConnectorBase {
     }
   }
 
-  async getOrderList({ query }) {
+  async getAllOrders() {
+    const method = "GET";
+    const path = "/api/v5/trade/orders-pending";
+    const arr = [];
+    const qs = "";
+    const timeString = new Date().toISOString();
+    const okAccessSign = await this.okAccessSign({
+      timeString,
+      method,
+      path: `${path}${qs}`,
+    });
+
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}${qs}`,
+        headers: this.getHeaders(true, { timeString, okAccessSign }),
+      });
+      if (res.data && res.data.code !== "0") {
+        const message = JSON.stringify(res.data);
+        this.logger.trace(message);
+        return new ResponseFormat({
+          message,
+          code: Codes.THIRD_PARTY_API_ERROR,
+        });
+      }
+      return res.data.data
+    }
+    catch(err) {
+      return [];
+    }
+  }
+
+  async getOrderList({ query } = {}) {
     const {
       instType,
       uly,
