@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import SafeMath from "../Utils/SafeMath";
+import SafeMath from "../utils/SafeMath";
 
 const exchanges = [
   `OKEx`,

@@ -191,31 +191,40 @@ const range = (arr, unit) => {
     const max = Math.max(..._arr);
     const min = Math.min(..._arr);
     const start =
-    (min * 10 ** decimal) % (unit * 10 ** decimal) /10 ** decimal === 0 ? min : min - (min % unit);
-    const end =  (max * 10 ** decimal) % (unit * 10 ** decimal) /10 ** decimal === 0  ? max+ unit : max - (max % unit) + unit;
-    const length = parseInt((end - start) / unit) +1;
-    console.log(`max`, max);
-    console.log(`min`, min, (min * 10 ** decimal) % (unit * 10 ** decimal) /10 ** decimal);
-    console.log(`start`, start);
-    console.log(`end`, end);
-    console.log(`length`, length);
+      ((min * 10 ** decimal) % (unit * 10 ** decimal)) / 10 ** decimal === 0
+        ? min
+        : min - (min % unit);
+    const end =
+      ((max * 10 ** decimal) % (unit * 10 ** decimal)) / 10 ** decimal === 0
+        ? max + unit
+        : max - (max % unit) + unit;
+    const length = parseInt((end - start) / unit) + 1;
+    // console.log(`max`, max);
+    // console.log(
+    //   `min`,
+    //   min,
+    //   ((min * 10 ** decimal) % (unit * 10 ** decimal)) / 10 ** decimal
+    // );
+    // console.log(`start`, start);
+    // console.log(`end`, end);
+    // console.log(`length`, length);
     result = {};
-    for (let i = 0; i < length ; i++) {
+    for (let i = 0; i < length; i++) {
       const price = start + unit * i;
       const data = { amount: "0", price, side: "" };
       result[price] = data;
     }
-    console.log(`result[${Object.values(result).length}]`, result);
+    // console.log(`result[${Object.values(result).length}]`, result);
     for (let i = 0; i < arr.length; i++) {
       const p = arr[i];
       let price = parseInt(parseFloat(p.price) / unit) * unit;
       if (p.side === "asks" && parseFloat(p.price) % unit > 0) price += unit; //++TODO
-      console.log(
-        `result[${price}](${
-          p.side === "asks" && parseFloat(p.price) % unit > 0
-        })`,
-        result[price]
-      );
+      // console.log(
+      //   `result[${price}](${
+      //     p.side === "asks" && parseFloat(p.price) % unit > 0
+      //   })`,
+      //   result[price]
+      // );
       if (result[price]) {
         if (SafeMath.eq(result[price].amount, "0")) {
           result[price] = { ...p, price };
@@ -244,19 +253,29 @@ const getSnapshot = (arr) => {
       depthBooks.bids.push([data.price, data.amount]);
     }
   }
-  return depthBooks;
+  console.log(rangedArr);
+  console.log(arr);
+  return {
+    asks: depthBooks.asks.sort(
+      (a, b) => parseFloat(a.price) - parseFloat(b.price)
+    ),
+    bids: depthBooks.bids.sort(
+      (a, b) => parseFloat(b.price) - parseFloat(a.price)
+    ),
+    total: SafeMath.plus(
+      depthBooks.asks[depthBooks.asks.length - 1]?.total,
+      depthBooks.bids[depthBooks.bids.length - 1]?.total
+    ),
+  };
 };
 
 describe("test range", () => {
   test("if true", () => {
-    const startTime = Date.now();
     const arr = [
       { amount: "1.0", price: "12.0", side: "bids", total: "1" },
       { amount: "1.0", price: "11.0", side: "bids", total: "1" },
       { amount: "1.0", price: "10.0", side: "bids", total: "2" },
     ];
-    const endTime = Date.now();
-    console.log(endTime - startTime);
     expect(getSnapshot(arr)).toBe();
   });
 });

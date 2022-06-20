@@ -102,8 +102,8 @@ class DepthBook extends BookBase {
           (a, b) => parseFloat(b.price) - parseFloat(a.price)
         ),
         total: SafeMath.plus(
-          depthBooks.asks[depthBooks.asks.length - 1]?.total,
-          depthBooks.bids[depthBooks.bids.length - 1]?.total
+          depthBooks.asks[depthBooks.asks.length - 1]?.total || "0",
+          depthBooks.bids[depthBooks.bids.length - 1]?.total || "0"
         ),
       };
     } catch (error) {
