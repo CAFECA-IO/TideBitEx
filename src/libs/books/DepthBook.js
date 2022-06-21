@@ -112,19 +112,19 @@ class DepthBook extends BookBase {
     }
   }
 
-  // _trim(data) {
-  //   let asks = [],
-  //     bids = [];
-  //   data.forEach((d) => {
-  //     if (d.side === "asks" && asks.length < 100) {
-  //       asks.push(d);
-  //     }
-  //     if (d.side === "bids" && bids.length < 100) {
-  //       bids.push(d);
-  //     }
-  //   });
-  //   return bids.concat(asks);
-  // }
+  _trim(data) {
+    let asks = [],
+      bids = [];
+    data.forEach((d) => {
+      if (d.side === "asks" && asks.length < 50) {
+        asks.push(d);
+      }
+      if (d.side === "bids" && bids.length < 50) {
+        bids.push(d);
+      }
+    });
+    return bids.concat(asks);
+  }
 
   // ++ TODO: verify function works properly
   _calculateDifference(arrayA, arrayB) {

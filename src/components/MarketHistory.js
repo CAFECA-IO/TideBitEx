@@ -61,14 +61,16 @@ const MarketHistory = (props) => {
       </ul>
       <ul className="market-history__list scrollbar-custom">
         {storeCtx.trades &&
-          storeCtx.trades.map((trade) => (
-            <TradeTile
-              key={`${trade.market}-${trade.id}`}
-              trade={trade}
-              tickSz={storeCtx.selectedTicker?.tickSz}
-              lotSz={storeCtx.selectedTicker?.lotSz}
-            />
-          ))}
+          storeCtx.trades
+            .filter((trade) => trade.volume > storeCtx.selectedTicker?.minSz)
+            .map((trade) => (
+              <TradeTile
+                key={`${trade.market}-${trade.id}`}
+                trade={trade}
+                tickSz={storeCtx.selectedTicker?.tickSz}
+                lotSz={storeCtx.selectedTicker?.lotSz}
+              />
+            ))}
       </ul>
     </div>
   );
