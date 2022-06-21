@@ -55,6 +55,22 @@ const StoreProvider = (props) => {
     [closeSnackbar]
   );
 
+  const setPrecision = (ticker) => {
+    const tickSz =
+      ticker.tickSz?.split(".").length > 1
+        ? ticker.tickSz?.split(".")[1].length
+        : 0;
+    const lotSz =
+      ticker.lotSz?.split(".").length > 1
+        ? ticker.lotSz?.split(".")[1].length
+        : 0;
+    setTickSz(tickSz);
+    setLotSz(lotSz);
+    // console.log(`selectMarket ticker`, ticker);
+    // console.log(`selectMarket tickSz`, tickSz);
+    // console.log(`selectMarket lotSz`, lotSz);
+  };
+
   const selectMarket = useCallback(
     async (market) => {
       // console.log(`selectedTicker`, selectedTicker, !selectedTicker);
@@ -66,19 +82,7 @@ const StoreProvider = (props) => {
         await middleman.selectMarket(market);
         const ticker = middleman.getTicker();
         setSelectedTicker(ticker);
-        const tickSz =
-          ticker.tickSz?.split(".").length > 1
-            ? ticker.tickSz?.split(".")[1].length
-            : 0;
-        const lotSz =
-          ticker.lotSz?.split(".").length > 1
-            ? ticker.lotSz?.split(".")[1].length
-            : 0;
-        setTickSz(tickSz);
-        setLotSz(lotSz);
-        console.log(`selectMarket ticker`, ticker);
-        console.log(`selectMarket tickSz`, tickSz);
-        console.log(`selectMarket lotSz`, lotSz);
+        setPrecision(ticker);
       }
       // console.log(`****^^^^**** selectTickerHandler [END] ****^^^^****`);
     },
@@ -321,7 +325,8 @@ const StoreProvider = (props) => {
       });
       await middleman.start(market);
       setIsLogin(middleman.isLogin);
-      // ++ TODO: verify function works properly
+      const ticker = middleman.getTicker();
+      setPrecision(ticker);
       sync();
       interval = setInterval(sync, 100);
     }
