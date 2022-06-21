@@ -1,23 +1,14 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext } from "react";
 import { Tabs, Tab } from "react-bootstrap";
 import StoreContext from "../store/store-context";
 import SafeMath from "../utils/SafeMath";
 import { formateDecimal } from "../utils/Utils";
 import { FaTrashAlt } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
-import { useViewport } from "../store/ViewportProvider";
 import { BiLock } from "react-icons/bi";
 
 export const OrderTile = (props) => {
-  const tickSz =
-    props?.tickSz?.split(".").length > 1
-      ? props?.tickSz?.split(".")[1].length
-      : 0;
-  const lotSz =
-    props?.lotSz?.split(".").length > 1
-      ? props?.lotSz?.split(".")[1].length
-      : 0;
-  const amountSz = Math.min(tickSz, lotSz);
+  const amountSz = Math.max(props.tickSz, props.lotSz);
   return (
     <ul
       className="d-flex justify-content-between market-order-item"
@@ -52,7 +43,7 @@ export const OrderTile = (props) => {
       </li>
       <li>
         {formateDecimal(props.order.price, {
-          decimalLength: tickSz,
+          decimalLength: props.tickSz,
           pad: true,
         })}
       </li>
@@ -62,7 +53,7 @@ export const OrderTile = (props) => {
             ? props.order.volume
             : props.order.origin_volume,
           {
-            decimalLength: lotSz,
+            decimalLength: props.lotSz,
             pad: true,
           }
         )}
@@ -209,8 +200,8 @@ export const PendingOrders = (props) => {
               <OrderTile
                 order={order}
                 cancelOrder={cancelOrder}
-                tickSz={storeCtx.selectedTicker?.tickSz}
-                lotSz={storeCtx.selectedTicker?.lotSz}
+                tickSz={storeCtx?.tickSz || 2}
+                lotSz={storeCtx?.lotSz || 2}
               />
             ))}
       </ul>
@@ -263,8 +254,8 @@ export const ClosedOrders = (props) => {
             .map((order) => (
               <OrderTile
                 order={order}
-                tickSz={storeCtx.selectedTicker?.tickSz}
-                lotSz={storeCtx.selectedTicker?.lotSz}
+                tickSz={storeCtx?.tickSz || 2}
+                lotSz={storeCtx?.lotSz || 2}
               />
             ))}
       </ul>

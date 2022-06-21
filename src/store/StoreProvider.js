@@ -33,6 +33,8 @@ const StoreProvider = (props) => {
   const [accounts, setAccounts] = useState([]);
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [selectedTicker, setSelectedTicker] = useState(null);
+  const [tickSz, setTickSz] = useState(null);
+  const [lotSz, setLotSz] = useState(null);
   const [activePage, setActivePage] = useState("market");
   const [depthBook, setDepthbook] = useState(null);
   const [languageKey, setLanguageKey] = useState("en");
@@ -62,7 +64,18 @@ const StoreProvider = (props) => {
           pathname: `/markets/${market}`,
         });
         await middleman.selectMarket(market);
-        setSelectedTicker(middleman.getTicker());
+        const ticker = middleman.getTicker();
+        setSelectedTicker(ticker);
+        const tickSz =
+          ticker.tickSz?.split(".").length > 1
+            ? ticker.tickSz?.split(".")[1].length
+            : 0;
+        const lotSz =
+          ticker.lotSz?.split(".").length > 1
+            ? ticker.lotSz?.split(".")[1].length
+            : 0;
+        setTickSz(tickSz);
+        setLotSz(lotSz);
       }
       // console.log(`****^^^^**** selectTickerHandler [END] ****^^^^****`);
     },
@@ -331,6 +344,8 @@ const StoreProvider = (props) => {
         depthBook,
         languageKey,
         focusEl,
+        tickSz,
+        lotSz,
         setIsLogin,
         start,
         stop,

@@ -6,15 +6,7 @@ import { useTranslation } from "react-i18next";
 import DropDown from "./DropDown";
 
 const BookTile = (props) => {
-  const tickSz =
-    props?.tickSz?.split(".").length > 1
-      ? props?.tickSz?.split(".")[1].length
-      : 0;
-  const lotSz =
-    props?.lotSz?.split(".").length > 1
-      ? props?.lotSz?.split(".")[1].length
-      : 0;
-  const amountSz = Math.min(tickSz, lotSz);
+  const amountSz = Math.max(props.tickSz, props.lotSz);
   return (
     <li
       className={`order-book__tile flex-row ${
@@ -29,14 +21,14 @@ const BookTile = (props) => {
           <div>
             {formateDecimal(props.book.price, {
               // decimalLength: 2,
-              decimalLength: tickSz,
+              decimalLength: props.tickSz,
               pad: true,
             })}
           </div>
           <div>
             {formateDecimal(props.book.amount, {
               // decimalLength: 4,
-              decimalLength: lotSz,
+              decimalLength: props.lotSz,
               pad: true,
             })}
           </div>
@@ -70,14 +62,14 @@ const BookTile = (props) => {
           <div>
             {formateDecimal(props.book.amount, {
               // decimalLength: 4,
-              decimalLength: lotSz,
+              decimalLength: props.lotSz,
               pad: true,
             })}
           </div>
           <div>
             {formateDecimal(props.book.price, {
               // decimalLength: 2,
-              decimalLength: tickSz,
+              decimalLength: props.tickSz,
               pad: true,
             })}
           </div>
@@ -168,7 +160,7 @@ const DepthBook = (props) => {
           {storeCtx?.selectedTicker &&
             storeCtx.books?.bids &&
             storeCtx.books.bids
-              .filter((book) => book.amount > storeCtx.selectedTicker?.minSz)
+              .filter((book) => book.amount > storeCtx.selectedTicker?.lotSz)
               .map((book) => (
                 <BookTile
                   tickSz={storeCtx.selectedTicker?.tickSz}
@@ -192,11 +184,11 @@ const DepthBook = (props) => {
           {storeCtx?.selectedTicker &&
             storeCtx.books?.asks &&
             storeCtx.books.asks
-              .filter((book) => book.amount > storeCtx.selectedTicker?.minSz)
+              .filter((book) => book.amount > storeCtx.selectedTicker?.lotSz)
               .map((book) => (
                 <BookTile
-                  tickSz={storeCtx.selectedTicker?.tickSz}
-                  lotSz={storeCtx.selectedTicker?.lotSz}
+                  tickSz={storeCtx?.tickSz || 2}
+                  lotSz={storeCtx?.lotSz || 2}
                   type="asks"
                   onClick={() => {
                     storeCtx.depthBookHandler(book.price, book.amount);
