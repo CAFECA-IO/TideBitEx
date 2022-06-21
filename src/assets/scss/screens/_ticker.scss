@@ -2,24 +2,6 @@
   & .screen__search-bar {
     justify-content: space-between;
   }
-  &__filter {
-    position: relative;
-    display: flex;
-    font-size: 24px;
-    color: #c6c6c6;
-    gap: 5px;
-    align-items: center;
-    cursor: pointer;
-
-    &--icon {
-      width: 7px;
-      height: 7px;
-      transform: rotate(-45deg) translate(3px, 0px);
-      padding: 1px;
-      border-left: 1.5px solid #767676;
-      border-bottom: 1.5px solid #767676;
-    }
-  }
   &__tile.increase > div:nth-child(2),
   &__tile.increase > div:nth-child(4) {
     color: #5ad998;

@@ -17,7 +17,10 @@
 }
 .pending-orders,
 .closed-orders {
-  overflow: scroll;
+  overflow: hidden;
+  flex: auto;
+  display: flex;
+  flex-direction: column;
 }
 // .market-order-item > li {
 //   // width: 12%;

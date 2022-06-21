@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import Sidebar from "../components/AdminSidebar";
-import AssetsOverview from "./assets-overview";
 import CurrencySetting from "./currency-setting";
 import Deposit from "./deposit";
 import InfoSetting from "./info-setting";
+import PlatformAssets from "./platform-assets";
+import UserAssets from "./user-assets";
 import SubAccounts from "./sub-accounts";
 import TickerSetting from "./ticker-setting";
+import MatchOrders from "./match-orders";
+import CurrentOrders from "./current-orders";
 
 const Manager = () => {
     const [activePage, setActivePage] = useState("ticker-setting");
@@ -18,8 +21,12 @@ const Manager = () => {
       {activePage === "currency-setting" && <CurrencySetting />}
       {activePage === "deposit" && <Deposit />}
       {activePage === "sub-account" && <SubAccounts />}
-      {activePage === "assets-overview" && <AssetsOverview />}
+      {activePage === "platform-assets" && <PlatformAssets />}
+      {activePage === "user-assets" && <UserAssets />}
       {activePage === "info-setting" && <InfoSetting />}
+      {activePage === "match-orders" && <MatchOrders />}
+      {activePage === "current-orders" && <CurrentOrders />}
+
   </div>;
 };
 

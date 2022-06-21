@@ -172,22 +172,6 @@ class ExchangeHub extends Bot {
         });
       })
       .then(async () => {
-        this.okexConnector = new OkexConnector({ logger });
-        await this.okexConnector.init({
-          domain: this.config.okex.domain,
-          apiKey: this.config.okex.apiKey,
-          secretKey: this.config.okex.secretKey,
-          passPhrase: this.config.okex.passPhrase,
-          brokerId: this.config.okex.brokerId,
-          wssPublic: this.config.okex.wssPublic,
-          wssPrivate: this.config.okex.wssPrivate,
-          markets: this.config.markets,
-          tickerBook: this.tickerBook,
-          depthBook: this.depthBook,
-          tradeBook: this.tradeBook,
-          orderBook: this.orderBook,
-          accountBook: this.accountBook,
-        });
         this.tideBitConnector = new TideBitConnector({ logger });
         await this.tideBitConnector.init({
           app: this.config.pusher.app,
@@ -210,6 +194,24 @@ class ExchangeHub extends Bot {
           tidebitMarkets: this.tidebitMarkets,
         });
         this.currencies = this.tideBitConnector.currencies;
+        this.okexConnector = new OkexConnector({ logger });
+        await this.okexConnector.init({
+          domain: this.config.okex.domain,
+          apiKey: this.config.okex.apiKey,
+          secretKey: this.config.okex.secretKey,
+          passPhrase: this.config.okex.passPhrase,
+          brokerId: this.config.okex.brokerId,
+          wssPublic: this.config.okex.wssPublic,
+          wssPrivate: this.config.okex.wssPrivate,
+          markets: this.config.markets,
+          tickerBook: this.tickerBook,
+          depthBook: this.depthBook,
+          tradeBook: this.tradeBook,
+          orderBook: this.orderBook,
+          accountBook: this.accountBook,
+          currencies: this.currencies,
+          database: this.database,
+        });
         return this;
       });
   }
@@ -554,7 +556,7 @@ class ExchangeHub extends Bot {
             updated_at,
             null,
             "Web",
-            orderData.ordType,
+            orderData.ordType === "market" ? "ioc" : orderData.ordType,
             locked,
             locked,
             "0",
@@ -589,54 +591,55 @@ class ExchangeHub extends Bot {
             await t.rollback();
             return okexOrderRes;
           } else {
-            let _updateOrder = {
-              instId: body.instId,
-              ordType: body.ordType,
-              id: okexOrderRes.payload.ordId,
-              clOrdId: okexOrderRes.payload.clOrdId,
-              at: parseInt(SafeMath.div(Date.now(), "1000")),
-              ts: Date.now(),
-              market: body.market,
-              kind: body.kind,
-              price: body.price,
-              origin_volume: body.volume,
-              state: "wait",
-              state_text: "Waiting",
-              volume: body.volume,
-            };
-            this.orderBook.updateByDifference(memberId, body.instId, {
-              add: [_updateOrder],
-            });
-            // ++ TODO: verify function works properly
-            EventBus.emit(Events.order, memberId, body.market, {
-              market: body.market,
-              difference: this.orderBook.getDifference(memberId, body.instId),
-            });
-            this.logger.log(
-              `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] _updateOrder ln:409`,
-              _updateOrder
-            );
-            let _updateAccount = {
-              balance: SafeMath.plus(account.balance, balance),
-              locked: SafeMath.plus(account.locked, locked),
-              currency: this.currencies.find(
-                (curr) => curr.id === account.currency
-              )?.symbol,
-              total: SafeMath.plus(
-                SafeMath.plus(account.balance, balance),
-                SafeMath.plus(account.locked, locked)
-              ),
-            };
-            this.accountBook.updateByDifference(memberId, _updateAccount);
-            EventBus.emit(
-              Events.account,
-              memberId,
-              this.accountBook.getDifference(memberId)
-            );
-            this.logger.log(
-              `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:425`,
-              _updateAccount
-            );
+            if (body.ordType !== "market") {
+              let _updateOrder = {
+                instId: body.instId,
+                ordType: body.ordType === "market" ? "ioc" : body.ordType,
+                id: okexOrderRes.payload.ordId,
+                clOrdId: okexOrderRes.payload.clOrdId,
+                at: parseInt(SafeMath.div(Date.now(), "1000")),
+                ts: Date.now(),
+                market: body.market,
+                kind: body.kind,
+                price: body.price,
+                origin_volume: body.volume,
+                state: "wait",
+                state_text: "Waiting",
+                volume: body.volume,
+              };
+              this.orderBook.updateByDifference(memberId, body.instId, {
+                add: [_updateOrder],
+              });
+              EventBus.emit(Events.order, memberId, body.market, {
+                market: body.market,
+                difference: this.orderBook.getDifference(memberId, body.instId),
+              });
+              this.logger.log(
+                `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] _updateOrder ln:616`,
+                _updateOrder
+              );
+              let _updateAccount = {
+                balance: SafeMath.plus(account.balance, balance),
+                locked: SafeMath.plus(account.locked, locked),
+                currency: this.currencies.find(
+                  (curr) => curr.id === account.currency
+                )?.symbol,
+                total: SafeMath.plus(
+                  SafeMath.plus(account.balance, balance),
+                  SafeMath.plus(account.locked, locked)
+                ),
+              };
+              this.accountBook.updateByDifference(memberId, _updateAccount);
+              EventBus.emit(
+                Events.account,
+                memberId,
+                this.accountBook.getDifference(memberId)
+              );
+              this.logger.log(
+                `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:425`,
+                _updateAccount
+              );
+            }
           }
           await t.commit();
           return okexOrderRes;
@@ -728,7 +731,9 @@ class ExchangeHub extends Bot {
       `[${this.constructor.name} getOrderHistory] memberId:`,
       memberId,
       `query`,
-      query
+      query,
+      `market`,
+      market
     );
     this.logger.log(
       `[${this.constructor.name} getOrderHistory] instId:`,
@@ -751,7 +756,7 @@ class ExchangeHub extends Bot {
           query: {
             ...query,
             instId,
-            // market,
+            market,
             memberId,
           },
         });
@@ -1520,7 +1525,7 @@ class ExchangeHub extends Bot {
         body.kind === "bid"
           ? this.database.TYPE.ORDER_BID
           : this.database.TYPE.ORDER_ASK,
-      ordType: body.ordType,
+      ordType: body.ordType === "market" ? "ioc" : body.ordType,
       locked,
       balance,
       currencyId: body.kind === "bid" ? bid : ask,

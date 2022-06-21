@@ -30,6 +30,8 @@ class OkexConnector extends ConnectorBase {
 
   fetchedTrades = {};
   fetchedBook = {};
+  fetchedOrders = {};
+  fetchedOrdersInterval = 1 * 60 * 1000;
 
   constructor({ logger }) {
     super({ logger });
@@ -52,6 +54,8 @@ class OkexConnector extends ConnectorBase {
     tradeBook,
     accountBook,
     orderBook,
+    currencies,
+    database,
   }) {
     await super.init();
     this.domain = domain;
@@ -70,6 +74,8 @@ class OkexConnector extends ConnectorBase {
     this.tradeBook = tradeBook;
     this.accountBook = accountBook;
     this.orderBook = orderBook;
+    this.currencies = currencies;
+    this.database = database;
     return this;
   }
 
@@ -286,7 +292,7 @@ class OkexConnector extends ConnectorBase {
 
     const arr = [];
     if (instId) arr.push(`instId=${instId}`);
-    if (sz) arr.push(`sz=${50}`);
+    if (sz) arr.push(`sz=${60}`);
     // if (sz) arr.push(`sz=${sz}`); // -- TEST
     const qs = !!arr.length ? `?${arr.join("&")}` : "";
 
@@ -785,9 +791,9 @@ class OkexConnector extends ConnectorBase {
       tag: this.brokerId,
       side: body.kind === "bid" ? "buy" : "sell",
       // posSide: body.posSide,
-      ordType: body.ordType,
+      ordType: body.ordType === "market" ? "ioc" : body.ordType,
       sz: body.volume,
-      px: body.price,
+      px: (parseFloat(body.price) * 1.1).toString(),
       // reduceOnly: body.reduceOnly,
       // tgtCcy: body.tgtCcy,
     };
@@ -938,99 +944,191 @@ class OkexConnector extends ConnectorBase {
     });
   }
 
-  async getOrderHistory({ query }) {
-    const {
-      instType,
-      uly,
-      instId,
-      ordType,
-      state,
-      category,
-      after,
-      before,
-      limit,
-      memberId,
-    } = query;
-    const method = "GET";
-    const path = "/api/v5/trade/orders-history";
-
-    const arr = [];
-    if (instType) arr.push(`instType=${instType}`);
-    if (uly) arr.push(`uly=${uly}`);
-    if (instId) arr.push(`instId=${instId}`);
-    if (ordType) arr.push(`ordType=${ordType}`);
-    if (state) arr.push(`state=${state}`);
-    if (category) arr.push(`category=${category}`);
-    if (after) arr.push(`after=${after}`);
-    if (before) arr.push(`before=${before}`);
-    if (limit) arr.push(`limit=${limit}`);
-
-    const qs = !!arr.length ? `?${arr.join("&")}` : "";
-
-    const timeString = new Date().toISOString();
-
-    const okAccessSign = await this.okAccessSign({
-      timeString,
-      method,
-      path: `${path}${qs}`,
+  async tbGetOrderList(query) {
+    if (!query.market) {
+      throw new Error(`this.tidebitMarkets.market ${query.market} not found.`);
+    }
+    const { id: bid } = this.currencies.find(
+      (curr) => curr.key === query.market.quote_unit
+    );
+    const { id: ask } = this.currencies.find(
+      (curr) => curr.key === query.market.base_unit
+    );
+    if (!bid) {
+      throw new Error(`bid not found${query.market.quote_unit}`);
+    }
+    if (!ask) {
+      throw new Error(`ask not found${query.market.base_unit}`);
+    }
+    let orderList;
+    // if (query.memberId) {
+    orderList = await this.database.getOrderList({
+      quoteCcy: bid,
+      baseCcy: ask,
+      // state: query.state,
+      memberId: query.memberId,
+      // orderType: query.orderType,
     });
 
-    try {
-      const res = await axios({
-        method: method.toLocaleLowerCase(),
-        url: `${this.domain}${path}${qs}`,
-        headers: this.getHeaders(true, { timeString, okAccessSign }),
-      });
-      if (res.data && res.data.code !== "0") {
-        const message = JSON.stringify(res.data);
-        this.logger.trace(message);
+    const orders = orderList.map((order) => {
+      return {
+        id: order.id,
+        ts: parseInt(new Date(order.updated_at).getTime()),
+        at: parseInt(
+          SafeMath.div(new Date(order.updated_at).getTime(), "1000")
+        ),
+        market: query.instId.replace("-", "").toLowerCase(),
+        kind: order.type === "OrderAsk" ? "ask" : "bid",
+        price: Utils.removeZeroEnd(order.price),
+        origin_volume: Utils.removeZeroEnd(order.origin_volume),
+        volume: Utils.removeZeroEnd(order.volume),
+        state: SafeMath.eq(order.state, this.database.ORDER_STATE.CANCEL)
+          ? "canceled"
+          : SafeMath.eq(order.state, this.database.ORDER_STATE.WAIT)
+          ? "wait"
+          : SafeMath.eq(order.state, this.database.ORDER_STATE.DONE)
+          ? "done"
+          : "unkwon",
+        state_text: SafeMath.eq(order.state, this.database.ORDER_STATE.CANCEL)
+          ? "Canceled"
+          : SafeMath.eq(order.state, this.database.ORDER_STATE.WAIT)
+          ? "Waiting"
+          : SafeMath.eq(order.state, this.database.ORDER_STATE.DONE)
+          ? "Done"
+          : "Unkwon",
+        clOrdId: order.id,
+        instId: query.instId,
+        ordType: order.ord_type,
+        filled: order.volume !== order.origin_volume,
+      };
+    });
+    // this.logger.log(`tbGetOrderList orders`, orders);
+    return orders;
+  }
+
+  async getOrderHistory({ query }) {
+    // const {
+    //   instType,
+    //   uly,
+    //   instId,
+    //   ordType,
+    //   state,
+    //   category,
+    //   after,
+    //   before,
+    //   limit,
+    //   memberId,
+    // } = query;
+    // const method = "GET";
+    // const path = "/api/v5/trade/orders-history";
+
+    // const arr = [];
+    // if (instType) arr.push(`instType=${instType}`);
+    // if (uly) arr.push(`uly=${uly}`);
+    // if (instId) arr.push(`instId=${instId}`);
+    // if (ordType) arr.push(`ordType=${ordType}`);
+    // if (state) arr.push(`state=${state}`);
+    // if (category) arr.push(`category=${category}`);
+    // if (after) arr.push(`after=${after}`);
+    // if (before) arr.push(`before=${before}`);
+    // if (limit) arr.push(`limit=${limit}`);
+
+    // const qs = !!arr.length ? `?${arr.join("&")}` : "";
+
+    // const timeString = new Date().toISOString();
+
+    // const okAccessSign = await this.okAccessSign({
+    //   timeString,
+    //   method,
+    //   path: `${path}${qs}`,
+    // });
+
+    // try {
+    //   const res = await axios({
+    //     method: method.toLocaleLowerCase(),
+    //     url: `${this.domain}${path}${qs}`,
+    //     headers: this.getHeaders(true, { timeString, okAccessSign }),
+    //   });
+    //   if (res.data && res.data.code !== "0") {
+    //     const message = JSON.stringify(res.data);
+    //     this.logger.trace(message);
+    //     return new ResponseFormat({
+    //       message,
+    //       code: Codes.THIRD_PARTY_API_ERROR,
+    //     });
+    //   }
+
+    //   const orders = res.data.data.map((data) => {
+    //     return {
+    //       instId,
+    //       market: instId.replace("-", "").toLowerCase(),
+    //       clOrdId: data.clOrdId,
+    //       id: data.ordId,
+    //       ordType: data.ordType,
+    //       price: data.px,
+    //       kind: data.side === "buy" ? "bid" : "ask",
+    //       volume: SafeMath.minus(data.sz, data.fillSz),
+    //       origin_volume: data.sz,
+    //       filled: data.state === "filled",
+    //       state:
+    //         data.state === "canceled"
+    //           ? "canceled"
+    //           : state === "filled"
+    //           ? "done"
+    //           : "wait",
+    //       state_text:
+    //         data.state === "canceled"
+    //           ? "Canceled"
+    //           : state === "filled"
+    //           ? "Done"
+    //           : "Waiting",
+    //       at: parseInt(SafeMath.div(data.uTime, "1000")),
+    //       ts: parseInt(data.uTime),
+    //     };
+    //   });
+    //   this.orderBook.updateAll(memberId, instId, orders);
+    // } catch (error) {
+    //   this.logger.error(error);
+    //   let message = error.message;
+    //   if (error.response && error.response.data)
+    //     message = error.response.data.msg;
+    //   return new ResponseFormat({
+    //     message,
+    //     code: Codes.API_UNKNOWN_ERROR,
+    //   });
+    // }
+    // return new ResponseFormat({
+    //   message: "getOrderList",
+    //   payload: this.orderBook.getSnapshot(memberId, instId, "history"),
+    // });
+    const { instId, memberId } = query;
+    this.logger.log(
+      `[${this.constructor.name} getOrderHistory${instId}] memberId ${memberId}[${this.fetchedOrders[memberId]}:`
+    );
+    if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = {};
+    let ts = Date.now();
+    if (
+      !this.fetchedOrders[memberId][instId] ||
+      SafeMath.gt(
+        SafeMath.minus(ts, this.fetchedOrders[memberId][instId]),
+        this.fetchedOrdersInterval
+      )
+    ) {
+      try {
+        const orders = await this.tbGetOrderList(query);
+        this.orderBook.updateAll(memberId, instId, orders);
+        this.fetchedOrders[memberId][instId] = ts;
+      } catch (error) {
+        this.logger.error(error);
+        const message = error.message;
         return new ResponseFormat({
           message,
-          code: Codes.THIRD_PARTY_API_ERROR,
+          code: Codes.API_UNKNOWN_ERROR,
         });
       }
-
-      const orders = res.data.data.map((data) => {
-        return {
-          instId,
-          market: instId.replace("-", "").toLowerCase(),
-          clOrdId: data.clOrdId,
-          id: data.ordId,
-          ordType: data.ordType,
-          price: data.px,
-          kind: data.side === "buy" ? "bid" : "ask",
-          volume: SafeMath.minus(data.sz, data.fillSz),
-          origin_volume: data.sz,
-          filled: data.state === "filled",
-          state:
-            data.state === "canceled"
-              ? "canceled"
-              : state === "filled"
-              ? "done"
-              : "wait",
-          state_text:
-            data.state === "canceled"
-              ? "Canceled"
-              : state === "filled"
-              ? "Done"
-              : "Waiting",
-          at: parseInt(SafeMath.div(data.uTime, "1000")),
-          ts: parseInt(data.uTime),
-        };
-      });
-      this.orderBook.updateAll(memberId, instId, orders);
-    } catch (error) {
-      this.logger.error(error);
-      let message = error.message;
-      if (error.response && error.response.data)
-        message = error.response.data.msg;
-      return new ResponseFormat({
-        message,
-        code: Codes.API_UNKNOWN_ERROR,
-      });
     }
     return new ResponseFormat({
-      message: "getOrderList",
+      message: "getOrderHistory",
       payload: this.orderBook.getSnapshot(memberId, instId, "history"),
     });
   }

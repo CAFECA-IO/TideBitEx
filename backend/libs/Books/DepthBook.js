@@ -100,10 +100,10 @@ class DepthBook extends BookBase {
       asks = [],
       bids = [];
     data.forEach((d) => {
-      if (d.side === "asks" && asks.length < 50) {// ++ 30 -- TEST
+      if (d.side === "asks" && asks.length < 60) {// ++ 30 -- TEST
         asks.push(d);
       }
-      if (d.side === "bids" && bids.length < 50) {// -- TEST
+      if (d.side === "bids" && bids.length < 60) {// -- TEST
         bids.push(d);
       }
     });

@@ -27,10 +27,7 @@ const SelectedTicker = (props) => {
           }`}
         >
           {formateDecimal(storeCtx.selectedTicker?.last, {
-            decimalLength:
-              storeCtx.selectedTicker?.tickSz?.split(".").length > 1
-                ? storeCtx.selectedTicker?.tickSz?.split(".")[1].length
-                : "0",
+            decimalLength: storeCtx?.tickSz ? storeCtx?.tickSz : "0",
           })}
         </div>
       </div>
@@ -63,10 +60,7 @@ const SelectedTicker = (props) => {
         <div className="tickerItemLabel">{t("24_high")}</div>
         <div className="tickerPriceText">
           {formateDecimal(storeCtx.selectedTicker?.high, {
-            decimalLength:
-              storeCtx.selectedTicker?.tickSz?.split(".").length > 1
-                ? storeCtx.selectedTicker?.tickSz?.split(".")[1].length
-                : "0",
+            decimalLength: storeCtx?.tickSz ? storeCtx?.tickSz : "0",
           })}
         </div>
       </div>
@@ -74,10 +68,7 @@ const SelectedTicker = (props) => {
         <div className="tickerItemLabel">{t("24_low")}</div>
         <div className="tickerPriceText">
           {formateDecimal(storeCtx.selectedTicker?.low, {
-            decimalLength:
-              storeCtx.selectedTicker?.tickSz?.split(".").length > 1
-                ? storeCtx.selectedTicker?.tickSz?.split(".")[1].length
-                : "0",
+            decimalLength: storeCtx?.tickSz ? storeCtx?.tickSz : "0",
           })}
         </div>
       </div>

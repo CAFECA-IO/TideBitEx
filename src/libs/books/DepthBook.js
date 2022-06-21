@@ -102,8 +102,8 @@ class DepthBook extends BookBase {
           (a, b) => parseFloat(b.price) - parseFloat(a.price)
         ),
         total: SafeMath.plus(
-          depthBooks.asks[depthBooks.asks.length - 1]?.total,
-          depthBooks.bids[depthBooks.bids.length - 1]?.total
+          depthBooks.asks[depthBooks.asks.length - 1]?.total || "0",
+          depthBooks.bids[depthBooks.bids.length - 1]?.total || "0"
         ),
       };
     } catch (error) {
@@ -112,19 +112,19 @@ class DepthBook extends BookBase {
     }
   }
 
-  // _trim(data) {
-  //   let asks = [],
-  //     bids = [];
-  //   data.forEach((d) => {
-  //     if (d.side === "asks" && asks.length < 100) {
-  //       asks.push(d);
-  //     }
-  //     if (d.side === "bids" && bids.length < 100) {
-  //       bids.push(d);
-  //     }
-  //   });
-  //   return bids.concat(asks);
-  // }
+  _trim(data) {
+    let asks = [],
+      bids = [];
+    data.forEach((d) => {
+      if (d.side === "asks" && asks.length < 50) {
+        asks.push(d);
+      }
+      if (d.side === "bids" && bids.length < 50) {
+        bids.push(d);
+      }
+    });
+    return bids.concat(asks);
+  }
 
   // ++ TODO: verify function works properly
   _calculateDifference(arrayA, arrayB) {

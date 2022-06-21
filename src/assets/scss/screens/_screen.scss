@@ -3,6 +3,25 @@
   display: flex;
   flex: auto;
   overflow: hidden;
+  margin-top: 70px;
+  &__filter {
+    position: relative;
+    display: flex;
+    font-size: 24px;
+    color: #c6c6c6;
+    gap: 5px;
+    align-items: center;
+    cursor: pointer;
+
+    &--icon {
+      width: 7px;
+      height: 7px;
+      transform: rotate(-45deg) translate(3px, 0px);
+      padding: 1px;
+      border-left: 1.5px solid #767676;
+      border-bottom: 1.5px solid #767676;
+    }
+  }
   &__floating-box {
     width: 100%;
     display: flex;
@@ -90,6 +109,7 @@
   &__search-bar {
     display: flex;
     justify-content: flex-end;
+
     // margin-top: 32px;
     margin-bottom: 24px;
   }
@@ -218,5 +238,19 @@
   &__table-switch,
   &__table-header-btn {
     min-width: 154px;
+  }
+  &__table--overivew {
+    display: flex;
+    justify-content: flex-end;
+    color: #767676;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 20px 0;
+  }
+  &__table-value.positive {
+    color: #5ad998;
+  }
+  &__table-value.negative {
+    color: #dc484e;
   }
 }
