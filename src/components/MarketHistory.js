@@ -4,6 +4,14 @@ import { dateFormatter, formateDecimal } from "../utils/Utils";
 import { useTranslation } from "react-i18next";
 
 const TradeTile = (props) => {
+  const tickSz =
+    props?.tickSz?.split(".").length > 1
+      ? props?.tickSz?.split(".")[1].length
+      : 0;
+  const lotSz =
+    props?.lotSz?.split(".").length > 1
+      ? props?.lotSz?.split(".")[1].length
+      : 0;
   return (
     <li
       className={`market-history__tile flex-row 
@@ -20,10 +28,16 @@ const TradeTile = (props) => {
           props.trade.side === "down" ? "red" : "green"
         }`}
       >
-        {formateDecimal(props.trade.price, { decimalLength: 8 })}
+        {formateDecimal(props.trade.price, {
+          decimalLength: tickSz,
+          pad: true,
+        })}
       </div>
       <div className="market-history__tile--data">
-        {formateDecimal(props.trade.volume, { decimalLength: 8 })}
+        {formateDecimal(props.trade.volume, {
+          decimalLength: lotSz,
+          pad: true,
+        })}
       </div>
     </li>
   );
@@ -45,10 +59,15 @@ const MarketHistory = (props) => {
           storeCtx?.selectedTicker?.base_unit?.toUpperCase() || "--"
         })`}</li>
       </ul>
-      <ul className="market-history__list">
+      <ul className="market-history__list scrollbar-custom">
         {storeCtx.trades &&
           storeCtx.trades.map((trade) => (
-            <TradeTile trade={trade} key={`${trade.market}-${trade.id}`} />
+            <TradeTile
+              key={`${trade.market}-${trade.id}`}
+              trade={trade}
+              tickSz={storeCtx.selectedTicker?.tickSz}
+              lotSz={storeCtx.selectedTicker?.lotSz}
+            />
           ))}
       </ul>
     </div>

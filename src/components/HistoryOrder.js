@@ -144,7 +144,7 @@ export const AccountList = (props) => {
                 No data
               </span>
             )} */}
-      <ul className="order-list">
+      <ul className="order-list scrollbar-custom">
         {!!storeCtx.accounts?.length &&
           storeCtx.accounts
             .filter(
@@ -201,7 +201,7 @@ export const PendingOrders = (props) => {
                 No data
               </span>
             )} */}
-      <ul className="order-list">
+      <ul className="order-list scrollbar-custom">
         {!!storeCtx.pendingOrders?.length &&
           storeCtx.pendingOrders
             .filter((order) => !(order.price === "NaN" || !order.price)) // ++ WORKAROUND
@@ -256,7 +256,7 @@ export const ClosedOrders = (props) => {
                 No data
               </span>
             )} */}
-      <ul className="order-list">
+      <ul className="order-list scrollbar-custom">
         {!!storeCtx.closeOrders?.length &&
           storeCtx.closeOrders
             .filter((order) => !(order.price === "NaN" || !order.price)) // ++ WORKAROUND
