@@ -752,7 +752,7 @@ class ExchangeHub extends Bot {
           query: {
             ...query,
             instId,
-            // market,
+            market,
             memberId,
           },
         });
