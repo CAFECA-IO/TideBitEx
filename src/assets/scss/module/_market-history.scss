@@ -83,6 +83,7 @@
   }
 }
 .order-list {
+  overflow: auto;
   flex: auto;
 }
 .pending-orders {
