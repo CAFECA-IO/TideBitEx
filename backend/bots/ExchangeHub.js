@@ -209,7 +209,8 @@ class ExchangeHub extends Bot {
           tradeBook: this.tradeBook,
           orderBook: this.orderBook,
           accountBook: this.accountBook,
-          currencies:this.currencies
+          currencies: this.currencies,
+          database: this.database,
         });
         return this;
       });

@@ -55,6 +55,7 @@ class OkexConnector extends ConnectorBase {
     accountBook,
     orderBook,
     currencies,
+    database,
   }) {
     await super.init();
     this.domain = domain;
@@ -74,6 +75,7 @@ class OkexConnector extends ConnectorBase {
     this.accountBook = accountBook;
     this.orderBook = orderBook;
     this.currencies = currencies;
+    this.database = database;
     return this;
   }
 
