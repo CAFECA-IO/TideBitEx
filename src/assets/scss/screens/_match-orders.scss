@@ -1,0 +1,11 @@
+.match-orders{
+  & .screen__search-bar {
+      justify-content: space-between;
+    }
+    &__text.positive{
+      color: #5ad998;
+    }
+    &__text.negative{
+      color: #dc484e;
+    }
+}

@@ -541,7 +541,7 @@ const TradePannel = (props) => {
     },
     [
       props.baseCcyAvailable,
-      storeCtx.selectedTicker?.lotSz,
+      storeCtx?.lotSz,
       storeCtx.selectedTicker?.maxLmtSz,
       storeCtx.selectedTicker?.maxMktSz,
       storeCtx.selectedTicker?.minSz,
