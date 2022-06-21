@@ -589,53 +589,55 @@ class ExchangeHub extends Bot {
             await t.rollback();
             return okexOrderRes;
           } else {
-            let _updateOrder = {
-              instId: body.instId,
-              ordType: body.ordType === "market" ? "ioc" : body.ordType,
-              id: okexOrderRes.payload.ordId,
-              clOrdId: okexOrderRes.payload.clOrdId,
-              at: parseInt(SafeMath.div(Date.now(), "1000")),
-              ts: Date.now(),
-              market: body.market,
-              kind: body.kind,
-              price: body.price,
-              origin_volume: body.volume,
-              state: "wait",
-              state_text: "Waiting",
-              volume: body.volume,
-            };
-            this.orderBook.updateByDifference(memberId, body.instId, {
-              add: [_updateOrder],
-            });
-            EventBus.emit(Events.order, memberId, body.market, {
-              market: body.market,
-              difference: this.orderBook.getDifference(memberId, body.instId),
-            });
-            this.logger.log(
-              `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] _updateOrder ln:409`,
-              _updateOrder
-            );
-            let _updateAccount = {
-              balance: SafeMath.plus(account.balance, balance),
-              locked: SafeMath.plus(account.locked, locked),
-              currency: this.currencies.find(
-                (curr) => curr.id === account.currency
-              )?.symbol,
-              total: SafeMath.plus(
-                SafeMath.plus(account.balance, balance),
-                SafeMath.plus(account.locked, locked)
-              ),
-            };
-            this.accountBook.updateByDifference(memberId, _updateAccount);
-            EventBus.emit(
-              Events.account,
-              memberId,
-              this.accountBook.getDifference(memberId)
-            );
-            this.logger.log(
-              `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:425`,
-              _updateAccount
-            );
+            if (body.ordType !== "market") {
+              let _updateOrder = {
+                instId: body.instId,
+                ordType: body.ordType === "market" ? "ioc" : body.ordType,
+                id: okexOrderRes.payload.ordId,
+                clOrdId: okexOrderRes.payload.clOrdId,
+                at: parseInt(SafeMath.div(Date.now(), "1000")),
+                ts: Date.now(),
+                market: body.market,
+                kind: body.kind,
+                price: body.price,
+                origin_volume: body.volume,
+                state: "wait",
+                state_text: "Waiting",
+                volume: body.volume,
+              };
+              this.orderBook.updateByDifference(memberId, body.instId, {
+                add: [_updateOrder],
+              });
+              EventBus.emit(Events.order, memberId, body.market, {
+                market: body.market,
+                difference: this.orderBook.getDifference(memberId, body.instId),
+              });
+              this.logger.log(
+                `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] _updateOrder ln:616`,
+                _updateOrder
+              );
+              let _updateAccount = {
+                balance: SafeMath.plus(account.balance, balance),
+                locked: SafeMath.plus(account.locked, locked),
+                currency: this.currencies.find(
+                  (curr) => curr.id === account.currency
+                )?.symbol,
+                total: SafeMath.plus(
+                  SafeMath.plus(account.balance, balance),
+                  SafeMath.plus(account.locked, locked)
+                ),
+              };
+              this.accountBook.updateByDifference(memberId, _updateAccount);
+              EventBus.emit(
+                Events.account,
+                memberId,
+                this.accountBook.getDifference(memberId)
+              );
+              this.logger.log(
+                `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:425`,
+                _updateAccount
+              );
+            }
           }
           await t.commit();
           return okexOrderRes;
