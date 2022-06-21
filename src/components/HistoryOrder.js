@@ -200,8 +200,8 @@ export const PendingOrders = (props) => {
               <OrderTile
                 order={order}
                 cancelOrder={cancelOrder}
-                tickSz={storeCtx?.tickSz || 2}
-                lotSz={storeCtx?.lotSz || 2}
+                tickSz={storeCtx?.tickSz || 0}
+                lotSz={storeCtx?.lotSz || 0}
               />
             ))}
       </ul>
@@ -254,8 +254,8 @@ export const ClosedOrders = (props) => {
             .map((order) => (
               <OrderTile
                 order={order}
-                tickSz={storeCtx?.tickSz || 2}
-                lotSz={storeCtx?.lotSz || 2}
+                tickSz={storeCtx?.tickSz || 0}
+                lotSz={storeCtx?.lotSz || 0}
               />
             ))}
       </ul>

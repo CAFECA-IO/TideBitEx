@@ -163,8 +163,8 @@ const DepthBook = (props) => {
               .filter((book) => book.amount > storeCtx.selectedTicker?.lotSz)
               .map((book) => (
                 <BookTile
-                  tickSz={storeCtx.selectedTicker?.tickSz}
-                  lotSz={storeCtx.selectedTicker?.lotSz}
+                  tickSz={storeCtx?.tickSz || 0}
+                  lotSz={storeCtx?.lotSz || 0}
                   onClick={() => {
                     storeCtx.depthBookHandler(book.price, book.amount);
                   }}
@@ -187,8 +187,8 @@ const DepthBook = (props) => {
               .filter((book) => book.amount > storeCtx.selectedTicker?.lotSz)
               .map((book) => (
                 <BookTile
-                  tickSz={storeCtx?.tickSz || 2}
-                  lotSz={storeCtx?.lotSz || 2}
+                  tickSz={storeCtx?.tickSz || 0}
+                  lotSz={storeCtx?.lotSz || 0}
                   type="asks"
                   onClick={() => {
                     storeCtx.depthBookHandler(book.price, book.amount);

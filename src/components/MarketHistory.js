@@ -59,8 +59,8 @@ const MarketHistory = (props) => {
               <TradeTile
                 key={`${trade.market}-${trade.id}`}
                 trade={trade}
-                tickSz={storeCtx?.tickSz || 2}
-                lotSz={storeCtx?.lotSz || 2}
+                tickSz={storeCtx?.tickSz || 0}
+                lotSz={storeCtx?.lotSz || 0}
               />
             ))}
       </ul>

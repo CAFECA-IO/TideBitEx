@@ -445,20 +445,14 @@ const TradePannel = (props) => {
         size = formateDecimal(
           SafeMath.div(SafeMath.mult(pct, props.quoteCcyAvailable), buyPx),
           {
-            decimalLength:
-              storeCtx.selectedTicker?.lotSz.split(".").length > 1
-                ? storeCtx.selectedTicker?.lotSz.split(".")[1].length
-                : "0",
+            decimalLength: storeCtx?.lotSz ? storeCtx?.lotSz : "0",
           }
         );
       else if (SafeMath.gt(availBal, 0))
         size = formateDecimal(
           SafeMath.div(SafeMath.mult(pct, availBal), buyPx),
           {
-            decimalLength:
-              storeCtx.selectedTicker?.lotSz.split(".").length > 1
-                ? storeCtx.selectedTicker?.lotSz.split(".")[1].length
-                : "0",
+            decimalLength: storeCtx?.lotSz ? storeCtx?.lotSz : "0",
           }
         );
       if (orderType === "market") {
@@ -495,7 +489,7 @@ const TradePannel = (props) => {
     },
     [
       props.quoteCcyAvailable,
-      storeCtx.selectedTicker?.lotSz,
+      storeCtx?.lotSz,
       storeCtx.selectedTicker?.maxLmtSz,
       storeCtx.selectedTicker?.maxMktSz,
       storeCtx.selectedTicker?.minSz,
@@ -507,17 +501,11 @@ const TradePannel = (props) => {
       let size = "0";
       if (SafeMath.gt(props.baseCcyAvailable, 0))
         size = formateDecimal(SafeMath.mult(pct, props.baseCcyAvailable), {
-          decimalLength:
-            storeCtx.selectedTicker?.lotSz.split(".").length > 1
-              ? storeCtx.selectedTicker?.lotSz.split(".")[1].length
-              : "0",
+          decimalLength: storeCtx?.lotSz ? storeCtx?.lotSz : "0",
         });
       else if (SafeMath.gt(availBal, 0))
         size = formateDecimal(SafeMath.mult(pct, availBal), {
-          decimalLength:
-            storeCtx.selectedTicker?.lotSz.split(".").length > 1
-              ? storeCtx.selectedTicker?.lotSz.split(".")[1].length
-              : "0",
+          decimalLength: storeCtx?.lotSz ? storeCtx?.lotSz : "0",
         });
       if (orderType === "market") {
         setMarketSellSz(size);
