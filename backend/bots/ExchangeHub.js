@@ -554,7 +554,7 @@ class ExchangeHub extends Bot {
             updated_at,
             null,
             "Web",
-            orderData.ordType,
+            orderData.ordType === "market" ? "ioc" : orderData.ordType,
             locked,
             locked,
             "0",
@@ -591,7 +591,7 @@ class ExchangeHub extends Bot {
           } else {
             let _updateOrder = {
               instId: body.instId,
-              ordType: body.ordType,
+              ordType: body.ordType === "market" ? "ioc" : body.ordType,
               id: okexOrderRes.payload.ordId,
               clOrdId: okexOrderRes.payload.clOrdId,
               at: parseInt(SafeMath.div(Date.now(), "1000")),
@@ -607,7 +607,6 @@ class ExchangeHub extends Bot {
             this.orderBook.updateByDifference(memberId, body.instId, {
               add: [_updateOrder],
             });
-            // ++ TODO: verify function works properly
             EventBus.emit(Events.order, memberId, body.market, {
               market: body.market,
               difference: this.orderBook.getDifference(memberId, body.instId),
@@ -1520,7 +1519,7 @@ class ExchangeHub extends Bot {
         body.kind === "bid"
           ? this.database.TYPE.ORDER_BID
           : this.database.TYPE.ORDER_ASK,
-      ordType: body.ordType,
+      ordType: body.ordType === "market" ? "ioc" : body.ordType,
       locked,
       balance,
       currencyId: body.kind === "bid" ? bid : ask,
