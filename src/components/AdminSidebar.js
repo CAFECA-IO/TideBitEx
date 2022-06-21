@@ -12,43 +12,50 @@ const DropDownMenu = (props) => {
   };
 
   return (
-    <div className="btn btn--dropdown admin-dropdown">
-      <input
-        className="admin-dropdown__controller"
-        type="checkbox"
-        id="dropdown-btn"
-        checked={openDropDown || props.options.some((option) => option.page === props.activePage)}
-        readOnly
-      />
-      <label
-        className="admin-dropdown__label sidebar__btn"
-        htmlFor="admin-dropdown-btn"
-        onClick={() => setOpenDropDown((prev) => !prev)}
-      >
-        <div className="sidebar__text admin-dropdown__text">{props.label}</div>
-        <div className="admin-dropdown__icon"></div>
-      </label>
-      <ul className="admin-dropdown__options">
-        {props.options.map((option) => (
-          <div>
-            <div
-              className={`sidebar__text admin-dropdown__option${
-                props.activePage === option.page ? " active" : ""
-              }`}
-              onClick={() => selectPageHandler(option.page)}
-            >
-              {option.text}
-            </div>
+    <section className="admin-sidebar">
+      <div className="btn btn--dropdown admin-dropdown">
+        <input
+          className="admin-dropdown__controller"
+          type="checkbox"
+          id="dropdown-btn"
+          checked={
+            openDropDown ||
+            props.options.some((option) => option.page === props.activePage)
+          }
+          readOnly
+        />
+        <label
+          className="admin-dropdown__label admin-sidebar__btn"
+          htmlFor="admin-dropdown-btn"
+          onClick={() => setOpenDropDown((prev) => !prev)}
+        >
+          <div className="admin-sidebar__text admin-dropdown__text">
+            {props.label}
           </div>
-        ))}
-      </ul>
-    </div>
+          <div className="admin-dropdown__icon"></div>
+        </label>
+        <ul className="admin-dropdown__options">
+          {props.options.map((option) => (
+            <div>
+              <div
+                className={`admin-sidebar__text admin-dropdown__option${
+                  props.activePage === option.page ? " active" : ""
+                }`}
+                onClick={() => selectPageHandler(option.page)}
+              >
+                {option.text}
+              </div>
+            </div>
+          ))}
+        </ul>
+      </div>
+    </section>
   );
 };
 
 const Sidebar = (props) => {
   return (
-    <section className="sidebar">
+    <section className="admin-sidebar">
       <DropDownMenu
         label="交易管理"
         selectPageHandler={(page) => props.onSelected(page)}
@@ -65,20 +72,20 @@ const Sidebar = (props) => {
         ]}
       />
       <div
-        className={`btn sidebar__btn${
+        className={`btn admin-sidebar__btn${
           props.activePage === "deposit" ? " active" : ""
         }`}
         onClick={() => props.onSelected("deposit")}
       >
-        <div className="sidebar__text">入金管理</div>
+        <div className="admin-sidebar__text">入金管理</div>
       </div>
       <div
-        className={`btn sidebar__btn${
+        className={`btn admin-sidebar__btn${
           props.activePage === "sub-account" ? " active" : ""
         }`}
         onClick={() => props.onSelected("sub-account")}
       >
-        <div className="sidebar__text">子帳號管理</div>
+        <div className="admin-sidebar__text">子帳號管理</div>
       </div>
       <DropDownMenu
         label="資產總覽"
@@ -96,12 +103,12 @@ const Sidebar = (props) => {
         ]}
       />
       <div
-        className={`btn sidebar__btn${
+        className={`btn admin-sidebar__btn${
           props.activePage === "info-setting" ? " active" : ""
         }`}
         onClick={() => props.onSelected("info-setting")}
       >
-        <div className="sidebar__text">通知設定</div>
+        <div className="admin-sidebar__text">通知設定</div>
       </div>
       <DropDownMenu
         label="營收管理"
