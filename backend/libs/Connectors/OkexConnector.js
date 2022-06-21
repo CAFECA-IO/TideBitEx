@@ -30,6 +30,8 @@ class OkexConnector extends ConnectorBase {
 
   fetchedTrades = {};
   fetchedBook = {};
+  fetchedOrders = {};
+  fetchedOrdersInterval = 1 * 60 * 1000;
 
   constructor({ logger }) {
     super({ logger });
@@ -52,6 +54,7 @@ class OkexConnector extends ConnectorBase {
     tradeBook,
     accountBook,
     orderBook,
+    currencies,
   }) {
     await super.init();
     this.domain = domain;
@@ -70,6 +73,7 @@ class OkexConnector extends ConnectorBase {
     this.tradeBook = tradeBook;
     this.accountBook = accountBook;
     this.orderBook = orderBook;
+    this.currencies = currencies;
     return this;
   }
 

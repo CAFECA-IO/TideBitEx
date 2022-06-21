@@ -172,22 +172,6 @@ class ExchangeHub extends Bot {
         });
       })
       .then(async () => {
-        this.okexConnector = new OkexConnector({ logger });
-        await this.okexConnector.init({
-          domain: this.config.okex.domain,
-          apiKey: this.config.okex.apiKey,
-          secretKey: this.config.okex.secretKey,
-          passPhrase: this.config.okex.passPhrase,
-          brokerId: this.config.okex.brokerId,
-          wssPublic: this.config.okex.wssPublic,
-          wssPrivate: this.config.okex.wssPrivate,
-          markets: this.config.markets,
-          tickerBook: this.tickerBook,
-          depthBook: this.depthBook,
-          tradeBook: this.tradeBook,
-          orderBook: this.orderBook,
-          accountBook: this.accountBook,
-        });
         this.tideBitConnector = new TideBitConnector({ logger });
         await this.tideBitConnector.init({
           app: this.config.pusher.app,
@@ -210,6 +194,23 @@ class ExchangeHub extends Bot {
           tidebitMarkets: this.tidebitMarkets,
         });
         this.currencies = this.tideBitConnector.currencies;
+        this.okexConnector = new OkexConnector({ logger });
+        await this.okexConnector.init({
+          domain: this.config.okex.domain,
+          apiKey: this.config.okex.apiKey,
+          secretKey: this.config.okex.secretKey,
+          passPhrase: this.config.okex.passPhrase,
+          brokerId: this.config.okex.brokerId,
+          wssPublic: this.config.okex.wssPublic,
+          wssPrivate: this.config.okex.wssPrivate,
+          markets: this.config.markets,
+          tickerBook: this.tickerBook,
+          depthBook: this.depthBook,
+          tradeBook: this.tradeBook,
+          orderBook: this.orderBook,
+          accountBook: this.accountBook,
+          currencies:this.currencies
+        });
         return this;
       });
   }
@@ -729,7 +730,9 @@ class ExchangeHub extends Bot {
       `[${this.constructor.name} getOrderHistory] memberId:`,
       memberId,
       `query`,
-      query
+      query,
+      `market`,
+      market
     );
     this.logger.log(
       `[${this.constructor.name} getOrderHistory] instId:`,
