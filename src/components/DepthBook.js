@@ -6,7 +6,8 @@ import { useTranslation } from "react-i18next";
 import DropDown from "./DropDown";
 
 const BookTile = (props) => {
-  const amountSz = Math.max(props.tickSz, props.lotSz);
+  const storeCtx = useContext(StoreContext);
+  const amountSz = Math.max(props.tickSz || 0, props.lotSz || 0);
   return (
     <li
       className={`order-book__tile flex-row ${
@@ -21,14 +22,14 @@ const BookTile = (props) => {
           <div>
             {formateDecimal(props.book.price, {
               // decimalLength: 2,
-              decimalLength: props.tickSz,
+              decimalLength: storeCtx.tickSz || 0,
               pad: true,
             })}
           </div>
           <div>
             {formateDecimal(props.book.amount, {
               // decimalLength: 4,
-              decimalLength: props.lotSz,
+              decimalLength: storeCtx.lotSz || 0,
               pad: true,
             })}
           </div>
@@ -62,14 +63,14 @@ const BookTile = (props) => {
           <div>
             {formateDecimal(props.book.amount, {
               // decimalLength: 4,
-              decimalLength: props.lotSz,
+              decimalLength: storeCtx.lotSz || 0,
               pad: true,
             })}
           </div>
           <div>
             {formateDecimal(props.book.price, {
               // decimalLength: 2,
-              decimalLength: props.tickSz,
+              decimalLength: storeCtx.tickSz || 0,
               pad: true,
             })}
           </div>
@@ -163,8 +164,6 @@ const DepthBook = (props) => {
               .filter((book) => book.amount > storeCtx.selectedTicker?.lotSz)
               .map((book) => (
                 <BookTile
-                  tickSz={storeCtx?.tickSz || 0}
-                  lotSz={storeCtx?.lotSz || 0}
                   onClick={() => {
                     storeCtx.depthBookHandler(book.price, book.amount);
                   }}
@@ -187,8 +186,6 @@ const DepthBook = (props) => {
               .filter((book) => book.amount > storeCtx.selectedTicker?.lotSz)
               .map((book) => (
                 <BookTile
-                  tickSz={storeCtx?.tickSz || 0}
-                  lotSz={storeCtx?.lotSz || 0}
                   type="asks"
                   onClick={() => {
                     storeCtx.depthBookHandler(book.price, book.amount);

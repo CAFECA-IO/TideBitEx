@@ -76,6 +76,9 @@ const StoreProvider = (props) => {
             : 0;
         setTickSz(tickSz);
         setLotSz(lotSz);
+        console.log(`selectMarket ticker`, ticker);
+        console.log(`selectMarket tickSz`, tickSz);
+        console.log(`selectMarket lotSz`, lotSz);
       }
       // console.log(`****^^^^**** selectTickerHandler [END] ****^^^^****`);
     },

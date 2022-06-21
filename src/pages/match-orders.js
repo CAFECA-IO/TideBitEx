@@ -195,7 +195,7 @@ const MatchOrders = () => {
           </ul>
         </div>
         <div className="screen__sorting">
-          <img src={require("../assets/icons/sorting@2x.png")} alt="sorting" />
+          <img src="/img/sorting@2x.png" alt="sorting" />
         </div>
       </div>
       <div className="screen__table--overivew">
@@ -276,10 +276,7 @@ const MatchOrders = () => {
             screenSection.scroll(0, 0);
           }}
         >
-          <img
-            src={require("../assets/icons/floating-btn@2x.png")}
-            alt="arrow"
-          />
+          <img src="/img/floating-btn@2x.png" alt="arrow" />
         </div>
       </div>
     </section>

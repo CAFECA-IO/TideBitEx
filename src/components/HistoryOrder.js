@@ -8,7 +8,8 @@ import { useTranslation } from "react-i18next";
 import { BiLock } from "react-icons/bi";
 
 export const OrderTile = (props) => {
-  const amountSz = Math.max(props.tickSz, props.lotSz);
+  const storeCtx = useContext(StoreContext);
+  const amountSz = Math.max(props.tickSz || 0, props.lotSz || 0);
   return (
     <ul
       className="d-flex justify-content-between market-order-item"
@@ -43,7 +44,7 @@ export const OrderTile = (props) => {
       </li>
       <li>
         {formateDecimal(props.order.price, {
-          decimalLength: props.tickSz,
+          decimalLength: storeCtx.tickSz || 0,
           pad: true,
         })}
       </li>
@@ -53,7 +54,7 @@ export const OrderTile = (props) => {
             ? props.order.volume
             : props.order.origin_volume,
           {
-            decimalLength: props.lotSz,
+            decimalLength: storeCtx.lotSz || 0,
             pad: true,
           }
         )}
@@ -200,8 +201,6 @@ export const PendingOrders = (props) => {
               <OrderTile
                 order={order}
                 cancelOrder={cancelOrder}
-                tickSz={storeCtx?.tickSz || 0}
-                lotSz={storeCtx?.lotSz || 0}
               />
             ))}
       </ul>
@@ -254,8 +253,6 @@ export const ClosedOrders = (props) => {
             .map((order) => (
               <OrderTile
                 order={order}
-                tickSz={storeCtx?.tickSz || 0}
-                lotSz={storeCtx?.lotSz || 0}
               />
             ))}
       </ul>

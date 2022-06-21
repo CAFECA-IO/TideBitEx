@@ -4,6 +4,7 @@ import { dateFormatter, formateDecimal } from "../utils/Utils";
 import { useTranslation } from "react-i18next";
 
 const TradeTile = (props) => {
+  const storeCtx = useContext(StoreContext);
   return (
     <li
       className={`market-history__tile flex-row 
@@ -21,13 +22,13 @@ const TradeTile = (props) => {
         }`}
       >
         {formateDecimal(props.trade.price, {
-          decimalLength: props.tickSz,
+          decimalLength: storeCtx.tickSz || 0,
           pad: true,
         })}
       </div>
       <div className="market-history__tile--data">
         {formateDecimal(props.trade.volume, {
-          decimalLength: props.lotSz,
+          decimalLength: storeCtx.lotSz || 0,
           pad: true,
         })}
       </div>
@@ -56,12 +57,7 @@ const MarketHistory = (props) => {
           storeCtx.trades
             .filter((trade) => trade.volume > storeCtx.selectedTicker?.lotSz)
             .map((trade) => (
-              <TradeTile
-                key={`${trade.market}-${trade.id}`}
-                trade={trade}
-                tickSz={storeCtx?.tickSz || 0}
-                lotSz={storeCtx?.lotSz || 0}
-              />
+              <TradeTile key={`${trade.market}-${trade.id}`} trade={trade} />
             ))}
       </ul>
     </div>
