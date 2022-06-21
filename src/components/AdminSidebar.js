@@ -12,7 +12,6 @@ const DropDownMenu = (props) => {
   };
 
   return (
-    <section className="admin-sidebar">
       <div className="btn btn--dropdown admin-dropdown">
         <input
           className="admin-dropdown__controller"
@@ -49,7 +48,6 @@ const DropDownMenu = (props) => {
           ))}
         </ul>
       </div>
-    </section>
   );
 };
 
