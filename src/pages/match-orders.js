@@ -229,7 +229,7 @@ const MatchOrders = () => {
                 key={order.orderId}
               >
                 <div className="match-orders__text screen__table-item">
-                  {dateFormatter(order.ts).date}
+                  {dateFormatter(order.ts).text}
                 </div>
                 <div className="match-orders__text screen__table-item">
                   {order.memberId}

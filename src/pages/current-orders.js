@@ -227,7 +227,7 @@ const CurrentOrders = () => {
                 key={order.orderId}
               >
                 <div className="current-orders__text screen__table-item">
-                  {dateFormatter(order.ts)}
+                  {dateFormatter(order.ts).text}
                 </div>
                 <div className="current-orders__text screen__table-item">
                   {order.memberId}
