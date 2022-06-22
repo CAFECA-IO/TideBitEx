@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import TableDropdown from "../components/TableDropdown";
+import { dateFormatter } from "../utils/Utils";
 
 const exchanges = ["ALL", "OKEx", "TideBit"];
 
@@ -162,7 +163,7 @@ const CurrentOrders = () => {
             type="text"
             inputMode="search"
             className="screen__search-input"
-            placeholder={t('search-keywords')}
+            placeholder={t("search-keywords")}
             onInput={(e) => {
               setFilterKey(e.target.value);
               filter({ keyword: e.target.value });
@@ -226,7 +227,7 @@ const CurrentOrders = () => {
                 key={order.orderId}
               >
                 <div className="current-orders__text screen__table-item">
-                  {Date(order.ts)}
+                  {dateFormatter(order.ts)}
                 </div>
                 <div className="current-orders__text screen__table-item">
                   {order.memberId}
