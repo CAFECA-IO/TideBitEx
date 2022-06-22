@@ -164,19 +164,19 @@ class DepthBook extends BookBase {
     let sumAskAmount = "0",
       sumBidAmount = "0",
       asks = [],
-      bids = [],
-      rangeData = this.range(
-        data,
-        this.markets.find(
-          (market) => market.id === instId.replace("-", "").toLowerCase()
-        )?.ask?.fixed
-      );
-    rangeData.forEach((d) => {
-      if (d.side === "asks" && asks.length < 50) {
+      bids = [];
+    // rangeData = this.range(
+    //   data,
+    //   this.markets.find(
+    //     (market) => market.id === instId.replace("-", "").toLowerCase()
+    //   )?.ask?.fixed
+    // );
+    data.forEach((d) => {
+      if (d.side === "asks" && asks.length < 100) {
         // ++ 30 -- TEST
         asks.push(d);
       }
-      if (d.side === "bids" && bids.length < 50) {
+      if (d.side === "bids" && bids.length < 100) {
         // -- TEST
         bids.push(d);
       }
