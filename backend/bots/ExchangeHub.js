@@ -787,6 +787,8 @@ class ExchangeHub extends Bot {
           try {
             const orders = await this.getOrdersFromDb({
               ...query,
+              memberId,
+              instId,
               market,
             });
             this.orderBook.updateAll(memberId, instId, orders);
@@ -841,6 +843,8 @@ class ExchangeHub extends Bot {
           try {
             const orders = await this.getOrdersFromDb({
               ...query,
+              memberId,
+              instId,
               market,
             });
             this.orderBook.updateAll(memberId, instId, orders);
