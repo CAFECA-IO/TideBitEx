@@ -52,6 +52,7 @@ class TibeBitConnector extends ConnectorBase {
     accountBook,
     orderBook,
     tidebitMarkets,
+    currencies,
   }) {
     await super.init();
     this.app = app;
@@ -65,7 +66,7 @@ class TibeBitConnector extends ConnectorBase {
     this.markets = markets;
     this.database = database;
     this.redis = redis;
-    this.currencies = await this.database.getCurrencies();
+    this.currencies = currencies;
     this.depthBook = depthBook;
     this.tickerBook = tickerBook;
     this.tradeBook = tradeBook;
@@ -695,7 +696,6 @@ class TibeBitConnector extends ConnectorBase {
       this.accountBook.getDifference(memberId)
     );
   }
-
   async tbGetOrderList(query) {
     if (!query.market) {
       throw new Error(`this.tidebitMarkets.market ${query.market} not found.`);
@@ -796,8 +796,8 @@ class TibeBitConnector extends ConnectorBase {
         filled: order.volume !== order.origin_volume,
       };
       /*
-      }
-      */
+        }
+        */
     });
     // this.logger.log(`tbGetOrderList orders`, orders);
     return orders;

@@ -9,7 +9,6 @@ import { BiLock } from "react-icons/bi";
 
 export const OrderTile = (props) => {
   const storeCtx = useContext(StoreContext);
-  const amountSz = Math.max(props.tickSz || 0, props.lotSz || 0);
   return (
     <ul
       className="d-flex justify-content-between market-order-item"
@@ -60,9 +59,17 @@ export const OrderTile = (props) => {
         )}
       </li>
       <li>
-        {formateDecimal(SafeMath.mult(props.order.price, props.order.volume), {
-          decimalLength: amountSz,
-        })}
+        {formateDecimal(
+          SafeMath.mult(
+            props.order.price,
+            props.order.state === "wait"
+              ? props.order.volume
+              : props.order.origin_volume
+          ),
+          {
+            decimalLength: SafeMath.mult(storeCtx.tickSz || 0, storeCtx.lotSz || 0),
+          }
+        )}
       </li>
       {/* <li>{props.order.fillSz}</li> */}
       {/* <li>{SafeMath.minus(props.order.volume, props.order.fillSz)}</li> */}
@@ -198,10 +205,7 @@ export const PendingOrders = (props) => {
           storeCtx.pendingOrders
             .filter((order) => !(order.price === "NaN" || !order.price)) // ++ WORKAROUND
             .map((order) => (
-              <OrderTile
-                order={order}
-                cancelOrder={cancelOrder}
-              />
+              <OrderTile order={order} cancelOrder={cancelOrder} />
             ))}
       </ul>
       {storeCtx.selectedTicker?.source === "TideBit" && (
@@ -250,11 +254,7 @@ export const ClosedOrders = (props) => {
         {!!storeCtx.closeOrders?.length &&
           storeCtx.closeOrders
             .filter((order) => !(order.price === "NaN" || !order.price)) // ++ WORKAROUND
-            .map((order) => (
-              <OrderTile
-                order={order}
-              />
-            ))}
+            .map((order) => <OrderTile order={order} />)}
       </ul>
     </div>
   );

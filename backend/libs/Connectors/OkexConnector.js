@@ -292,7 +292,7 @@ class OkexConnector extends ConnectorBase {
 
     const arr = [];
     if (instId) arr.push(`instId=${instId}`);
-    if (sz) arr.push(`sz=${60}`);
+    if (sz) arr.push(`sz=${100}`);
     // if (sz) arr.push(`sz=${sz}`); // -- TEST
     const qs = !!arr.length ? `?${arr.join("&")}` : "";
 
@@ -436,21 +436,21 @@ class OkexConnector extends ConnectorBase {
   async getTradingViewHistory({ query }) {
     const method = "GET";
     const path = "/api/v5/market/candles";
-    const { instId, resolution, from, to, symbol } = query;
+    let { instId, resolution, from, to } = query;
 
-    const arr = [];
+    let arr = [];
     if (instId) arr.push(`instId=${instId}`);
     if (resolution) arr.push(`bar=${this.getBar(resolution)}`);
     // before	String	否	请求此时间戳之后（更新的数据）的分页内容，传的值为对应接口的ts
     // if (from) arr.push(`before=${parseInt(from) * 1000}`); //5/23
     //after	String	否	请求此时间戳之前（更旧的数据）的分页内容，传的值为对应接口的ts
     if (to) arr.push(`after=${parseInt(to) * 1000}`); //6/2
-    // if (limit) arr.push(`limit=${limit}`);
-    const qs = !!arr.length ? `?${arr.join("&")}` : "";
+    arr.push(`limit=${300}`);
+    let qs = !!arr.length ? `?${arr.join("&")}` : "";
     // this.logger.log(`getTradingViewHistory arr`, arr);
 
     try {
-      const res = await axios({
+      let res = await axios({
         method: method.toLocaleLowerCase(),
         url: `${this.domain}${path}${qs}`,
         headers: this.getHeaders(false),
@@ -463,7 +463,26 @@ class OkexConnector extends ConnectorBase {
           code: Codes.THIRD_PARTY_API_ERROR,
         });
       }
-
+      let resData = res.data.data;
+      // this.logger.log(`resData[0] 1`, resData[0]);
+      // this.logger.log(
+      //   `resData[resData.length-1] 1`,
+      //   resData[resData.length - 1]
+      // );
+      if (resData[resData.length - 1][0] / 1000 > from) {
+        arr = [];
+        if (instId) arr.push(`instId=${instId}`);
+        if (resolution) arr.push(`bar=${this.getBar(resolution)}`);
+        if (to) arr.push(`after=${resData[resData.length - 1][0]}`); //6/2
+        arr.push(`limit=${300}`);
+        qs = !!arr.length ? `?${arr.join("&")}` : "";
+        res = await axios({
+          method: method.toLocaleLowerCase(),
+          url: `${this.domain}${path}${qs}`,
+          headers: this.getHeaders(false),
+        });
+        resData = resData.concat(res.data.data);
+      }
       const data = {
         s: "ok",
         t: [],
@@ -473,8 +492,7 @@ class OkexConnector extends ConnectorBase {
         c: [],
         v: [],
       };
-      // this.logger.log(`getTradingViewHistory res.data.data`, res.data.data);
-      res.data.data
+      resData
         .sort((a, b) => a[0] - b[0])
         .forEach((d) => {
           const ts = parseInt(d[0]) / 1000;
@@ -490,7 +508,6 @@ class OkexConnector extends ConnectorBase {
           data.c.push(c);
           data.v.push(v);
         });
-      // this.logger.log(`getTradingViewHistory data`, data);
       return data;
     } catch (error) {
       this.logger.error(error);
@@ -942,68 +959,6 @@ class OkexConnector extends ConnectorBase {
       message: "getOrderList",
       payload: this.orderBook.getSnapshot(memberId, instId, "pending"),
     });
-  }
-
-  async tbGetOrderList(query) {
-    if (!query.market) {
-      throw new Error(`this.tidebitMarkets.market ${query.market} not found.`);
-    }
-    const { id: bid } = this.currencies.find(
-      (curr) => curr.key === query.market.quote_unit
-    );
-    const { id: ask } = this.currencies.find(
-      (curr) => curr.key === query.market.base_unit
-    );
-    if (!bid) {
-      throw new Error(`bid not found${query.market.quote_unit}`);
-    }
-    if (!ask) {
-      throw new Error(`ask not found${query.market.base_unit}`);
-    }
-    let orderList;
-    // if (query.memberId) {
-    orderList = await this.database.getOrderList({
-      quoteCcy: bid,
-      baseCcy: ask,
-      // state: query.state,
-      memberId: query.memberId,
-      // orderType: query.orderType,
-    });
-
-    const orders = orderList.map((order) => {
-      return {
-        id: order.id,
-        ts: parseInt(new Date(order.updated_at).getTime()),
-        at: parseInt(
-          SafeMath.div(new Date(order.updated_at).getTime(), "1000")
-        ),
-        market: query.instId.replace("-", "").toLowerCase(),
-        kind: order.type === "OrderAsk" ? "ask" : "bid",
-        price: Utils.removeZeroEnd(order.price),
-        origin_volume: Utils.removeZeroEnd(order.origin_volume),
-        volume: Utils.removeZeroEnd(order.volume),
-        state: SafeMath.eq(order.state, this.database.ORDER_STATE.CANCEL)
-          ? "canceled"
-          : SafeMath.eq(order.state, this.database.ORDER_STATE.WAIT)
-          ? "wait"
-          : SafeMath.eq(order.state, this.database.ORDER_STATE.DONE)
-          ? "done"
-          : "unkwon",
-        state_text: SafeMath.eq(order.state, this.database.ORDER_STATE.CANCEL)
-          ? "Canceled"
-          : SafeMath.eq(order.state, this.database.ORDER_STATE.WAIT)
-          ? "Waiting"
-          : SafeMath.eq(order.state, this.database.ORDER_STATE.DONE)
-          ? "Done"
-          : "Unkwon",
-        clOrdId: order.id,
-        instId: query.instId,
-        ordType: order.ord_type,
-        filled: order.volume !== order.origin_volume,
-      };
-    });
-    // this.logger.log(`tbGetOrderList orders`, orders);
-    return orders;
   }
 
   async getOrderHistory({ query }) {

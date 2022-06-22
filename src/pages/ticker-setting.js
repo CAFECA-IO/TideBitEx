@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import TableSwitch from "../components/TableSwitch";
 import TableDropdown from "../components/TableDropdown";
+import { useTranslation } from "react-i18next";
 
 const categories = {
   HKD: ["HKD"],
@@ -20,6 +21,7 @@ const TickerSetting = () => {
   const [filterOption, setFilterOption] = useState("all"); //'open','close'
   const [filterKey, setFilterKey] = useState("");
   const [quoteUnit, setQuoteUnit] = useState("USDT");
+  const { t } = useTranslation();
 
   const filter = useCallback(
     ({ keyword, status, quote, filterTickers }) => {
@@ -431,7 +433,7 @@ const TickerSetting = () => {
           className="screen__table-btn screen__table-text"
           onClick={() => setShowMore((prev) => !prev)}
         >
-          {showMore ? "顯示更少" : "顯示更多"}
+          {showMore ? t("show-less") : t("show-more")}
         </div>
       </div>
       <div className="screen__floating-box">

@@ -97,7 +97,7 @@ class BookBase {
 
   // control data length
   // implement in TradeBook & DepthBook
-  _trim(data) {
+  _trim(instId, data) {
     return data;
   }
 
@@ -124,7 +124,7 @@ class BookBase {
           )
           .concat(difference.add);
       }
-      this._snapshot[instId] = this._trim(updateSnapshot);
+      this._snapshot[instId] = this._trim(instId, updateSnapshot);
       this._difference[instId] = difference;
       return true;
     } catch (error) {
@@ -148,7 +148,7 @@ class BookBase {
         this._snapshot[instId],
         data
       );
-      this._snapshot[instId] = this._trim(data);
+      this._snapshot[instId] = this._trim(instId, data);
     } catch (error) {
       this.logger.error(`[${this.constructor.name}] updateAll error`, error);
       return false;

@@ -28,7 +28,7 @@ class OrderBook extends BookBase {
   }
 
   // ++ TODO: verify function works properly
-  _trim(data) {
+  _trim(instId, data) {
     const pendingOrders = [];
     const historyOrders = [];
     data
@@ -89,7 +89,7 @@ class OrderBook extends BookBase {
       //     !difference.update.some((diff) => this._isEqual(data.id, diff.id))
       // )
       // .concat(difference.update);
-      this._snapshot[memberId][instId] = this._trim(updateSnapshot);
+      this._snapshot[memberId][instId] = this._trim(instId, updateSnapshot);
     } catch (error) {
       this.logger.error(
         `[${this.constructor.name}] updateByDifference error`,
@@ -110,7 +110,7 @@ class OrderBook extends BookBase {
         this._snapshot[memberId][instId],
         data
       );
-      this._snapshot[memberId][instId] = this._trim(data);
+      this._snapshot[memberId][instId] = this._trim(instId, data);
     } catch (error) {
       this.logger.error(
         `[${this.constructor.name}] updateAll  this._snapshot[memberId][instId]`,
