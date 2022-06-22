@@ -1,5 +1,6 @@
 const BookBase = require("../BookBase");
 const SafeMath = require("../SafeMath");
+const Utils = require("../Utils");
 
 class DepthBook extends BookBase {
   constructor({ logger, markets }) {
@@ -93,17 +94,80 @@ class DepthBook extends BookBase {
     return bookArr;
   }
 
+  range = (arr, precision) => {
+    let result = arr;
+    let _arr = arr?.map((d) => parseFloat(d.price)) || [];
+    let unit = Utils.getDecimal(precision);
+    if (unit) {
+      const max = Math.max(..._arr);
+      const min = Math.min(..._arr);
+      const start =
+        ((min * 10 ** precision) % (unit * 10 ** precision)) /
+          10 ** precision ===
+        0
+          ? min
+          : min -
+            ((min * 10 ** precision) % (unit * 10 ** precision)) /
+              10 ** precision;
+      const end =
+        ((max * 10 ** precision) % (unit * 10 ** precision)) /
+          10 ** precision ===
+        0
+          ? max + unit
+          : max -
+            ((max * 10 ** precision) % (unit * 10 ** precision)) /
+              10 ** precision +
+            unit;
+      const length = parseInt((end - start) / unit) + 1;
+      result = {};
+      for (let i = 0; i < length + 1; i++) {
+        const price = start + unit * i;
+        const data = { amount: "0", price, side: "" };
+        result[parseFloat(price.toFixed(precision))] = data;
+      }
+      for (let i = 0; i < arr.length; i++) {
+        const p = arr[i];
+        let price = parseFloat(
+          (p.side === "asks" &&
+          ((p.price * 10 ** precision) % (unit * 10 ** precision)) /
+            10 ** precision !==
+            0
+            ? parseInt(parseFloat(p.price) / unit) * unit + unit
+            : parseInt(parseFloat(p.price) / unit) * unit
+          ).toFixed(precision)
+        );
+        if (result[price]) {
+          if (SafeMath.eq(result[price].amount, "0")) {
+            result[price] = { ...p, price };
+          } else {
+            result[price].amount =
+              parseFloat(result[price].amount) + parseFloat(p.amount);
+          }
+        }
+      }
+    }
+    return Object.values(result);
+  };
+
   // ++ TODO: verify function works properly
-  _trim(data) {
+  _trim(instId, data) {
     let sumAskAmount = "0",
       sumBidAmount = "0",
       asks = [],
-      bids = [];
-    data.forEach((d) => {
-      if (d.side === "asks" && asks.length < 60) {// ++ 30 -- TEST
+      bids = [],
+      rangeData = this.range(
+        data,
+        this.markets.find(
+          (market) => market.id === instId.replace("-", "").toLowerCase()
+        )?.asks?.fixed
+      );
+      rangeData.forEach((d) => {
+      if (d.side === "asks" && asks.length < 50) {
+        // ++ 30 -- TEST
         asks.push(d);
       }
-      if (d.side === "bids" && bids.length < 60) {// -- TEST
+      if (d.side === "bids" && bids.length < 50) {
+        // -- TEST
         bids.push(d);
       }
     });
@@ -178,7 +242,7 @@ class DepthBook extends BookBase {
         this._formateBooks(data)
       );
       // this.logger.log(`_getDifference update`, result.update);
-      this._snapshot[instId] = this._trim(result.update);
+      this._snapshot[instId] = this._trim(instId, result.update);
       this._difference[instId] = this.result.difference;
       return true;
     } catch (error) {

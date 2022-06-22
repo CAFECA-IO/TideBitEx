@@ -36,7 +36,7 @@ class TradeBook extends BookBase {
   // }
 
   // ++ TODO: verify function works properly
-  _trim(data) {
+  _trim(instId, data) {
     const trimed = data
       .sort((a, b) => +b.at - +a.at)
       .slice(0, 30)
@@ -86,7 +86,7 @@ class TradeBook extends BookBase {
   //     this.logger.log(`[${this.constructor.name}] updateAll[${instId}]`);
   //     super.updateAll(instId, data);
 
-  //     this._snapshot[instId] = this._trim(this._snapshot[instId]);
+  //     this._snapshot[instId] = this._trim(instId, this._snapshot[instId]);
   //     // this._difference[instId] = difference;
   //     this.logger.log(
   //       `[${this.constructor.name}] updateAll[${instId}]`,

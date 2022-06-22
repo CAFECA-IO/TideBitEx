@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import TableSwitch from "../components/TableSwitch";
 import TableDropdown from "../components/TableDropdown";
 import ScreenTags from "../components/ScreenTags";
+import { useTranslation } from "react-i18next";
 
 const Deposit = () => {
   const [showMore, setShowMore] = useState(false);
@@ -10,6 +11,7 @@ const Deposit = () => {
   const [currencies, setCurrencies] = useState(null);
   const [filterCurrencies, setFilterCurrencies] = useState(null);
   const [filterOption, setFilterOption] = useState("all"); //'open','close'
+  const { t } = useTranslation();
 
   const sorting = () => {};
 
@@ -336,7 +338,7 @@ const Deposit = () => {
           className="screen__table-btn screen__table-text"
           onClick={() => setShowMore((prev) => !prev)}
         >
-          {showMore ? "顯示更少" : "顯示更多"}
+          {showMore ? t("show-less") : t("show-more")}
         </div>
       </div>
       <div className="screen__floating-box">

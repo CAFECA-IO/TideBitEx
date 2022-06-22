@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import TableDropdown from "../components/TableDropdown";
 import { dateFormatter } from "../utils/Utils";
+import { useTranslation } from "react-i18next";
 
 const exchanges = ["ALL", "OKEx"];
 
@@ -14,6 +15,7 @@ const MatchOrders = () => {
   const [filterKey, setFilterKey] = useState("");
   const [filterExchange, setFilterExchange] = useState("ALL");
   const [ascending, setAscending] = useState(false);
+  const { t } = useTranslation();
 
   const filter = useCallback(
     ({ keyword, timeInterval, exchange, filterOrders }) => {
@@ -147,7 +149,7 @@ const MatchOrders = () => {
 
   return (
     <section className="screen__section match-orders">
-      <div className="screen__header">搓合成交紀錄</div>
+      <div className="screen__header">{t("match-orders")}</div>
       <div className="screen__search-bar">
         <TableDropdown
           className="screen__filter"
@@ -160,7 +162,7 @@ const MatchOrders = () => {
             type="text"
             inputMode="search"
             className="screen__search-input"
-            placeholder="輸入欲搜尋的關鍵字"
+            placeholder={t("search-keywords")}
             onInput={(e) => {
               setFilterKey(e.target.value);
               filter({ keyword: e.target.value });
@@ -174,7 +176,7 @@ const MatchOrders = () => {
       </div>
       <div className="screen__tool-bar">
         <div className="screen__display">
-          <div className="screen__display-title">顯示：</div>
+          <div className="screen__display-title">{`${t("show")}：`}</div>
           <ul className="screen__display-options">
             <li
               className={`screen__display-option${
@@ -182,7 +184,7 @@ const MatchOrders = () => {
               }`}
               onClick={() => filter({ timeInterval: "month" })}
             >
-              近30日
+              {t("recent-month")}
             </li>
             <li
               className={`screen__display-option${
@@ -190,7 +192,7 @@ const MatchOrders = () => {
               }`}
               onClick={() => filter({ timeInterval: "year" })}
             >
-              近一年
+              {t("recent-year")}
             </li>
           </ul>
         </div>
@@ -199,7 +201,7 @@ const MatchOrders = () => {
         </div>
       </div>
       <div className="screen__table--overivew">
-        <div className="screen__table-title">當前總營收：</div>
+        <div className="screen__table-title">{`${t("current-profit")}：`}</div>
         {filterOrders && (
           <div
             className={`screen__table-value${
@@ -210,14 +212,14 @@ const MatchOrders = () => {
       </div>
       <div className={`screen__table${showMore ? " show" : ""}`}>
         <ul className="screen__table-headers">
-          <li className="screen__table-header">日期</li>
-          <li className="screen__table-header">用戶 ID</li>
-          <li className="screen__table-header">訂單 ID</li>
-          <li className="screen__table-header">交易所</li>
-          <li className="screen__table-header">搓合手續費</li>
-          <li className="screen__table-header">外部手續費成本</li>
-          <li className="screen__table-header">推薦回饋</li>
-          <li className="screen__table-header">營收</li>
+          <li className="screen__table-header">{t("date")}</li>
+          <li className="screen__table-header">{t("memberId")}</li>
+          <li className="screen__table-header">{t("orderId")}</li>
+          <li className="screen__table-header">{t("exchange")}</li>
+          <li className="screen__table-header">{t("fee")}</li>
+          <li className="screen__table-header">{t("external-fee")}</li>
+          <li className="screen__table-header">{t("referral")}</li>
+          <li className="screen__table-header">{t("revenue")}</li>
         </ul>
         <ul className="screen__table-rows">
           {filterOrders &&
@@ -263,7 +265,7 @@ const MatchOrders = () => {
           className="screen__table-btn screen__table-text"
           onClick={() => setShowMore((prev) => !prev)}
         >
-          {showMore ? "顯示更少" : "顯示更多"}
+          {showMore ? t("show-less") : t("show-more")}
         </div>
       </div>
       <div className="screen__floating-box">
