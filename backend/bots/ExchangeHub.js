@@ -775,6 +775,7 @@ class ExchangeHub extends Bot {
         }
         return res;
       case SupportedExchange.TIDEBIT:
+        if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = {};
         let ts = Date.now();
         if (
           !this.fetchedOrders[memberId][instId] ||
