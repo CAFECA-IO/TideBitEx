@@ -503,6 +503,11 @@ class OkexConnector extends ConnectorBase {
         from * 1000,
         res.data.data[0][0] > from * 1000
       );
+      this.logger.log(
+        `getTradingViewHistory ${to} * 1000`,
+        to * 1000,
+        res.data.data[0][0] > to * 1000
+      );
       if (res.data.data[0][0] > from * 1000) {
         this.getTradingViewHistory({
           query: {
