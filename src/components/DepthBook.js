@@ -7,7 +7,7 @@ import DropDown from "./DropDown";
 
 const BookTile = (props) => {
   const storeCtx = useContext(StoreContext);
-  const amountSz = Math.max(props.tickSz || 0, props.lotSz || 0);
+  const amountSz = Math.min(storeCtx.tickSz || 0, storeCtx.lotSz || 0);
   return (
     <li
       className={`order-book__tile flex-row ${

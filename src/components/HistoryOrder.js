@@ -9,7 +9,7 @@ import { BiLock } from "react-icons/bi";
 
 export const OrderTile = (props) => {
   const storeCtx = useContext(StoreContext);
-  const amountSz = Math.max(props.tickSz || 0, props.lotSz || 0);
+  const amountSz = Math.min(storeCtx.tickSz || 0, storeCtx.lotSz || 0);
   return (
     <ul
       className="d-flex justify-content-between market-order-item"
