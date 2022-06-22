@@ -839,8 +839,6 @@ class ExchangeHub extends Bot {
     this.logger.log(
       `[${this.constructor.name} getOrderHistory instId(${instId})] memberId:`,
       memberId,
-      `query`,
-      query,
       `market`,
       market
     );
@@ -863,7 +861,9 @@ class ExchangeHub extends Bot {
           )
         ) {
           try {
-            const orders = await this.getOrdersFromDb(query);
+            const orders = await this.getOrdersFromDb({
+              query: { ...query, market },
+            });
             this.orderBook.updateAll(memberId, instId, orders);
             this.fetchedOrders[memberId][instId] = ts;
           } catch (error) {
