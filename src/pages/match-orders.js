@@ -3,7 +3,7 @@ import TableDropdown from "../components/TableDropdown";
 import { dateFormatter } from "../utils/Utils";
 import { useTranslation } from "react-i18next";
 
-const exchanges = ["ALL", "OKEx"];
+const exchanges = ["ALL", "OKEx", "TideBit"];
 
 const MatchOrders = () => {
   const [showMore, setShowMore] = useState(false);

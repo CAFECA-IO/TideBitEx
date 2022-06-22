@@ -95,12 +95,18 @@ class DepthBook extends BookBase {
   }
 
   range = (arr, precision) => {
+    console.log(`arr`, arr);
+    console.log(`precision`, precision);
     let result = arr;
     let _arr = arr?.map((d) => parseFloat(d.price)) || [];
     let unit = Utils.getDecimal(precision);
+    console.log(`unit`, unit);
+
     if (unit) {
       const max = Math.max(..._arr);
       const min = Math.min(..._arr);
+      console.log(`min`, min);
+      console.log(`max`, max);
       const start =
         ((min * 10 ** precision) % (unit * 10 ** precision)) /
           10 ** precision ===
@@ -125,6 +131,7 @@ class DepthBook extends BookBase {
         const data = { amount: "0", price, side: "" };
         result[parseFloat(price.toFixed(precision))] = data;
       }
+      console.log(`result`, result);
       for (let i = 0; i < arr.length; i++) {
         const p = arr[i];
         let price = parseFloat(
@@ -146,7 +153,7 @@ class DepthBook extends BookBase {
         }
       }
     }
-    return Object.values(result);
+    return Object.values(result).filter((order) => +order.amount > 0);
   };
 
   // ++ TODO: verify function works properly
@@ -161,7 +168,7 @@ class DepthBook extends BookBase {
           (market) => market.id === instId.replace("-", "").toLowerCase()
         )?.asks?.fixed
       );
-      rangeData.forEach((d) => {
+    rangeData.forEach((d) => {
       if (d.side === "asks" && asks.length < 50) {
         // ++ 30 -- TEST
         asks.push(d);
