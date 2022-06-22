@@ -36,8 +36,10 @@ const BookTile = (props) => {
             {formateDecimal(
               SafeMath.mult(props.book.price, props.book.amount),
               {
-                // decimalLength: 4,
-                decimalLength: amountSz,
+                decimalLength: Math.min(
+                  storeCtx.tickSz || 0,
+                  storeCtx.lotSz || 0
+                ),
                 pad: true,
               }
             )}
