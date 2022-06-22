@@ -436,7 +436,7 @@ class OkexConnector extends ConnectorBase {
   async getTradingViewHistory({ query }) {
     const method = "GET";
     const path = "/api/v5/market/candles";
-    const { instId, resolution, from, to, symbol } = query;
+    let { instId, resolution, from, to } = query;
 
     const arr = [];
     if (instId) arr.push(`instId=${instId}`);
@@ -497,20 +497,15 @@ class OkexConnector extends ConnectorBase {
         `getTradingViewHistory res.data.data[${res.data.data.length - 1}]`,
         res.data.data[res.data.data.length - 1][0]
       );
-      this.logger.log(
-        `getTradingViewHistory from * 1000`,
-        from * 1000
-      );
-      if (res.data.data[res.data.data.length - 1][0] > from * 1000) {
-        this.logger.log(
-          `getTradingViewHistory to`,
-          res.data.data[res.data.data.length - 1][0]
-        );
+      to = res.data.data[res.data.data.length - 1][0];
+      this.logger.log(`getTradingViewHistory to`, to);
+      this.logger.log(`getTradingViewHistory from * 1000`, from * 1000);
+      if (to > from * 1000) {
         this.getTradingViewHistory({
           query: {
             instId,
             resolution,
-            to: res.data.data[res.data.data.length - 1][0],
+            to,
           },
         });
       }
