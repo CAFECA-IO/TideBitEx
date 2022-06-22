@@ -438,7 +438,7 @@ class OkexConnector extends ConnectorBase {
     const path = "/api/v5/market/candles";
     let { instId, resolution, from, to } = query;
 
-    const arr = [];
+    let arr = [];
     if (instId) arr.push(`instId=${instId}`);
     if (resolution) arr.push(`bar=${this.getBar(resolution)}`);
     // before	String	否	请求此时间戳之后（更新的数据）的分页内容，传的值为对应接口的ts
@@ -446,11 +446,11 @@ class OkexConnector extends ConnectorBase {
     //after	String	否	请求此时间戳之前（更旧的数据）的分页内容，传的值为对应接口的ts
     if (to) arr.push(`after=${parseInt(to) * 1000}`); //6/2
     arr.push(`limit=${300}`);
-    const qs = !!arr.length ? `?${arr.join("&")}` : "";
+    let qs = !!arr.length ? `?${arr.join("&")}` : "";
     // this.logger.log(`getTradingViewHistory arr`, arr);
 
     try {
-      const res = await axios({
+      let res = await axios({
         method: method.toLocaleLowerCase(),
         url: `${this.domain}${path}${qs}`,
         headers: this.getHeaders(false),
@@ -463,7 +463,26 @@ class OkexConnector extends ConnectorBase {
           code: Codes.THIRD_PARTY_API_ERROR,
         });
       }
-
+      let resData = res.data.data;
+      this.logger.log(`resData[0] 1`, resData[0]);
+      this.logger.log(
+        `resData[resData.length-1] 1`,
+        resData[resData.length - 1]
+      );
+      if (resData[resData.length - 1][0] / 1000 > from) {
+        arr = [];
+        if (instId) arr.push(`instId=${instId}`);
+        if (resolution) arr.push(`bar=${this.getBar(resolution)}`);
+        if (to) arr.push(`after=${resData[resData.length - 1][0]}`); //6/2
+        arr.push(`limit=${300}`);
+        qs = !!arr.length ? `?${arr.join("&")}` : "";
+        res = await axios({
+          method: method.toLocaleLowerCase(),
+          url: `${this.domain}${path}${qs}`,
+          headers: this.getHeaders(false),
+        });
+        resData = resData.concat(res.data.data);
+      }
       const data = {
         s: "ok",
         t: [],
@@ -489,35 +508,6 @@ class OkexConnector extends ConnectorBase {
           data.c.push(c);
           data.v.push(v);
         });
-      this.logger.log(
-        `getTradingViewHistory res.data.data[0]`,
-        res.data.data[0][0]
-      );
-      this.logger.log(
-        `getTradingViewHistory res.data.data[${res.data.data.length - 1}]`,
-        res.data.data[res.data.data.length - 1][0]
-      );
-      to = res.data.data[res.data.data.length - 1][0];
-      this.logger.log(
-        `getTradingViewHistory ${from} * 1000`,
-        from * 1000,
-        res.data.data[0][0] > from * 1000
-      );
-      this.logger.log(
-        `getTradingViewHistory ${to} * 1000`,
-        to * 1000,
-        res.data.data[0][0] > to * 1000
-      );
-      if (res.data.data[0][0] > from * 1000) {
-        this.getTradingViewHistory({
-          query: {
-            instId,
-            resolution,
-            to: res.data.data[0][0]/1000,
-            from
-          },
-        });
-      }
       return data;
     } catch (error) {
       this.logger.error(error);
