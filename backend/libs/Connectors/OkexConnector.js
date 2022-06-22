@@ -508,7 +508,8 @@ class OkexConnector extends ConnectorBase {
           query: {
             instId,
             resolution,
-            to: res.data.data[0][0],
+            to: res.data.data[0][0]/1000,
+            from
           },
         });
       }
