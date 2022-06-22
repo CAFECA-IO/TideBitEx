@@ -67,7 +67,7 @@ export const OrderTile = (props) => {
               : props.order.origin_volume
           ),
           {
-            decimalLength: Math.min(storeCtx.tickSz || 0, storeCtx.lotSz || 0),
+            decimalLength: SafeMath.mult(storeCtx.tickSz || 0, storeCtx.lotSz || 0),
           }
         )}
       </li>
