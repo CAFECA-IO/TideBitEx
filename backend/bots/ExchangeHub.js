@@ -862,7 +862,8 @@ class ExchangeHub extends Bot {
         ) {
           try {
             const orders = await this.getOrdersFromDb({
-              query: { ...query, market },
+              ...query,
+              market,
             });
             this.orderBook.updateAll(memberId, instId, orders);
             this.fetchedOrders[memberId][instId] = ts;
