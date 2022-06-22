@@ -17,6 +17,8 @@ const OrderBook = require("../libs/Books/OrderBook");
 const AccountBook = require("../libs/Books/AccountBook");
 
 class ExchangeHub extends Bot {
+  fetchedOrders = {};
+  fetchedOrdersInterval = 1 * 60 * 1000;
   constructor() {
     super();
     this.name = "ExchangeHub";
@@ -150,6 +152,7 @@ class ExchangeHub extends Bot {
       .init({ config, database, logger, i18n })
       .then(async () => {
         this.tidebitMarkets = this.getTidebitMarkets();
+        this.currencies = await this.database.getCurrencies();
         this.tickerBook = new TickerBook({
           logger,
           markets: this.tidebitMarkets,
@@ -193,7 +196,6 @@ class ExchangeHub extends Bot {
           accountBook: this.accountBook,
           tidebitMarkets: this.tidebitMarkets,
         });
-        this.currencies = this.tideBitConnector.currencies;
         this.okexConnector = new OkexConnector({ logger });
         await this.okexConnector.init({
           domain: this.config.okex.domain,
@@ -266,6 +268,113 @@ class ExchangeHub extends Bot {
       this.logger.error(error);
       process.exit(1);
     }
+  }
+
+  async getOrdersFromDb(query) {
+    if (!query.market) {
+      throw new Error(`this.tidebitMarkets.market ${query.market} not found.`);
+    }
+    const { id: bid } = this.currencies.find(
+      (curr) => curr.key === query.market.quote_unit
+    );
+    const { id: ask } = this.currencies.find(
+      (curr) => curr.key === query.market.base_unit
+    );
+    if (!bid) {
+      throw new Error(`bid not found${query.market.quote_unit}`);
+    }
+    if (!ask) {
+      throw new Error(`ask not found${query.market.base_unit}`);
+    }
+    let orderList;
+    // if (query.memberId) {
+    orderList = await this.database.getOrderList({
+      quoteCcy: bid,
+      baseCcy: ask,
+      // state: query.state,
+      memberId: query.memberId,
+      // orderType: query.orderType,
+    });
+    /*
+    const vouchers = await this.database.getVouchers({
+      memberId: query.memberId,
+      ask: query.market.base_unit,
+      bid: query.market.quote_unit,
+    });
+    */
+    // } else {
+    //   orderList = await this.database.getOrderList({
+    //     quoteCcy: bid,
+    //     baseCcy: ask,
+    //     state: query.state,
+    //     orderType: query.orderType,
+    //   });
+    // }
+    // this.logger.log(`tbGetOrderList orderList`, orderList);
+    const orders = orderList.map((order) => {
+      /*
+      if (order.state === this.database.ORDER_STATE.DONE) {
+        return {
+          id: order.id,
+          at: parseInt(
+            SafeMath.div(new Date(order.updated_at).getTime(), "1000")
+          ),
+          market: query.instId.replace("-", "").toLowerCase(),
+          kind: order.type === "OrderAsk" ? "ask" : "bid",
+          price:
+            order.ordType === "market"
+              ? Utils.removeZeroEnd(
+                  vouchers?.find((voucher) => voucher.order_id === order.id)
+                    ?.price
+                )
+              : Utils.removeZeroEnd(order.price),
+          origin_volume: Utils.removeZeroEnd(order.origin_volume),
+          volume: Utils.removeZeroEnd(order.volume),
+          state: "done",
+          state_text: "Done",
+          clOrdId: order.id,
+          instId: query.instId,
+          ordType: order.ord_type,
+          filled: order.volume !== order.origin_volume,
+        };
+      } else {
+        */
+      return {
+        id: order.id,
+        ts: parseInt(new Date(order.updated_at).getTime()),
+        at: parseInt(
+          SafeMath.div(new Date(order.updated_at).getTime(), "1000")
+        ),
+        market: query.instId.replace("-", "").toLowerCase(),
+        kind: order.type === "OrderAsk" ? "ask" : "bid",
+        price: Utils.removeZeroEnd(order.price),
+        origin_volume: Utils.removeZeroEnd(order.origin_volume),
+        volume: Utils.removeZeroEnd(order.volume),
+        state: SafeMath.eq(order.state, this.database.ORDER_STATE.CANCEL)
+          ? "canceled"
+          : SafeMath.eq(order.state, this.database.ORDER_STATE.WAIT)
+          ? "wait"
+          : SafeMath.eq(order.state, this.database.ORDER_STATE.DONE)
+          ? "done"
+          : "unkwon",
+        state_text: SafeMath.eq(order.state, this.database.ORDER_STATE.CANCEL)
+          ? "Canceled"
+          : SafeMath.eq(order.state, this.database.ORDER_STATE.WAIT)
+          ? "Waiting"
+          : SafeMath.eq(order.state, this.database.ORDER_STATE.DONE)
+          ? "Done"
+          : "Unkwon",
+        clOrdId: order.id,
+        instId: query.instId,
+        ordType: order.ord_type,
+        filled: order.volume !== order.origin_volume,
+      };
+      /*
+      }
+      */
+    });
+    // this.logger.log(`tbGetOrderList orders`, orders);
+    return orders;
   }
 
   async getUsersAccounts() {
@@ -752,30 +861,36 @@ class ExchangeHub extends Bot {
     }
     switch (this._findSource(instId)) {
       case SupportedExchange.OKEX:
-        const res = await this.okexConnector.router("getOrderHistory", {
-          query: {
-            ...query,
-            instId,
-            market,
-            memberId,
-          },
-        });
-        const list = res.payload;
-        if (Array.isArray(list)) {
-          const newList = list.filter((order) =>
-            order.clOrdId.includes(`${memberId}m`)
-          ); // 可能發生與brokerId, randomId碰撞
-          res.payload = newList;
-        }
-        return res;
       case SupportedExchange.TIDEBIT:
-        return await this.tideBitConnector.router("getOrderHistory", {
-          query: {
-            ...query,
-            instId,
-            market,
-            memberId,
-          },
+        const { instId, memberId } = query;
+        this.logger.log(
+          `[${this.constructor.name} getOrderHistory${instId}] memberId ${memberId}[${this.fetchedOrders[memberId]}:`
+        );
+        if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = {};
+        let ts = Date.now();
+        if (
+          !this.fetchedOrders[memberId][instId] ||
+          SafeMath.gt(
+            SafeMath.minus(ts, this.fetchedOrders[memberId][instId]),
+            this.fetchedOrdersInterval
+          )
+        ) {
+          try {
+            const orders = await this.tbGetOrderList(query);
+            this.orderBook.updateAll(memberId, instId, orders);
+            this.fetchedOrders[memberId][instId] = ts;
+          } catch (error) {
+            this.logger.error(error);
+            const message = error.message;
+            return new ResponseFormat({
+              message,
+              code: Codes.API_UNKNOWN_ERROR,
+            });
+          }
+        }
+        return new ResponseFormat({
+          message: "getOrderHistory",
+          payload: this.orderBook.getSnapshot(memberId, instId, "history"),
         });
       default:
         return new ResponseFormat({
