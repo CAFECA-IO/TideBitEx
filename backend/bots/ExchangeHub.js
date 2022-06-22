@@ -837,23 +837,14 @@ class ExchangeHub extends Bot {
     const instId = this._findInstId(query.market);
     const market = this._findMarket(instId);
     this.logger.log(
-      `[${this.constructor.name} getOrderHistory] memberId:`,
+      `[${this.constructor.name} getOrderHistory instId(${instId})] memberId:`,
       memberId,
       `query`,
       query,
       `market`,
       market
     );
-    this.logger.log(
-      `[${this.constructor.name} getOrderHistory] instId:`,
-      instId
-    );
-    // this.logger.log(`[${this.constructor.name} getOrderHistory] market:`, market);
     if (memberId === -1) {
-      // return new ResponseFormat({
-      //   message: "member_id not found",
-      //   code: Codes.MEMBER_ID_NOT_FOUND,
-      // });
       return new ResponseFormat({
         message: "getOrderHistory",
         payload: null,
@@ -862,10 +853,6 @@ class ExchangeHub extends Bot {
     switch (this._findSource(instId)) {
       case SupportedExchange.OKEX:
       case SupportedExchange.TIDEBIT:
-        const { instId, memberId } = query;
-        this.logger.log(
-          `[${this.constructor.name} getOrderHistory${instId}] memberId ${memberId}[${this.fetchedOrders[memberId]}:`
-        );
         if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = {};
         let ts = Date.now();
         if (
