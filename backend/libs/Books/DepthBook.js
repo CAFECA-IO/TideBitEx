@@ -125,7 +125,9 @@ class DepthBook extends BookBase {
               10 ** precision +
             unit;
       const length = parseInt((end - start) / unit) + 1;
-      console.log(`length`, length);
+      console.log(`start`, start);
+      console.log(`end`, end);
+      console.log(`parseInt((${end}} - ${start}) / ${unit}) + 1`, length);
       result = {};
       for (let i = 0; i < length + 1; i++) {
         const price = start + unit * i;
