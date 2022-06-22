@@ -169,7 +169,9 @@ class DepthBook extends BookBase {
           (market) => market.id === instId.replace("-", "").toLowerCase()
         )?.asks?.fixed
       );
-      console.log(`this.markets[${instId.replace("-", "").toLowerCase()}]`, this.markets)
+      console.log(`this.markets[${instId.replace("-", "").toLowerCase()}]`, this.markets.find(
+        (market) => market.id === instId.replace("-", "").toLowerCase()
+      ))
     rangeData.forEach((d) => {
       if (d.side === "asks" && asks.length < 50) {
         // ++ 30 -- TEST
