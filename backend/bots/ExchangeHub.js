@@ -817,13 +817,32 @@ class ExchangeHub extends Bot {
         }
         return res;
       case SupportedExchange.TIDEBIT:
-        return await this.tideBitConnector.router("getOrderList", {
-          query: {
-            ...query,
-            instId,
-            market,
-            memberId,
-          },
+        let ts = Date.now();
+        if (
+          !this.fetchedOrders[memberId][instId] ||
+          SafeMath.gt(
+            SafeMath.minus(ts, this.fetchedOrders[memberId][instId]),
+            this.fetchedOrdersInterval
+          )
+        )
+          try {
+            const orders = await this.getOrdersFromDb({
+              ...query,
+              market,
+            });
+            this.orderBook.updateAll(memberId, instId, orders);
+            this.fetchedOrders[memberId][instId] = ts;
+          } catch (error) {
+            this.logger.error(error);
+            const message = error.message;
+            return new ResponseFormat({
+              message,
+              code: Codes.API_UNKNOWN_ERROR,
+            });
+          }
+        return new ResponseFormat({
+          message: "getOrderList",
+          payload: this.orderBook.getSnapshot(memberId, instId, "pending"),
         });
       default:
         return new ResponseFormat({
