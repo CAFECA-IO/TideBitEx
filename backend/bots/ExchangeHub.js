@@ -876,7 +876,7 @@ class ExchangeHub extends Bot {
           )
         ) {
           try {
-            const orders = await this.tbGetOrderList(query);
+            const orders = await this.getOrdersFromDb(query);
             this.orderBook.updateAll(memberId, instId, orders);
             this.fetchedOrders[memberId][instId] = ts;
           } catch (error) {
@@ -1076,7 +1076,7 @@ class ExchangeHub extends Bot {
       switch (source) {
         case SupportedExchange.OKEX:
           // get pending orders by snapshot
-          const _orders = await this.tideBitConnector.tbGetOrderList({
+          const _orders = await this.getOrdersFromDb({
             ...body,
             market: this._findMarket(body.instId),
             memberId,
