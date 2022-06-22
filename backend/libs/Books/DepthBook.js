@@ -125,6 +125,7 @@ class DepthBook extends BookBase {
               10 ** precision +
             unit;
       const length = parseInt((end - start) / unit) + 1;
+      console.log(`length`, length);
       result = {};
       for (let i = 0; i < length + 1; i++) {
         const price = start + unit * i;
@@ -168,6 +169,7 @@ class DepthBook extends BookBase {
           (market) => market.id === instId.replace("-", "").toLowerCase()
         )?.asks?.fixed
       );
+      console.log(`this.markets[${instId.replace("-", "").toLowerCase()}]`, this.markets)
     rangeData.forEach((d) => {
       if (d.side === "asks" && asks.length < 50) {
         // ++ 30 -- TEST
