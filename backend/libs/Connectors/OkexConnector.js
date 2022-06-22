@@ -464,11 +464,11 @@ class OkexConnector extends ConnectorBase {
         });
       }
       let resData = res.data.data;
-      this.logger.log(`resData[0] 1`, resData[0]);
-      this.logger.log(
-        `resData[resData.length-1] 1`,
-        resData[resData.length - 1]
-      );
+      // this.logger.log(`resData[0] 1`, resData[0]);
+      // this.logger.log(
+      //   `resData[resData.length-1] 1`,
+      //   resData[resData.length - 1]
+      // );
       if (resData[resData.length - 1][0] / 1000 > from) {
         arr = [];
         if (instId) arr.push(`instId=${instId}`);
