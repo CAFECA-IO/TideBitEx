@@ -445,7 +445,7 @@ class OkexConnector extends ConnectorBase {
     // if (from) arr.push(`before=${parseInt(from) * 1000}`); //5/23
     //after	String	否	请求此时间戳之前（更旧的数据）的分页内容，传的值为对应接口的ts
     if (to) arr.push(`after=${parseInt(to) * 1000}`); //6/2
-    // if (limit) arr.push(`limit=${limit}`);
+    arr.push(`limit=${300}`);
     const qs = !!arr.length ? `?${arr.join("&")}` : "";
     // this.logger.log(`getTradingViewHistory arr`, arr);
 
@@ -473,7 +473,14 @@ class OkexConnector extends ConnectorBase {
         c: [],
         v: [],
       };
-      // this.logger.log(`getTradingViewHistory res.data.data`, res.data.data);
+      this.logger.log(
+        `getTradingViewHistory res.data.data[0]`,
+        res.data.data[0]
+      );
+      this.logger.log(
+        `getTradingViewHistory res.data.data[res.data.data.length-1]`,
+        res.data.data[res.data.data.length - 1]
+      );
       res.data.data
         .sort((a, b) => a[0] - b[0])
         .forEach((d) => {
@@ -491,6 +498,13 @@ class OkexConnector extends ConnectorBase {
           data.v.push(v);
         });
       // this.logger.log(`getTradingViewHistory data`, data);
+      if (res.data.data[res.data.data.length - 1][0] > from * 1000) {
+        this.getTradingViewHistory({
+          instId,
+          resolution,
+          to: res.data.data[res.data.data.length - 1][0],
+        });
+      }
       return data;
     } catch (error) {
       this.logger.error(error);
