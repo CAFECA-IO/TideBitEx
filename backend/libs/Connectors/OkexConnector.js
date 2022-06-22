@@ -498,14 +498,17 @@ class OkexConnector extends ConnectorBase {
         res.data.data[res.data.data.length - 1][0]
       );
       to = res.data.data[res.data.data.length - 1][0];
-      this.logger.log(`getTradingViewHistory to`, to);
-      this.logger.log(`getTradingViewHistory from * 1000`, from * 1000, to > from * 1000);
-      if (to > from * 1000) {
+      this.logger.log(
+        `getTradingViewHistory ${from} * 1000`,
+        from * 1000,
+        res.data.data[0][0] > from * 1000
+      );
+      if (res.data.data[0][0] > from * 1000) {
         this.getTradingViewHistory({
           query: {
             instId,
             resolution,
-            to,
+            to: res.data.data[0][0],
           },
         });
       }
