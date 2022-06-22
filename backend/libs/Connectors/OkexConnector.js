@@ -475,11 +475,11 @@ class OkexConnector extends ConnectorBase {
       };
       this.logger.log(
         `getTradingViewHistory res.data.data[0]`,
-        new Date(res.data.data[0][0])
+        res.data.data[0]
       );
       this.logger.log(
         `getTradingViewHistory res.data.data[${res.data.data.length - 1}]`,
-        new Date(res.data.data[res.data.data.length - 1][0])
+        res.data.data[res.data.data.length - 1]
       );
       res.data.data
         .sort((a, b) => a[0] - b[0])
@@ -497,8 +497,11 @@ class OkexConnector extends ConnectorBase {
           data.c.push(c);
           data.v.push(v);
         });
-      // this.logger.log(`getTradingViewHistory data`, data);
       if (res.data.data[res.data.data.length - 1][0] > from * 1000) {
+        this.logger.log(
+          `getTradingViewHistory to`,
+          res.data.data[res.data.data.length - 1][0]
+        );
         this.getTradingViewHistory({
           query: {
             instId,
