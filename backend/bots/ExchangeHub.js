@@ -296,50 +296,7 @@ class ExchangeHub extends Bot {
       memberId: query.memberId,
       // orderType: query.orderType,
     });
-    /*
-    const vouchers = await this.database.getVouchers({
-      memberId: query.memberId,
-      ask: query.market.base_unit,
-      bid: query.market.quote_unit,
-    });
-    */
-    // } else {
-    //   orderList = await this.database.getOrderList({
-    //     quoteCcy: bid,
-    //     baseCcy: ask,
-    //     state: query.state,
-    //     orderType: query.orderType,
-    //   });
-    // }
-    // this.logger.log(`tbGetOrderList orderList`, orderList);
     const orders = orderList.map((order) => {
-      /*
-      if (order.state === this.database.ORDER_STATE.DONE) {
-        return {
-          id: order.id,
-          at: parseInt(
-            SafeMath.div(new Date(order.updated_at).getTime(), "1000")
-          ),
-          market: query.instId.replace("-", "").toLowerCase(),
-          kind: order.type === "OrderAsk" ? "ask" : "bid",
-          price:
-            order.ordType === "market"
-              ? Utils.removeZeroEnd(
-                  vouchers?.find((voucher) => voucher.order_id === order.id)
-                    ?.price
-                )
-              : Utils.removeZeroEnd(order.price),
-          origin_volume: Utils.removeZeroEnd(order.origin_volume),
-          volume: Utils.removeZeroEnd(order.volume),
-          state: "done",
-          state_text: "Done",
-          clOrdId: order.id,
-          instId: query.instId,
-          ordType: order.ord_type,
-          filled: order.volume !== order.origin_volume,
-        };
-      } else {
-        */
       return {
         id: order.id,
         ts: parseInt(new Date(order.updated_at).getTime()),
