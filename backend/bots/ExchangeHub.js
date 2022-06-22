@@ -195,6 +195,7 @@ class ExchangeHub extends Bot {
           orderBook: this.orderBook,
           accountBook: this.accountBook,
           tidebitMarkets: this.tidebitMarkets,
+          currencies: this.currencies,
         });
         this.okexConnector = new OkexConnector({ logger });
         await this.okexConnector.init({
