@@ -492,7 +492,7 @@ class OkexConnector extends ConnectorBase {
         c: [],
         v: [],
       };
-      res.data.data
+      resData
         .sort((a, b) => a[0] - b[0])
         .forEach((d) => {
           const ts = parseInt(d[0]) / 1000;
