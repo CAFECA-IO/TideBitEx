@@ -475,11 +475,11 @@ class OkexConnector extends ConnectorBase {
       };
       this.logger.log(
         `getTradingViewHistory res.data.data[0]`,
-        res.data.data[0]
+        new Date(res.data.data[0][0])
       );
       this.logger.log(
-        `getTradingViewHistory res.data.data[res.data.data.length-1]`,
-        res.data.data[res.data.data.length - 1]
+        `getTradingViewHistory res.data.data[${res.data.data.length - 1}]`,
+        new Date(res.data.data[res.data.data.length - 1][0])
       );
       res.data.data
         .sort((a, b) => a[0] - b[0])
