@@ -473,14 +473,6 @@ class OkexConnector extends ConnectorBase {
         c: [],
         v: [],
       };
-      this.logger.log(
-        `getTradingViewHistory res.data.data[0]`,
-        res.data.data[0]
-      );
-      this.logger.log(
-        `getTradingViewHistory res.data.data[${res.data.data.length - 1}]`,
-        res.data.data[res.data.data.length - 1]
-      );
       res.data.data
         .sort((a, b) => a[0] - b[0])
         .forEach((d) => {
@@ -497,6 +489,18 @@ class OkexConnector extends ConnectorBase {
           data.c.push(c);
           data.v.push(v);
         });
+      this.logger.log(
+        `getTradingViewHistory res.data.data[0]`,
+        res.data.data[0][0]
+      );
+      this.logger.log(
+        `getTradingViewHistory res.data.data[${res.data.data.length - 1}]`,
+        res.data.data[res.data.data.length - 1][0]
+      );
+      this.logger.log(
+        `getTradingViewHistory from * 1000`,
+        from * 1000
+      );
       if (res.data.data[res.data.data.length - 1][0] > from * 1000) {
         this.logger.log(
           `getTradingViewHistory to`,
