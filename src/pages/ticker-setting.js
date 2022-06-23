@@ -505,7 +505,7 @@ const TickerSetting = () => {
               <div
                 className={`admin-ticker__tile screen__table-row${
                   ticker.change > 0 ? " increase" : " descrease"
-                }${ticker.alert ? " alert" : ""}`}
+                }${ticker.alert ? " screen__table--alert" : ""}`}
                 key={ticker.id}
               >
                 <div className="admin-ticker__text screen__table-item">
@@ -552,7 +552,7 @@ const TickerSetting = () => {
                       <div className="screen__table-item--title">當前：</div>
                       <div
                         className={`screen__table-item--value${
-                          ticker.alert ? " alert" : ""
+                          ticker.alert ? " screen__table--alert" : ""
                         }`}
                       >{`${SafeMath.mult(
                         ticker.markerFee?.current,
@@ -563,7 +563,7 @@ const TickerSetting = () => {
                       <div className="screen__table-item--title">外部：</div>
                       <div
                         className={`screen__table-item--value${
-                          ticker.alert ? " alert" : ""
+                          ticker.alert ? " screen__table--alert" : ""
                         }`}
                       >{`${SafeMath.mult(
                         ticker.markerFee?.external,

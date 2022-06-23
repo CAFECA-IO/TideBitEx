@@ -369,7 +369,7 @@ const Deposit = () => {
             filterCurrencies.map((currency) => (
               <div
                 className={`deposit__currency-tile screen__table-row${
-                  currency.alert ? " alert" : ""
+                  currency.alert ? " screen__table--alert" : ""
                 }`}
                 key={currency.symbol}
               >
@@ -396,7 +396,7 @@ const Deposit = () => {
                       <div className="screen__table-item--title">當前：</div>
                       <div
                         className={`screen__table-item--value${
-                          currency.alert ? " alert" : ""
+                          currency.alert ? " screen__table--alert" : ""
                         }`}
                       >{`${SafeMath.mult(
                         currency.depositFee?.current,
@@ -407,7 +407,7 @@ const Deposit = () => {
                       <div className="screen__table-item--title">外部：</div>
                       <div
                         className={`screen__table-item--value${
-                          currency.alert ? " alert" : ""
+                          currency.alert ? " screen__table--alert" : ""
                         }`}
                       >{`${SafeMath.mult(
                         currency.depositFee?.external,
