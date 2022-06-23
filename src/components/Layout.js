@@ -8,7 +8,7 @@ import StoreContext from "../store/store-context";
 const languages = {
   "en-US": "English",
   "zh-HK": "繁體中文",
-  jp: "日本語",
+  // jp: "日本語",
   "zh-CN": "简体中文",
   // "zh-TW": "繁體中文",
 };
