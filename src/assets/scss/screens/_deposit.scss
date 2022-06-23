@@ -21,7 +21,35 @@
     border: 1px solid #707070;
     min-width: 120px;
   }
-  & .dropdown__label{
+  & .dropdown__label {
     justify-content: start;
+  }
+  & .screen__table-header:first-child {
+    padding-left: 25px;
+  }
+  &__currency-alert > div {
+    width: 20px;
+    height: 20px;
+    background-image: url("../../images/alert@2x.png");
+    background-position: center;
+    background-size: contain;
+    margin-right: 5px;
+    opacity: 0;
+  }
+  .alert &__currency-alert > div {
+    opacity: 1;
+  }
+  &__currency-text {
+    display: flex;
+  }
+  & .screen__table-header:nth-child(1),
+  & .screen__table-item:nth-child(1) {
+    min-width: 140px;
+  }
+  & .screen__table-header:nth-child(4),
+  & .screen__table-header:nth-child(5),
+  & .screen__table-item:nth-child(4),
+  & .screen__table-item:nth-child(5) {
+    min-width: 160px;
   }
 }

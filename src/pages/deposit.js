@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useCallback } from "react";
-import TableSwitch from "../components/TableSwitch";
+import TableSwitchWithLock from "../components/TableSwitchWithLock";
 import TableDropdown from "../components/TableDropdown";
-import ScreenTags from "../components/ScreenTags";
+import SafeMath from "../Utils/SafeMath";
 import { useTranslation } from "react-i18next";
 
 const Deposit = () => {
   const [showMore, setShowMore] = useState(false);
   const [isInit, setIsInit] = useState(null);
-  const [selectedTag, setSelectedTag] = useState("ALL");
   const [currencies, setCurrencies] = useState(null);
   const [filterCurrencies, setFilterCurrencies] = useState(null);
   const [filterOption, setFilterOption] = useState("all"); //'open','close'
+  const [filterKey, setFilterKey] = useState("");
   const { t } = useTranslation();
 
   const sorting = () => {};
@@ -20,7 +20,15 @@ const Deposit = () => {
       BTC: {
         currency: "Bitcoin",
         symbol: "BTC",
-        depositAmount: "19061368",
+        depositFee: {
+          current: "0.0000001",
+          external: "0.00000015",
+        },
+        withdrawFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        alert: true,
         exchange: "OKEx",
         exchanges: ["TideBit", "OKEx"],
         tags: ["Blockchain"],
@@ -29,7 +37,15 @@ const Deposit = () => {
       ETH: {
         currency: "Ethereum",
         symbol: "ETH",
-        depositAmount: "121091060",
+        depositFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        withdrawFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        alert: false,
         exchange: "TideBit",
         exchanges: ["TideBit", "OKEx"],
         tags: ["Blockchain"],
@@ -39,7 +55,15 @@ const Deposit = () => {
         //The purpose of XRP is to serve as an intermediate mechanism of exchange between two currencies or networks—as a sort of temporary settlement layer denomination
         currency: "XRP",
         symbol: "XRP",
-        depositAmount: "0",
+        depositFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        withdrawFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        alert: false,
         exchanges: [],
         tags: ["Layer2"],
         status: "close", // 'open'
@@ -48,7 +72,15 @@ const Deposit = () => {
         //SD Coin is a service to tokenize US dollars and facilitate their use over the internet and public blockchains.
         currency: "USD Coin",
         symbol: "USDC",
-        depositAmount: "0",
+        depositFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        withdrawFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        alert: false,
         exchange: "OKEx",
         exchanges: ["TideBit", "OKEx"],
         tags: ["Defi"],
@@ -57,7 +89,15 @@ const Deposit = () => {
       USDT: {
         currency: "Tether",
         symbol: "USDT",
-        depositAmount: "20549553",
+        depositFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        withdrawFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        alert: false,
         exchange: "TideBit",
         exchanges: ["TideBit", "OKEx"],
         tags: ["Polkadot"],
@@ -66,7 +106,15 @@ const Deposit = () => {
       BNB: {
         currency: "Build and Build",
         symbol: "BNB",
-        depositAmount: "0",
+        depositFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        withdrawFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        alert: false,
         exchanges: [],
         tags: ["Greyscale"],
         status: "close", // 'open'
@@ -74,7 +122,15 @@ const Deposit = () => {
       BUSD: {
         currency: "Binance USD",
         symbol: "BUSD",
-        depositAmount: "0",
+        depositFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        withdrawFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        alert: false,
         exchanges: [],
         tags: ["Defi"],
         status: "close", // 'open'
@@ -82,7 +138,15 @@ const Deposit = () => {
       ADA: {
         currency: "Cardano", //Cardano is built by a decentralized community of scientists, engineers, and thought leaders united in a common purpose: to create a technology platform that will ignite the positive change the world needs.
         symbol: "ADA",
-        depositAmount: "4048406",
+        depositFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        withdrawFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        alert: false,
         exchanges: [],
         tags: ["GameFi"],
         status: "close", // 'open'
@@ -90,7 +154,15 @@ const Deposit = () => {
       SOL: {
         currency: "Solana",
         symbol: "SOL",
-        depositAmount: "0",
+        depositFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        withdrawFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        alert: false,
         exchanges: [],
         tags: ["Meme"],
         status: "close", // 'open'
@@ -98,7 +170,15 @@ const Deposit = () => {
       DOGE: {
         currency: "Dogecoin",
         symbol: "DOGE",
-        depositAmount: "0",
+        depositFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        withdrawFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        alert: false,
         exchanges: [],
         tags: ["NFT"],
         status: "close", // 'open'
@@ -106,55 +186,30 @@ const Deposit = () => {
     });
   }, []);
 
-  const selectTagHandler = useCallback(
-    async (tag, currencies, option) => {
-      setSelectedTag(tag);
-      let _filterOption = option || filterOption;
-      if (currencies) {
-        let _currs =
-          _filterOption === "all"
-            ? currencies
-            : currencies.filter(
-                (currency) => currency.status === _filterOption
-              );
-        let filterCurrencies;
-        switch (tag) {
-          case "ALL":
-            setFilterCurrencies(_currs);
-            break;
-          case "Top":
-            filterCurrencies = _currs
-              .sort((a, b) => +b.depositAmount - +a.depositAmount)
-              .slice(0, 3);
-            setFilterCurrencies(filterCurrencies);
-            break;
-          default:
-            filterCurrencies = _currs.filter((currency) =>
-              currency.tags.includes(tag)
-            );
-            setFilterCurrencies(filterCurrencies);
-            break;
-        }
-      }
-    },
-    [filterOption]
-  );
-
   const filter = useCallback(
-    (option, currs) => {
-      setFilterOption(option);
-      let _currencies = currs || currencies;
+    ({ filterCurrencies, status, keyword }) => {
+      if (status) setFilterOption(status);
+      let _option = status || filterOption,
+        _keyword = keyword === undefined ? filterKey : keyword,
+        _currencies = filterCurrencies || currencies;
       if (_currencies) {
-        let _currs =
-          option === "all"
-            ? Object.values(_currencies)
-            : Object.values(_currencies).filter(
-                (currency) => currency.status === option
-              );
-        selectTagHandler(selectedTag, _currs, option);
+        _currencies = Object.values(_currencies).filter((currency) => {
+          if (_option === "all")
+            return (
+              currency.currency.includes(_keyword) ||
+              currency.symbol.includes(_keyword)
+            );
+          else
+            return (
+              currency.status === _option &&
+              (currency.currency.includes(_keyword) ||
+                currency.symbol.includes(_keyword))
+            );
+        });
+        setFilterCurrencies(_currencies);
       }
     },
-    [currencies, selectedTag, selectTagHandler]
+    [currencies, filterKey, filterOption]
   );
 
   const switchExchange = useCallback(
@@ -163,9 +218,8 @@ const Deposit = () => {
       const updateCurrencies = { ...currencies };
       updateCurrencies[symbol].exchange = exchange;
       setCurrencies(updateCurrencies);
-      filter(filterOption, updateCurrencies);
     },
-    [currencies, filter, filterOption]
+    [currencies]
   );
 
   const toggleStatus = useCallback(
@@ -174,9 +228,8 @@ const Deposit = () => {
       const updateCurrencies = { ...currencies };
       updateCurrencies[symbol].status = status === "open" ? "close" : "open";
       setCurrencies(updateCurrencies);
-      filter(filterOption, updateCurrencies);
     },
-    [currencies, filter, filterOption]
+    [currencies]
   );
 
   const init = useCallback(() => {
@@ -184,11 +237,11 @@ const Deposit = () => {
       if (!prev) {
         const currencies = await getCurrencies();
         setCurrencies(currencies);
-        selectTagHandler("ALL", Object.values(currencies));
+        filter({ filterCurrencies: currencies });
         return !prev;
       } else return prev;
     });
-  }, [getCurrencies, selectTagHandler]);
+  }, [filter, getCurrencies]);
 
   useEffect(() => {
     if (!isInit) {
@@ -211,6 +264,10 @@ const Deposit = () => {
             inputMode="search"
             className="screen__search-input"
             placeholder="輸入欲搜尋的關鍵字"
+            onInput={(e) => {
+              setFilterKey(e.target.value);
+              filter({ keyword: e.target.value });
+            }}
           />
           <div className="screen__search-icon">
             <div className="screen__search-icon--circle"></div>
@@ -256,8 +313,15 @@ const Deposit = () => {
         <ul className="screen__table-headers">
           <li className="screen__table-header">幣種</li>
           <li className="screen__table-header">代號</li>
-          <li className="screen__table-header">平台入金數量</li>
           <li className="screen__table-header">入金交易所</li>
+          <li className="screen__table-header">
+            <div className="screen__table-header--text">入金手續費</div>
+            <div className="screen__table-header--icon"></div>
+          </li>
+          <li className="screen__table-header">
+            <div className="screen__table-header--text">出金手續費</div>
+            <div className="screen__table-header--icon"></div>
+          </li>
           <li className="screen__table-header-btn">
             <button
               disabled={`${
@@ -304,17 +368,19 @@ const Deposit = () => {
           {filterCurrencies &&
             filterCurrencies.map((currency) => (
               <div
-                className="deposit__currency-tile screen__table-row"
+                className={`deposit__currency-tile screen__table-row${
+                  currency.alert ? " alert" : ""
+                }`}
                 key={currency.symbol}
               >
                 <div className="deposit__currency-text screen__table-item">
+                  <div className="deposit__currency-alert">
+                    <div></div>
+                  </div>
                   {currency.currency}
                 </div>
                 <div className="deposit__currency-text screen__table-item">
                   {currency.symbol}
-                </div>
-                <div className="deposit__currency-text screen__table-item">
-                  {currency.depositAmount}
                 </div>
                 <TableDropdown
                   className="screen__table-item"
@@ -324,7 +390,53 @@ const Deposit = () => {
                   options={currency.exchanges}
                   selected={currency.exchange}
                 />
-                <TableSwitch
+                <div className="deposit__currency-text screen__table-item">
+                  <div className="screen__table-item--text-box">
+                    <div className="screen__table-item--text">
+                      <div className="screen__table-item--title">當前：</div>
+                      <div
+                        className={`screen__table-item--value${
+                          currency.alert ? " alert" : ""
+                        }`}
+                      >{`${SafeMath.mult(
+                        currency.depositFee?.current,
+                        100
+                      )}%`}</div>
+                    </div>
+                    <div className="screen__table-item--text">
+                      <div className="screen__table-item--title">外部：</div>
+                      <div
+                        className={`screen__table-item--value${
+                          currency.alert ? " alert" : ""
+                        }`}
+                      >{`${SafeMath.mult(
+                        currency.depositFee?.external,
+                        100
+                      )}%`}</div>
+                    </div>
+                  </div>
+                  <div className="screen__table-item--icon"></div>
+                </div>
+                <div className="deposit__currency-text screen__table-item">
+                  <div className="screen__table-item--text-box">
+                    <div className="screen__table-item--text">
+                      <div className="screen__table-item--title">當前：</div>
+                      <div className="screen__table-item--value">{`${SafeMath.mult(
+                        currency.withdrawFee?.current,
+                        100
+                      )}%`}</div>
+                    </div>
+                    <div className="screen__table-item--text">
+                      <div className="screen__table-item--title">外部：</div>
+                      <div className="screen__table-item--value">{`${SafeMath.mult(
+                        currency.withdrawFee?.external,
+                        100
+                      )}%`}</div>
+                    </div>
+                  </div>
+                  <div className="screen__table-item--icon"></div>
+                </div>
+                <TableSwitchWithLock
                   className="screen__table-switch"
                   status={currency.status === "open"}
                   toggleStatus={() =>
