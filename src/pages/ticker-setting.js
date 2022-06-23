@@ -245,9 +245,8 @@ const TickerSetting = () => {
       const updateTickers = { ...tickers };
       updateTickers[id].exchange = exchange;
       setTickers(updateTickers);
-      filter(filterOption, updateTickers);
     },
-    [tickers, filter, filterOption]
+    [tickers]
   );
 
   const toggleStatus = useCallback(
@@ -285,7 +284,7 @@ const TickerSetting = () => {
       <div className="screen__header">交易對設定</div>
       <div className="screen__search-bar">
         <TableDropdown
-          className="admin-ticker__filter"
+          className="screen__filter"
           selectHandler={(option) => filter({ quote: option })}
           options={quoteCurrencies}
           selected={quoteUnit}
@@ -364,7 +363,6 @@ const TickerSetting = () => {
                   (ticker) => (ticker.status = "close")
                 );
                 setTickers(updateTickers);
-                filter(filterOption, updateTickers);
               }}
             >
               全部關閉
@@ -384,7 +382,6 @@ const TickerSetting = () => {
                   (ticker) => (ticker.status = "open")
                 );
                 setTickers(updateTickers);
-                filter(filterOption, updateTickers);
               }}
             >
               全部開啟
