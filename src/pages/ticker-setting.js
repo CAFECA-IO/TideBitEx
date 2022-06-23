@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import TableSwitchWithLock from "../components/TableSwitchWithLock";
 import TableDropdown from "../components/TableDropdown";
-import SafeMath from "../Utils/SafeMath";
+import SafeMath from "../utils/SafeMath";
 import { useTranslation } from "react-i18next";
 
 const categories = {

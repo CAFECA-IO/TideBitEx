@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import TableSwitchWithLock from "../components/TableSwitchWithLock";
 import TableDropdown from "../components/TableDropdown";
-import SafeMath from "../Utils/SafeMath";
 import { useTranslation } from "react-i18next";
+import SafeMath from "../utils/SafeMath";
 
 const Deposit = () => {
   const [showMore, setShowMore] = useState(false);
