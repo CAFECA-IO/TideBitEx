@@ -111,7 +111,7 @@ class Middleman {
 
     try {
       rawTickers = await this.communicator.tickers(instType, from, limit);
-      Object.values(rawTickers).forEach((t) => {
+      Object.values(rawTickers).filter(t=> !!t).forEach((t) => {
         const ticker = {
           ...t,
           tickSz: t.tickSz || "0.01", //下单价格精度，如 0.0001
