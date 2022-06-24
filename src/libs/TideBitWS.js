@@ -87,23 +87,27 @@ class TideBitWS {
   }
 
   init({ url }) {
-    if (!url) throw new Error("Invalid input");
-    this.url = url;
-    this.ws = new WebSocket(url);
-    this.eventListener();
-    if (this.currentMarket) {
-      this.setCurrentMarket(this.currentMarket);
+    try {
+      if (!url) throw new Error("Invalid input");
+      this.url = url;
+      this.ws = new WebSocket(url);
+      this.eventListener();
+      if (this.currentMarket) {
+        this.setCurrentMarket(this.currentMarket);
+      }
+      if (this.currentUser) {
+        this.setCurrentUser(this.currentMarket, this.currentUser);
+      }
+      this.onmessage = this.cb;
+      return new Promise((resolve) => {
+        this.ws.onopen = (r) => {
+          console.log("Socket is open");
+          return resolve(r);
+        };
+      });
+    } catch (e) {
+      console.log(`middleman ws init error:`, e);
     }
-    if (this.currentUser) {
-      this.setCurrentUser(this.currentMarket, this.currentUser);
-    }
-    this.onmessage = this.cb;
-    return new Promise((resolve) => {
-      this.ws.onopen = (r) => {
-        console.log("Socket is open");
-        return resolve(r);
-      };
-    });
   }
 }
 
