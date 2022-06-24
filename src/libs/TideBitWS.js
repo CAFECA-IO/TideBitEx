@@ -49,15 +49,17 @@ class TideBitWS {
   }
 
   eventListener() {
-    this.ws.onclose = (msg) => this.clear(msg);
-    this.ws.onerror = async (err) => {
-      if (this.interval) clearInterval(this.interval);
-      console.error(`[TideBitWS] this.ws.onerror`, err);
-      clearTimeout(this.wsReConnectTimeout);
-      this.wsReConnectTimeout = setTimeout(async () => {
-        await this.init({ url: this.url });
-      }, 1000);
-    };
+    if (this.ws) {
+      this.ws.onclose = (msg) => this.clear(msg);
+      this.ws.onerror = async (err) => {
+        if (this.interval) clearInterval(this.interval);
+        console.error(`[TideBitWS] this.ws.onerror`, err);
+        clearTimeout(this.wsReConnectTimeout);
+        this.wsReConnectTimeout = setTimeout(async () => {
+          await this.init({ url: this.url });
+        }, 1000);
+      };
+    }
   }
 
   send(data) {
@@ -66,15 +68,17 @@ class TideBitWS {
   }
 
   sendDataFromQueue() {
-    if (this.ws.readyState === 1) {
-      const data = this.connection_resolvers.shift();
-      if (data) {
-        this.ws.send(data);
-        this.sendDataFromQueue();
+    if (this.ws) {
+      if (this.ws.readyState === 1) {
+        const data = this.connection_resolvers.shift();
+        if (data) {
+          this.ws.send(data);
+          this.sendDataFromQueue();
+        }
+      } else {
+        clearTimeout(this.timeout);
+        this.timeout = setTimeout(() => this.sendDataFromQueue(), 1500);
       }
-    } else {
-      clearTimeout(this.timeout);
-      this.timeout = setTimeout(() => this.sendDataFromQueue(), 1500);
     }
   }
 
@@ -83,7 +87,7 @@ class TideBitWS {
    */
   set onmessage(cb) {
     this.cb = cb || this.cb;
-    this.ws.onmessage = cb;
+    if (this.ws) this.ws.onmessage = cb;
   }
 
   init({ url }) {
@@ -100,10 +104,11 @@ class TideBitWS {
       }
       this.onmessage = this.cb;
       return new Promise((resolve) => {
-        this.ws.onopen = (r) => {
-          console.log("Socket is open");
-          return resolve(r);
-        };
+        if (this.ws)
+          this.ws.onopen = (r) => {
+            console.log("Socket is open");
+            return resolve(r);
+          };
       });
     } catch (e) {
       console.log(`middleman ws init error:`, e);
