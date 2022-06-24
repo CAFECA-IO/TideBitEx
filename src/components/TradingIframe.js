@@ -29,3 +29,6 @@ const TradingIframe = (props) => {
 };
 
 export default TradingIframe;
+
+
+// https://demo_feed.tradingview.com/history?symbol=AAPL&resolution=D&from=1655189857&to=1656053857
