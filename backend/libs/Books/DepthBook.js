@@ -161,6 +161,7 @@ class DepthBook extends BookBase {
 
   // ++ TODO: verify function works properly
   _trim(instId, data) {
+    console.log(`_trim instId`, instId)
     let sumAskAmount = "0",
       sumBidAmount = "0",
       asks = [],
@@ -172,11 +173,13 @@ class DepthBook extends BookBase {
     //   )?.ask?.fixed
     // );
     data.forEach((d) => {
-      if (d.side === "asks" && asks.length < 300) {
+      if (d.side === "asks") {
+      // if (d.side === "asks" && asks.length < 100) {
         // ++ 30 -- TEST
         asks.push(d);
       }
-      if (d.side === "bids" && bids.length < 300) {
+      if (d.side === "bids") {
+        // if (d.side === "bids" && bids.length < 100) {
         // -- TEST
         bids.push(d);
       }
