@@ -161,7 +161,6 @@ class DepthBook extends BookBase {
 
   // ++ TODO: verify function works properly
   _trim(instId, data) {
-    console.log(`_trim instId`, instId)
     let sumAskAmount = "0",
       sumBidAmount = "0",
       asks = [],

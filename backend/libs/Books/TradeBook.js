@@ -39,7 +39,7 @@ class TradeBook extends BookBase {
   _trim(instId, data) {
     const trimed = data
       .sort((a, b) => +b.at - +a.at)
-      .slice(0, 30)
+      .slice(0, 100)
       .map((trade, i) =>
         !trade.side
           ? {
