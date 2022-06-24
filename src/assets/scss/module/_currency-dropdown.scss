@@ -42,7 +42,7 @@
   }
   &__label-item {
     min-width: 120px;
-    &--fixed {
+    &--fixed.screen__table-header-btn {
       position: absolute;
       top: 15px;
       right: 15px;
@@ -109,9 +109,9 @@
     flex: auto;
     display: flex;
     justify-content: space-between;
-    padding-bottom: 10px;
+    // padding-bottom: 10px;
     align-items: center;
-    margin-bottom: 10px;
+    // margin-bottom: 10px;
     border-bottom: 1px solid #e6e6e6;
   }
   &__section:first-child {
