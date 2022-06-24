@@ -799,26 +799,38 @@ class Utils {
         (inst) => inst.instId === tickersObj[id].instId
       );
       if (maskData) {
-        console.log(maskData, `bid fixed ${Utils.getDecimal(maskData["bid"]["fixed"])}`, `ask fixed ${Utils.getDecimal(maskData["ask"]["fixed"])}`)
-        console.log(`instData.tickSz`, instData.tickSz, `instData.lotSz`,instData.lotSz)
-        console.log(`tickSz: ${Math.max(
+        console.log(
+          maskData.name,
+          `bid fixed ${Utils.getDecimal(maskData["bid"]["fixed"])}`,
+          `ask fixed ${Utils.getDecimal(maskData["ask"]["fixed"])}`
+        );
+        console.log(
+          `instData.tickSz`,
           instData.tickSz,
-          Utils.getDecimal(maskData["bid"]["fixed"])
-        ).toString()}`, `lotSz: ${Math.max(
-          instData.lotSz,
-          Utils.getDecimal(maskData["ask"]["fixed"])
-        ).toString()}`)
-        
+          `instData.lotSz`,
+          instData.lotSz
+        );
+        console.log(
+          `tickSz: ${Math.max(
+            instData.tickSz,
+            Utils.getDecimal(maskData["bid"]["fixed"])
+          ).toString()}`,
+          `lotSz: ${Math.max(
+            instData.lotSz,
+            Utils.getDecimal(maskData["ask"]["fixed"])
+          ).toString()}`
+        );
+
         updateTickers[id] = {
           ...tickersObj[id],
           pricescale: maskData["price_group_fixed"],
           tickSz: Math.max(
-            instData.tickSz,
-            Utils.getDecimal(maskData["bid"]["fixed"])
+            parseFloat(instData.tickSz),
+            parseFloat(Utils.getDecimal(maskData["bid"]["fixed"]))
           ).toString(),
           lotSz: Math.max(
-            instData.lotSz,
-            Utils.getDecimal(maskData["ask"]["fixed"])
+            parseFloat(instData.lotSz),
+            parseFloat(Utils.getDecimal(maskData["ask"]["fixed"]))
           ).toString(),
           minSz: instData.minSz,
           group: maskData["tab_category"],
