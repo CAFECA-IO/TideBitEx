@@ -206,6 +206,25 @@
   &__table-item,
   &__table-header {
     min-width: 120px;
+    display: flex;
+    align-items: center;
+    &--text {
+      display: flex;
+      padding-right: 5px;
+    }
+    &--icon {
+      width: 18px;
+      height: 18px;
+      background-image: url("../../images/settings-line@2x.png");
+      background-position: center;
+      background-size: contain;
+    }
+    &--value{
+      min-width: 85px;
+    }
+    &--value.screen__table--alert{
+      color: #eccb2c;
+    }
   }
   &__table-header-btn > button {
     text-decoration: underline;

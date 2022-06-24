@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
-import TableSwitch from "../components/TableSwitch";
+import TableSwitchWithLock from "../components/TableSwitchWithLock";
 import TableDropdown from "../components/TableDropdown";
+import SafeMath from "../utils/SafeMath";
 import { useTranslation } from "react-i18next";
 
 const categories = {
@@ -61,7 +62,15 @@ const TickerSetting = () => {
         volume: "22058.73",
         change: "-458.83",
         changePct: "0.0114",
-        fee: "0.000001",
+        takerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        markerFee: {
+          current: "0.0000001",
+          external: "0.00000015",
+        },
+        alert: true,
         exchange: "OKEx",
         exchanges: ["TideBit", "OKEx"],
         status: "open", // 'close'
@@ -75,6 +84,15 @@ const TickerSetting = () => {
         volume: "22058.73",
         change: "-458.83",
         changePct: "0.0114",
+        takerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        markerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        alert: false,
         fee: null,
         exchange: "OKEx",
         exchanges: ["TideBit", "OKEx"],
@@ -89,6 +107,14 @@ const TickerSetting = () => {
         volume: "22058.73",
         change: "-458.83",
         changePct: "0.0114",
+        takerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        markerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
         fee: null,
         exchange: "OKEx",
         exchanges: ["TideBit", "OKEx"],
@@ -103,6 +129,14 @@ const TickerSetting = () => {
         volume: "22058.73",
         change: "-458.83",
         changePct: "0.0114",
+        takerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        markerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
         fee: null,
         exchange: "OKEx",
         exchanges: ["TideBit", "OKEx"],
@@ -117,6 +151,14 @@ const TickerSetting = () => {
         volume: "22058.73",
         change: "458.83",
         changePct: "0.0114",
+        takerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        markerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
         fee: null,
         exchange: "OKEx",
         exchanges: ["TideBit", "OKEx"],
@@ -131,6 +173,14 @@ const TickerSetting = () => {
         volume: "22058.73",
         change: "-458.83",
         changePct: "0.0114",
+        takerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        markerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
         fee: null,
         exchange: null,
         exchanges: [],
@@ -145,6 +195,14 @@ const TickerSetting = () => {
         volume: "22058.73",
         change: "-458.83",
         changePct: "0.0114",
+        takerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        markerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
         fee: null,
         exchange: null,
         exchanges: [],
@@ -159,6 +217,14 @@ const TickerSetting = () => {
         volume: "22058.73",
         change: "-458.83",
         changePct: "0.0114",
+        takerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        markerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
         fee: null,
         exchange: null,
         exchanges: [],
@@ -173,6 +239,14 @@ const TickerSetting = () => {
         volume: "22058.73",
         change: "-458.83",
         changePct: "0.0114",
+        takerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        markerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
         fee: null,
         exchange: null,
         exchanges: [],
@@ -187,6 +261,14 @@ const TickerSetting = () => {
         volume: "22058.73",
         change: "-458.83",
         changePct: "0.0114",
+        takerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        markerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
         fee: null,
         exchange: null,
         exchanges: [],
@@ -201,6 +283,14 @@ const TickerSetting = () => {
         volume: "22058.73",
         change: "-458.83",
         changePct: "0.0114",
+        takerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        markerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
         fee: null,
         exchange: null,
         exchanges: [],
@@ -215,6 +305,14 @@ const TickerSetting = () => {
         volume: "22058.73",
         change: "-458.83",
         changePct: "0.0114",
+        takerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        markerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
         fee: null,
         exchange: null,
         exchanges: [],
@@ -229,6 +327,14 @@ const TickerSetting = () => {
         volume: "22058.73",
         change: "-458.83",
         changePct: "0.0114",
+        takerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
+        markerFee: {
+          current: "0.0000001",
+          external: "0.0000001",
+        },
         fee: null,
         exchange: null,
         exchanges: [],
@@ -245,9 +351,8 @@ const TickerSetting = () => {
       const updateTickers = { ...tickers };
       updateTickers[id].exchange = exchange;
       setTickers(updateTickers);
-      filter(filterOption, updateTickers);
     },
-    [tickers, filter, filterOption]
+    [tickers]
   );
 
   const toggleStatus = useCallback(
@@ -255,11 +360,10 @@ const TickerSetting = () => {
       console.log(`toggleStatus`, status, id);
       const updateTickers = { ...tickers };
       updateTickers[id].status = status === "open" ? "close" : "open";
-      console.log(`toggleStatus updateTickers[${id}]`, updateTickers[id]);
+      // console.log(`toggleStatus updateTickers[${id}]`, updateTickers[id]);
       setTickers(updateTickers);
-      filter(filterOption, updateTickers);
     },
-    [tickers, filter, filterOption]
+    [tickers]
   );
 
   const init = useCallback(() => {
@@ -285,7 +389,7 @@ const TickerSetting = () => {
       <div className="screen__header">交易對設定</div>
       <div className="screen__search-bar">
         <TableDropdown
-          className="admin-ticker__filter"
+          className="screen__filter"
           selectHandler={(option) => filter({ quote: option })}
           options={quoteCurrencies}
           selected={quoteUnit}
@@ -344,11 +448,17 @@ const TickerSetting = () => {
       <div className={`screen__table${showMore ? " show" : ""}`}>
         <ul className="screen__table-headers">
           <li className="screen__table-header">交易對</li>
-          <li className="screen__table-header">價格</li>
           <li className="screen__table-header">24h 成交量</li>
           <li className="screen__table-header">24h 漲跌</li>
           <li className="screen__table-header">交易所</li>
-          <li className="screen__table-header">外部手續費</li>
+          <li className="screen__table-header">
+            <div className="screen__table-header--text">Taker 單手續費</div>
+            <div className="screen__table-header--icon"></div>
+          </li>
+          <li className="screen__table-header">
+            <div className="screen__table-header--text">Maker 單手續費</div>
+            <div className="screen__table-header--icon"></div>
+          </li>
           <li className="screen__table-header-btn">
             <button
               disabled={`${
@@ -364,7 +474,6 @@ const TickerSetting = () => {
                   (ticker) => (ticker.status = "close")
                 );
                 setTickers(updateTickers);
-                filter(filterOption, updateTickers);
               }}
             >
               全部關閉
@@ -384,7 +493,6 @@ const TickerSetting = () => {
                   (ticker) => (ticker.status = "open")
                 );
                 setTickers(updateTickers);
-                filter(filterOption, updateTickers);
               }}
             >
               全部開啟
@@ -397,14 +505,14 @@ const TickerSetting = () => {
               <div
                 className={`admin-ticker__tile screen__table-row${
                   ticker.change > 0 ? " increase" : " descrease"
-                }`}
+                }${ticker.alert ? " screen__table--alert" : ""}`}
                 key={ticker.id}
               >
                 <div className="admin-ticker__text screen__table-item">
+                  <div className="admin-ticker__alert">
+                    <div></div>
+                  </div>
                   {ticker.name}
-                </div>
-                <div className="admin-ticker__text screen__table-item">
-                  {ticker.price}
                 </div>
                 <div className="admin-ticker__text screen__table-item">
                   {ticker.volume}
@@ -418,10 +526,54 @@ const TickerSetting = () => {
                   options={ticker.exchanges}
                   selected={ticker.exchange}
                 />
+
                 <div className="admin-ticker__text screen__table-item">
-                  {ticker.fee ? `${(ticker.fee * 100).toFixed(4)}%` : "-"}
+                  <div className="screen__table-item--text-box">
+                    <div className="screen__table-item--text">
+                      <div className="screen__table-item--title">當前：</div>
+                      <div className="screen__table-item--value">{`${SafeMath.mult(
+                        ticker.takerFee?.current,
+                        100
+                      )}%`}</div>
+                    </div>
+                    <div className="screen__table-item--text">
+                      <div className="screen__table-item--title">外部：</div>
+                      <div className="screen__table-item--value">{`${SafeMath.mult(
+                        ticker.takerFee?.external,
+                        100
+                      )}%`}</div>
+                    </div>
+                  </div>
+                  <div className="screen__table-item--icon"></div>
                 </div>
-                <TableSwitch
+                <div className="admin-ticker__text screen__table-item">
+                  <div className="screen__table-item--text-box">
+                    <div className="screen__table-item--text">
+                      <div className="screen__table-item--title">當前：</div>
+                      <div
+                        className={`screen__table-item--value${
+                          ticker.alert ? " screen__table--alert" : ""
+                        }`}
+                      >{`${SafeMath.mult(
+                        ticker.markerFee?.current,
+                        100
+                      )}%`}</div>
+                    </div>
+                    <div className="screen__table-item--text">
+                      <div className="screen__table-item--title">外部：</div>
+                      <div
+                        className={`screen__table-item--value${
+                          ticker.alert ? " screen__table--alert" : ""
+                        }`}
+                      >{`${SafeMath.mult(
+                        ticker.markerFee?.external,
+                        100
+                      )}%`}</div>
+                    </div>
+                  </div>
+                  <div className="screen__table-item--icon"></div>
+                </div>
+                <TableSwitchWithLock
                   className="screen__table-switch"
                   status={ticker.status === "open"}
                   toggleStatus={() => toggleStatus(ticker.status, ticker.id)}

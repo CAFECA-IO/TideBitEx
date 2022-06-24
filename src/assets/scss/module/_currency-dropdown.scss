@@ -30,6 +30,7 @@
     gap: 10px;
   }
   &__label {
+    position: relative;
     border: 1px solid #707070;
     border-radius: 15px;
     padding: 15px 20px;
@@ -41,6 +42,12 @@
   }
   &__label-item {
     min-width: 120px;
+    &--fixed {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      pointer-events: painted;
+    }
   }
   &__label-icon {
     width: 20px;
@@ -64,7 +71,13 @@
     color: #70cc78;
   }
   .active &__label-icon {
-    background-image: url("../../images/circle_button_green@2x.png");
+    background-image: url("../../images/circle_button_green--light@2x.png");
+  }
+  &__label-data.positive {
+    color: #5ad998;
+  }
+  &__label-data.negative {
+    color: #dc484e;
   }
   &__contain {
     display: none;

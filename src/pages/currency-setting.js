@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
-import ScreenTags from "../components/ScreenTags";
+// import ScreenTags from "../components/ScreenTags";
 import TableSwitch from "../components/TableSwitch";
 
 const CurrencyDropdown = (props) => {
   const [openDropDown, setOpenDropDown] = useState(false);
   return (
-    <div
-      className="currency-dropdown admin-dropdown"
-      key={props.currency.symbol}
-    >
+    <>
       <input
         className="admin-dropdown__controller"
         type="checkbox"
@@ -43,7 +40,11 @@ const CurrencyDropdown = (props) => {
         </div>
         <div className="currency-dropdown__label-item">
           <div className="currency-dropdown__label-title">24h 漲跌</div>
-          <div className="currency-dropdown__label-data">
+          <div
+            className={`currency-dropdown__label-data${
+              props.currency.changePct > 0 ? " positive" : " negative"
+            }`}
+          >
             {`${(props.currency.changePct * 100).toFixed(2)}%`}
           </div>
         </div>
@@ -55,7 +56,10 @@ const CurrencyDropdown = (props) => {
                 className={`currency-dropdown__label-option${
                   props.currency.items[key].status ? " active" : ""
                 }`}
-                onClick={() => props.toggleStatus(key, props.currency.symbol)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  props.toggleStatus(key, props.currency.symbol);
+                }}
                 key={`${key}`}
               >
                 <div className={`currency-dropdown__label-icon`}>
@@ -71,6 +75,37 @@ const CurrencyDropdown = (props) => {
             ))}
           </div>
         </div>
+        <div className="currency-dropdown__label-item--fixed screen__table-header-btn">
+          <button
+            className="currency-dropdown__section-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              props.toggleAllOptions(props.currency, false);
+            }}
+            disabled={`${
+              !Object.values(props.currency.items).some((item) => !!item.status)
+                ? "disable"
+                : ""
+            }`}
+          >
+            全部關閉
+          </button>
+          /
+          <button
+            className="currency-dropdown__section-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              props.toggleAllOptions(props.currency, true);
+            }}
+            disabled={`${
+              !Object.values(props.currency.items).some((item) => !item.status)
+                ? "disable"
+                : ""
+            }`}
+          >
+            全部開啟
+          </button>
+        </div>
       </div>
       <div className="currency-dropdown__contain">
         <div className="currency-dropdown__container">
@@ -78,10 +113,6 @@ const CurrencyDropdown = (props) => {
             <div className="currency-dropdown__section-btn-box">
               <div className="currency-dropdown__section-title">
                 選擇啟用功能：
-              </div>
-              <div className="currency-dropdown__section-box">
-                <div className="currency-dropdown__section-btn">全部開啟</div>/
-                <div className="currency-dropdown__section-btn">全部關閉</div>
               </div>
             </div>
           </div>
@@ -91,7 +122,10 @@ const CurrencyDropdown = (props) => {
                 className={`currency-dropdown__section-option${
                   props.currency.items[key].status ? " active" : ""
                 }`}
-                onClick={() => props.toggleStatus(key, props.currency.symbol)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  props.toggleStatus(key, props.currency.symbol);
+                }}
                 key={`${key}`}
               >
                 <div className="currency-dropdown__section-text">
@@ -103,16 +137,17 @@ const CurrencyDropdown = (props) => {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
 const CurrencySetting = () => {
+  const [showMore, setShowMore] = useState(false);
   const [isInit, setIsInit] = useState(null);
-  const [selectedTag, setSelectedTag] = useState("ALL");
   const [currencies, setCurrencies] = useState(null);
   const [filterCurrencies, setFilterCurrencies] = useState(null);
   const [filterOptions, setFilterOptions] = useState(["all"]); //'deposit','withdraw','transfer', 'transaction'
+  const [filterKey, setFilterKey] = useState("");
 
   const getCurrencies = useCallback(async () => {
     return Promise.resolve({
@@ -381,81 +416,62 @@ const CurrencySetting = () => {
     });
   }, []);
 
-  const selectTagHandler = useCallback(
-    async (tag, currencies, options) => {
-      console.log(tag, currencies, options);
-      setSelectedTag(tag);
-      let _filterOptions = options || filterOptions;
-      if (currencies) {
-        let _currs = _filterOptions.includes("all")
-          ? currencies
-          : currencies.filter((currency) =>
-              currency.items.some((item) => _filterOptions.includes(item))
-            );
-        let filterCurrencies;
-        switch (tag) {
-          case "ALL":
-            setFilterCurrencies(_currs);
-            break;
-          case "Top":
-            filterCurrencies = _currs
-              .sort((a, b) => +b.depositAmount - +a.depositAmount)
-              .slice(0, 3);
-            setFilterCurrencies(filterCurrencies);
-            break;
-          default:
-            filterCurrencies = _currs.filter((currency) =>
-              currency.tags.includes(tag)
-            );
-            setFilterCurrencies(filterCurrencies);
-            break;
-        }
-      }
-    },
-    [filterOptions]
-  );
+  const toggleAllOptions = (currency, status) => {
+    const _updateCurrenies = { ...currencies };
+    const _updateCurrency = _updateCurrenies[currency.symbol];
+    Object.values(_updateCurrency.items).forEach(
+      (item) => (item.status = status)
+    );
+    _updateCurrenies[currency.symbol] = _updateCurrency;
+    setCurrencies(_updateCurrenies);
+  };
 
   const filter = useCallback(
-    (option, currs) => {
-      setFilterOptions((prev) => {
-        let index,
-          options = [...prev];
-
-        if (option) {
-          if (prev.includes(option)) {
+    ({ filterCurrencies, option, keyword }) => {
+      let index,
+        options = [...filterOptions];
+      console.log(`filter option`, option);
+      if (option) {
+        if (option === "all") options = ["all"];
+        else {
+          if (options.includes(option)) {
             index = options.findIndex((op) => op === option);
             options.splice(index, 1);
           } else {
-            if (option === "all") options = ["all"];
-            else {
-              index = options.findIndex((op) => op === "all");
-
-              if (index > -1) {
-                options.splice(index, 1);
-              }
-
-              options.push(option);
+            index = options.findIndex((op) => op === "all");
+            if (index > -1) {
+              options.splice(index, 1);
             }
+            options.push(option);
           }
-          if (options.length === 0) options = ["all"];
         }
-        console.log(`filter currs`, currs);
-        let _currencies = currs || currencies;
-        if (_currencies) {
-          let _currs =
-            option === "all"
-              ? Object.values(_currencies)
-              : Object.values(_currencies).filter((currency) =>
-                  Object.keys(currency.items).some((key) =>
-                    options.includes(key)
-                  )
-                );
-          selectTagHandler(selectedTag, _currs, options);
-        }
-        return options;
-      });
+        if (options.length === 0) options = ["all"];
+        setFilterOptions(options);
+      }
+      let _currencies = filterCurrencies || currencies,
+        _keyword = keyword === undefined ? filterKey : keyword;
+      if (_currencies) {
+        _currencies = Object.values(_currencies).filter((currency) => {
+          if (options.includes("all")) {
+            return (
+              currency.currency.includes(_keyword) ||
+              currency.symbol.includes(_keyword)
+            );
+          } else {
+            return (
+              (currency.currency.includes(_keyword) ||
+                currency.symbol.includes(_keyword)) &&
+              Object.keys(currency.items).some(
+                (itemKey) =>
+                  options.includes(itemKey) && currency.items[itemKey].status
+              )
+            );
+          }
+        });
+        setFilterCurrencies(_currencies);
+      }
     },
-    [currencies, selectedTag, selectTagHandler]
+    [currencies, filterKey, filterOptions]
   );
 
   const toggleStatus = useCallback(
@@ -464,21 +480,20 @@ const CurrencySetting = () => {
       updateCurrencies[symbol].items[key].status =
         !updateCurrencies[symbol].items[key].status;
       setCurrencies(updateCurrencies);
-      filter(null, updateCurrencies);
     },
-    [currencies, filter]
+    [currencies]
   );
 
   const init = useCallback(() => {
     setIsInit(async (prev) => {
       if (!prev) {
-        const tickers = await getCurrencies();
-        setCurrencies(tickers);
-        selectTagHandler("ALL", Object.values(tickers));
+        const currencies = await getCurrencies();
+        setCurrencies(currencies);
+        filter({ filterCurrencies: currencies });
         return !prev;
       } else return prev;
     });
-  }, [getCurrencies, selectTagHandler]);
+  }, [getCurrencies, filter]);
 
   useEffect(() => {
     if (!isInit) {
@@ -488,9 +503,6 @@ const CurrencySetting = () => {
 
   return (
     <section className="screen__section currency-settings">
-      <div className="screen__floating-btn">
-        <img src="/img/floating-btn@2x.png" alt="arrow" />
-      </div>
       <div className="screen__header">支援幣種設定</div>
       {/* <ScreenTags
         selectedTag={selectedTag}
@@ -504,6 +516,10 @@ const CurrencySetting = () => {
             inputMode="search"
             className="screen__search-input"
             placeholder="輸入欲搜尋的關鍵字"
+            onInput={(e) => {
+              setFilterKey(e.target.value);
+              filter({ keyword: e.target.value });
+            }}
           />
           <div className="screen__search-icon">
             <div className="screen__search-icon--circle"></div>
@@ -519,7 +535,7 @@ const CurrencySetting = () => {
               className={`screen__display-option${
                 filterOptions.includes("all") ? " active" : ""
               }`}
-              onClick={() => filter("all")}
+              onClick={() => filter({ option: "all" })}
             >
               全部
             </li>
@@ -527,7 +543,7 @@ const CurrencySetting = () => {
               className={`screen__display-option${
                 filterOptions.includes("deposit") ? " active" : ""
               }`}
-              onClick={() => filter("deposit")}
+              onClick={() => filter({ option: "deposit" })}
             >
               充值
             </li>
@@ -535,7 +551,7 @@ const CurrencySetting = () => {
               className={`screen__display-option${
                 filterOptions.includes("withdraw") ? " active" : ""
               }`}
-              onClick={() => filter("withdraw")}
+              onClick={() => filter({ option: "withdraw" })}
             >
               提現
             </li>
@@ -543,7 +559,7 @@ const CurrencySetting = () => {
               className={`screen__display-option${
                 filterOptions.includes("transfer") ? " active" : ""
               }`}
-              onClick={() => filter("transfer")}
+              onClick={() => filter({ option: "transfer" })}
             >
               劃轉
             </li>
@@ -551,7 +567,7 @@ const CurrencySetting = () => {
               className={`screen__display-option${
                 filterOptions.includes("transaction") ? " active" : ""
               }`}
-              onClick={() => filter("transaction")}
+              onClick={() => filter({ option: "transaction" })}
             >
               交易
             </li>
@@ -561,13 +577,40 @@ const CurrencySetting = () => {
           <img src="/img/sorting@2x.png" alt="sorting" />
         </div>
       </div>
-      <div className="screen__table">
+      <div className={`screen__table${showMore ? " show" : ""}`}>
         <div className="currency-settings__rows">
           {filterCurrencies?.map((currency) => (
-            <CurrencyDropdown currency={currency} toggleStatus={toggleStatus} />
+            <div
+              className="currency-dropdown admin-dropdown"
+              key={currency.currency + currency.symbol}
+            >
+              <CurrencyDropdown
+                currency={currency}
+                toggleStatus={toggleStatus}
+                toggleAllOptions={toggleAllOptions}
+              />
+            </div>
           ))}
         </div>
-        <div className="screen__table-btn screen__table-text">顯示更多</div>
+        <div
+          className="screen__table-btn screen__table-text"
+          onClick={() => setShowMore((prev) => !prev)}
+        >
+          {showMore ? "顯示更少" : "顯示更多"}
+        </div>
+      </div>
+      <div className="screen__floating-box">
+        <div
+          className="screen__floating-btn"
+          onClick={() => {
+            const screenSection =
+              window.document.querySelector(".screen__section");
+            // console.log(screenSection.scrollTop)
+            screenSection.scroll(0, 0);
+          }}
+        >
+          <img src="/img/floating-btn@2x.png" alt="arrow" />
+        </div>
       </div>
     </section>
   );

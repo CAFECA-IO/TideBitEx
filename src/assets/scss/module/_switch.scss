@@ -1,5 +1,11 @@
 .switch {
   text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  gap: 5px;
+  align-items: flex-start;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
   &__box {
     position: relative;
     display: inline-block;
@@ -14,7 +20,7 @@
   &__btn {
     position: absolute;
     cursor: pointer;
-    top: 0;
+    top: 10px;
     left: 0;
     right: 0;
     bottom: 0;
@@ -23,6 +29,7 @@
     transition: 0.4s;
     border-radius: 32px;
     width: 56px;
+    height: 32px;
     border: 1px solid #767676;
   }
   &__btn:before {
@@ -51,5 +58,21 @@
     -webkit-transform: translateX(24px);
     -ms-transform: translateX(24px);
     transform: translateX(24px);
+  }
+  &__lock {
+    width: 65px;
+    height: 65px;
+    background-image: url("../../images/lock@2x.png");
+    background-position: center;
+    background-size: contain;
+    opacity: 0;
+    -webkit-transition: 0.4s;
+    transition: 0.4s;
+  }
+  .active &__lock {
+    opacity: 1;
+  }
+  .active.unLocked &__lock {
+    background-image: url("../../images/lock--open@2x.png");
   }
 }

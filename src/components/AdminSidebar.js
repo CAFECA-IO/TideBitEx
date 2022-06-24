@@ -35,7 +35,7 @@ const DropDownMenu = (props) => {
         </label>
         <ul className="admin-dropdown__options">
           {props.options.map((option) => (
-            <div>
+            <div key={option.page}>
               <div
                 className={`admin-sidebar__text admin-dropdown__option${
                   props.activePage === option.page ? " active" : ""
