@@ -112,6 +112,11 @@ class TideBitWS {
       });
     } catch (e) {
       console.log(`middleman ws init error:`, e);
+      if (this.interval) clearInterval(this.interval);
+      clearTimeout(this.wsReConnectTimeout);
+      this.wsReConnectTimeout = setTimeout(async () => {
+        await this.init({ url: this.url });
+      }, 1000);
     }
   }
 }
