@@ -427,8 +427,8 @@ const TradeForm = (props) => {
           !baseCcyAvailable ||
           !storeCtx.selectedTicker ||
           !!errorMessage ||
-          (props.ordType === "limit" && !!price) ||
-          !!volume
+          (props.ordType === "limit" && !price) ||
+          !volume
         }
       >
         {props.kind === "bid" ? t("buy") : t("sell")}
