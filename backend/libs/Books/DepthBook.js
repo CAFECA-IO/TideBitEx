@@ -40,11 +40,13 @@ class DepthBook extends BookBase {
   // !!!! IMPORTANT 要遵守 tideLegacy 的資料格式
   // ++ TODO: verify function works properly
   getSnapshot(instId) {
-    const depthBooks = {
-      market: instId.replace("-", "").toLowerCase(),
-      asks: [],
-      bids: [],
-    };
+    let sumAskAmount = "0",
+      sumBidAmount = "0",
+      depthBooks = {
+        market: instId.replace("-", "").toLowerCase(),
+        asks: [],
+        bids: [],
+      };
     this._snapshot[instId].forEach((data) => {
       if (data.side === "asks") {
         depthBooks.asks.push([data.price, data.amount, data.total]);
@@ -53,10 +55,18 @@ class DepthBook extends BookBase {
         depthBooks.bids.push([data.price, data.amount, data.total]);
       }
     });
-    // this.logger.log(
-    //   `[${this.constructor.name}] getSnapshot[${instId}]`,
-    //   depthBooks
-    // );
+    depthBooks.asks = depthBooks.asks
+      .sort((a, b) => +a.price - +b.price)
+      .map((ask) => {
+        sumAskAmount = SafeMath.plus(ask.amount, sumAskAmount);
+        return { ...ask, total: sumAskAmount };
+      });
+      depthBooks.bids = depthBooks.bids
+      .sort((a, b) => +b.price - +a.price)
+      .map((bid) => {
+        sumBidAmount = SafeMath.plus(bid.amount, sumBidAmount);
+        return { ...bid, total: sumBidAmount };
+      });
     return depthBooks;
   }
 
@@ -172,11 +182,13 @@ class DepthBook extends BookBase {
   //   //   )?.ask?.fixed
   //   // );
   //   data.forEach((d) => {
-  //     if (d.side === "asks" && asks.length < 100) {
+  //     if (d.side === "asks") {
+  //       // if (d.side === "asks" && asks.length < 100) {
   //       // ++ 30 -- TEST
   //       asks.push(d);
   //     }
-  //     if (d.side === "bids" && bids.length < 100) {
+  //     if (d.side === "bids") {
+  //       // if (d.side === "bids" && bids.length < 100) {
   //       // -- TEST
   //       bids.push(d);
   //     }

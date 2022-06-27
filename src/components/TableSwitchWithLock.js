@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 
+let timer;
 const TableSwitchWithLock = (props) => {
   const [active, setActive] = useState(false);
   const [unLocked, setUnLocked] = useState(false);
@@ -10,10 +11,16 @@ const TableSwitchWithLock = (props) => {
       }${unLocked ? " unLocked" : ""}`}
       onClick={() => {
         setActive(true);
+        timer = setTimeout(() => {
+          setUnLocked(false);
+          setActive(false);
+          clearTimeout(timer);
+        }, 3000);
         if (active) {
+          clearTimeout(timer);
           setUnLocked(true);
           props.toggleStatus();
-          const timer = setTimeout(() => {
+          timer = setTimeout(() => {
             setUnLocked(false);
             setActive(false);
             clearTimeout(timer);

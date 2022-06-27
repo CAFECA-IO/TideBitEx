@@ -4,6 +4,8 @@ import TableDropdown from "../components/TableDropdown";
 import SafeMath from "../utils/SafeMath";
 import { useTranslation } from "react-i18next";
 
+let timer;
+
 const categories = {
   HKD: ["HKD"],
   USDX: ["USDC", "USDT", "USDK"],
@@ -22,6 +24,9 @@ const TickerSetting = () => {
   const [filterOption, setFilterOption] = useState("all"); //'open','close'
   const [filterKey, setFilterKey] = useState("");
   const [quoteUnit, setQuoteUnit] = useState("USDT");
+  const [active, setActive] = useState(false);
+  const [unLocked, setUnLocked] = useState(false);
+
   const { t } = useTranslation();
 
   const filter = useCallback(
@@ -459,7 +464,33 @@ const TickerSetting = () => {
             <div className="screen__table-header--text">Maker 單手續費</div>
             <div className="screen__table-header--icon"></div>
           </li>
-          <li className="screen__table-header-btn">
+          <li
+            className={`screen__table-header-btn${active ? " active" : ""}${
+              unLocked ? " unLocked" : ""
+            }`}
+            onClick={() => {
+              setActive(true);
+              timer = setTimeout(() => {
+                setUnLocked(false);
+                setActive(false);
+                clearTimeout(timer);
+              }, 3000);
+            }}
+          >
+            <div
+              className="screen__table-header-btn--lock"
+              onClick={() => {
+                if (active) {
+                  clearTimeout(timer);
+                  setUnLocked(true);
+                  timer = setTimeout(() => {
+                    setUnLocked(false);
+                    setActive(false);
+                    clearTimeout(timer);
+                  }, 3000);
+                }
+              }}
+            ></div>
             <button
               disabled={`${
                 !Object.values(tickers || {}).some(
@@ -469,11 +500,18 @@ const TickerSetting = () => {
                   : ""
               }`}
               onClick={() => {
-                const updateTickers = { ...tickers };
-                Object.values(updateTickers).forEach(
-                  (ticker) => (ticker.status = "close")
-                );
-                setTickers(updateTickers);
+                if (unLocked) {
+                  const updateTickers = { ...tickers };
+                  Object.values(updateTickers).forEach(
+                    (ticker) => (ticker.status = "close")
+                  );
+                  setTickers(updateTickers);
+                  const timer = setTimeout(() => {
+                    setUnLocked(false);
+                    setActive(false);
+                    clearTimeout(timer);
+                  }, 500);
+                }
               }}
             >
               全部關閉
@@ -488,11 +526,18 @@ const TickerSetting = () => {
                   : ""
               }`}
               onClick={() => {
-                const updateTickers = { ...tickers };
-                Object.values(updateTickers).forEach(
-                  (ticker) => (ticker.status = "open")
-                );
-                setTickers(updateTickers);
+                if (unLocked) {
+                  const updateTickers = { ...tickers };
+                  Object.values(updateTickers).forEach(
+                    (ticker) => (ticker.status = "open")
+                  );
+                  setTickers(updateTickers);
+                  const timer = setTimeout(() => {
+                    setUnLocked(false);
+                    setActive(false);
+                    clearTimeout(timer);
+                  }, 500);
+                }
               }}
             >
               全部開啟

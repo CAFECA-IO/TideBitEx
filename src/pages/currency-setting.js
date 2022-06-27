@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
-// import ScreenTags from "../components/ScreenTags";
-import TableSwitch from "../components/TableSwitch";
+import TableSwitchWithLock from "../components/TableSwitchWithLock";
 
+let timer;
 const CurrencyDropdown = (props) => {
   const [openDropDown, setOpenDropDown] = useState(false);
+  const [active, setActive] = useState(false);
+  const [unLocked, setUnLocked] = useState(false);
   return (
     <>
       <input
@@ -75,12 +77,47 @@ const CurrencyDropdown = (props) => {
             ))}
           </div>
         </div>
-        <div className="currency-dropdown__label-item--fixed screen__table-header-btn">
+        <div
+          className={`currency-dropdown__label-item--fixed screen__table-header-btn${
+            active ? " active" : ""
+          }${unLocked ? " unLocked" : ""}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            setActive(true);
+            timer = setTimeout(() => {
+              setUnLocked(false);
+              setActive(false);
+              clearTimeout(timer);
+            }, 3000);
+          }}
+        >
+          <div
+            className="screen__table-header-btn--lock"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (active) {
+                clearTimeout(timer);
+                setUnLocked(true);
+                timer = setTimeout(() => {
+                  setUnLocked(false);
+                  setActive(false);
+                  clearTimeout(timer);
+                }, 3000);
+              }
+            }}
+          ></div>
           <button
             className="currency-dropdown__section-btn"
             onClick={(e) => {
-              e.stopPropagation();
-              props.toggleAllOptions(props.currency, false);
+              if (unLocked) {
+                e.stopPropagation();
+                props.toggleAllOptions(props.currency, false);
+                const timer = setTimeout(() => {
+                  setUnLocked(false);
+                  setActive(false);
+                  clearTimeout(timer);
+                }, 500);
+              }
             }}
             disabled={`${
               !Object.values(props.currency.items).some((item) => !!item.status)
@@ -94,8 +131,15 @@ const CurrencyDropdown = (props) => {
           <button
             className="currency-dropdown__section-btn"
             onClick={(e) => {
-              e.stopPropagation();
-              props.toggleAllOptions(props.currency, true);
+              if (unLocked) {
+                e.stopPropagation();
+                props.toggleAllOptions(props.currency, true);
+                const timer = setTimeout(() => {
+                  setUnLocked(false);
+                  setActive(false);
+                  clearTimeout(timer);
+                }, 500);
+              }
             }}
             disabled={`${
               !Object.values(props.currency.items).some((item) => !item.status)
@@ -122,16 +166,18 @@ const CurrencyDropdown = (props) => {
                 className={`currency-dropdown__section-option${
                   props.currency.items[key].status ? " active" : ""
                 }`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  props.toggleStatus(key, props.currency.symbol);
-                }}
                 key={`${key}`}
               >
                 <div className="currency-dropdown__section-text">
                   {props.currency.items[key].text}
                 </div>
-                <TableSwitch status={props.currency.items[key].status} />
+                <TableSwitchWithLock
+                  className="screen__table-switch"
+                  status={props.currency.items[key].status}
+                  toggleStatus={() =>
+                    props.toggleStatus(key, props.currency.symbol)
+                  }
+                />
               </div>
             ))}
           </div>

@@ -3,7 +3,7 @@
   display: flex;
   justify-content: flex-end;
   gap: 5px;
-  align-items: flex-start;
+  align-items: center;
   -webkit-transition: 0.4s;
   transition: 0.4s;
   &__box {
@@ -20,7 +20,7 @@
   &__btn {
     position: absolute;
     cursor: pointer;
-    top: 10px;
+    top: 0px;
     left: 0;
     right: 0;
     bottom: 0;
@@ -69,10 +69,10 @@
     -webkit-transition: 0.4s;
     transition: 0.4s;
   }
-  .active &__lock {
+  .active > &__lock {
     opacity: 1;
   }
-  .active.unLocked &__lock {
+  .active.unLocked > &__lock {
     background-image: url("../../images/lock--open@2x.png");
   }
 }
