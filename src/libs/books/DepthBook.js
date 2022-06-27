@@ -119,24 +119,24 @@ class DepthBook extends BookBase {
     }
   }
 
-  _trim(data) {
-    let asks = [],
-      bids = [];
-    data.forEach((d) => {
-      asks.push(d);
-      bids.push(d);
-    });
-    asks = asks
-      .filter((book) => (this._lotSz ? book.amount > this._lotSz : true))
-      .sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
-    bids = bids
-      .filter((book) => (this._lotSz ? book.amount > this._lotSz : true))
-      .sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
-    let length = Math.min(asks.length, bids.length, 50);
-    asks = asks.slice(0, length);
-    bids = bids.slice(0, length);
-    return bids.concat(asks);
-  }
+  // _trim(data) {
+  //   let asks = [],
+  //     bids = [];
+  //   data.forEach((d) => {
+  //     asks.push(d);
+  //     bids.push(d);
+  //   });
+  //   asks = asks
+  //     .filter((book) => (this._lotSz ? book.amount > this._lotSz : true))
+  //     .sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+  //   bids = bids
+  //     .filter((book) => (this._lotSz ? book.amount > this._lotSz : true))
+  //     .sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+  //   let length = Math.min(asks.length, bids.length, 50);
+  //   asks = asks.slice(0, length);
+  //   bids = bids.slice(0, length);
+  //   return bids.concat(asks);
+  // }
 
   // ++ TODO: verify function works properly
   _calculateDifference(arrayA, arrayB) {
