@@ -100,7 +100,7 @@ class DepthBook extends BookBase {
       let length = Math.min(asks.length, bids.length, 50);
       asks = asks.slice(0, length);
       bids = bids.slice(0, length);
-      console.log(`depthBooks length`, length);
+      // console.log(`depthBooks length`, length);
       return {
         market,
         asks,

@@ -323,17 +323,17 @@ class OkexConnector extends ConnectorBase {
           });
         }
         const [data] = res.data.data;
-        this.logger.log(
-          `----------- [API][RES](${instId}) [START] ----------------`
-        );
-        this.logger.log(
-          `[${this.constructor.name}] getDepthBook res`,
-          `asks[${data.asks.length}]`,
-          `bids[${data.bids.length}]`
-        );
-        this.logger.log(
-          `----------- [API][RES](${instId}) [END] ----------------`
-        );
+        // this.logger.log(
+        //   `----------- [API][RES](${instId}) [START] ----------------`
+        // );
+        // this.logger.log(
+        //   `[${this.constructor.name}] getDepthBook res`,
+        //   `asks[${data.asks.length}]`,
+        //   `bids[${data.bids.length}]`
+        // );
+        // this.logger.log(
+        //   `----------- [API][RES](${instId}) [END] ----------------`
+        // );
         this.depthBook.updateAll(instId, data);
       } catch (error) {
         this.logger.error(error);
@@ -1470,17 +1470,17 @@ class OkexConnector extends ConnectorBase {
       // ++
       this.logger.error(`_updateBooks`, error);
     }
-    this.logger.log(
-      `=+===+===+== [AFTER WS UPDATE][START](${instId})  =+===+===+==`
-    );
-    this.logger.log(
-      `[${this.constructor.name}] getDepthBook res`,
-      `asks[${this.depthBook.getSnapshot(instId).asks.length}]`,
-      `bids[${this.depthBook.getSnapshot(instId).bids.length}]`
-    );
-    this.logger.log(
-      `=+===+===+== [AFTER WS UPDATE][END](${instId})  =+===+===+==`
-    );
+    // this.logger.log(
+    //   `=+===+===+== [AFTER WS UPDATE][START](${instId})  =+===+===+==`
+    // );
+    // this.logger.log(
+    //   `[${this.constructor.name}] getDepthBook res`,
+    //   `asks[${this.depthBook.getSnapshot(instId).asks.length}]`,
+    //   `bids[${this.depthBook.getSnapshot(instId).bids.length}]`
+    // );
+    // this.logger.log(
+    //   `=+===+===+== [AFTER WS UPDATE][END](${instId})  =+===+===+==`
+    // );
     // this.logger.log(
     //   `[AFTER WS UPDATE] depthBook snapshot(${instId})`,
     //   this.depthBook.getSnapshot(instId)
