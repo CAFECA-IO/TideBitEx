@@ -321,14 +321,9 @@ const TradeForm = (props) => {
             // placeholder={t("trade_total")}
             value={
               props.ordType === "market"
-                ? storeCtx.selectedTicker?.last
+                ? null
                 : price && volume
-                ? SafeMath.mult(
-                    props.ordType === "market"
-                      ? storeCtx.selectedTicker?.last
-                      : price,
-                    volume
-                  )
+                ? SafeMath.mult(price, volume)
                 : null
             }
             readOnly
@@ -354,9 +349,20 @@ const TradeForm = (props) => {
           <span
             onClick={() => {
               formatSize(
-                formateDecimal(SafeMath.mult("0.25", props.baseCcyAvailable), {
-                  decimalLength: storeCtx?.lotSz ? storeCtx?.lotSz : "0",
-                })
+                formateDecimal(
+                  SafeMath.mult(
+                    "0.25",
+                    props.kind === "ask"
+                      ? quoteCcyAvailable
+                      : SafeMath.div(
+                          baseCcyAvailable,
+                          price || storeCtx.selectedTicker?.last
+                        )
+                  ),
+                  {
+                    decimalLength: storeCtx?.lotSz ? storeCtx?.lotSz : "0",
+                  }
+                )
               );
             }}
           >
@@ -367,9 +373,20 @@ const TradeForm = (props) => {
           <span
             onClick={() => {
               formatSize(
-                formateDecimal(SafeMath.mult("0.5", props.baseCcyAvailable), {
-                  decimalLength: storeCtx?.lotSz ? storeCtx?.lotSz : "0",
-                })
+                formateDecimal(
+                  SafeMath.mult(
+                    "0.5",
+                    props.kind === "ask"
+                      ? quoteCcyAvailable
+                      : SafeMath.div(
+                          baseCcyAvailable,
+                          price || storeCtx.selectedTicker?.last
+                        )
+                  ),
+                  {
+                    decimalLength: storeCtx?.lotSz ? storeCtx?.lotSz : "0",
+                  }
+                )
               );
             }}
           >
@@ -380,9 +397,20 @@ const TradeForm = (props) => {
           <span
             onClick={() => {
               formatSize(
-                formateDecimal(SafeMath.mult("0.75", props.baseCcyAvailable), {
-                  decimalLength: storeCtx?.lotSz ? storeCtx?.lotSz : "0",
-                })
+                formateDecimal(
+                  SafeMath.mult(
+                    "0.75",
+                    props.kind === "ask"
+                      ? quoteCcyAvailable
+                      : SafeMath.div(
+                          baseCcyAvailable,
+                          price || storeCtx.selectedTicker?.last
+                        )
+                  ),
+                  {
+                    decimalLength: storeCtx?.lotSz ? storeCtx?.lotSz : "0",
+                  }
+                )
               );
             }}
           >
@@ -393,9 +421,20 @@ const TradeForm = (props) => {
           <span
             onClick={() => {
               formatSize(
-                formateDecimal(SafeMath.mult("1", props.baseCcyAvailable), {
-                  decimalLength: storeCtx?.lotSz ? storeCtx?.lotSz : "0",
-                })
+                formateDecimal(
+                  SafeMath.mult(
+                    "1",
+                    props.kind === "ask"
+                      ? quoteCcyAvailable
+                      : SafeMath.div(
+                          baseCcyAvailable,
+                          price || storeCtx.selectedTicker?.last
+                        )
+                  ),
+                  {
+                    decimalLength: storeCtx?.lotSz ? storeCtx?.lotSz : "0",
+                  }
+                )
               );
             }}
           >
