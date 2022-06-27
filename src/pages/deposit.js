@@ -1,8 +1,10 @@
+import { useTranslation } from "react-i18next";
 import React, { useState, useEffect, useCallback } from "react";
 import TableSwitchWithLock from "../components/TableSwitchWithLock";
 import TableDropdown from "../components/TableDropdown";
-import { useTranslation } from "react-i18next";
 import SafeMath from "../utils/SafeMath";
+
+let timer;
 
 const Deposit = () => {
   const [showMore, setShowMore] = useState(false);
@@ -11,6 +13,8 @@ const Deposit = () => {
   const [filterCurrencies, setFilterCurrencies] = useState(null);
   const [filterOption, setFilterOption] = useState("all"); //'open','close'
   const [filterKey, setFilterKey] = useState("");
+  const [active, setActive] = useState(false);
+  const [unLocked, setUnLocked] = useState(false);
   const { t } = useTranslation();
 
   const sorting = () => {};
@@ -322,7 +326,33 @@ const Deposit = () => {
             <div className="screen__table-header--text">出金手續費</div>
             <div className="screen__table-header--icon"></div>
           </li>
-          <li className="screen__table-header-btn">
+          <li
+            className={`screen__table-header-btn${active ? " active" : ""}${
+              unLocked ? " unLocked" : ""
+            }`}
+            onClick={() => {
+              setActive(true);
+              timer = setTimeout(() => {
+                setUnLocked(false);
+                setActive(false);
+                clearTimeout(timer);
+              }, 3000);
+            }}
+          >
+            <div
+              className="screen__table-header-btn--lock"
+              onClick={() => {
+                if (active) {
+                  clearTimeout(timer);
+                  setUnLocked(true);
+                  timer = setTimeout(() => {
+                    setUnLocked(false);
+                    setActive(false);
+                    clearTimeout(timer);
+                  }, 3000);
+                }
+              }}
+            ></div>
             <button
               disabled={`${
                 !Object.values(currencies || {}).some(
@@ -332,12 +362,19 @@ const Deposit = () => {
                   : ""
               }`}
               onClick={() => {
-                const updateCurrencies = { ...currencies };
-                Object.values(updateCurrencies).forEach(
-                  (currency) => (currency.status = "close")
-                );
-                setCurrencies(updateCurrencies);
-                filter(filterOption, updateCurrencies);
+                if (unLocked) {
+                  const updateCurrencies = { ...currencies };
+                  Object.values(updateCurrencies).forEach(
+                    (currency) => (currency.status = "close")
+                  );
+                  setCurrencies(updateCurrencies);
+                  filter(filterOption, updateCurrencies);
+                  const timer = setTimeout(() => {
+                    setUnLocked(false);
+                    setActive(false);
+                    clearTimeout(timer);
+                  }, 500);
+                }
               }}
             >
               全部關閉
@@ -352,12 +389,19 @@ const Deposit = () => {
                   : ""
               }`}
               onClick={() => {
-                const updateCurrencies = { ...currencies };
-                Object.values(updateCurrencies).forEach(
-                  (currency) => (currency.status = "open")
-                );
-                setCurrencies(updateCurrencies);
-                filter(filterOption, updateCurrencies);
+                if (unLocked) {
+                  const updateCurrencies = { ...currencies };
+                  Object.values(updateCurrencies).forEach(
+                    (currency) => (currency.status = "open")
+                  );
+                  setCurrencies(updateCurrencies);
+                  filter(filterOption, updateCurrencies);
+                  const timer = setTimeout(() => {
+                    setUnLocked(false);
+                    setActive(false);
+                    clearTimeout(timer);
+                  }, 500);
+                }
               }}
             >
               全部開啟

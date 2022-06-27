@@ -42,6 +42,9 @@ class TradeBook extends BookBase {
       return false;
     }
   }
+  _trim(data) {
+    return data.slice(0, 30);
+  }
 
   getSnapshot(market) {
     try {
