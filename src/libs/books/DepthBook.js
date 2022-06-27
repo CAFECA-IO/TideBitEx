@@ -94,8 +94,8 @@ class DepthBook extends BookBase {
       // console.log(`depthBooks length`, length);
       return {
         market,
-        asks,
-        bids,
+        asks: asks.sort((a, b) => parseFloat(a.price) - parseFloat(b.price)),
+        bids: bids.sort((a, b) => parseFloat(b.price) - parseFloat(a.price)),
         total: SafeMath.plus(
           asks[asks.length - 1]?.total || "0",
           bids[bids.length - 1]?.total || "0"
