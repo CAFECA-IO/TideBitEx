@@ -172,8 +172,8 @@ const TradeForm = (props) => {
         setBaseCcyAvailable(baseCcyAccount?.balance);
       }
       setSelectedTicker(storeCtx.selectedTicker);
-      formatPrice(price);
-      formatSize(volume);
+      if (price) formatPrice(price);
+      if (volume) formatSize(volume);
     }
   }, [
     storeCtx.selectedTicker,
