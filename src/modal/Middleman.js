@@ -204,7 +204,7 @@ class Middleman {
     this.tbWebSocket.setCurrentMarket(market);
     this.tickerBook.setCurrentMarket(market);
     if (!this.tickerBook.getCurrentTicker()) await this._getTicker(market);
-    this.depthBook.lotSz = this.tickerBook.getCurrentTicker().lotSz;
+    this.depthBook.lotSz = this.tickerBook.getCurrentTicker()?.lotSz;
     await this._getDepthBooks(market, 30);
     await this._getTrades(market, 30);
     // if (this.isLogin) {
@@ -276,8 +276,8 @@ class Middleman {
     this.tbWebSocket.init({ url: Config[Config.status].websocket });
     this._tbWSEventListener();
     await this._getAccounts(market);
-    await this.selectMarket(market);
     await this._getTickers();
+    await this.selectMarket(market);
   }
 
   stop() {
