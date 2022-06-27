@@ -61,7 +61,7 @@ const TradeForm = (props) => {
           volume,
           SafeMath.div(
             quoteCcyAvailable,
-            props.orderType === "market" ? storeCtx.selectedTicker?.last : price
+            props.ordType === "market" ? storeCtx.selectedTicker?.last : price
           )
         )
       ) {
@@ -75,7 +75,17 @@ const TradeForm = (props) => {
         );
       } else setErrorMessage(null);
     },
-    [storeCtx.selectedTicker?.tickSz]
+    [
+      baseCcyAvailable,
+      props.kind,
+      props.ordType,
+      quoteCcyAvailable,
+      storeCtx.selectedTicker?.base_unit,
+      storeCtx.selectedTicker?.last,
+      storeCtx.selectedTicker?.quote_unit,
+      storeCtx.selectedTicker?.tickSz,
+      volume,
+    ]
   );
 
   const formatSize = useCallback(
@@ -83,7 +93,7 @@ const TradeForm = (props) => {
       let precision,
         arr = storeCtx.selectedTicker?.lotSz.split("."),
         _price =
-          props.orderType === "market" ? storeCtx.selectedTicker?.last : price;
+          props.ordType === "market" ? storeCtx.selectedTicker?.last : price;
       if (arr.length > 1) precision = arr[1].length;
       else precision = 0;
       let _value = +value < 0 ? "0" : value;
@@ -121,7 +131,7 @@ const TradeForm = (props) => {
     [
       price,
       props.kind,
-      props.orderType,
+      props.ordType,
       quoteCcyAvailable,
       storeCtx.selectedTicker?.last,
       storeCtx.selectedTicker?.lotSz,
@@ -138,21 +148,19 @@ const TradeForm = (props) => {
       instId: storeCtx.selectedTicker.instId,
       tdMode,
       kind,
-      ordType: props.orderType,
-      price:
-        props.orderType === "limit" ? price : storeCtx.selectedTicker?.last,
+      ordType: props.ordType,
+      price: props.ordType === "limit" ? price : storeCtx.selectedTicker?.last,
       volume,
       market: storeCtx.selectedTicker.market,
     };
-
     const confirm = window.confirm(`You are going to
           ${order.kind} ${order.volume} ${order.instId.split("-")[0]}
           ${order.kind === "bid" ? "with" : "for"} ${SafeMath.mult(
-      props.orderType === "market" ? storeCtx.selectedTicker.last : order.price,
+      props.ordType === "market" ? storeCtx.selectedTicker.last : order.price,
       order.volume
     )} ${order.instId.split("-")[1]}
           with price ${
-            props.orderType === "market"
+            props.ordType === "market"
               ? storeCtx.selectedTicker.last
               : order.price
           } ${order.instId.split("-")[1]} per ${order.instId.split("-")[0]}`);
@@ -312,11 +320,11 @@ const TradeForm = (props) => {
             className="market-trade__input  form-control"
             // placeholder={t("trade_total")}
             value={
-              props.orderType === "market"
+              props.ordType === "market"
                 ? storeCtx.selectedTicker?.last
                 : price && volume
                 ? SafeMath.mult(
-                    props.orderType === "market"
+                    props.ordType === "market"
                       ? storeCtx.selectedTicker?.last
                       : price,
                     volume
@@ -441,7 +449,7 @@ const TradePannel = (props) => {
         <Tabs defaultActiveKey="buy">
           <Tab eventKey="buy" title={t("buy")}>
             <TradeForm
-              ordType={props.orderType}
+              ordType={props.ordType}
               kind="bid"
               readyOnly={!!props.readyOnly}
               isMobile={true}
@@ -449,7 +457,7 @@ const TradePannel = (props) => {
           </Tab>
           <Tab eventKey="sell" title={t("sell")}>
             <TradeForm
-              ordType={props.orderType}
+              ordType={props.ordType}
               kind="ask"
               readyOnly={!!props.readyOnly}
               isMobile={true}
@@ -459,12 +467,12 @@ const TradePannel = (props) => {
       ) : (
         <>
           <TradeForm
-            ordType={props.orderType}
+            ordType={props.ordType}
             kind="bid"
             readyOnly={!!props.readyOnly}
           />
           <TradeForm
-            ordType={props.orderType}
+            ordType={props.ordType}
             kind="ask"
             readyOnly={!!props.readyOnly}
           />
@@ -483,16 +491,16 @@ const MarketTrade = () => {
         <div className="market-trade__header">{t("place_order")}</div>
         <Tabs defaultActiveKey="limit">
           <Tab eventKey="limit" title={t("limit")}>
-            <TradePannel orderType="limit" />
+            <TradePannel ordType="limit" />
           </Tab>
           <Tab eventKey="market" title={t("market")}>
-            <TradePannel orderType="market" readyOnly={true} />
+            <TradePannel ordType="market" readyOnly={true} />
           </Tab>
           {/* <Tab eventKey="stop-limit" title="Stop Limit">
-            <TradePannel orderType="stop-limit" />
+            <TradePannel ordType="stop-limit" />
           </Tab> */}
           {/* <Tab eventKey="stop-market" title="Stop Market">
-            <TradePannel orderType="stop-market" />
+            <TradePannel ordType="stop-market" />
           </Tab> */}
         </Tabs>
       </div>
@@ -513,16 +521,16 @@ const MarketTrade = () => {
 //       <div className="market-trade">
 //         <Tabs defaultActiveKey="limit" activeKey={key} onSelect={setKey}>
 //           <Tab eventKey="limit" title="Limit">
-//             {key === "limit" && <TradePannel orderType={key} />}
+//             {key === "limit" && <TradePannel ordType={key} />}
 //           </Tab>
 //           <Tab eventKey="market" title="Market">
-//             {key === "market" && <TradePannel orderType={key} />}
+//             {key === "market" && <TradePannel ordType={key} />}
 //           </Tab>
 //           <Tab eventKey="stop-limit" title="Stop Limit">
-//             {key === "stop-limit" && <TradePannel orderType={key} />}
+//             {key === "stop-limit" && <TradePannel ordType={key} />}
 //           </Tab>
 //           <Tab eventKey="stop-market" title="Stop Market">
-//             {key === "stop-market" && <TradePannel orderType={key} />}
+//             {key === "stop-market" && <TradePannel ordType={key} />}
 //           </Tab>
 //         </Tabs>
 //       </div>
