@@ -149,8 +149,9 @@ class Middleman {
 
   getDepthBooks(market) {
     if (!market) market = this.tickerBook.getCurrentTicker()?.market;
+    let lotSz = this.tickerBook.getCurrentTicker()?.lotSz;
     // console.log(`getBooks current market`, market)
-    return this.depthBook.getSnapshot(market);
+    return this.depthBook.getSnapshot(market, lotSz);
   }
 
   async _getDepthBooks(id, sz) {
@@ -203,8 +204,9 @@ class Middleman {
     this.tbWebSocket.setCurrentMarket(market);
     this.tickerBook.setCurrentMarket(market);
     if (!this.tickerBook.getCurrentTicker()) await this._getTicker(market);
-    await this._getDepthBooks(market, 30);
-    await this._getTrades(market, 30);
+    this.depthBook.lotSz = this.tickerBook.getCurrentTicker()?.lotSz;
+    await this._getDepthBooks(market);
+    await this._getTrades(market);
     // if (this.isLogin) {
     // TODO to verify if user is not login would be a problem
     await this._getOrderList(market);
@@ -274,8 +276,8 @@ class Middleman {
     this.tbWebSocket.init({ url: Config[Config.status].websocket });
     this._tbWSEventListener();
     await this._getAccounts(market);
-    await this.selectMarket(market);
     await this._getTickers();
+    await this.selectMarket(market);
   }
 
   stop() {

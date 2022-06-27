@@ -164,7 +164,6 @@ const DepthBook = (props) => {
           {storeCtx?.selectedTicker &&
             storeCtx.books?.bids &&
             storeCtx.books.bids
-              .filter((book) => book.amount > storeCtx.selectedTicker?.lotSz)
               .map((book) => (
                 <BookTile
                   onClick={() => {
@@ -186,7 +185,6 @@ const DepthBook = (props) => {
           {storeCtx?.selectedTicker &&
             storeCtx.books?.asks &&
             storeCtx.books.asks
-              .filter((book) => book.amount > storeCtx.selectedTicker?.lotSz)
               .map((book) => (
                 <BookTile
                   type="asks"

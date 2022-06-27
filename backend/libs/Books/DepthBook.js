@@ -40,7 +40,7 @@ class DepthBook extends BookBase {
   // !!!! IMPORTANT 要遵守 tideLegacy 的資料格式
   // ++ TODO: verify function works properly
   getSnapshot(instId) {
-    const depthBooks = {
+    let depthBooks = {
       market: instId.replace("-", "").toLowerCase(),
       asks: [],
       bids: [],
@@ -53,10 +53,8 @@ class DepthBook extends BookBase {
         depthBooks.bids.push([data.price, data.amount, data.total]);
       }
     });
-    // this.logger.log(
-    //   `[${this.constructor.name}] getSnapshot[${instId}]`,
-    //   depthBooks
-    // );
+    depthBooks.asks.sort((a, b) => +a.price - +b.price);
+    depthBooks.bids.sort((a, b) => +b.price - +a.price);
     return depthBooks;
   }
 
@@ -160,43 +158,31 @@ class DepthBook extends BookBase {
   // };
 
   // ++ TODO: verify function works properly
-  _trim(instId, data) {
-    let sumAskAmount = "0",
-      sumBidAmount = "0",
-      asks = [],
-      bids = [];
-    // rangeData = this.range(
-    //   data,
-    //   this.markets.find(
-    //     (market) => market.id === instId.replace("-", "").toLowerCase()
-    //   )?.ask?.fixed
-    // );
-    data.forEach((d) => {
-      if (d.side === "asks") {
-      // if (d.side === "asks" && asks.length < 100) {
-        // ++ 30 -- TEST
-        asks.push(d);
-      }
-      if (d.side === "bids") {
-        // if (d.side === "bids" && bids.length < 100) {
-        // -- TEST
-        bids.push(d);
-      }
-    });
-    asks = asks
-      .sort((a, b) => +a.price - +b.price)
-      .map((ask) => {
-        sumAskAmount = SafeMath.plus(ask.amount, sumAskAmount);
-        return { ...ask, total: sumAskAmount };
-      });
-    bids = bids
-      .sort((a, b) => +b.price - +a.price)
-      .map((bid) => {
-        sumBidAmount = SafeMath.plus(bid.amount, sumBidAmount);
-        return { ...bid, total: sumBidAmount };
-      });
-    return bids.concat(asks);
-  }
+  // _trim(instId, data) {
+  //   let asks = [],
+  //     bids = [];
+  //   // rangeData = this.range(
+  //   //   data,
+  //   //   this.markets.find(
+  //   //     (market) => market.id === instId.replace("-", "").toLowerCase()
+  //   //   )?.ask?.fixed
+  //   // );
+  //   data.forEach((d) => {
+  //     if (d.side === "asks") {
+  //       // if (d.side === "asks" && asks.length < 100) {
+  //       // ++ 30 -- TEST
+  //       asks.push(d);
+  //     }
+  //     if (d.side === "bids") {
+  //       // if (d.side === "bids" && bids.length < 100) {
+  //       // -- TEST
+  //       bids.push(d);
+  //     }
+  //   });
+  //   asks = asks.sort((a, b) => +a.price - +b.price);
+  //   bids = bids.sort((a, b) => +b.price - +a.price);
+  //   return bids.concat(asks);
+  // }
   /**
    *
    *   
@@ -267,13 +253,6 @@ class DepthBook extends BookBase {
    * @param {Array<Depth>} data
    */
   updateAll(instId, data) {
-    // this.logger.log(
-    //   `=*===*===*== [FROM][OKEx][API][START](${instId})  =*===*===*==`
-    // );
-    // this.logger.log(data);
-    // this.logger.log(
-    //   `=*===*===*== [FROM][OKEx][API][END](${instId})  =*===*===*==`
-    // );
     return super.updateAll(instId, this._formateBooks(data));
   }
 }

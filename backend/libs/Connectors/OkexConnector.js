@@ -164,7 +164,7 @@ class OkexConnector extends ConnectorBase {
           };
 
           const summaryIndex = summary.findIndex((v) => v.ccy == dtl.ccy);
-          if(summaryIndex > -1) {
+          if (summaryIndex > -1) {
             summary[summaryIndex].totalBal += ccyData.cashBal;
             summary[summaryIndex].availBal += ccyData.availBal;
             summary[summaryIndex].frozenBal += ccyData.frozenBal;
@@ -177,7 +177,7 @@ class OkexConnector extends ConnectorBase {
       });
       result = {
         summary,
-        subAccounts
+        subAccounts,
       };
     } catch (error) {
       this.logger.error(error);
@@ -303,7 +303,7 @@ class OkexConnector extends ConnectorBase {
 
     const arr = [];
     if (instId) arr.push(`instId=${instId}`);
-    if (sz) arr.push(`sz=${300}`);
+    if (sz) arr.push(`sz=${200}`);
     // if (sz) arr.push(`sz=${sz}`); // -- TEST
     const qs = !!arr.length ? `?${arr.join("&")}` : "";
 
@@ -323,6 +323,17 @@ class OkexConnector extends ConnectorBase {
           });
         }
         const [data] = res.data.data;
+        // this.logger.log(
+        //   `----------- [API][RES](${instId}) [START] ----------------`
+        // );
+        // this.logger.log(
+        //   `[${this.constructor.name}] getDepthBook res`,
+        //   `asks[${data.asks.length}]`,
+        //   `bids[${data.bids.length}]`
+        // );
+        // this.logger.log(
+        //   `----------- [API][RES](${instId}) [END] ----------------`
+        // );
         this.depthBook.updateAll(instId, data);
       } catch (error) {
         this.logger.error(error);
@@ -335,11 +346,6 @@ class OkexConnector extends ConnectorBase {
         });
       }
     }
-    // this.logger.log(
-    //   `=+===+===+== [UPDATE][API][START](${instId})  =+===+===+==`
-    // );
-    // this.logger.log(this.depthBook.getSnapshot(instId));
-    // this.logger.log(`=+===+===+== [UPDATE][API][END](${instId})  =+===+===+==`);
     return new ResponseFormat({
       message: "getDepthBooks",
       payload: this.depthBook.getSnapshot(instId),
@@ -892,9 +898,8 @@ class OkexConnector extends ConnectorBase {
           code: Codes.THIRD_PARTY_API_ERROR,
         });
       }
-      return res.data.data
-    }
-    catch(err) {
+      return res.data.data;
+    } catch (err) {
       return [];
     }
   }
@@ -1465,7 +1470,17 @@ class OkexConnector extends ConnectorBase {
       // ++
       this.logger.error(`_updateBooks`, error);
     }
-
+    // this.logger.log(
+    //   `=+===+===+== [AFTER WS UPDATE][START](${instId})  =+===+===+==`
+    // );
+    // this.logger.log(
+    //   `[${this.constructor.name}] getDepthBook res`,
+    //   `asks[${this.depthBook.getSnapshot(instId).asks.length}]`,
+    //   `bids[${this.depthBook.getSnapshot(instId).bids.length}]`
+    // );
+    // this.logger.log(
+    //   `=+===+===+== [AFTER WS UPDATE][END](${instId})  =+===+===+==`
+    // );
     // this.logger.log(
     //   `[AFTER WS UPDATE] depthBook snapshot(${instId})`,
     //   this.depthBook.getSnapshot(instId)

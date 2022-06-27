@@ -799,28 +799,6 @@ class Utils {
         (inst) => inst.instId === tickersObj[id].instId
       );
       if (maskData) {
-        console.log(
-          maskData.name,
-          `bid fixed ${Utils.getDecimal(maskData["bid"]["fixed"])}`,
-          `ask fixed ${Utils.getDecimal(maskData["ask"]["fixed"])}`
-        );
-        console.log(
-          `instData.tickSz`,
-          instData.tickSz,
-          `instData.lotSz`,
-          instData.lotSz
-        );
-        console.log(
-          `tickSz: ${Math.max(
-            instData.tickSz,
-            Utils.getDecimal(maskData["bid"]["fixed"])
-          ).toString()}`,
-          `lotSz: ${Math.max(
-            instData.lotSz,
-            Utils.getDecimal(maskData["ask"]["fixed"])
-          ).toString()}`
-        );
-
         updateTickers[id] = {
           ...tickersObj[id],
           pricescale: maskData["price_group_fixed"],
@@ -836,20 +814,6 @@ class Utils {
           group: maskData["tab_category"],
         };
       }
-      // if(id==='btcusdt'){
-      //   console.log(`maskData`, maskData)
-      //   console.log(`instData`, instData)
-      //   console.log(`Utils.getDecimal(maskData["bid"]["fixed"])`, Utils.getDecimal(maskData["bid"]["fixed"]))
-      //   console.log(`instData.tickSz`, instData.tickSz)
-      //   console.log(`Math.max(
-      //       instData.tickSz,
-      //       Utils.getDecimal(maskData["bid"]["fixed"])
-      //     )`, Math.max(
-      //       instData.tickSz,
-      //       Utils.getDecimal(maskData["bid"]["fixed"])
-      //     ))
-      //     console.log(`updateTickers[${id}]`, updateTickers[id])
-      // }
     });
     return updateTickers;
   }
