@@ -204,6 +204,7 @@ class Middleman {
     this.tbWebSocket.setCurrentMarket(market);
     this.tickerBook.setCurrentMarket(market);
     if (!this.tickerBook.getCurrentTicker()) await this._getTicker(market);
+    this.depthBook.lotSz = this.tickerBook.getCurrentTicker().lotSz;
     await this._getDepthBooks(market, 30);
     await this._getTrades(market, 30);
     // if (this.isLogin) {
