@@ -19,8 +19,8 @@ const TradeForm = (props) => {
   const inputPrice = useRef();
   const inputAmount = useRef();
   const [tdMode, setTdMode] = useState("cash");
-  const [price, setPrice] = useState(null);
-  const [volume, setVolume] = useState(null);
+  const [price, setPrice] = useState("");
+  const [volume, setVolume] = useState("");
   const [selectedPct, setSelectedPct] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [selectedTicker, setSelectedTicker] = useState(null);
