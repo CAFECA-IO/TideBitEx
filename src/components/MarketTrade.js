@@ -55,7 +55,25 @@ const TradeForm = (props) => {
         setErrorMessage(
           `Minimum order price is ${storeCtx.selectedTicker?.tickSz}`
         );
-      else setErrorMessage(null);
+      if (
+        props.kind === "bid" &&
+        SafeMath.gt(
+          volume,
+          SafeMath.div(
+            quoteCcyAvailable,
+            props.orderType === "market" ? storeCtx.selectedTicker?.last : price
+          )
+        )
+      ) {
+        setErrorMessage(
+          `Available ${storeCtx.selectedTicker?.quote_unit?.toUpperCase()} is not enough`
+        );
+      }
+      if (props.kind === "ask" && SafeMath.gt(volume, baseCcyAvailable)) {
+        setErrorMessage(
+          `Available ${storeCtx.selectedTicker?.base_unit?.toUpperCase()} is not enough`
+        );
+      } else setErrorMessage(null);
     },
     [storeCtx.selectedTicker?.tickSz]
   );
@@ -400,31 +418,9 @@ const TradeForm = (props) => {
           !quoteCcyAvailable ||
           !baseCcyAvailable ||
           !storeCtx.selectedTicker ||
-          SafeMath.gt(
-            volume,
-            props.kind === "bid"
-              ? SafeMath.div(
-                  quoteCcyAvailable,
-                  props.orderType === "market"
-                    ? storeCtx.selectedTicker?.last
-                    : price
-                )
-              : baseCcyAvailable
-          ) ||
-          SafeMath.lte(volume, "0") ||
-          SafeMath.lt(volume, storeCtx.selectedTicker?.minSz) ||
-          SafeMath.lt(
-            props.orderType === "market" ? storeCtx.selectedTicker.last : price,
-            storeCtx.selectedTicker?.tickSz
-          ) ||
-          SafeMath.gt(
-            volume,
-            props.orderType === "market"
-              ? storeCtx.selectedTicker?.maxMktSz
-              : props.orderType === "limit"
-              ? storeCtx.selectedTicker?.maxLmtSz
-              : "99999"
-          )
+          !!errorMessage ||
+          (props.ordType === "limit" && !!price) ||
+          !!volume
         }
       >
         {props.kind === "bid" ? t("buy") : t("sell")}
