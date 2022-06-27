@@ -85,10 +85,10 @@ class DepthBook extends BookBase {
         )
           data = { ...data, update: true };
         if (data.side === "asks") {
-          asks.asks.push(data);
+          asks.push(data);
         }
         if (data.side === "bids") {
-          bids.bids.push(data);
+          bids.push(data);
         }
       }
       asks = asks
@@ -100,7 +100,7 @@ class DepthBook extends BookBase {
       let length = Math.min(asks.length, bids.length, 50);
       asks = asks.slice(0, length);
       bids = bids.slice(0, length);
-      console.log(`depthBooks length`, length)
+      console.log(`depthBooks length`, length);
       return {
         market,
         asks,
