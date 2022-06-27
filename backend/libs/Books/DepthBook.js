@@ -55,18 +55,18 @@ class DepthBook extends BookBase {
         depthBooks.bids.push([data.price, data.amount, data.total]);
       }
     });
-    depthBooks.asks = depthBooks.asks
-      .sort((a, b) => +a.price - +b.price)
-      .map((ask) => {
-        sumAskAmount = SafeMath.plus(ask.amount, sumAskAmount);
-        return { ...ask, total: sumAskAmount };
-      });
-      depthBooks.bids = depthBooks.bids
-      .sort((a, b) => +b.price - +a.price)
-      .map((bid) => {
-        sumBidAmount = SafeMath.plus(bid.amount, sumBidAmount);
-        return { ...bid, total: sumBidAmount };
-      });
+    // depthBooks.asks = depthBooks.asks
+    //   .sort((a, b) => +a.price - +b.price)
+    //   .map((ask) => {
+    //     sumAskAmount = SafeMath.plus(ask.amount, sumAskAmount);
+    //     return { ...ask, total: sumAskAmount };
+    //   });
+    // depthBooks.bids = depthBooks.bids
+    //   .sort((a, b) => +b.price - +a.price)
+    //   .map((bid) => {
+    //     sumBidAmount = SafeMath.plus(bid.amount, sumBidAmount);
+    //     return { ...bid, total: sumBidAmount };
+    //   });
     return depthBooks;
   }
 
@@ -170,43 +170,43 @@ class DepthBook extends BookBase {
   // };
 
   // ++ TODO: verify function works properly
-  // _trim(instId, data) {
-  //   let sumAskAmount = "0",
-  //     sumBidAmount = "0",
-  //     asks = [],
-  //     bids = [];
-  //   // rangeData = this.range(
-  //   //   data,
-  //   //   this.markets.find(
-  //   //     (market) => market.id === instId.replace("-", "").toLowerCase()
-  //   //   )?.ask?.fixed
-  //   // );
-  //   data.forEach((d) => {
-  //     if (d.side === "asks") {
-  //       // if (d.side === "asks" && asks.length < 100) {
-  //       // ++ 30 -- TEST
-  //       asks.push(d);
-  //     }
-  //     if (d.side === "bids") {
-  //       // if (d.side === "bids" && bids.length < 100) {
-  //       // -- TEST
-  //       bids.push(d);
-  //     }
-  //   });
-  //   asks = asks
-  //     .sort((a, b) => +a.price - +b.price)
-  //     .map((ask) => {
-  //       sumAskAmount = SafeMath.plus(ask.amount, sumAskAmount);
-  //       return { ...ask, total: sumAskAmount };
-  //     });
-  //   bids = bids
-  //     .sort((a, b) => +b.price - +a.price)
-  //     .map((bid) => {
-  //       sumBidAmount = SafeMath.plus(bid.amount, sumBidAmount);
-  //       return { ...bid, total: sumBidAmount };
-  //     });
-  //   return bids.concat(asks);
-  // }
+  _trim(instId, data) {
+    let sumAskAmount = "0",
+      sumBidAmount = "0",
+      asks = [],
+      bids = [];
+    // rangeData = this.range(
+    //   data,
+    //   this.markets.find(
+    //     (market) => market.id === instId.replace("-", "").toLowerCase()
+    //   )?.ask?.fixed
+    // );
+    data.forEach((d) => {
+      if (d.side === "asks") {
+        // if (d.side === "asks" && asks.length < 100) {
+        // ++ 30 -- TEST
+        asks.push(d);
+      }
+      if (d.side === "bids") {
+        // if (d.side === "bids" && bids.length < 100) {
+        // -- TEST
+        bids.push(d);
+      }
+    });
+    asks = asks
+      .sort((a, b) => +a.price - +b.price)
+      .map((ask) => {
+        sumAskAmount = SafeMath.plus(ask.amount, sumAskAmount);
+        return { ...ask, total: sumAskAmount };
+      });
+    bids = bids
+      .sort((a, b) => +b.price - +a.price)
+      .map((bid) => {
+        sumBidAmount = SafeMath.plus(bid.amount, sumBidAmount);
+        return { ...bid, total: sumBidAmount };
+      });
+    return bids.concat(asks);
+  }
   /**
    *
    *   

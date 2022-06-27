@@ -352,7 +352,7 @@ const TradeForm = (props) => {
                 formateDecimal(
                   SafeMath.mult(
                     "0.25",
-                    props.kind === "ask"
+                    props.kind === "bid"
                       ? quoteCcyAvailable
                       : SafeMath.div(
                           baseCcyAvailable,
@@ -376,7 +376,7 @@ const TradeForm = (props) => {
                 formateDecimal(
                   SafeMath.mult(
                     "0.5",
-                    props.kind === "ask"
+                    props.kind === "bid"
                       ? quoteCcyAvailable
                       : SafeMath.div(
                           baseCcyAvailable,
@@ -400,7 +400,7 @@ const TradeForm = (props) => {
                 formateDecimal(
                   SafeMath.mult(
                     "0.75",
-                    props.kind === "ask"
+                    props.kind === "bid"
                       ? quoteCcyAvailable
                       : SafeMath.div(
                           baseCcyAvailable,
@@ -424,7 +424,7 @@ const TradeForm = (props) => {
                 formateDecimal(
                   SafeMath.mult(
                     "1",
-                    props.kind === "ask"
+                    props.kind === "bid"
                       ? quoteCcyAvailable
                       : SafeMath.div(
                           baseCcyAvailable,
