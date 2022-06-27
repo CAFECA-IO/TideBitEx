@@ -40,8 +40,8 @@ class DepthBook extends BookBase {
   // !!!! IMPORTANT 要遵守 tideLegacy 的資料格式
   // ++ TODO: verify function works properly
   getSnapshot(instId) {
-    let sumAskAmount = "0",
-      sumBidAmount = "0",
+    let // sumAskAmount = "0",
+      //   sumBidAmount = "0",
       depthBooks = {
         market: instId.replace("-", "").toLowerCase(),
         asks: [],

@@ -67,7 +67,7 @@ class DepthBook extends BookBase {
     return Object.values(result);
   };
 
-  getSnapshot(market, lotSz) {
+  getSnapshot(market) {
     try {
       let asks = [],
         bids = [];
@@ -91,15 +91,6 @@ class DepthBook extends BookBase {
           bids.push(data);
         }
       }
-      asks = asks
-        .filter((book) => book.amount > lotSz)
-        .sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
-      bids = bids
-        .filter((book) => book.amount > lotSz)
-        .sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
-      let length = Math.min(asks.length, bids.length, 50);
-      asks = asks.slice(0, length);
-      bids = bids.slice(0, length);
       // console.log(`depthBooks length`, length);
       return {
         market,
@@ -116,15 +107,31 @@ class DepthBook extends BookBase {
     }
   }
 
-  // _trim(data) {
-  //   let asks = [],
-  //     bids = [];
-  //   data.forEach((d) => {
-  //     asks.push(d);
-  //     bids.push(d);
-  //   });
-  //   return bids.concat(asks);
-  // }
+  /**
+   * @param {String} lotSz
+   */
+  set lotSz(lotSz) {
+    this._lotSz = lotSz;
+  }
+
+  _trim(data) {
+    let asks = [],
+      bids = [];
+    data.forEach((d) => {
+      asks.push(d);
+      bids.push(d);
+    });
+    asks = asks
+      .filter((book) => (this._lotSz ? book.amount > this._lotSz : true))
+      .sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+    bids = bids
+      .filter((book) => (this._lotSz ? book.amount > this._lotSz : true))
+      .sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+    let length = Math.min(asks.length, bids.length, 50);
+    asks = asks.slice(0, length);
+    bids = bids.slice(0, length);
+    return bids.concat(asks);
+  }
 
   // ++ TODO: verify function works properly
   _calculateDifference(arrayA, arrayB) {
