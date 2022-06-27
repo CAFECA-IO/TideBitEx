@@ -111,10 +111,7 @@ class DepthBook extends BookBase {
             sumBidAmount = SafeMath.plus(bid.amount, sumBidAmount);
             return { ...bid, total: sumBidAmount };
           }),
-        total: SafeMath.plus(
-          asks[asks.length - 1]?.total || "0",
-          bids[bids.length - 1]?.total || "0"
-        ),
+        total: SafeMath.plus(sumAskAmount || "0", sumBidAmount || "0"),
       };
     } catch (error) {
       console.error(`[DepthBook getSnapshot]`, error);
