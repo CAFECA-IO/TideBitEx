@@ -205,8 +205,8 @@ class Middleman {
     this.tickerBook.setCurrentMarket(market);
     if (!this.tickerBook.getCurrentTicker()) await this._getTicker(market);
     this.depthBook.lotSz = this.tickerBook.getCurrentTicker()?.lotSz;
-    await this._getDepthBooks(market, 30);
-    await this._getTrades(market, 30);
+    await this._getDepthBooks(market);
+    await this._getTrades(market);
     // if (this.isLogin) {
     // TODO to verify if user is not login would be a problem
     await this._getOrderList(market);
