@@ -67,13 +67,10 @@ class DepthBook extends BookBase {
     return Object.values(result);
   };
 
-  getSnapshot(market) {
+  getSnapshot(market, lotSz) {
     try {
-      const depthBooks = {
-        market,
-        asks: [],
-        bids: [],
-      };
+      let asks = [],
+        bids = [];
       if (!this._snapshot[market]) this._snapshot[market] = [];
       const rangedArr = this.range(
         this._snapshot[market],
@@ -88,22 +85,29 @@ class DepthBook extends BookBase {
         )
           data = { ...data, update: true };
         if (data.side === "asks") {
-          depthBooks.asks.push(data);
+          asks.asks.push(data);
         }
         if (data.side === "bids") {
-          depthBooks.bids.push(data);
+          bids.bids.push(data);
         }
       }
+      asks = asks
+        .filter((book) => book.amount > lotSz)
+        .sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+      bids = bids
+        .filter((book) => book.amount > lotSz)
+        .sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+      let length = Math.min(asks.length, bids.length, 50);
+      asks = asks.slice(0, length);
+      bids = bids.slice(0, length);
+      console.log(`depthBooks length`, length)
       return {
-        asks: depthBooks.asks.sort(
-          (a, b) => parseFloat(a.price) - parseFloat(b.price)
-        ),
-        bids: depthBooks.bids.sort(
-          (a, b) => parseFloat(b.price) - parseFloat(a.price)
-        ),
+        market,
+        asks,
+        bids,
         total: SafeMath.plus(
-          depthBooks.asks[depthBooks.asks.length - 1]?.total || "0",
-          depthBooks.bids[depthBooks.bids.length - 1]?.total || "0"
+          asks[asks.length - 1]?.total || "0",
+          bids[bids.length - 1]?.total || "0"
         ),
       };
     } catch (error) {
@@ -112,15 +116,15 @@ class DepthBook extends BookBase {
     }
   }
 
-  _trim(data) {
-    let asks = [],
-      bids = [];
-    data.forEach((d) => {
-      asks.push(d);
-      bids.push(d);
-    });
-    return bids.concat(asks);
-  }
+  // _trim(data) {
+  //   let asks = [],
+  //     bids = [];
+  //   data.forEach((d) => {
+  //     asks.push(d);
+  //     bids.push(d);
+  //   });
+  //   return bids.concat(asks);
+  // }
 
   // ++ TODO: verify function works properly
   _calculateDifference(arrayA, arrayB) {
