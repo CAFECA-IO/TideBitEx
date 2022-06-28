@@ -96,7 +96,7 @@ class DepthBook extends BookBase {
           bids.push(data);
         }
       }
-      length = Math.min(asks.length, bids.length, 50);
+      length = 50;//Math.min(asks.length, bids.length, 50);
       return {
         market,
         asks: asks
