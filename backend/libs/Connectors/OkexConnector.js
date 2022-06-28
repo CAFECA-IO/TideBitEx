@@ -1456,10 +1456,10 @@ class OkexConnector extends ConnectorBase {
   _updateBooks(instId, data) {
     const [updateBooks] = data;
     const market = instId.replace("-", "").toLowerCase();
-    // this.logger.log(
-    //   `[FROM][OKEx][WS] _updateBooks updateBooks.asks`,
-    //   updateBooks.asks
-    // );
+    this.logger.log(
+      `[FROM][OKEx][WS] _updateBooks data`,
+      updateBooks
+    );
     // this.logger.log(
     //   `[FROM][OKEx][WS] _updateBooks updateBooks.bids`,
     //   updateBooks.bids

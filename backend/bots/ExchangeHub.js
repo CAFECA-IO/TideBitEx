@@ -498,7 +498,7 @@ class ExchangeHub extends Bot {
     const id = decodeURIComponent(query.symbol).replace("/", "").toLowerCase();
     const instId = this._findInstId(id);
     const market = this.tidebitMarkets.find((market) => market.id === id);
-    this.logger.log(`getTradingViewSymbol market`, market);
+    // this.logger.log(`getTradingViewSymbol market`, market);
     switch (this._findSource(instId)) {
       case SupportedExchange.OKEX:
         return this.okexConnector.router("getTradingViewSymbol", {
@@ -736,12 +736,12 @@ class ExchangeHub extends Bot {
 
   // TODO integrate getOrderList and getOrderHistory into one
   async getOrderList({ query, memberId }) {
-    this.logger.log(
-      `[${this.constructor.name} getOrderList] memberId:`,
-      memberId
-      // `query`,
-      // query
-    );
+    // this.logger.log(
+    //   `[${this.constructor.name} getOrderList] memberId:`,
+    //   memberId
+    //   // `query`,
+    //   // query
+    // );
     const instId = this._findInstId(query.market);
     // this.logger.log(`[${this.constructor.name} getOrderList] instId:`, instId);
     const market = this._findMarket(instId);
@@ -816,12 +816,12 @@ class ExchangeHub extends Bot {
   async getOrderHistory({ query, memberId }) {
     const instId = this._findInstId(query.market);
     const market = this._findMarket(instId);
-    this.logger.log(
-      `[${this.constructor.name} getOrderHistory instId(${instId})] memberId:`,
-      memberId,
-      `market`,
-      market
-    );
+    // this.logger.log(
+    //   `[${this.constructor.name} getOrderHistory instId(${instId})] memberId:`,
+    //   memberId,
+    //   `market`,
+    //   market
+    // );
     if (memberId === -1) {
       return new ResponseFormat({
         message: "getOrderHistory",
