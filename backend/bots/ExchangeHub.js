@@ -1231,7 +1231,8 @@ class ExchangeHub extends Bot {
     }
   }
 
-  async getOptions() {
+  async getOptions({ query }) {
+    this.logger.debug(`[${this.constructor.name}] getOptions`, this.config.websocket.domain);
     return Promise.resolve(
       new ResponseFormat({
         message: "getOptions",
