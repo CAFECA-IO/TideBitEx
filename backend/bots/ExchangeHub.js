@@ -1231,6 +1231,18 @@ class ExchangeHub extends Bot {
     }
   }
 
+  async getOptions({ query }) {
+    this.logger.debug(`[${this.constructor.name}] getOptions`, this.config.websocket.domain);
+    return Promise.resolve(
+      new ResponseFormat({
+        message: "getOptions",
+        payload: {
+          wsUrl: this.config.websocket.domain,
+        },
+      })
+    );
+  }
+
   async _updateOrderDetail(formatOrder) {
     this.logger.log(
       `---------- [${this.constructor.name}]  _updateOrderDetail [START] ----------`

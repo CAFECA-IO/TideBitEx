@@ -26,6 +26,9 @@ systemMemberId = 60976
 [redis]
 domain = 'redis://127.0.0.1:6379'
 
+[websocket]
+domain = 'ws.tidebit.network'
+
 [database]
 protocal = 'mysql'
 host = '127.0.0.1'
@@ -80,4 +83,7 @@ pathname = [
 
   # dashboard
   "get | /api/v1/dashboard | Bot.Dashboard.overview",
+
+  # options
+  "get | /api/v1/options | Bot.ExchangeHub.getOptions",
 ]
