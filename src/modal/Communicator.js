@@ -354,6 +354,24 @@ class Communicator {
     }
   }
 
+  async getOptions() {
+    try {
+      const url = `/options`;
+      // const res = await this._get(url);
+      const res = await this._request({
+        method: "GET",
+        url,
+      });
+      if (res.success) {
+        return res.data;
+      }
+      return Promise.reject({ message: res.message, code: res.code });
+    } catch (error) {
+      console.error(`[getOptions] error`, error);
+      return Promise.reject({ message: error });
+    }
+  }
+
   // use for need jwt request
   async _get(url) {
     try {

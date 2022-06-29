@@ -80,4 +80,7 @@ pathname = [
 
   # dashboard
   "get | /api/v1/dashboard | Bot.Dashboard.overview",
+
+  # options
+  "get | /api/v1/options | Bot.ExchangeHub.getOptions",
 ]
