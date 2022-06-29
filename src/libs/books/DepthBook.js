@@ -58,13 +58,15 @@ class DepthBook extends BookBase {
           if (SafeMath.eq(result[price].amount, "0")) {
             result[price] = { ...p, price };
           } else {
-            result[price].amount =
-              parseFloat(result[price].amount) + parseFloat(p.amount);
+            if (result[price].side === p.side)
+              result[price].amount =
+                parseFloat(result[price].amount) + parseFloat(p.amount);
+            else result[`${price}-${p.side}`] = { ...p, price };
           }
         }
       }
     }
-    return Object.values(result);
+    return Object.values(result).filter((data) => data.amount > 0);
   };
 
   getSnapshot(market, lotSz) {
@@ -94,7 +96,7 @@ class DepthBook extends BookBase {
           bids.push(data);
         }
       }
-      length = Math.min(asks.length, bids.length, 50);
+      length = 50;//Math.min(asks.length, bids.length, 50);
       return {
         market,
         asks: asks
@@ -176,7 +178,6 @@ class DepthBook extends BookBase {
       bookArr.push({
         price: ask[0],
         amount: ask[1],
-        total: ask[2],
         side: "asks",
       });
     });
@@ -184,7 +185,6 @@ class DepthBook extends BookBase {
       bookArr.push({
         price: bid[0],
         amount: bid[1],
-        total: bid[2],
         side: "bids",
       });
     });
