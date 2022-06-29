@@ -273,8 +273,8 @@ class Middleman {
   }
 
   async start(market) {
-    const wsUrl =await this.communicator.getOptions();
-    this.tbWebSocket.init({ url: wsUrl });
+    const options = await this.communicator.getOptions();
+    this.tbWebSocket.init({ url: options.wsUrl });
     this._tbWSEventListener();
     await this._getAccounts(market);
     await this._getTickers();
