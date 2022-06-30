@@ -724,8 +724,6 @@ class Utils {
   }
 
   static async getMemberIdFromRedis(redisDomain, peatioSession) {
-    console.log(`[UTILS] getMemberIdFromRedis redisDomain`, redisDomain)
-    console.log(`[UTILS] getMemberIdFromRedis peatioSession`,  peatioSession)
     const client = redis.createClient({
       url: redisDomain,
     });

@@ -39,6 +39,7 @@ class Receptor extends Bot {
     return (
       super
         .start()
+        // ++ TODO unsolve error (createPem)
         // .then(() => this.createPem())
         .then((options) => {
           // eslint-disable-next-line no-unused-expressions
@@ -197,6 +198,7 @@ class Receptor extends Bot {
   get servers() {
     return {
       HTTP: this.serverHTTP,
+      // ++ TODO unsolve error (createPem)
       // HTTPS: this.serverHTTPS,
     };
   }

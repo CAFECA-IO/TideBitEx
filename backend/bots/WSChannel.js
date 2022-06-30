@@ -92,7 +92,12 @@ class WSChannel extends Bot {
             }
             switch (op) {
               case "userStatusUpdate":
-                this._onOpStatusUpdate(req.headers, ws, args);
+                console.log(`[WSChannel] _onOpStatusUpdate this`, this);
+                console.log(
+                  `[WSChannel] _onOpStatusUpdate  this.redis`,
+                  this.redis
+                );
+                this._onOpStatusUpdate(req.headers, ws, args, this.redis);
                 break;
               case "switchMarket":
                 this.logger.log(
@@ -166,11 +171,9 @@ class WSChannel extends Bot {
 
   // TODO SPA LOGIN
   // ++ CURRENT_USER UNSAVED
-  async _onOpStatusUpdate(header, ws, args) {
+  async _onOpStatusUpdate(header, ws, args, redis) {
     const findClient = this._client[ws.id];
-    console.log(`[WSChannel] _onOpStatusUpdate this`, this)
-    console.log(`[WSChannel] _onOpStatusUpdate  this.redis`,  this.redis)
-    let { memberId } = await parseMemberId(header, this.redis);
+    let { memberId } = await parseMemberId(header, redis);
 
     if (!findClient.isStart) {
       findClient.channel = args.market;
