@@ -280,9 +280,9 @@ class Middleman {
       }/ws`,
     });
     this._tbWSEventListener();
-    await this._getAccounts(market);
-    await this._getTickers();
-    await this.selectMarket(market);
+     this._getAccounts(market);
+     this._getTickers();
+     this.selectMarket(market);
   }
 
   stop() {
