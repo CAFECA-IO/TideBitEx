@@ -36,7 +36,7 @@ class Receptor extends Bot {
   start() {
     return super
       .start()
-      .then(() => this.createPem())
+      // .then(() => this.createPem())
       .then((options) => {
         // eslint-disable-next-line no-unused-expressions
         this.database.leveldb;
@@ -194,7 +194,7 @@ class Receptor extends Bot {
   get servers() {
     return {
       HTTP: this.serverHTTP,
-      HTTPS: this.serverHTTPS,
+      // HTTPS: this.serverHTTPS,
     };
   }
 }
