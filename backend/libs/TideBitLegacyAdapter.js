@@ -49,7 +49,7 @@ class TideBitLegacyAdapter {
 
   // ++ middleware
   static async getMemberId(ctx, next, redisDomain) {
-    this.redisDomain = redisDomain;
+    console.log(`redisDomain`, redisDomain);
     const parsedResult = await TideBitLegacyAdapter.parseMemberId(
       ctx.header,
       redisDomain
