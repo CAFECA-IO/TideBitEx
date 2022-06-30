@@ -29,9 +29,13 @@ class TideBitLegacyAdapter {
       } else {
         try {
           console.log(
-            `!!! [TideBitLegacyAdapter parseMemberId] getMemberIdFromRedis`
+            `!!! [TideBitLegacyAdapter parseMemberId] getMemberIdFromRedis`,
+            radisDomain
           );
-          memberId = await Utils.getMemberIdFromRedis(radisDomain, peatioToken);
+          memberId = await Utils.getMemberIdFromRedis(
+            radisDomain || this.redisDomain,
+            peatioToken
+          );
           users[peatioToken] = { memberId, ts: Date.now() };
         } catch (error) {
           console.error(`parseMemberId getMemberIdFromRedis error`, error);
@@ -44,8 +48,12 @@ class TideBitLegacyAdapter {
   }
 
   // ++ middleware
-  static async getMemberId(ctx, next) {
-    const parsedResult = await TideBitLegacyAdapter.parseMemberId(ctx.header);
+  static async getMemberId(ctx, next, redisDomain) {
+    this.redisDomain = redisDomain;
+    const parsedResult = await TideBitLegacyAdapter.parseMemberId(
+      ctx.header,
+      redisDomain
+    );
     ctx.token = parsedResult.peatioToken;
     ctx.memberId = parsedResult.memberId;
     return next();
