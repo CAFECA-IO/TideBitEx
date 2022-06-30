@@ -14,7 +14,7 @@ class TideBitLegacyAdapter {
     });
   }
 
-  static async parseMemberId(header) {
+  static async parseMemberId(header, radisDomain) {
     if (Math.random() < 0.01) {
       TideBitLegacyAdapter.usersGC();
     }
@@ -31,7 +31,7 @@ class TideBitLegacyAdapter {
           console.log(
             `!!! [TideBitLegacyAdapter parseMemberId] getMemberIdFromRedis`
           );
-          memberId = await Utils.getMemberIdFromRedis(peatioToken);
+          memberId = await Utils.getMemberIdFromRedis(radisDomain, peatioToken);
           users[peatioToken] = { memberId, ts: Date.now() };
         } catch (error) {
           console.error(`parseMemberId getMemberIdFromRedis error`, error);

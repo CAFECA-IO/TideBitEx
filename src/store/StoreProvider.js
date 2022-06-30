@@ -284,7 +284,6 @@ const StoreProvider = (props) => {
   const sync = useCallback(() => {
     // console.log(`sync`);
     const time = Date.now();
-
     if (time - accountTs > accountInterval) {
       const accounts = middleman.getAccounts();
       // console.log(`middleman.accounts`, accounts);
@@ -329,7 +328,7 @@ const StoreProvider = (props) => {
       setIsLogin(middleman.isLogin);
       sync();
       console.log(`StoreProvider sync[${Date.now()}]`);
-      interval = setInterval(sync, 300);
+      interval = setInterval(sync, 600);
     }
   }, [history, location.pathname, middleman, sync]);
 

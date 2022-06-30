@@ -17,8 +17,10 @@ class WSChannel extends Bot {
     this.name = "WSChannel";
   }
 
-  init({ database, logger, i18n }) {
-    return super.init({ database, logger, i18n });
+  init({ config, database, logger, i18n }) {
+    this.config = config;
+    this.redis = this.config.redis.domain;
+    return super.init({ config, database, logger, i18n });
   }
 
   start() {
@@ -166,7 +168,9 @@ class WSChannel extends Bot {
   // ++ CURRENT_USER UNSAVED
   async _onOpStatusUpdate(header, ws, args) {
     const findClient = this._client[ws.id];
-    let { memberId } = await parseMemberId(header);
+    console.log(`[WSChannel] _onOpStatusUpdate this`, this)
+    console.log(`[WSChannel] _onOpStatusUpdate  this.redis`,  this.redis)
+    let { memberId } = await parseMemberId(header, this.redis);
 
     if (!findClient.isStart) {
       findClient.channel = args.market;
