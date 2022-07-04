@@ -284,13 +284,14 @@ const StoreProvider = (props) => {
   const sync = useCallback(() => {
     // console.log(`sync`);
     const time = Date.now();
-
     if (time - accountTs > accountInterval) {
       const accounts = middleman.getAccounts();
       // console.log(`middleman.accounts`, accounts);
       setAccounts(accounts);
     }
     if (time - tickerTs > tickerInterval) {
+      let ticker = middleman.getTicker();
+      if (ticker) setPrecision(ticker);
       setSelectedTicker(middleman.getTicker());
     }
     if (time - depthTs > depthInterval) {
@@ -315,7 +316,6 @@ const StoreProvider = (props) => {
 
   const start = useCallback(async () => {
     if (location.pathname.includes("/markets")) {
-      console.log(`StoreProvider start`, location.pathname);
       let market;
       market = location.pathname.includes("/markets/")
         ? location.pathname.replace("/markets/", "")
@@ -325,10 +325,8 @@ const StoreProvider = (props) => {
       });
       await middleman.start(market);
       setIsLogin(middleman.isLogin);
-      const ticker = middleman.getTicker();
-      setPrecision(ticker);
       sync();
-      interval = setInterval(sync, 100);
+      interval = setInterval(sync, 600);
     }
   }, [history, location.pathname, middleman, sync]);
 
