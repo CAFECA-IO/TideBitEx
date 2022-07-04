@@ -723,9 +723,9 @@ class Utils {
     return token;
   }
 
-  static async getMemberIdFromRedis(peatioSession) {
+  static async getMemberIdFromRedis(redisDomain, peatioSession) {
     const client = redis.createClient({
-      url: this.redis,
+      url: redisDomain,
     });
     client.on("error", (err) => console.error("Redis Client Error", err));
 

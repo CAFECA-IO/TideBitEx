@@ -27,6 +27,8 @@ class Receptor extends Bot {
   }
 
   init({ config, database, logger, i18n }) {
+    this.config = config;
+    this.redis = this.config.redis.domain;
     return super
       .init({ config, database, logger, i18n })
       .then(() => this.registerAll())
@@ -34,26 +36,29 @@ class Receptor extends Bot {
   }
 
   start() {
-    return super
-      .start()
-      .then(() => this.createPem())
-      .then((options) => {
-        // eslint-disable-next-line no-unused-expressions
-        this.database.leveldb;
-      })
-      .then((options) => {
-        const sessionSecret = dvalue.randomID(24);
-        const app = new koa();
-        const peatio = this.config.peatio.domain;
-        app
-          .use(cors())
-          .use(staticServe(this.config.base.static))
-          .use(getMemberId)
-          .use(this.router.routes())
-          .use(this.router.allowedMethods())
-          .use(proxy(peatio));
-        return this.listen({ options, callback: app.callback() });
-      });
+    return (
+      super
+        .start()
+        // ++ TODO unsolve error (createPem)
+        // .then(() => this.createPem())
+        .then((options) => {
+          // eslint-disable-next-line no-unused-expressions
+          this.database.leveldb;
+        })
+        .then((options) => {
+          const sessionSecret = dvalue.randomID(24);
+          const app = new koa();
+          const peatio = this.config.peatio.domain;
+          app
+            .use(cors())
+            .use(staticServe(this.config.base.static))
+            .use((ctx, next) => getMemberId(ctx, next, this.redis))
+            .use(this.router.routes())
+            .use(this.router.allowedMethods())
+            .use(proxy(peatio));
+          return this.listen({ options, callback: app.callback() });
+        })
+    );
   }
 
   createPem() {
@@ -121,14 +126,13 @@ class Receptor extends Bot {
           memberId: ctx.memberId,
         };
         return operation(inputs).then((rs) => {
-          if(rs.html) {
+          if (rs.html) {
             ctx.body = rs.html;
-            ctx.type = 'html';
-          }
-          else {
+            ctx.type = "html";
+          } else {
             ctx.body = rs;
           }
-          
+
           // ++ TODO 需新增寫入 session 的功能
           next();
         });
@@ -194,7 +198,8 @@ class Receptor extends Bot {
   get servers() {
     return {
       HTTP: this.serverHTTP,
-      HTTPS: this.serverHTTPS,
+      // ++ TODO unsolve error (createPem)
+      // HTTPS: this.serverHTTPS,
     };
   }
 }

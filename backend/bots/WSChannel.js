@@ -17,8 +17,10 @@ class WSChannel extends Bot {
     this.name = "WSChannel";
   }
 
-  init({ database, logger, i18n }) {
-    return super.init({ database, logger, i18n });
+  init({ config, database, logger, i18n }) {
+    this.config = config;
+    this.redis = this.config.redis.domain;
+    return super.init({ config, database, logger, i18n });
   }
 
   start() {
@@ -90,7 +92,12 @@ class WSChannel extends Bot {
             }
             switch (op) {
               case "userStatusUpdate":
-                this._onOpStatusUpdate(req.headers, ws, args);
+                console.log(`[WSChannel] _onOpStatusUpdate this`, this);
+                console.log(
+                  `[WSChannel] _onOpStatusUpdate  this.redis`,
+                  this.redis
+                );
+                this._onOpStatusUpdate(req.headers, ws, args, this.redis);
                 break;
               case "switchMarket":
                 this.logger.log(
@@ -164,9 +171,9 @@ class WSChannel extends Bot {
 
   // TODO SPA LOGIN
   // ++ CURRENT_USER UNSAVED
-  async _onOpStatusUpdate(header, ws, args) {
+  async _onOpStatusUpdate(header, ws, args, redis) {
     const findClient = this._client[ws.id];
-    let { memberId } = await parseMemberId(header);
+    let { memberId } = await parseMemberId(header, redis);
 
     if (!findClient.isStart) {
       findClient.channel = args.market;
