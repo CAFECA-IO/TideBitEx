@@ -285,33 +285,33 @@ const StoreProvider = (props) => {
     // console.log(`sync`);
     const time = Date.now();
 
-    if (time - accountTs > accountInterval) {
+    // if (time - accountTs > accountInterval) {
       const accounts = middleman.getAccounts();
       // console.log(`middleman.accounts`, accounts);
       setIsLogin(middleman.isLogin);
       setAccounts(accounts);
-    }
-    if (time - tickerTs > tickerInterval) {
+    // }
+    // if (time - tickerTs > tickerInterval) {
       setSelectedTicker(middleman.getTicker());
-    }
-    if (time - depthTs > depthInterval) {
+    // }
+    // if (time - depthTs > depthInterval) {
       // console.log(`middleman.getDepthBooks()`, middleman.getDepthBooks());
       setBooks(middleman.getDepthBooks());
-    }
-    if (time - tradeTs > tradeInterval) {
+    // }
+    // if (time - tradeTs > tradeInterval) {
       // console.log(`middleman.getTrades()`, middleman.getTrades());
       setTrades(middleman.getTrades());
-    }
-    if (time - tickersTs > tickersInterval) {
+    // }
+    // if (time - tickersTs > tickersInterval) {
       setTickers(middleman.getTickers());
-    }
-    // TODO orderBook is not completed
-    if (time - orderTs > orderInterval) {
+    // }
+    // // TODO orderBook is not completed
+    // if (time - orderTs > orderInterval) {
       // console.log(`middleman.getMyOrders()`, middleman.getMyOrders());
       const orders = middleman.getMyOrders();
       setPendingOrders(orders.pendingOrders);
       setCloseOrders(orders.closedOrders);
-    }
+    // }
   }, [middleman]);
 
   const start = useCallback(async () => {
@@ -329,7 +329,7 @@ const StoreProvider = (props) => {
       const ticker = middleman.getTicker();
       setPrecision(ticker);
       sync();
-      interval = setInterval(sync, 100);
+      interval = setInterval(sync, 300);
     }
   }, [history, location.pathname, middleman, sync]);
 
