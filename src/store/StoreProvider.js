@@ -288,6 +288,7 @@ const StoreProvider = (props) => {
     if (time - accountTs > accountInterval) {
       const accounts = middleman.getAccounts();
       // console.log(`middleman.accounts`, accounts);
+      setIsLogin(middleman.isLogin);
       setAccounts(accounts);
     }
     if (time - tickerTs > tickerInterval) {
