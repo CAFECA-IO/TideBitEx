@@ -284,9 +284,11 @@ const StoreProvider = (props) => {
   const sync = useCallback(() => {
     // console.log(`sync`);
     const time = Date.now();
+
     if (time - accountTs > accountInterval) {
       const accounts = middleman.getAccounts();
       // console.log(`middleman.accounts`, accounts);
+      setIsLogin(middleman.isLogin);
       setAccounts(accounts);
     }
     if (time - tickerTs > tickerInterval) {
@@ -305,7 +307,7 @@ const StoreProvider = (props) => {
     if (time - tickersTs > tickersInterval) {
       setTickers(middleman.getTickers());
     }
-    // TODO orderBook is not completed
+    // // TODO orderBook is not completed
     if (time - orderTs > orderInterval) {
       // console.log(`middleman.getMyOrders()`, middleman.getMyOrders());
       const orders = middleman.getMyOrders();
@@ -326,7 +328,8 @@ const StoreProvider = (props) => {
       await middleman.start(market);
       setIsLogin(middleman.isLogin);
       sync();
-      interval = setInterval(sync, 600);
+      interval = setInterval(sync, 300);
+
     }
   }, [history, location.pathname, middleman, sync]);
 
