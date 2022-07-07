@@ -39,14 +39,13 @@ class TideBitLegacyAdapter {
           users[peatioToken] = { memberId, ts: Date.now() };
         }
       }
-      // console.log(`parseMemberId users[${peatioToken}]`, users[peatioToken]);
     }
+     console.log(`TideBitLegacyAdapter parseMemberId users[${peatioToken}]`, users[peatioToken], `memberId:${memberId}`);
     return { peatioToken, memberId };
   }
 
   // ++ middleware
   static async getMemberId(ctx, next, redisDomain) {
-    console.log(`redisDomain`, redisDomain);
     const parsedResult = await TideBitLegacyAdapter.parseMemberId(
       ctx.header,
       redisDomain
