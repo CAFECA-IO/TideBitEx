@@ -13,10 +13,12 @@ class WebSocket {
     if (!url) throw new Error("Invalid input");
     this.url = url;
     this.heartBeatTime = heartBeat;
+    this.logger.log("custom WebSocket this.url", this.url);
     this.ws = new ws(this.url);
 
     return new Promise((resolve) => {
       this.ws.onopen = (r) => {
+        this.logger.log("custom WebSocket", `onopen`);
         this.heartbeat();
         this.eventListener();
         return resolve(r);
@@ -28,7 +30,7 @@ class WebSocket {
     this.ws.on("pong", () => this.heartbeat());
     this.ws.on("close", async (event) => await this.clear(event));
     this.ws.on("error", async (err) => {
-      this.logger.error(err);
+      this.logger.error("custom WebSocket",err);
       clearTimeout(this.wsReConnectTimeout);
       this.wsReConnectTimeout = setTimeout(async () => {
         await this.init({ url: this.url });
