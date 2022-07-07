@@ -136,6 +136,7 @@ class WSChannel extends Bot {
                 Object.values(this._channelClients[findClient.channel])
                   .length === 0
               ) {
+                this.logger.debug(`[${this.constructor.name}] ws.on("close") emit Events.tickerOnUnsubscribe:channel[${findClient.channel}]`);
                 EventBus.emit(
                   Events.tickerOnUnsubscribe,
                   findClient.channel,
@@ -241,6 +242,7 @@ class WSChannel extends Bot {
       const oldChannel = findClient.channel;
       delete this._channelClients[oldChannel][ws.id];
       if (Object.values(this._channelClients[oldChannel]).length === 0) {
+        this.logger.debug(`[${this.constructor.name}]_onOpSwitchMarket emit Events.tickerOnUnsubscribe:oldchannel[${oldChannel}]`);
         EventBus.emit(Events.tickerOnUnsubscribe, oldChannel, ws.id);
       }
       findClient.channel = args.market;
