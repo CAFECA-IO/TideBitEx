@@ -1305,7 +1305,7 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _startPusher() {
-    this._okexWsEventListener();
+    this._tidebitWsEventListener();
     this.websocket.ws.send(
       JSON.stringify({
         event: "pusher:subscribe",
