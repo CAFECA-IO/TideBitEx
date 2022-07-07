@@ -8,6 +8,7 @@ import TradeBook from "../libs/books/TradeBook";
 import TideBitWS from "../libs/TideBitWS";
 import SafeMath from "../utils/SafeMath";
 import Communicator from "./Communicator";
+import Pusher from "pusher-js";
 
 class Middleman {
   constructor() {
@@ -212,6 +213,19 @@ class Middleman {
     await this._getOrderList(market);
     await this._getOrderHistory(market);
     // }
+    let pusher = new Pusher("2b78567f96a2c0f40368", {
+      wsHost: "pusher.tinfo.top",
+      port: 4567,
+      disableFlash: true,
+      disableStats: true,
+      disabledTransports: ["flash", "sockjs"],
+      forceTLS: false,
+    });
+    window.pusher = pusher;
+    let channel = pusher.subscribe(`market-${market}-global`);
+    window.channel = channel;
+    channel.bind("update", (data) => console.log(`update`, data));
+    channel.bind("trades", (data) => console.log(`trades`, data));
   }
 
   _tbWSEventListener() {
