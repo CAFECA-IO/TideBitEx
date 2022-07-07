@@ -533,10 +533,10 @@ class TibeBitConnector extends ConnectorBase {
 
   // ++ TODO: verify function works properly
   _updateTrades(market, data) {
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  _updateTrades [START] ----------`
-    // );
-    // this.logger.log(`[FROM TideBit market:${market}] data`, data);
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateTrades [START] ----------`
+    );
+    this.logger.log(`[FROM TideBit market:${market}] data`, data);
     /**
     {
        trades: [
@@ -554,17 +554,14 @@ class TibeBitConnector extends ConnectorBase {
     this.tradeBook.updateByDifference(instId, {
       add: data.trades.map((trade) => this._formateTrade(market, trade)),
     });
-    // const timestamp = Date.now();
-    // if (timestamp - this._tradesTimestamp > this._tradesUpdateInterval) {
-    //   this._tradesTimestamp = timestamp;
+
     EventBus.emit(Events.trades, market, {
       market,
       trades: this.tradeBook.getSnapshot(instId),
     });
-    // this.logger.log(
-    //   `---------- [${this.constructor.name}]  _updateTrades [END] ----------`
-    // );
-    // }
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateTrades [END] ----------`
+    );
   }
 
   /* 
@@ -1143,11 +1140,19 @@ class TibeBitConnector extends ConnectorBase {
           "update",
           (data) => this._updateBooks(market, data)
         );
+        this.logger.log(
+          `---------- [${this.constructor.name}]  _registerMarketChannel [this.market_channel[market-${market}-global]["channel"].bind(
+            "update"] ----------`
+        );
         this.market_channel[`market-${market}-global`]["channel"].bind(
           "trades",
           (data) => {
             this._updateTrades(market, data);
           }
+        );
+        this.logger.log(
+          `---------- [${this.constructor.name}]  _registerMarketChannel [this.market_channel[market-${market}-global]["channel"].bind(
+            "trades"] ----------`
         );
         this.market_channel[`market-${market}-global`]["listener"] = [wsId];
       } catch (error) {
