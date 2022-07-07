@@ -100,8 +100,6 @@ class TibeBitConnector extends ConnectorBase {
         // subscribe return
         const channel = data.channel;
         const market = channel?.replace(`market-`, "").replace("-global", "");
-        console.log(`_tidebitWsEventListener market`, market);
-        console.log(`_tidebitWsEventListener data`, data.data);
         delete data.channel;
         if (data.event === "pusher_internal:subscription_succeeded") {
           this.tidebitWsChannels[channel] =
@@ -116,17 +114,15 @@ class TibeBitConnector extends ConnectorBase {
         } else if (data.event === "error") {
           this.logger.log("!!! _tidebitWsEventListener on event error", data);
         }
-        // +++++ !!!! 0708 ++TODO +++++
-        // 收到的資訊沒有串上更新 function
         switch (data.event) {
           case "trades":
-            this._updateTrades(market, data.data);
+            this._updateTrades(market, JSON.parse(data.data));
             break;
           case "update":
-            this._updateBooks(market, data.data);
+            this._updateBooks(market, JSON.parse(data.data));
             break;
           case "tickers":
-            this._updateTickers(data.data);
+            this._updateTickers(JSON.parse(data.data));
             break;
           default:
         }
