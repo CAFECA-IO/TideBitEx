@@ -92,34 +92,7 @@ class DepthBook extends BookBase {
     return bookArr;
   }
 
-  // ++ TODO: verify function works properly
-  _trim(data) {
-    let sumAskAmount = "0",
-      sumBidAmount = "0",
-      asks = [],
-      bids = [];
-    data.forEach((d) => {
-      if (d.side === "asks" && asks.length < 50) {// ++ 30 -- TEST
-        asks.push(d);
-      }
-      if (d.side === "bids" && bids.length < 50) {// -- TEST
-        bids.push(d);
-      }
-    });
-    asks = asks
-      .sort((a, b) => +a.price - +b.price)
-      .map((ask) => {
-        sumAskAmount = SafeMath.plus(ask.amount, sumAskAmount);
-        return { ...ask, total: sumAskAmount };
-      });
-    bids = bids
-      .sort((a, b) => +b.price - +a.price)
-      .map((bid) => {
-        sumBidAmount = SafeMath.plus(bid.amount, sumBidAmount);
-        return { ...bid, total: sumBidAmount };
-      });
-    return bids.concat(asks);
-  }
+
   /**
    *
    *   
@@ -177,7 +150,7 @@ class DepthBook extends BookBase {
         this._formateBooks(data)
       );
       // this.logger.log(`_getDifference update`, result.update);
-      this._snapshot[instId] = this._trim(result.update);
+      this._snapshot[instId] = this._trim(instId, result.update);
       this._difference[instId] = this.result.difference;
       return true;
     } catch (error) {
