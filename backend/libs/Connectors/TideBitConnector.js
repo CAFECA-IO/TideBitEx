@@ -9,7 +9,8 @@ const Utils = require("../Utils");
 const ResponseFormat = require("../ResponseFormat");
 const Codes = require("../../constants/Codes");
 const TideBitLegacyAdapter = require("../TideBitLegacyAdapter");
-const WebSocket = require("../WebSocket");
+// const WebSocket = require("../WebSocket");
+const ws = require("ws");
 
 const HEART_BEAT_TIME = 25000;
 class TibeBitConnector extends ConnectorBase {
@@ -81,19 +82,39 @@ class TibeBitConnector extends ConnectorBase {
     this.accountBook = accountBook;
     this.orderBook = orderBook;
     this.tidebitMarkets = tidebitMarkets;
-    await this.websocket.init({
-      url: `wss://${this.wsHost}/app/${this.key}?protocol=7&client=js&version=2.2.0&flash=false`,
-      heartBeat: HEART_BEAT_TIME,
-      options:{
+    // await this.websocket.init({
+    //   url: `wss://${this.wsHost}/app/${this.key}?protocol=7&client=js&version=2.2.0&flash=false`,
+    //   heartBeat: HEART_BEAT_TIME,
+    //   options:{
+    //     perMessageDeflate: false,
+    //     rejectUnauthorized: false,
+    //   },
+    // });
+    const c = new ws(
+      `wss://${this.wsHost}/app/${this.key}?protocol=7&client=js&version=2.2.0&flash=false`,
+      {
         perMessageDeflate: false,
         rejectUnauthorized: false,
-      },
+      }
+    );
+    c.on("open", function open() {
+      c.send(
+        JSON.stringify({
+          event: "pusher:subscribe",
+          data: { channel: "market-btchkd-global" },
+        })
+      );
+    });
+
+    c.on("message", function message(data) {
+      console.log("received: %s", data);
     });
     return this;
   }
 
   _tidebitWsEventListener() {
     this.websocket.onmessage = (event) => {
+      console.log(`_tidebitWsEventListener event`, event);
       const data = JSON.parse(event.data);
       console.log(`_tidebitWsEventListener data`, data);
       if (data.event) {
@@ -1233,8 +1254,8 @@ class TibeBitConnector extends ConnectorBase {
       this.market_channel[`market-${market}-global`]["listener"].push(wsId);
     }
     this.logger.log(
-      `[${this.constructor.name}]  this.market_channel[market-${market}-global]["channel"]`,
-      this.market_channel[`market-${market}-global`]["channel"],
+      `[${this.constructor.name}]  this.market_channel[market-${market}-global]`,
+      this.market_channel[`market-${market}-global`]
     );
   }
 
