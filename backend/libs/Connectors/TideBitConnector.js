@@ -1237,7 +1237,7 @@ class TibeBitConnector extends ConnectorBase {
       disableFlash: true,
       disableStats: true,
       disabledTransports: ["flash", "sockjs"],
-      forceTLS: false,
+      forceTLS: true,
     });
     this.isStart = true;
     this._registerGlobalChannel();
