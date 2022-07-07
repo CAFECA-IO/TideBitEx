@@ -1235,8 +1235,6 @@ class TibeBitConnector extends ConnectorBase {
     this.logger.log(
       `[${this.constructor.name}]  this.market_channel[market-${market}-global]["channel"]`,
       this.market_channel[`market-${market}-global`]["channel"],
-      ` this.public_pusher.timeline.events`,
-      this.public_pusher.timeline.events
     );
   }
 
