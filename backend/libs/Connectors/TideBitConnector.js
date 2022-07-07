@@ -94,13 +94,13 @@ class TibeBitConnector extends ConnectorBase {
 
   _tidebitWsEventListener() {
     this.websocket.onmessage = (event) => {
-      console.log(`_tidebitWsEventListener event`, event);
       const data = JSON.parse(event.data);
       console.log(`_tidebitWsEventListener data`, data);
-      if (data.event) {
+      
+      if (data.event !== 'pusher:error') {
         // subscribe return
         const channel = data.channel;
-        const market = channel.replace(`market-`, "").replace("-global", "");
+        const market = channel?.replace(`market-`, "").replace("-global", "");
         delete data.channel;
         if (data.event === "pusher_internal:subscription_succeeded") {
           this.tidebitWsChannels[channel] =
