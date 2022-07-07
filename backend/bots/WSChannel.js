@@ -92,11 +92,6 @@ class WSChannel extends Bot {
             }
             switch (op) {
               case "userStatusUpdate":
-                console.log(`[WSChannel] _onOpStatusUpdate this`, this);
-                console.log(
-                  `[WSChannel] _onOpStatusUpdate  this.redis`,
-                  this.redis
-                );
                 this._onOpStatusUpdate(req.headers, ws, args, this.redis);
                 break;
               case "switchMarket":
@@ -149,10 +144,6 @@ class WSChannel extends Bot {
               }
             }
             if (findClient.isPrivate) {
-              this.logger.debug(
-                `findClient isPrivate${findClient.isPrivate}`,
-                findClient
-              );
               this.logger.debug(`this._privateClient`, this._privateClient);
               EventBus.emit(Events.userOnUnsubscribe, ws.id);
               findClient.isPrivate = false;
