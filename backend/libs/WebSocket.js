@@ -9,12 +9,15 @@ class WebSocket {
     return this;
   }
 
-  init({ url, heartBeat = HEART_BEAT_TIME }) {
+  init({ url, heartBeat = HEART_BEAT_TIME, options }) {
     if (!url) throw new Error("Invalid input");
     this.url = url;
     this.heartBeatTime = heartBeat;
     this.logger.log("custom WebSocket this.url", this.url);
-    this.ws = new ws(this.url);
+    if (!!options) {
+      this.options = { ...options };
+      this.ws = new ws(this.url, this.options);
+    } else this.ws = new ws(this.url);
 
     return new Promise((resolve) => {
       this.ws.onopen = (r) => {
@@ -30,7 +33,7 @@ class WebSocket {
     this.ws.on("pong", () => this.heartbeat());
     this.ws.on("close", async (event) => await this.clear(event));
     this.ws.on("error", async (err) => {
-      this.logger.error("custom WebSocket",err);
+      this.logger.error("custom WebSocket", err);
       clearTimeout(this.wsReConnectTimeout);
       this.wsReConnectTimeout = setTimeout(async () => {
         await this.init({ url: this.url });

@@ -82,8 +82,12 @@ class TibeBitConnector extends ConnectorBase {
     this.orderBook = orderBook;
     this.tidebitMarkets = tidebitMarkets;
     await this.websocket.init({
-      url: `ws://${this.wsHost}/app/${this.key}?protocol=7&client=js&version=2.2.0&flash=false`,
+      url: `wss://${this.wsHost}/app/${this.key}?protocol=7&client=js&version=2.2.0&flash=false`,
       heartBeat: HEART_BEAT_TIME,
+      options:{
+        perMessageDeflate: false,
+        rejectUnauthorized: false,
+      },
     });
     return this;
   }
@@ -1168,7 +1172,7 @@ class TibeBitConnector extends ConnectorBase {
         JSON.stringify({
           event: "pusher:subscribe",
           data: {
-            auth: "",
+            auth: `${this.key}:authTOKEN`, // TODO
             channel: `private-${sn}`,
           },
         })
