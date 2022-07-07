@@ -222,10 +222,12 @@ class Middleman {
       forceTLS: false,
     });
     window.pusher = pusher;
-    let channel = pusher.subscribe(`market-${market}-global`);
-    window.channel = channel;
-    channel.bind("update", (data) => console.log(`update`, data));
-    channel.bind("trades", (data) => console.log(`trades`, data));
+    // let channel = pusher.subscribe(`market-${market}-global`);
+    // window.channel = channel;
+    // channel.bind("update", (data) => console.log(`update`, data));
+    // channel.bind("trades", (data) => console.log(`trades`, data));
+    // let globalChannel = pusher.subscribe("market-global");
+    // globalChannel.bind("tickers", (data) => console.log(`tickers`,data));
   }
 
   _tbWSEventListener() {
