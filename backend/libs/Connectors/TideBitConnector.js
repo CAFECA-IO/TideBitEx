@@ -272,7 +272,10 @@ class TibeBitConnector extends ConnectorBase {
     at: 1649742406
   },}
     */
-    // this.logger.log(`[${this.constructor.name}]_updateTickers data`, data);
+    this.logger.log(
+      `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
+    );
+    this.logger.log(`[FROM TideBit]  _updateTickers data`, data);
     Object.values(data).forEach((d) => {
       const ticker = this._formateTicker(d);
       if (this._findSource(ticker.instId) === SupportedExchange.TIDEBIT) {
@@ -1158,7 +1161,8 @@ class TibeBitConnector extends ConnectorBase {
     this.logger.log(
       `[${this.constructor.name}]  this.market_channel[market-${market}-global]["channel"]`,
       this.market_channel[`market-${market}-global`]["channel"],
-     ` this.public_pusher.timeline.events`, this.public_pusher.timeline.events
+      ` this.public_pusher.timeline.events`,
+      this.public_pusher.timeline.events
     );
   }
 
