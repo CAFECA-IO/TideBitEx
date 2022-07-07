@@ -9,7 +9,7 @@ const Utils = require("../Utils");
 const ResponseFormat = require("../ResponseFormat");
 const Codes = require("../../constants/Codes");
 const TideBitLegacyAdapter = require("../TideBitLegacyAdapter");
-// const WebSocket = require("../WebSocket");
+const WebSocket = require("../WebSocket");
 const ws = require("ws");
 
 const HEART_BEAT_TIME = 25000;
