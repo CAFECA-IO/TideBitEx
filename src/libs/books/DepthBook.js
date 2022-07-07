@@ -78,7 +78,7 @@ class DepthBook extends BookBase {
         bids = [];
       if (!this._snapshot[market]) this._snapshot[market] = [];
       const rangedArr = this.range(
-        this._snapshot[market].filter((book) => book.amount > lotSz),
+        this._snapshot[market].filter((book) => book.amount >= lotSz),
         parseFloat(this.unit)
       );
       for (let i = 0; i < rangedArr.length; i++) {
