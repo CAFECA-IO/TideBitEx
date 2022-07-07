@@ -57,6 +57,7 @@ class TibeBitConnector extends ConnectorBase {
     await super.init();
     this.app = app;
     this.key = key;
+    this.port = port;
     this.secret = secret;
     this.wsHost = wsHost;
     this.wsPort = wsPort;
@@ -1228,10 +1229,11 @@ class TibeBitConnector extends ConnectorBase {
 
   _startPusher() {
     this.public_pusher = new Pusher(this.key, {
-      encrypted: this.encrypted,
+      // encrypted: this.encrypted,
       wsHost: this.wsHost,
-      wsPort: this.wsPort,
-      wssPort: this.wssPort,
+      // wsPort: this.wsPort,
+      // wssPort: this.wssPort,
+      port: this.port,
       disableFlash: true,
       disableStats: true,
       disabledTransports: ["flash", "sockjs"],
@@ -1239,9 +1241,9 @@ class TibeBitConnector extends ConnectorBase {
     });
     this.isStart = true;
     this._registerGlobalChannel();
-    // this.public_pusher.bind_global((data) =>
-    //   this.logger.log(`[_startPusher][bind_global] data`, data)
-    // );
+    this.public_pusher.bind_global((data) =>
+      this.logger.log(`[_startPusher][bind_global] data`, data)
+    );
   }
 
   _startPusherWithLoginToken(headers) {
