@@ -20,9 +20,7 @@ class TideBitLegacyAdapter {
     }
     let peatioToken,
       memberId = -1;
-    console.log(`parseMemberId header`, header);
     peatioToken = Utils.peatioToken(header);
-    console.log(`parseMemberId peatioToken`, peatioToken);
     if (peatioToken) {
       if (users[peatioToken]) {
         memberId = users[peatioToken].memberId;
@@ -40,7 +38,10 @@ class TideBitLegacyAdapter {
         }
       }
     }
-     console.log(`TideBitLegacyAdapter parseMemberId users[${peatioToken}]`, users[peatioToken], `memberId:${memberId}`);
+    console.log(
+      `TideBitLegacyAdapter parseMemberId users[${peatioToken}]`,
+      users[peatioToken]
+    );
     return { peatioToken, memberId };
   }
 
