@@ -82,7 +82,7 @@ class TibeBitConnector extends ConnectorBase {
     this.orderBook = orderBook;
     this.tidebitMarkets = tidebitMarkets;
     await this.websocket.init({
-      url: `wss://${this.wsHost}/app/${this.key}?protocol=7&client=js&version=2.2.0&flash=false`,
+      url: `ws://${this.wsHost}/app/${this.key}?protocol=7&client=js&version=2.2.0&flash=false`,
       heartBeat: HEART_BEAT_TIME,
     });
     return this;
