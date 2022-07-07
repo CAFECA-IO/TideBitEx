@@ -84,7 +84,7 @@ class TibeBitConnector extends ConnectorBase {
     await this.websocket.init({
       url: `wss://${this.wsHost}/app/${this.key}?protocol=7&client=js&version=2.2.0&flash=false`,
       heartBeat: HEART_BEAT_TIME,
-      options:{
+      options: {
         perMessageDeflate: false,
         rejectUnauthorized: false,
       },
@@ -95,12 +95,13 @@ class TibeBitConnector extends ConnectorBase {
   _tidebitWsEventListener() {
     this.websocket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log(`_tidebitWsEventListener data`, data);
-      
-      if (data.event !== 'pusher:error') {
+
+      if (data.event !== "pusher:error") {
         // subscribe return
         const channel = data.channel;
         const market = channel?.replace(`market-`, "").replace("-global", "");
+        console.log(`_tidebitWsEventListener market`, market);
+        console.log(`_tidebitWsEventListener data`, data.data);
         delete data.channel;
         if (data.event === "pusher_internal:subscription_succeeded") {
           this.tidebitWsChannels[channel] =
@@ -115,16 +116,15 @@ class TibeBitConnector extends ConnectorBase {
         } else if (data.event === "error") {
           this.logger.log("!!! _tidebitWsEventListener on event error", data);
         }
-        switch (channel) {
+        // +++++ !!!! 0708 ++TODO +++++
+        // 收到的資訊沒有串上更新 function
+        switch (data.event) {
           case "trades":
             this._updateTrades(market, data.data);
             break;
           case "update":
-            if (data.action === "update") {
-              this._updateBooks(market, data.data);
-            }
+            this._updateBooks(market, data.data);
             break;
-
           case "tickers":
             this._updateTickers(data.data);
             break;
