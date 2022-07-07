@@ -22,6 +22,7 @@ const StoreContext = React.createContext({
   lotSz: null,
   // orderTypeHandler: (orderType) => {},
   setIsLogin: () => {},
+  sync: () => {},
   start: () => {},
   stop: () => {},
   depthBookHandler: (price, amount) => {},

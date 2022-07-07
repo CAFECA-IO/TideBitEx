@@ -1179,18 +1179,13 @@ class TibeBitConnector extends ConnectorBase {
       if (
         this.market_channel[`market-${market}-global`]["listener"]?.length > 0
       ) {
-        const index = this.market_channel[`market-${market}-global`][
-          "listener"
-        ].findIndex((_wsId) => _wsId === wsId);
-        this.logger.log(`_unregisterMarketChannel index[${index}] wsId[${wsId}]`)
         this.market_channel[`market-${market}-global`]["listener"] =
-          this.market_channel[`market-${market}-global`]["listener"].splice(
-            index,
-            1
+          this.market_channel[`market-${market}-global`]["listener"].filter(
+            (_wsId) => _wsId !== wsId
           );
       }
       this.logger.log(
-        `_unregisterMarketChannel this.market_channel`,
+        `_unregisterMarketChannel this.market_channel filtered`,
         this.market_channel
       );
       if (

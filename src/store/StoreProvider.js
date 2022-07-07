@@ -5,8 +5,7 @@ import Middleman from "../modal/Middleman";
 import StoreContext from "./store-context";
 import SafeMath from "../utils/SafeMath";
 
-let timer,
-  interval,
+let interval,
   accountInterval = 500,
   accountTs = 0,
   depthInterval = 300,
@@ -315,8 +314,6 @@ const StoreProvider = (props) => {
       setPendingOrders(orders.pendingOrders);
       setCloseOrders(orders.closedOrders);
     }
-    clearTimeout(timer);
-    timer = setTimeout(() => sync(), 300);
   }, [middleman]);
 
   const start = useCallback(async () => {
@@ -329,10 +326,8 @@ const StoreProvider = (props) => {
         pathname: `/markets/${market}`,
       });
       await middleman.start(market);
-      setIsLogin(middleman.isLogin);
-      sync();
     }
-  }, [history, location.pathname, middleman, sync]);
+  }, [history, location.pathname, middleman]);
 
   const stop = useCallback(() => {
     console.log(`stop`);
@@ -357,6 +352,7 @@ const StoreProvider = (props) => {
         tickSz,
         lotSz,
         setIsLogin,
+        sync,
         start,
         stop,
         depthBookHandler,
