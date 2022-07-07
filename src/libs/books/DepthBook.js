@@ -3,7 +3,6 @@ import SafeMath from "../../utils/SafeMath";
 import BookBase from "../BookBase";
 
 class DepthBook extends BookBase {
-  unit;
   constructor() {
     super();
     this.name = `DepthBook`;
@@ -11,78 +10,14 @@ class DepthBook extends BookBase {
     return this;
   }
 
-  changeRange(unit) {
-    this.unit = unit;
-  }
-
-  range = (arr, unit) => {
-    let result = arr;
-    let _arr = arr?.map((d) => parseFloat(d.price)) || [];
-    let decimal;
-    decimal = unit.toString().includes(".")
-      ? unit.toString().split(".")[1].length
-      : 0;
-    if (unit) {
-      const max = Math.max(..._arr);
-      const min = Math.min(..._arr);
-      const start =
-        ((min * 10 ** decimal) % (unit * 10 ** decimal)) / 10 ** decimal === 0
-          ? min
-          : min -
-            ((min * 10 ** decimal) % (unit * 10 ** decimal)) / 10 ** decimal;
-      const end =
-        ((max * 10 ** decimal) % (unit * 10 ** decimal)) / 10 ** decimal === 0
-          ? max + unit
-          : max -
-            ((max * 10 ** decimal) % (unit * 10 ** decimal)) / 10 ** decimal +
-            unit;
-      const length = parseInt((end - start) / unit) + 1;
-      result = {};
-      for (let i = 0; i < length + 1; i++) {
-        const price = start + unit * i;
-        const data = { amount: "0", price, side: "" };
-        result[parseFloat(price.toFixed(decimal))] = data;
-      }
-      for (let i = 0; i < arr.length; i++) {
-        const p = arr[i];
-        let price = parseFloat(
-          (p.side === "asks" &&
-          ((p.price * 10 ** decimal) % (unit * 10 ** decimal)) /
-            10 ** decimal !==
-            0
-            ? parseInt(parseFloat(p.price) / unit) * unit + unit
-            : parseInt(parseFloat(p.price) / unit) * unit
-          ).toFixed(decimal)
-        );
-        if (result[price]) {
-          if (SafeMath.eq(result[price].amount, "0")) {
-            result[price] = { ...p, price };
-          } else {
-            if (result[price].side === p.side)
-              result[price].amount =
-                parseFloat(result[price].amount) + parseFloat(p.amount);
-            else result[`${price}-${p.side}`] = { ...p, price };
-          }
-        }
-      }
-    }
-    return Object.values(result).filter((data) => data.amount > 0);
-  };
-
-  getSnapshot(market, lotSz) {
+  getSnapshot(market) {
     try {
-      let sumAskAmount = "0",
-        sumBidAmount = "0",
-        length,
-        asks = [],
-        bids = [];
-      if (!this._snapshot[market]) this._snapshot[market] = [];
-      const rangedArr = this.range(
-        this._snapshot[market].filter((book) => book.amount >= lotSz),
-        parseFloat(this.unit)
-      );
-      for (let i = 0; i < rangedArr.length; i++) {
-        let data = rangedArr[i];
+      const depthBooks = {
+        market,
+        asks: [],
+        bids: [],
+      };
+      this._snapshot[market]?.forEach((data) => {
         if (
           this._difference[market].update.some((d) =>
             this._compareFunction(d, data)
@@ -90,30 +25,25 @@ class DepthBook extends BookBase {
         )
           data = { ...data, update: true };
         if (data.side === "asks") {
-          asks.push(data);
+          depthBooks.asks.push(data);
         }
         if (data.side === "bids") {
-          bids.push(data);
+          depthBooks.bids.push(data);
         }
-      }
-      length = 50;//Math.min(asks.length, bids.length, 50);
+      });
+      // console.log(`[DepthBook] getSnapshot[${market}]`, {
+      //   ...depthBooks,
+      //   total: SafeMath.plus(
+      //     depthBooks.asks[depthBooks.asks.length - 1]?.total,
+      //     depthBooks.bids[depthBooks.bids.length - 1]?.total
+      //   ),
+      // });
       return {
-        market,
-        asks: asks
-          .sort((a, b) => parseFloat(a.price) - parseFloat(b.price))
-          .slice(0, length)
-          .map((ask) => {
-            sumAskAmount = SafeMath.plus(ask.amount, sumAskAmount);
-            return { ...ask, total: sumAskAmount };
-          }),
-        bids: bids
-          .sort((a, b) => parseFloat(b.price) - parseFloat(a.price))
-          .slice(0, length)
-          .map((bid) => {
-            sumBidAmount = SafeMath.plus(bid.amount, sumBidAmount);
-            return { ...bid, total: sumBidAmount };
-          }),
-        total: SafeMath.plus(sumAskAmount || "0", sumBidAmount || "0"),
+        ...depthBooks,
+        total: SafeMath.plus(
+          depthBooks.asks[depthBooks.asks.length - 1]?.total,
+          depthBooks.bids[depthBooks.bids.length - 1]?.total
+        ),
       };
     } catch (error) {
       console.error(`[DepthBook getSnapshot]`, error);
@@ -125,18 +55,13 @@ class DepthBook extends BookBase {
   //   let asks = [],
   //     bids = [];
   //   data.forEach((d) => {
-  //     asks.push(d);
-  //     bids.push(d);
+  //     if (d.side === "asks" && asks.length < 100) {
+  //       asks.push(d);
+  //     }
+  //     if (d.side === "bids" && bids.length < 100) {
+  //       bids.push(d);
+  //     }
   //   });
-  //   asks = asks
-  //     .filter((book) => (this._lotSz ? book.amount > this._lotSz : true))
-  //     .sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
-  //   bids = bids
-  //     .filter((book) => (this._lotSz ? book.amount > this._lotSz : true))
-  //     .sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
-  //   let length = Math.min(asks.length, bids.length, 50);
-  //   asks = asks.slice(0, length);
-  //   bids = bids.slice(0, length);
   //   return bids.concat(asks);
   // }
 
@@ -178,6 +103,7 @@ class DepthBook extends BookBase {
       bookArr.push({
         price: ask[0],
         amount: ask[1],
+        total: ask[2],
         side: "asks",
       });
     });
@@ -185,6 +111,7 @@ class DepthBook extends BookBase {
       bookArr.push({
         price: bid[0],
         amount: bid[1],
+        total: bid[2],
         side: "bids",
       });
     });
