@@ -1140,19 +1140,11 @@ class TibeBitConnector extends ConnectorBase {
           "update",
           (data) => this._updateBooks(market, data)
         );
-        this.logger.log(
-          `---------- [${this.constructor.name}]  _registerMarketChannel [this.market_channel[market-${market}-global]["channel"].bind(
-            "update"] ----------`
-        );
         this.market_channel[`market-${market}-global`]["channel"].bind(
           "trades",
           (data) => {
             this._updateTrades(market, data);
           }
-        );
-        this.logger.log(
-          `---------- [${this.constructor.name}]  _registerMarketChannel [this.market_channel[market-${market}-global]["channel"].bind(
-            "trades"] ----------`
         );
         this.market_channel[`market-${market}-global`]["listener"] = [wsId];
       } catch (error) {
@@ -1163,8 +1155,9 @@ class TibeBitConnector extends ConnectorBase {
       this.market_channel[`market-${market}-global`]["listener"].push(wsId);
     }
     this.logger.log(
-      `[${this.constructor.name}] this.market_channel`,
-      this.market_channel
+      `[${this.constructor.name}]  this.market_channel[market-${market}-global]["channel"]`,
+      this.market_channel[`market-${market}-global`]["channel"],
+      this.public_pusher
     );
   }
 
