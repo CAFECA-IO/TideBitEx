@@ -10,7 +10,12 @@ class DepthBook extends BookBase {
     return this;
   }
 
+  changeRange(unit) {
+    this.unit = unit;
+  }
+
   getSnapshot(market) {
+    console.log(`DepthBook select range`)
     try {
       const depthBooks = {
         market,
