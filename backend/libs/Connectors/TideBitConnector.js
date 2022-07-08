@@ -15,9 +15,9 @@ const HEART_BEAT_TIME = 25000;
 class TibeBitConnector extends ConnectorBase {
   isStart = false;
   socketId;
-
   public_pusher = null;
   // private_pusher = {};
+  sn = {};
 
   global_channel = null;
   // private_channel = {};
@@ -123,6 +123,7 @@ class TibeBitConnector extends ConnectorBase {
         } else if (data.event === "error") {
           this.logger.log("!!! _tidebitWsEventListener on event error", data);
         }
+        let memberId;
         switch (data.event) {
           case "trades":
             this._updateTrades(market, JSON.parse(data.data));
@@ -132,6 +133,18 @@ class TibeBitConnector extends ConnectorBase {
             break;
           case "tickers":
             this._updateTickers(JSON.parse(data.data));
+            break;
+          case "account":
+            memberId = this.sn[channel.replace("private-", "")];
+            this._updateAccount(memberId, JSON.parse(data.data));
+            break;
+          case "order":
+            memberId = this.sn[channel.replace("private-", "")];
+            this._updateAccount(memberId, JSON.parse(data.data));
+            break;
+          case "trade":
+            memberId = this.sn[channel.replace("private-", "")];
+            this._updateTrade(memberId, JSON.parse(data.data));
             break;
           default:
         }
@@ -1371,6 +1384,7 @@ class TibeBitConnector extends ConnectorBase {
             credential.memberId,
             member.sn
           );
+          this.sn[member.sn] = credential.memberId;
           this.private_client[credential.memberId] = {
             memberId: credential.memberId,
             sn: member.sn,

@@ -30,6 +30,7 @@ const TradeForm = (props) => {
 
   const formatPrice = useCallback(
     (value) => {
+      setErrorMessage(null)
       let precision,
         arr = storeCtx.selectedTicker?.tickSz.split(".");
       if (arr.length > 1) precision = arr[1].length;
@@ -90,6 +91,7 @@ const TradeForm = (props) => {
 
   const formatSize = useCallback(
     (value) => {
+      setErrorMessage(null)
       let precision,
         arr = storeCtx.selectedTicker?.lotSz.split("."),
         _price =
