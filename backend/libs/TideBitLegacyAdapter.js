@@ -36,6 +36,7 @@ class TideBitLegacyAdapter {
       } else {
         peatioToken = Utils.peatioToken(header);
         XSRFToken = Utils.XSRFToken(header);
+        tokens[userId] = {};
         tokens[userId]["peatioToken"] = peatioToken;
         tokens[userId]["XSRFToken"] = XSRFToken;
       }
