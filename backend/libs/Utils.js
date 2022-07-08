@@ -494,7 +494,7 @@ class Utils {
   }
 
   static initialDB({ homeFolder, database }) {
-    console.log(`initialDB database`, database);
+    // console.log(`initialDB database`, database);
     const dbPath = path.resolve(homeFolder, "dataset");
     const dbo = new DBOperator();
     return dbo.init({ dir: dbPath, database }).then(() => dbo);

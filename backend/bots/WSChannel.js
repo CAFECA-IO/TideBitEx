@@ -167,7 +167,7 @@ class WSChannel extends Bot {
   // ++ CURRENT_USER UNSAVED
   async _onOpStatusUpdate(header, ws, args, redis) {
     const findClient = this._client[ws.id];
-    console.log(
+    this.logger.log(
       `-----&----- [WSChabbel][FROM WS] _onOpStatusUpdate userId -----&-----`,
       args,
       `ws.id`,
