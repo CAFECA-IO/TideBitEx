@@ -1221,6 +1221,14 @@ class TibeBitConnector extends ConnectorBase {
       ) {
         // this.market_channel[`market-${market}-global`]["channel"]?.unbind();
         // this.public_pusher?.unsubscribe(`market-${market}-global`);
+        this.websocket.ws.send(
+          JSON.stringify({
+            event: "pusher:unsubscribe",
+            data: {
+              channel: `market-${market}-global`,
+            },
+          })
+        );
         delete this.market_channel[`market-${market}-global`];
       }
       this.logger.log(
@@ -1228,7 +1236,7 @@ class TibeBitConnector extends ConnectorBase {
         this.market_channel
       );
       if (Object.keys(this.market_channel).length === 0) {
-        // this._unregisterGlobalChannel();
+        this._unregisterGlobalChannel();
         this.market_channel = {};
         // this.public_pusher = null;
         this.isStart = false;
@@ -1241,8 +1249,16 @@ class TibeBitConnector extends ConnectorBase {
 
   _registerGlobalChannel() {
     try {
-      this.global_channel = this.public_pusher.subscribe("market-global");
-      this.global_channel.bind("tickers", (data) => this._updateTickers(data));
+      // this.global_channel = this.public_pusher.subscribe("market-global");
+      // this.global_channel.bind("tickers", (data) => this._updateTickers(data));
+      this.websocket.ws.send(
+        JSON.stringify({
+          event: "pusher:subscribe",
+          data: {
+            channel: `market-global`,
+          },
+        })
+      );
     } catch (error) {
       this.logger.error(`_registerGlobalChannel error`, error);
       throw error;
@@ -1252,9 +1268,17 @@ class TibeBitConnector extends ConnectorBase {
   _unregisterGlobalChannel() {
     if (!this.isStart) return;
     try {
-      this.global_channel?.unbind();
-      this.public_pusher?.unsubscribe("market-global");
-      this.global_channel = null;
+      // this.global_channel?.unbind();
+      // this.public_pusher?.unsubscribe("market-global");
+      this.websocket.ws.send(
+        JSON.stringify({
+          event: "pusher:subscribe",
+          data: {
+            channel: `market-global`,
+          },
+        })
+      );
+      // this.global_channel = null;
     } catch (error) {
       this.logger.error(`_unregisterGlobalChannel error`, error);
       throw error;
@@ -1263,14 +1287,6 @@ class TibeBitConnector extends ConnectorBase {
 
   _startPusher() {
     this._tidebitWsEventListener();
-    this.websocket.ws.send(
-      JSON.stringify({
-        event: "pusher:subscribe",
-        data: {
-          channel: `market-global`,
-        },
-      })
-    );
     // this.public_pusher = new Pusher(this.key, {
     //   // encrypted: this.encrypted,
     //   wsHost: this.wsHost,
@@ -1282,8 +1298,8 @@ class TibeBitConnector extends ConnectorBase {
     //   disabledTransports: ["flash", "sockjs"],
     //   forceTLS: true,
     // });
-    // this.isStart = true;
-    // this._registerGlobalChannel();
+    this.isStart = true;
+    this._registerGlobalChannel();
     // this.public_pusher.bind_global((data) =>
     //   this.logger.log(`[_startPusher][bind_global] data`, data)
     // );
