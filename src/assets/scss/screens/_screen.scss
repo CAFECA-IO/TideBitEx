@@ -1,0 +1,303 @@
+.screen {
+  position: relative;
+  display: flex;
+  flex: auto;
+  overflow: hidden;
+  margin-top: 70px;
+  &__filter {
+    position: relative;
+    display: flex;
+    font-size: 24px;
+    color: #c6c6c6;
+    gap: 5px;
+    align-items: center;
+    cursor: pointer;
+
+    &--icon {
+      width: 7px;
+      height: 7px;
+      transform: rotate(-45deg) translate(3px, 0px);
+      padding: 1px;
+      border-left: 1.5px solid #767676;
+      border-bottom: 1.5px solid #767676;
+    }
+  }
+  &__floating-box {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+  }
+  &__floating-btn {
+    // position: absolute;
+    // bottom: 22px;
+    // right: 30px;
+    margin-top: 40px;
+    height: 50px;
+    width: 50px;
+    cursor: pointer;
+    & > img {
+      height: 100%;
+      width: 100%;
+    }
+  }
+  &__header {
+    text-align: center;
+    font-size: 30px;
+    letter-spacing: 0px;
+    color: #767676;
+    padding: 52px 0;
+  }
+  &__section {
+    flex: auto;
+    overflow: auto;
+    padding-right: 30px;
+    // scroll-behavior: smooth;
+    /* display: flex; */
+    /* flex-direction: column;*/
+  }
+  &__select-options-box {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  &__select-bar {
+    display: flex;
+    overflow-x: auto;
+    margin: 0;
+    gap: 2px;
+    min-height: 41px;
+    margin-bottom: 30px;
+    scroll-behavior: smooth;
+  }
+  &__sorting {
+    cursor: pointer;
+    height: 16px;
+    width: 24px;
+    & > img {
+      height: 100%;
+      width: 100%;
+    }
+  }
+  &__select-bar-icon {
+    height: 30px;
+    width: 20px;
+    min-width: 20px;
+    padding-left: 20px;
+    cursor: pointer;
+    & > img {
+      height: 100%;
+      width: 100%;
+    }
+  }
+  &__select-option {
+    min-width: 120px;
+    width: 180px;
+    padding: 10px 0px;
+    border: 1px solid #707070;
+    border-radius: 5px;
+    text-align: center;
+
+    font-size: 16px;
+    color: #767676;
+    cursor: pointer;
+  }
+  &__display-option.active,
+  &__select-option.active {
+    background-color: #2699fb;
+    border: 1px solid #2699fb;
+    color: #fff;
+  }
+  &__search-bar {
+    display: flex;
+    justify-content: flex-end;
+
+    // margin-top: 32px;
+    margin-bottom: 24px;
+  }
+  &__search-box {
+    position: relative;
+    border: 1px solid #707070;
+    border-radius: 17px;
+    width: 214px;
+    // height: 33px;
+    padding: 0 10px;
+    padding-right: 35px;
+  }
+  &__search-input {
+    line-height: 2.2;
+  }
+  &__search-icon {
+    position: absolute;
+    transform: translateY(-50%);
+    top: 60%;
+    right: 10px;
+    text-align: center;
+
+    width: 25px;
+    height: 25px;
+    margin: 0 auto;
+    &--circle {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #707070;
+      border-radius: 100px;
+    }
+    &--rectangle {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      width: 6px;
+      transform: rotate(40deg);
+      border: 1px solid #707070;
+      border-top-right-radius: 3px;
+      border-bottom-right-radius: 3px;
+    }
+  }
+  &__tool-bar {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #767676;
+    margin-bottom: 15px;
+    align-items: center;
+  }
+  &__display,
+  &__display-options {
+    display: flex;
+    align-items: center;
+  }
+  &__display-options {
+    gap: 10px;
+  }
+  &__display-title {
+    font-size: 16px;
+  }
+  &__display-option {
+    font-size: 12px;
+    border: 1px solid #707070;
+    border-radius: 5px;
+    padding: 2px 5px;
+    cursor: pointer;
+  }
+  &__table {
+    display: flex;
+    flex-direction: column;
+    flex: auto;
+    border: 1px solid #707070;
+    color: #767676;
+    overflow: hidden;
+    height: 57vh;
+    min-height: 500px;
+  }
+  &__table.show {
+    height: fit-content;
+  }
+  &__table-text {
+    font-size: 16px;
+    padding: 10px 0px;
+    color: #767676;
+  }
+  &__table-headers {
+    display: flex;
+    background-color: #fff;
+    border-bottom: 1px solid #707070;
+    padding: 10px 20px;
+    justify-content: space-between;
+  }
+  &__table-item,
+  &__table-header {
+    min-width: 120px;
+    display: flex;
+    align-items: center;
+    &--text {
+      display: flex;
+      padding-right: 5px;
+    }
+    &--icon {
+      width: 18px;
+      height: 18px;
+      background-image: url("../../images/settings-line@2x.png");
+      background-position: center;
+      background-size: contain;
+    }
+    &--value {
+      min-width: 85px;
+    }
+    &--value.alert {
+      color: #eccb2c;
+    }
+  }
+  .currency-dropdown__label-item--fixed &__table-header-btn--lock {
+    right: 270px;
+    top: 10px;
+  }
+  &__table-header-btn {
+    position: relative;
+    &--lock {
+      position: absolute;
+      right: 145px;
+      top: -15px;
+      z-index: 10;
+      width: 65px;
+      height: 65px;
+      background-image: url("../../images/lock@2x.png");
+      background-position: center;
+      background-size: contain;
+      opacity: 0;
+      -webkit-transition: 0.4s;
+      transition: 0.4s;
+    }
+    .active > &--lock {
+      opacity: 1;
+    }
+    .active.unLocked > &--lock {
+      background-image: url("../../images/lock--open@2x.png");
+    }
+  }
+  &__table-header-btn > button {
+    text-decoration: underline;
+    color: #4597e6;
+    display: inline-block;
+    cursor: pointer;
+    padding: 0 5px;
+  }
+  &__table-header-btn > button:disabled {
+    text-decoration: none;
+  }
+  &__table-btn {
+    text-align: center;
+    border-top: 1px solid #707070;
+    background-color: #fff;
+    cursor: pointer;
+  }
+  &__table-rows {
+    flex: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  &__table-row {
+    display: flex;
+    padding: 10px 20px;
+    justify-content: space-between;
+    align-items: center;
+  }
+  &__table-switch,
+  &__table-header-btn {
+    min-width: 154px;
+  }
+  &__table--overivew {
+    display: flex;
+    justify-content: flex-end;
+    color: #767676;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 20px 0;
+  }
+  &__table-value.positive {
+    color: #5ad998;
+  }
+  &__table-value.negative {
+    color: #dc484e;
+  }
+}

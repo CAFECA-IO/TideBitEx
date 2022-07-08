@@ -1,0 +1,105 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  &__container {
+    gap: 2px;
+    display: flex;
+    flex-direction: row;
+    &--left,
+    &__right {
+      flex: 1;
+    }
+    &--left {
+      flex: 2;
+    }
+    &--right {
+      display: flex;
+      flex-direction: row;
+      flex: 3;
+      gap: 2px;
+    }
+    &--right > *:first-child {
+      flex: 2;
+    }
+    &--right > *:last-child {
+      flex: 1;
+    }
+  }
+  &__block {
+    min-height: 56px;
+  }
+  &__container--mobile .nav-tabs .nav-link.active {
+    color: #007bff;
+    border: none;
+    border-bottom: 2px solid #007bff;
+  }
+  &__container--mobile,
+  &__container--mobile > .tab-content,
+  &__container--mobile > .tab-content > .tab-pane {
+    display: flex;
+    flex: auto;
+    flex-direction: column;
+    height: 100%;
+  }
+  &__container--mobile > .tab-content > .tab-pane.fade {
+    display: none;
+  }
+}
+@media only screen and (max-width: 1120px) {
+  // If [device width] is less than or equal to 600px, then do
+  .section {
+    &__container {
+      &--right > *:first-child {
+        flex: 4;
+      }
+      &--right > *:last-child {
+        flex: 3;
+      }
+    }
+  }
+}
+
+@media only screen and (max-width: 820px) {
+  // If [device width] is less than or equal to 600px, then do
+  .section {
+    flex: auto;
+    // overflow: hidden;
+    &__container {
+      flex: 1;
+      flex-direction: column;
+      &--right > *:first-child {
+        flex: 1;
+      }
+      &--right > *:last-child {
+        flex: 1;
+      }
+    }
+  }
+}
+// iphone XR
+@media only screen and (max-width: 414px) {
+  // If [device width] is less than or equal to 600px, then do
+  .section {
+    gap: 8px;
+    // height: calc(100% - 94px);
+    // height: calc(100% - 209px);
+    flex: auto;
+    &--market {
+      overflow: hidden;
+    }
+    &__container {
+      border: 1px solid #ddd;
+      margin: 0 10px;
+    }
+    &__container {
+      gap: 0;
+      &--right {
+        flex-direction: column;
+      }
+    }
+    &--assets {
+      height: calc(100% - 56px);
+    }
+  }
+}

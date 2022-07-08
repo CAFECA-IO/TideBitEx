@@ -1,20 +1,89 @@
-# CAFECA Default Config
-
 title = "TideBitEx"
 
 [base]
 folder = "CAFECA-framework"
-static = "./public/"
+static = "./build/"
+TideBitLegacyPath = '/home/ubuntu/TideBit-Lagacy'
 debug = false
 
 [blockchain]
 type = "ethereum"
 
-[database]
+# 請參考 https://www.okx.com/docs-v5/broker_zh/#non-disclosed-broker 申請
+[okex]
+domain = 'https://www.okx.com'
+wssPublic = 'wss://ws.okx.com:8443/ws/v5/public'
+wssPrivate = 'wss://ws.okx.com:8443/ws/v5/private'
+apiKey = ''
+secretKey = ''
+passPhrase = ''
+brokerId = ''
 
+[peatio]
+domain = 'http://127.0.0.1:3000'      # 要與TideBit-Legacy application.yml中URL_HOST相同
+systemMemberId = 60976
+
+[redis]
+domain = 'redis://127.0.0.1:6379'
+
+[websocket]
+domain = 'ws.tidebit.network'
+
+[database]
+protocal = 'mysql'
+host = '127.0.0.1'
+port = '3306'
+user = 'user'
+password = ''
+dbName = ''
+logging = false
+ormEnable = false
+  [database.dialectOptions]
+  connectTimeout = 3000
+  [database.pool]
+  max = 10
 
 [api]
 pathname = [
   "get | /version | Static.Utils.readPackageInfo",
-  "get | /lacale, /lacale/:language | Static.Utils.getLocaleData"
+  "get | /lacale, /lacale/:language | Static.Utils.getLocaleData",
+
+  # exchange - account
+  "get | /api/v1/account/balance | Bot.ExchangeHub.getAccounts",
+
+  # exchange - market
+  "get | /api/v1/market/ticker | Bot.ExchangeHub.getTicker",
+  "get | /api/v1/market/tickers | Bot.ExchangeHub.getTickers",
+  "get | /api/v1/market/books | Bot.ExchangeHub.getDepthBooks",
+  "get | /api/v1/market/candles | Bot.ExchangeHub.getCandlesticks",
+  "get | /api/v1/market/trades | Bot.ExchangeHub.getTrades",
+
+  # exchange - trade
+  "post | /api/v1/trade/order | Bot.ExchangeHub.postPlaceOrder",
+  "get | /api/v1/trade/orders-pending | Bot.ExchangeHub.getOrderList",
+  "get | /api/v1/trade/orders-history | Bot.ExchangeHub.getOrderHistory",
+  "post | /api/v1/trade/cancel-order | Bot.ExchangeHub.postCancelOrder",
+  "post | /api/v1/trade/cancel-orders | Bot.ExchangeHub.cancelOrders",
+
+  # exchange - public
+  "get | /api/v1/public/instruments | Bot.ExchangeHub.getInstruments",
+
+  # exchange - users
+  "get | /api/v1/users/account/list | Bot.ExchangeHub.getUsersAccounts",
+  "get | /api/v1/users/subaccount/list | Bot.ExchangeHub.getExAccounts",
+
+  # tradingview
+  "get | /api/v1/tradingview/config | Bot.ExchangeHub.getTradingViewConfig",
+  "get | /api/v1/tradingview/symbols | Bot.ExchangeHub.getTradingViewSymbol",
+  "get | /api/v1/tradingview/history | Bot.ExchangeHub.getTradingViewHistory",
+
+  # UI
+  "get | /markets, /markets/:market | Static.Utils.renderMarket",
+  "get | /analysis, /analysis | Static.Utils.renderMarket",
+
+  # dashboard
+  "get | /api/v1/dashboard | Bot.Dashboard.overview",
+
+  # options
+  "get | /api/v1/options | Bot.ExchangeHub.getOptions",
 ]

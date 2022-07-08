@@ -1,1 +1,54 @@
-@import './header'
+@import "./header";
+@import "./sidebar";
+@import "./main";
+@import "./section";
+@import "./navigator";
+@import "./admin-header";
+@import "./admin-sidebar";
+
+#layout {
+  position: relative;
+}
+
+.layout {
+  &--pushable {
+    width: 100vw;
+    height: 100vh;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    pointer-events: stroke;
+  }
+  &--pusher {
+    transition: transform 0.5s ease, -webkit-transform 0.5s ease;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+  &--pusher.active {
+    transform: translateX(110px);
+    overflow: hidden;
+    height: 100vh;
+  }
+  // &--pusher.active > main.main::after {
+  &--pusher.active > &--cover {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 10;
+  }
+}
+
+@media only screen and (max-width: 414px) {
+  // If [device width] is less than or equal to 600px, then do
+  .layout {
+    &--pusher {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+  }
+}

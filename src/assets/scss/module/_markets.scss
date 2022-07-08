@@ -49,44 +49,44 @@
   font-size: 16px;
 }
 
-.markets-pair-list th,
-.markets-pair-list td {
+.markets-ticker-list th,
+.markets-ticker-list td {
   padding: 15px !important;
   width: 16%;
   font-size: 14px;
 }
 
-.markets-pair-list tbody tr td i {
+.markets-ticker-list tbody tr td i {
   color: #75869696;
 }
 
-.markets-pair-list .nav-link.active {
+.markets-ticker-list .nav-link.active {
   color: #007bff;
   background: transparent;
 }
-.markets-pair-list .star-active tbody tr td i {
+.markets-ticker-list .star-active tbody tr td i {
   color: #007bff;
 }
-.markets-pair-list .nav-link {
+.markets-ticker-list .nav-link {
   color: #4a4a4a;
 }
 
-.markets-pair-list .nav {
+.markets-ticker-list .nav {
   background: #f5f9fc;
   padding: 7px 0;
 }
 
-.markets-pair-list th {
+.markets-ticker-list th {
   font-weight: 400;
 }
 
-.markets-pair-list td img {
+.markets-ticker-list td img {
   width: 18px;
   vertical-align: text-top;
   margin-right: 5px;
 }
 
-.markets-pair-list .load-more {
+.markets-ticker-list .load-more {
   border: 1px solid #e0e3eb;
   display: inline-block;
   padding: 11px 30px 8px;
@@ -95,11 +95,11 @@
   transition: 0.3s;
 }
 
-.markets-pair-list .load-more i {
+.markets-ticker-list .load-more i {
   margin-left: 10px;
 }
 
-.markets-pair-list .load-more:hover {
+.markets-ticker-list .load-more:hover {
   background: #007bff;
   color: #fff;
   border: 1px solid #007bff;

@@ -1,0 +1,16 @@
+.currency-settings {
+  & .screen__table {
+    border: none;
+  }
+  & .screen__table-btn{
+    border: 1px solid #707070;
+  }
+  &__rows {
+    display: flex;
+    flex-direction: column;
+    flex: auto;
+    overflow: auto;
+    gap: 20px;
+    margin-bottom: 10px;
+  }
+}

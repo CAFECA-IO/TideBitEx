@@ -1,20 +1,33 @@
-const apiVersion = "/api/v5";
-const apiURL = "https://www.okex.com";
-const apiKey = "81ae20c4-ff1d-4c3d-9309-00b9e3d69b0d";
-const apiSecret = "12D61B4C6527FAFA58CCE775D7CBD151";
+const apiVersion = "/api/v1";
+// const apiURL = "https://www.okex.com";
+
+/* ++ TODO
+const host = "3.37.130.251";
+const port = "5566";
+const apiURL = `http://${host}:${port}`;
+const websocket = `${
+  window.location.protocol === "https:" ? "wss://" : "ws://"
+}${host}:${port}/ws`;
+*/
+
+// -- TEST
+const apiURL = ``;
+const websocket =
+  (window.location.protocol === "https:" ? "wss://" : "ws://") +
+  window.location.host +
+  "/ws";
+// --
 
 export const Config = {
   status: "staging",
   staging: {
     apiURL,
     apiVersion,
-    apiKey,
-    apiSecret,
+    websocket,
   },
   production: {
     apiURL,
     apiVersion,
-    apiKey,
-    apiSecret,
+    websocket,
   },
 };

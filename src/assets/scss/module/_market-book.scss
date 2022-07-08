@@ -1,152 +1,148 @@
-.order-book table,
-.order-book tr,
-.order-book td,
-.order-book th {
-  width: 100%;
-  table-layout: fixed;
-}
-.order-book tr {
-  float: left;
-  clear: both;
-  overflow: hidden;
-}
-.order-book .table thead th {
-  font-weight: 400;
-  font-size: 12px;
-}
-.order-book thead tr {
-  border-bottom: 1px solid #e0e3eb;
-}
-.order-book tbody tr,
-.order-book tbody td {
-  border: none;
-}
 .order-book {
-  border: 1px solid #e0e3eb;
-  border-radius: 2px;
-}
-.red-bg-80,
-.red-bg-60,
-.red-bg-40,
-.red-bg-20,
-.red-bg-10,
-.red-bg-8,
-.red-bg-5,
-.red-bg,
-.green-bg-80,
-.green-bg-60,
-.green-bg-40,
-.green-bg-20,
-.green-bg-10,
-.green-bg-8,
-.green-bg-5,
-.green-bg {
-  position: relative;
-}
-.red-bg-80:after,
-.red-bg-60:after,
-.red-bg-40:after,
-.red-bg-20:after,
-.red-bg-10:after,
-.red-bg-8:after,
-.red-bg-5:after,
-.red-bg:after {
-  position: absolute;
-  content: "";
-  background: #de262663;
-  right: 0;
-  top: 0;
-  width: 280px;
-  height: 45px;
-}
-.red-bg-60:after {
-  width: 240px;
-}
-.red-bg-40:after {
-  width: 200px;
-}
-.red-bg-20:after {
-  width: 160px;
-}
-.red-bg-10:after {
-  width: 120px;
-}
-.red-bg-8:after {
-  width: 80px;
-}
-.red-bg-5:after {
-  width: 50px;
-}
-.red-bg:after {
-  width: 30px;
+  display: flex;
+  flex-direction: column;
+  flex: auto;
+  height: 100%;
+  border: 1px solid #333;
+
+  &__tool-bar {
+    background-color: #4597e6;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: flex-end;
+  }
+  &__range-options{
+    max-width: 100px;
+  }
+  &__range-options > .header-dropdown__button {
+    background-color: transparent;
+    border: none;
+  }
+
+  &__header {
+    // border-bottom: 1px solid #dee2e6;
+    color: #555;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 8px 0px;
+    padding-right: 5px;
+    background-color: #4597e6;
+    border-bottom: 1px solid #333;
+    color: white;
+  }
+  &__table {
+    display: flex;
+    flex-direction: row;
+    flex: auto;
+    height: calc(50vh - 135px);
+    min-height: 350px;
+    position: relative;
+    // overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  &__header--bids,
+  &__header--asks,
+  &__panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  &__tile {
+    position: relative;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  &__header--bids > *,
+  &__header--asks > *,
+  &__tile > * {
+    flex: 1;
+    text-indent: 2px;
+    width: 80px;
+  }
+  &__header--bids,
+  &__panel--bids > &__tile {
+    text-align: right;
+    justify-content: flex-end;
+    padding-right: 2px;
+  }
+  &__header--asks,
+  &__panel--asks > &__tile {
+    text-align: left;
+    padding-left: 2px;
+  }
+  &__panel--bids > &__tile > *:nth-child(3) {
+    color: #03a363;
+    font-weight: 500;
+  }
+  &__panel--asks > &__tile > *:nth-child(1) {
+    color: #d0021b;
+    font-weight: 500;
+  }
+  &__tile--cover {
+    position: absolute;
+    top: 0;
+    // height: -webkit-fill-available;
+    height: 18px;
+  }
+  &__panel--bids &__tile--cover {
+    background: #26de8225;
+    right: 0;
+  }
+  &__panel--asks &__tile--cover {
+    background: #de262625;
+    left: 0;
+  }
 }
 
-.green-bg-80:after,
-.green-bg-60:after,
-.green-bg-40:after,
-.green-bg-20:after,
-.green-bg-10:after,
-.green-bg-8:after,
-.green-bg-5:after,
-.green-bg:after {
-  position: absolute;
-  content: "";
-  background: #26de8163;
-  right: 0;
-  top: 0;
-  width: 280px;
-  height: 45px;
-}
-.green-bg-60:after {
-  width: 240px;
-}
-.green-bg-40:after {
-  width: 200px;
-}
-.green-bg-20:after {
-  width: 160px;
-}
-.green-bg-10:after {
-  width: 120px;
-}
-.green-bg-8:after {
-  width: 80px;
-}
-.green-bg-5:after {
-  width: 50px;
-}
-.green-bg:after {
-  width: 30px;
-}
-.ob-heading span {
-  color: #4a4a4a;
-  display: block;
-  font-size: 12px;
-  font-weight: 400;
-}
+// @media only screen and (min-width: 820px) {
+//   // If [device width] is greater than or equal to 820px,
+//   .order-book {
+//     &__header > *,
+//     &__tile > * {
+//     }
+//   }
+// }
 
-.ob-heading td {
-  padding: 5px 12px;
-  cursor: default;
-}
+// // ipad air & ipad mini
+// @media only screen and (max-width: 820px) and (min-width: 414px) {
+//   // The query above will trigger only for screens that are 600-400px wide. This can be used to target specific devices with known widths.
+//   .order-book {
+//     &__header > *,
+//     &__tile > * {
+//     }
+//   }
+// }
 
-.ob-heading tr {
-  border-top: 1px solid #f0f3fa !important;
-  border-bottom: 1px solid #f0f3fa !important;
-}
-.ob-heading tr:hover {
-  background: #fff;
-}
-.ob-heading td:first-child {
-  width: 65%;
-}
+// iphone XR
+@media only screen and (max-width: 414px) {
+  // If [device width] is less than or equal to 600px, then do
+  .order-book {
+    border: 1px solid #ddd;
+    &--mobile {
+      margin: 0 10px 10px;
+      flex: auto;
+      overflow: auto;
+    }
+    .tab-content & {
+      border: none;
+    }
+    .tab-content &__table {
+      height: calc(50vh - 59px);
+    }
+    &__table {
+      height: 100%;
+    }
+    &__header {
+      border-bottom: 1px solid #ddd;
+    }
 
-.order-book tbody {
-  display: block;
-  overflow-y: auto;
-  height: 211px;
-}
-
-tbody.ob-heading {
-  height: inherit;
+    &__header--bids > *,
+    &__header--asks > *,
+    &__tile > * {
+      width: 54px;
+    }
+  }
 }

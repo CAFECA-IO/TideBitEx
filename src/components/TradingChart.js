@@ -1,20 +1,36 @@
-import React from 'react';
-import TradingViewWidget, { Themes } from 'react-tradingview-widget';
+import React, { useContext } from "react";
+import StoreContext from "../store/store-context";
+import { useViewport } from "../store/ViewportProvider";
 
-export default function TradingChart() {
+// import TradingApexChart from "./TradingApexChart";
+// import TradingViewChart from "./TradingViewChart";
+import { useTranslation } from "react-i18next";
+import TradingIframe from "./TradingIframe";
+
+const TradingChart = (props) => {
+  const { width } = useViewport();
+  const breakpoint = 414;
+  const storeCtx = useContext(StoreContext);
+  const { t } = useTranslation();
+
   return (
-    <>
-      <div className="main-chart mb15">
-        <TradingViewWidget
-          symbol="BTCUSDT"
-          theme={Themes.LIGHT}
-          locale="fr"
-          autosize
-          interval="1D"
-          timezone="America/New_York"
-          library_path="charting_library/"
-        />
-      </div>
-    </>
+    <div
+      className={`main-chart${
+        width <= breakpoint ? " main-chart--mobile" : ""
+      }`}
+    >
+      <div className="main-chart__header">{t("chart")}</div>
+      {/* {window.location.host.includes("legacy2") ? ( */}
+      {storeCtx.selectedTicker && (
+        <TradingIframe isMobile={width <= breakpoint} />
+      )}
+      {/* ) : storeCtx.selectedTicker?.source === "TideBit" ? (
+        <TradingApexChart />
+      ) : (
+        <TradingViewChart theme={props.theme} />
+      )} */}
+    </div>
   );
-}
+};
+
+export default TradingChart;

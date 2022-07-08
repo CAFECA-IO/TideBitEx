@@ -1,0 +1,25 @@
+.mobile-ticker {
+  display: flex;
+  padding: 15px 15px 0;
+  &__container {
+    display: flex;
+    flex-direction: column;
+    padding: 0 15px;
+    flex: 1;
+  }
+  &__details {
+    display: flex;
+    gap: 5px;
+  }
+  &__price {
+    font-size: 20px;
+  }
+  &__change {
+    &.decrease {
+      color: #cf304a;
+    }
+    &.increase {
+      color: #03a66d;
+    }
+  }
+}

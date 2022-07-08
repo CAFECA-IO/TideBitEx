@@ -1,0 +1,47 @@
+.admin-dropdown {
+  position: relative;
+  padding: 0;
+  color: #767676;
+  &__controller {
+    display: none;
+  }
+  &__options {
+    display: none;
+    flex-direction: column;
+  }
+  &--float &__options {
+    position: absolute;
+    background-color: #fff;
+    z-index: 10;
+    box-shadow: 3px 3px 6px #00000029;
+    border: 1px solid #707070;
+  }
+  &__option {
+    padding: 8px 20px;
+    border-left: 5px solid transparent;
+  }
+  &__option.active {
+    color: #2699fb;
+    border-left: 5px solid #2699fb;
+  }
+  &__controller:checked ~ &__options {
+    display: flex;
+  }
+  &__label {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+  }
+  &__icon {
+    width: 7px;
+    height: 7px;
+    transform: rotate(-45deg) translate(3px, 0px);
+    padding: 1px;
+    border-left: 2px solid #767676;
+    border-bottom: 2px solid #767676;
+  }
+  &__controller:checked ~ &__label &__icon {
+    transform: rotate(135deg) translate(-3px, -3px);
+  }
+}

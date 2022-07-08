@@ -1,19 +1,20 @@
 @media only screen and (max-width: 1434px) {
-  .market-pairs tbody {
+  .market-tickers tbody {
     height: 760px;
   }
-  .no-fluid .market-pairs tbody {
-    height: 815px;
+  .no-fluid .market-tickers tbody {
+    height: 887px;
+    // height: 815px;
   }
   .settings-profile .custom-file {
     width: 25%;
   }
 }
 @media only screen and (max-width: 1300px) {
-  .market-pairs tbody {
+  .market-tickers tbody {
     height: 740px;
   }
-  .no-fluid .market-pairs tbody {
+  .no-fluid .market-tickers tbody {
     height: 755px;
   }
 }
@@ -39,7 +40,7 @@
   }
 }
 @media only screen and (max-width: 792px) {
-  .market-pairs tbody {
+  .market-tickers tbody {
     height: 699px;
   }
 }
@@ -57,7 +58,7 @@
   .navbar-collapse .dropdown.menu-avatar-icon {
     margin-top: 10px;
   }
-  .no-fluid .market-pairs {
+  .no-fluid .market-tickers {
     margin-bottom: 15px;
   }
   .no-fluid .order-book {
@@ -87,10 +88,10 @@
   #dark header button.navbar-toggler i {
     color: #c5cbce;
   }
-  .market-order-item {
-    padding: 5px 5px;
-    overflow: hidden;
-  }
+  // .market-order-item {
+  //   padding: 5px 5px;
+  //   overflow: hidden;
+  // }
   .market-order-item li {
     font-size: 12px;
   }

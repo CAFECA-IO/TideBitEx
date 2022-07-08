@@ -8,14 +8,14 @@ export default function MarketsList() {
         <div className="container-fluid">
           <div className="row">
             <div className="col-md-12">
-              <div className="markets-pair-list">
+              <div className="markets-ticker-list">
                 <Tabs defaultActiveKey="btc">
                   <Tab eventKey="favorites" title="★ Favorites">
                     <div className="table-responsive">
                       <table className="table star-active">
                         <thead>
                           <tr>
-                            <th>Pairs</th>
+                            <th>Tickers</th>
                             <th>Coin</th>
                             <th>Last Price</th>
                             <th>Change (24H)</th>
@@ -164,7 +164,7 @@ export default function MarketsList() {
                       <table className="table">
                         <thead>
                           <tr>
-                            <th>Pairs</th>
+                            <th>Tickers</th>
                             <th>Coin</th>
                             <th>Last Price</th>
                             <th>Change (24H)</th>
@@ -404,7 +404,7 @@ export default function MarketsList() {
                       <table className="table">
                         <thead>
                           <tr>
-                            <th>Pairs</th>
+                            <th>Tickers</th>
                             <th>Coin</th>
                             <th>Last Price</th>
                             <th>Change (24H)</th>
@@ -644,7 +644,7 @@ export default function MarketsList() {
                       <table className="table">
                         <thead>
                           <tr>
-                            <th>Pairs</th>
+                            <th>Tickers</th>
                             <th>Coin</th>
                             <th>Last Price</th>
                             <th>Change (24H)</th>
@@ -884,7 +884,7 @@ export default function MarketsList() {
                       <table className="table">
                         <thead>
                           <tr>
-                            <th>Pairs</th>
+                            <th>Tickers</th>
                             <th>Coin</th>
                             <th>Last Price</th>
                             <th>Change (24H)</th>

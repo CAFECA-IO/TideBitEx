@@ -1,205 +1,63 @@
-import React, { Component } from 'react';
-import { Navbar, Nav, NavDropdown, Dropdown, Button } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
-import { ThemeConsumer } from '../context/ThemeContext';
-export default class Header extends Component {
-  componentDidMount() {
-    let el = document.querySelector('#darkTheme');
-    if (el) {
-      el.addEventListener('click', function () {
-        document.body.classList.toggle('dark');
-      });
-    }
-  }
-  render() {
-    return (
-      <>
-        <header className="light-bb">
-          <Navbar expand="lg">
-            <Link className="navbar-brand" to="/">
-              <ThemeConsumer>
-                {({ data }) => {
-                  return data.theme === 'light' ? (
-                    <img src={'img/logo-dark.svg'} alt="logo" />
-                  ) : (
-                    <img src={'img/logo-light.svg'} alt="logo" />
-                  );
-                }}
-              </ThemeConsumer>
-            </Link>
-            <Navbar.Toggle aria-controls="basic-navbar-nav" />
-            <Navbar.Collapse id="basic-navbar-nav">
-              <Nav className="navbar-nav mr-auto">
-                <Link to="/" className="nav-link">
-                  Exchange
-                </Link>
-                <Link to="/markets" className="nav-link">
-                  Markets
-                </Link>
-                <NavDropdown title="Dashboard">
-                  <Link to="/profile" className="dropdown-item">
-                    Profile
-                  </Link>
-                  <Link to="/wallet" className="dropdown-item">
-                    Wallet
-                  </Link>
-                  <Link to="/settings" className="dropdown-item">
-                    Settings
-                  </Link>
-                </NavDropdown>
-                <NavDropdown title="Others">
-                  <Link to="/login" className="dropdown-item">
-                    Login
-                  </Link>
-                  <Link to="/signup" className="dropdown-item">
-                    Sign up
-                  </Link>
-                  <Link to="/lock" className="dropdown-item">
-                    Lock
-                  </Link>
-                  <Link to="/otp-number" className="dropdown-item">
-                    OTP Number
-                  </Link>
-                  <Link to="/otp-verify" className="dropdown-item">
-                    OTP Verify
-                  </Link>
-                  <Link to="/reset" className="dropdown-item">
-                    Reset
-                  </Link>
-                  <Link to="/notfound" className="dropdown-item">
-                    404
-                  </Link>
-                </NavDropdown>
-              </Nav>
-              <Nav className="navbar-nav ml-auto">
-                <Dropdown className="header-custom-icon">
-                  <ThemeConsumer>
-                    {({ data, update }) => (
-                      <Button variant="default" onClick={update} id="darkTheme">
-                        {data.theme === 'light' ? (
-                          <i className="icon ion-md-moon"></i>
-                        ) : (
-                          <i className="icon ion-md-sunny"></i>
-                        )}
-                      </Button>
-                    )}
-                  </ThemeConsumer>
-                  <Dropdown.Toggle variant="default">
-                    <i className="icon ion-md-notifications"></i>
-                    <span className="circle-pulse"></span>
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu>
-                    <div className="dropdown-header d-flex align-items-center justify-content-between">
-                      <p className="mb-0 font-weight-medium">
-                        6 New Notifications
-                      </p>
-                      <a href="#!" className="text-muted">
-                        Clear all
-                      </a>
-                    </div>
-                    <div className="dropdown-body">
-                      <a href="#!" className="dropdown-item">
-                        <div className="icon">
-                          <i className="icon ion-md-lock"></i>
-                        </div>
-                        <div className="content">
-                          <p>Account password change</p>
-                          <p className="sub-text text-muted">5 sec ago</p>
-                        </div>
-                      </a>
-                      <a href="#!" className="dropdown-item">
-                        <div className="icon">
-                          <i className="icon ion-md-alert"></i>
-                        </div>
-                        <div className="content">
-                          <p>Solve the security issue</p>
-                          <p className="sub-text text-muted">10 min ago</p>
-                        </div>
-                      </a>
-                      <a href="#!" className="dropdown-item">
-                        <div className="icon">
-                          <i className="icon ion-logo-android"></i>
-                        </div>
-                        <div className="content">
-                          <p>Download android app</p>
-                          <p className="sub-text text-muted">1 hrs ago</p>
-                        </div>
-                      </a>
-                      <a href="#!" className="dropdown-item">
-                        <div className="icon">
-                          <i className="icon ion-logo-bitcoin"></i>
-                        </div>
-                        <div className="content">
-                          <p>Bitcoin price is high now</p>
-                          <p className="sub-text text-muted">2 hrs ago</p>
-                        </div>
-                      </a>
-                      <a href="#!" className="dropdown-item">
-                        <div className="icon">
-                          <i className="icon ion-logo-usd"></i>
-                        </div>
-                        <div className="content">
-                          <p>Payment completed</p>
-                          <p className="sub-text text-muted">4 hrs ago</p>
-                        </div>
-                      </a>
-                    </div>
-                    <div className="dropdown-footer d-flex align-items-center justify-content-center">
-                      <a href="#!">View all</a>
-                    </div>
-                  </Dropdown.Menu>
-                </Dropdown>
-                <Dropdown className="header-img-icon">
-                  <Dropdown.Toggle variant="default">
-                    <img src={'img/avatar.svg'} alt="avatar" />
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu>
-                    <div className="dropdown-header d-flex flex-column align-items-center">
-                      <div className="figure mb-3">
-                        <img src={'img/avatar.svg'} alt="" />
-                      </div>
-                      <div className="info text-center">
-                        <p className="name font-weight-bold mb-0">Tony Stark</p>
-                        <p className="email text-muted mb-3">
-                          tonystark@gmail.com
-                        </p>
-                      </div>
-                    </div>
-                    <div className="dropdown-body">
-                      <ul className="profile-nav">
-                        <li className="nav-item">
-                          <Link to="/profile" className="nav-link">
-                            <i className="icon ion-md-person"></i>
-                            <span>Profile</span>
-                          </Link>
-                        </li>
-                        <li className="nav-item">
-                          <Link to="/wallet" className="nav-link">
-                            <i className="icon ion-md-wallet"></i>
-                            <span>My Wallet</span>
-                          </Link>
-                        </li>
-                        <li className="nav-item">
-                          <Link to="/settings" className="nav-link">
-                            <i className="icon ion-md-settings"></i>
-                            <span>Settings</span>
-                          </Link>
-                        </li>
-                        <li className="nav-item">
-                          <Link to="/login" className="nav-link red">
-                            <i className="icon ion-md-power"></i>
-                            <span>Log Out</span>
-                          </Link>
-                        </li>
-                      </ul>
-                    </div>
-                  </Dropdown.Menu>
-                </Dropdown>
-              </Nav>
-            </Navbar.Collapse>
-          </Navbar>
-        </header>
-      </>
-    );
-  }
-}
+import React, { useContext } from "react";
+import { Navbar, Nav } from "react-bootstrap";
+import StoreContext from "../store/store-context";
+import { useTranslation } from "react-i18next";
+import DropDown from "./DropDown";
+
+const Header = (props) => {
+  const storeCtx = useContext(StoreContext);
+  const { t } = useTranslation();
+
+  return (
+    <Navbar bg="teal" variant="dark" expand="lg">
+      <Navbar.Brand href="/">
+        <img
+          src="/TideBit_White_hk.png"
+          className="d-inline-block align-top"
+          alt="TideBit"
+          width="125px"
+        />
+      </Navbar.Brand>
+      <button
+        type="button custom"
+        aria-label="Toggle navigation"
+        className="navbar-toggler"
+        onClick={props.sidebarHandler}
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <Navbar.Collapse>
+        <Nav.Link href="/markets/ethhkd">{t("trading")}</Nav.Link>
+        <Nav.Link href="https://tidebit.zendesk.com/hc/zh-tw/articles/360003146914-%E5%A4%A7%E9%A1%8D%E4%BA%A4%E6%98%93Block-Trade-OTC-%E5%B0%88%E5%B1%AC-Whatsapp-852-62871829">
+          {t("block_trade")}
+        </Nav.Link>
+        <Nav.Link href="/digital_staking/plans">
+          {t("digital_staking")}
+        </Nav.Link>
+        <Nav.Link href="/referral">{t("refer_now")}</Nav.Link>
+        {!storeCtx.isLogin && (
+          <React.Fragment>
+            <Nav.Link href="/signin">{t("login")}</Nav.Link>
+            <Nav.Link href="/signup">{t("register")}</Nav.Link>
+          </React.Fragment>
+        )}
+        {storeCtx.isLogin && (
+          <React.Fragment>
+            <Nav.Link href="/accounts">{t("accounts")}</Nav.Link>
+            <Nav.Link href="/signout">{t("logout")}</Nav.Link>
+          </React.Fragment>
+        )}
+        <DropDown
+          options={Object.keys(props.languages)}
+          selected={props.languageKey}
+          onSelect={props.changeLanguage}
+          placeholder="Language"
+        >
+          {(key) => <div>{props.languages[key]}</div>}
+        </DropDown>
+      </Navbar.Collapse>
+    </Navbar>
+  );
+};
+
+export default Header;

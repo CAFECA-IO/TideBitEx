@@ -1,4 +1,4 @@
-@import './market-pairs';
+@import './market-tickers';
 @import './market-book';
 @import './market-trade';
 @import './market-history';
@@ -9,3 +9,8 @@
 @import './error';
 @import './tradingview';
 @import './settings';
+@import './ticker';
+@import './analysis';
+@import './currencies-view';
+@import './dropdown';
+@import './admin-dropdown';

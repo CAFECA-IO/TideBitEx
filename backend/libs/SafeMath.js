@@ -1,4 +1,4 @@
-const BigNumber = require("bignumber.js");
+const BigNumber = require('bignumber.js');
 
 class SafeMath {
   static isNumber(str) {
@@ -39,6 +39,11 @@ class SafeMath {
       .multipliedBy(new BigNumber(10).pow(decimals))
       .toString(16);
     return result;
+  }
+
+  static abs(a) {
+    const bnA = SafeMath.toBn(a);
+    return bnA.abs().toFixed();
   }
 
   /**
@@ -209,12 +214,12 @@ class SafeMath {
 
   /**
    * @override
-   * @method toSmallestUint
+   * @method toSmallestUnit
    * @param {string} amount
    * @param {Number} decimals
    * @returns {string}
    */
-  static toSmallestUint(amount, decimals) {
+  static toSmallestUnit(amount, decimals) {
     const bnAmount = SafeMath.toBn(amount);
     const bnBase = SafeMath.toBn(10);
     const bnDecimal = bnBase.exponentiatedBy(decimals);

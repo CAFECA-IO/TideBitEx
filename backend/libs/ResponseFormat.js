@@ -1,14 +1,12 @@
 const pjson = require('../../package.json');
 const Codes = require('../constants/Codes');
 
-class ResponseFormat extends Error {
+class ResponseFormat {
   constructor({
     code = Codes.SUCCESS, message, payload = {},
   }) {
-    super();
-
     return {
-      powerby: `TideBitSwap api ${pjson.version}`,
+      powerby: `TideBitEx api ${pjson.version}`,
       success: code === Codes.SUCCESS,
       code,
       message,

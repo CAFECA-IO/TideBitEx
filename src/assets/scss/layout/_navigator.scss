@@ -1,0 +1,38 @@
+.bottom-navigator {
+  display: none;
+  width: 100vw;
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  border-top-color: #e7e7e7;
+  padding: 6px 0;
+  font-size: 12px;
+
+  &__navbar {
+    display: flex;
+    justify-content: space-around;
+  }
+  &__item {
+    text-align: center;
+  }
+  &__item.active {
+    color: #1cb2b0;
+  }
+  &__item.active > svg > g {
+    stroke: #1cb2b0;
+  }
+  &__item.active:not(:nth-child(2)) > svg path:last-child {
+    fill: #1cb2b0;
+  }
+}
+
+// iphone XR
+@media only screen and (max-width: 414px) {
+  // If [device width] is less than or equal to 600px, then do
+  .bottom-navigator {
+    display: block;
+  }
+}
