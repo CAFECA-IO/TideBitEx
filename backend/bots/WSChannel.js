@@ -171,7 +171,8 @@ class WSChannel extends Bot {
       `-----&----- [WSChabbel][FROM WS] _onOpStatusUpdate userId -----&-----`,
       args,
       `ws.id`,
-      ws.id
+      ws.id,
+      header
     );
     let { memberId } = await parseMemberId(
       { ...header, userid: args.userId },
@@ -208,7 +209,7 @@ class WSChannel extends Bot {
       this._privateClient[memberId][ws.id] = findClient;
       EventBus.emit(Events.userOnSubscribe, {
         headers: {
-          cookie: header.cookie,
+          // cookie: header.cookie,
           "content-type": "application/json",
           "x-csrf-token": args.CSRFToken,
         },
