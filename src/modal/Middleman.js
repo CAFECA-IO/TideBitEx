@@ -204,9 +204,10 @@ class Middleman {
         this.accountBook.updateAll(accounts);
         const CSRFToken = await this.communicator.CSRFTokenRenew();
         console.log(`[Middleman] _getAccounts userId`, this._userId);
+        const userId = this.userId;
         this.tbWebSocket.setCurrentUser(market, {
           CSRFToken,
-          userId: this.userId,
+          userId,
         });
         this.tickerBook.setCurrentMarket(market);
       }
