@@ -187,7 +187,6 @@ class Middleman {
     const XSRFToken = !data
       ? undefined
       : decodeURIComponent(data.split("=")[1]);
-    console.log(`parseXSRFToken cookies`, cookies);
     console.log(`parseXSRFToken XSRFToken`, XSRFToken);
     return XSRFToken;
   }
