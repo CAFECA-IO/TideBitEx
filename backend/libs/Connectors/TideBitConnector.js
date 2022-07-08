@@ -140,7 +140,7 @@ class TibeBitConnector extends ConnectorBase {
             break;
           case "order":
             memberId = this.sn[channel.replace("private-", "")];
-            this._updateAccount(memberId, JSON.parse(data.data));
+            this._updateOrder(memberId, JSON.parse(data.data));
             break;
           case "trade":
             memberId = this.sn[channel.replace("private-", "")];

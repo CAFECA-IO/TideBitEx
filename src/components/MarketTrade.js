@@ -30,7 +30,7 @@ const TradeForm = (props) => {
 
   const formatPrice = useCallback(
     (value) => {
-      setErrorMessage(null)
+      setErrorMessage(null);
       let precision,
         arr = storeCtx.selectedTicker?.tickSz.split(".");
       if (arr.length > 1) precision = arr[1].length;
@@ -91,7 +91,7 @@ const TradeForm = (props) => {
 
   const formatSize = useCallback(
     (value) => {
-      setErrorMessage(null)
+      setErrorMessage(null);
       let precision,
         arr = storeCtx.selectedTicker?.lotSz.split("."),
         _price =
@@ -122,7 +122,7 @@ const TradeForm = (props) => {
       else if (
         SafeMath.gt(
           props.kind === "bid" ? SafeMath.mult(_price, size) : size,
-          quoteCcyAvailable
+          props.kind === "bid" ? quoteCcyAvailable : baseCcyAvailable
         )
       )
         setErrorMessage(
@@ -130,17 +130,7 @@ const TradeForm = (props) => {
         );
       else setErrorMessage(null);
     },
-    [
-      price,
-      props.kind,
-      props.ordType,
-      quoteCcyAvailable,
-      storeCtx.selectedTicker?.last,
-      storeCtx.selectedTicker?.lotSz,
-      storeCtx.selectedTicker?.maxSz,
-      storeCtx.selectedTicker?.minSz,
-      storeCtx.selectedTicker?.quote_unit,
-    ]
+    [baseCcyAvailable, price, props.kind, props.ordType, quoteCcyAvailable, storeCtx.selectedTicker?.last, storeCtx.selectedTicker?.lotSz, storeCtx.selectedTicker?.maxSz, storeCtx.selectedTicker?.minSz, storeCtx.selectedTicker?.quote_unit]
   );
 
   const onSubmit = async (event, kind) => {
