@@ -1,7 +1,9 @@
+import { toHaveDisplayValue } from "@testing-library/jest-dom/dist/matchers";
 import SafeMath from "../../utils/SafeMath";
 import BookBase from "../BookBase";
 
 class AccountBook extends BookBase {
+  _currentUser;
   constructor() {
     super();
     this.name = `AccountBook`;
@@ -9,6 +11,16 @@ class AccountBook extends BookBase {
     this._snapshot = {};
     this._difference = {};
     return this;
+  }
+
+  /**
+   * @param {any} userId
+   */
+  set currentUser(userId) {
+    this._currentUser = userId;
+  }
+  get currentUser() {
+    return this._currentUser;
   }
 
   getSnapshot(instId) {

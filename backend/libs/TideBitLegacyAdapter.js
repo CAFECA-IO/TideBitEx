@@ -1,6 +1,7 @@
 const SafeMath = require("./SafeMath");
 const Utils = require("./Utils");
 
+const tokens = {};
 const users = {};
 let userGCInterval = 86400 * 1000;
 
@@ -19,8 +20,19 @@ class TideBitLegacyAdapter {
       TideBitLegacyAdapter.usersGC();
     }
     let peatioToken,
+      XSRFToken,
       memberId = -1;
-    peatioToken = Utils.peatioToken(header);
+    console.log(`parseMemberId header`, header);
+    XSRFToken = Utils.XSRFToken(header);
+    console.log(`parseMemberId peatioToken`, peatioToken);
+    if (XSRFToken) {
+      if (tokens[XSRFToken]) {
+        peatioToken = tokens[XSRFToken];
+      } else {
+        peatioToken = Utils.peatioToken(header);
+        tokens[XSRFToken] = peatioToken;
+      }
+    }
     if (peatioToken) {
       if (users[peatioToken]) {
         memberId = users[peatioToken].memberId;
@@ -40,7 +52,8 @@ class TideBitLegacyAdapter {
     }
     console.log(
       `TideBitLegacyAdapter parseMemberId users[${peatioToken}]`,
-      users[peatioToken]
+      users[peatioToken],
+      `memberId:${memberId}`
     );
     return { peatioToken, memberId };
   }

@@ -712,6 +712,17 @@ class Utils {
     };
   }
 
+  static XSRFToken(header) {
+    if (!header.cookie || typeof header.cookie !== "string") return undefined;
+    const cookies = header.cookie.split(";");
+    const data = cookies.find((v) => {
+      return /XSRF-TOKEN/.test(v);
+    });
+    if (!data) return undefined;
+    const token = decodeURIComponent(data.split("=")[1]);
+    return token;
+  }
+
   static peatioToken(header) {
     if (!header.cookie || typeof header.cookie !== "string") return undefined;
     const cookies = header.cookie.split(";");

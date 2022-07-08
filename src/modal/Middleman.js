@@ -9,6 +9,7 @@ import TideBitWS from "../libs/TideBitWS";
 import SafeMath from "../utils/SafeMath";
 import Communicator from "./Communicator";
 import Pusher from "pusher-js";
+import { randomID } from "dvalue";
 
 class Middleman {
   constructor() {
@@ -178,15 +179,17 @@ class Middleman {
     }
   }
 
-  parsePeatioToken() {
+  parseXSRFToken() {
     let cookies = window.document.cookie.split(";");
     const data = cookies.find((v) => {
-      return /_peatio_session/.test(v);
+      return /XSRF-TOKEN/.test(v);
     });
-    const peatioToken = !data ? undefined : data.split("=")[1];
-    console.log(`parsePeatioToken cookies`, cookies)
-    console.log(`parsePeatioToken peatioToken`, peatioToken)
-    return peatioToken;
+    const XSRFToken = !data
+      ? undefined
+      : decodeURIComponent(data.split("=")[1]);
+    console.log(`parseXSRFToken cookies`, cookies);
+    console.log(`parseXSRFToken XSRFToken`, XSRFToken);
+    return XSRFToken;
   }
 
   async _getAccounts(market) {
@@ -199,8 +202,9 @@ class Middleman {
         this.isLogin = true;
         this.accountBook.updateAll(accounts);
         const CSRFToken = await this.communicator.CSRFTokenRenew();
-        const peatioToken = this.parsePeatioToken();
-        this.tbWebSocket.setCurrentUser(market, { CSRFToken, peatioToken });
+        const XSRFToken = this.parseXSRFToken();
+        this.accountBook.currentUser = XSRFToken;
+        this.tbWebSocket.setCurrentUser(market, { XSRFToken, CSRFToken });
         this.tickerBook.setCurrentMarket(market);
       }
     } catch (error) {
