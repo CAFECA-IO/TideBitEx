@@ -1177,8 +1177,16 @@ class TibeBitConnector extends ConnectorBase {
   _unregisterPrivateChannel(client) {
     this.logger.log(`_unregisterPrivateChannel  client`, client);
     try {
-      client["channel"]?.unbind();
-      client["pusher"]?.unsubscribe(`private-${client["sn"]}`);
+      // client["channel"]?.unbind();
+      // client["pusher"]?.unsubscribe(`private-${client["sn"]}`);
+      this.websocket.ws.send(
+        JSON.stringify({
+          event: "pusher:unsubscribe",
+          data: {
+            channel: `private-${client["sn"]}`,
+          },
+        })
+      );
     } catch (error) {
       this.logger.error(`_unregisterPrivateChannel error`, error);
       throw error;
@@ -1300,7 +1308,7 @@ class TibeBitConnector extends ConnectorBase {
       // this.public_pusher?.unsubscribe("market-global");
       this.websocket.ws.send(
         JSON.stringify({
-          event: "pusher:subscribe",
+          event: "pusher:unsubscribe",
           data: {
             channel: `market-global`,
           },
