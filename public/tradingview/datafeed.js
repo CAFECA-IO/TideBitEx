@@ -1,6 +1,6 @@
 // https://zlq4863947.gitbook.io/tradingview/3-shu-ju-bang-ding/js-api
 // https://github.com/tradingview/charting-library-tutorial/blob/master/documentation/datafeed-implementation.md
-console.log(`TidebitEx test version 0001`);
+console.log(`TidebitEx test version 0003`);
 
 const getParameterByName = (name) => {
   name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
@@ -60,4 +60,4 @@ const initOnReady = () => {
   console.log(`initOnReady is called`);
 };
 
-window.addEventListener("DOMContentLoaded", initOnReady, false);
+window.addEventListener("load", initOnReady);
