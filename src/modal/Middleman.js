@@ -304,6 +304,7 @@ class Middleman {
   }
 
   async start(market) {
+    await this._getAccounts(market);
     const options = await this.communicator.getOptions();
     this.tbWebSocket.init({
       url: `${window.location.protocol === "https:" ? "wss://" : "ws://"}${
@@ -311,7 +312,6 @@ class Middleman {
       }/ws`,
     });
     this._tbWSEventListener();
-    this._getAccounts(market);
     this._getTickers();
     this.selectMarket(market);
   }
