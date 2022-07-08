@@ -14,7 +14,7 @@ const DesktopExchange = (props) => {
       <section className="section">
         <div className="section__container">
           <div className="section__container--left">
-            <DepthBook />
+            {/* <DepthBook /> */}
           </div>
           <div className="section__container--right">
             <ThemeConsumer>
