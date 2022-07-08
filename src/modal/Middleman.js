@@ -21,7 +21,7 @@ class Middleman {
     this.tradeBook = new TradeBook();
     this.tbWebSocket = new TideBitWS();
     this._userId = randomID(8);
-    console.log(`[Middleman] userId`, this._userId);
+    // console.log(`[Middleman] userId`, this._userId);
     this.communicator = new Communicator({ userId: this._userId });
     // -- TEST
     window.middleman = this;
@@ -203,7 +203,7 @@ class Middleman {
         this.isLogin = true;
         this.accountBook.updateAll(accounts);
         const CSRFToken = await this.communicator.CSRFTokenRenew();
-        console.log(`[Middleman] _getAccounts userId`, this._userId);
+        // console.log(`[Middleman] _getAccounts userId`, this._userId);
         const userId = this._userId;
         this.tbWebSocket.setCurrentUser(market, {
           CSRFToken,
