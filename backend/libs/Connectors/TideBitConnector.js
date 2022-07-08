@@ -14,6 +14,7 @@ const WebSocket = require("../WebSocket");
 const HEART_BEAT_TIME = 25000;
 class TibeBitConnector extends ConnectorBase {
   isStart = false;
+  socketId;
 
   public_pusher = null;
   // private_pusher = {};
@@ -95,7 +96,9 @@ class TibeBitConnector extends ConnectorBase {
   _tidebitWsEventListener() {
     this.websocket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-
+      if (data.event === "pusher:connection_established") {
+        this.socketId = data.data["socket_id"];
+      }
       if (data.event !== "pusher:error") {
         // subscribe return
         const channel = data.channel;
@@ -1113,7 +1116,7 @@ class TibeBitConnector extends ConnectorBase {
     }
   }
 
-  async _registerPrivateChannel(pusher, memberId, sn) {
+  async _registerPrivateChannel(auth, memberId, sn) {
     this.logger.log(
       `[${this.constructor.name}]_registerPrivateChannel`,
       `memberId`,
@@ -1133,7 +1136,7 @@ class TibeBitConnector extends ConnectorBase {
         JSON.stringify({
           event: "pusher:subscribe",
           data: {
-            auth: `${this.key}:authTOKEN`, // TODO
+            auth, // TODO
             channel: `private-${sn}`,
           },
         })
@@ -1308,60 +1311,21 @@ class TibeBitConnector extends ConnectorBase {
     // );
   }
 
-  _startPusherWithLoginToken(headers) {
-    this.logger.log(`_startPusherWithLoginToken headers`, headers)
-    const pusher = new Pusher(this.key, {
-      encrypted: this.encrypted,
-      wsHost: this.wsHost,
-      wsPort: this.wsPort,
-      wssPort: this.wssPort,
-      disableFlash: true,
-      disableStats: true,
-      disabledTransports: ["flash", "sockjs"],
-      forceTLS: false,
-      authorizer: (channel, options) => {
-        return {
-          authorize: headers
-            ? (socketId, callback) => {
-              this.logger.log(`_startPusherWithLoginToken channel[${channel.name}]`, channel)
-              this.logger.log(`_startPusherWithLoginToken socketId`, socketId)
-                const data = JSON.stringify({
-                  socket_id: socketId,
-                  channel_name: channel.name,
-                });
-                axios({
-                  url: `${this.peatio}/pusher/auth`,
-                  method: "POST",
-                  headers: {
-                    ...headers,
-                    "Content-Length": Buffer.from(data, "utf-8").length,
-                  },
-                  data,
-                })
-                  .then((res) => {
-                    if (res.status !== 200) {
-                      throw new Error(
-                        `Received ${res.statusCode} from /pusher/auth`
-                      );
-                    }
-                    this.logger.log(`_startPusherWithLoginToken authToken`, res.data)
-                    return res.data;
-                  })
-                  .then((data) => {
-                    callback(null, data);
-                  })
-                  .catch((err) => {
-                    this.logger.error(`authorize err`, err);
-                    callback(new Error(`Error calling auth endpoint: ${err}`), {
-                      auth: "",
-                    });
-                  });
-              }
-            : null,
-        };
-      },
+  async _startPusherWithLoginToken(headers, sn) {
+    const data = JSON.stringify({
+      socket_id: this.socketId,
+      channel_name: `private-${sn}`,
     });
-    return pusher;
+    const auth = await axios({
+      url: `${this.peatio}/pusher/auth`,
+      method: "POST",
+      headers: {
+        ...headers,
+        "Content-Length": Buffer.from(data, "utf-8").length,
+      },
+      data,
+    });
+    return auth;
   }
 
   /**
@@ -1381,9 +1345,12 @@ class TibeBitConnector extends ConnectorBase {
         const client = this.private_client[credential.memberId];
         if (!client) {
           const member = await this.database.getMemberById(credential.memberId);
-          const pusher = this._startPusherWithLoginToken(credential.headers);
+          const auth = this._startPusherWithLoginToken(
+            credential.headers,
+            member.sn
+          );
           const channel = await this._registerPrivateChannel(
-            pusher,
+            auth,
             credential.memberId,
             member.sn
           );
@@ -1391,7 +1358,7 @@ class TibeBitConnector extends ConnectorBase {
             memberId: credential.memberId,
             sn: member.sn,
             wsIds: [credential.wsId],
-            pusher,
+            auth,
             channel,
           };
         } else {
