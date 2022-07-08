@@ -92,11 +92,6 @@ class WSChannel extends Bot {
             }
             switch (op) {
               case "userStatusUpdate":
-                console.log(`[WSChannel] _onOpStatusUpdate this`, this);
-                console.log(
-                  `[WSChannel] _onOpStatusUpdate  this.redis`,
-                  this.redis
-                );
                 this._onOpStatusUpdate(req.headers, ws, args, this.redis);
                 break;
               case "switchMarket":
@@ -141,6 +136,9 @@ class WSChannel extends Bot {
                 Object.values(this._channelClients[findClient.channel])
                   .length === 0
               ) {
+                this.logger.debug(
+                  `[${this.constructor.name}] ws.on("close") emit Events.tickerOnUnsubscribe:channel[${findClient.channel}]`
+                );
                 EventBus.emit(
                   Events.tickerOnUnsubscribe,
                   findClient.channel,
@@ -149,10 +147,6 @@ class WSChannel extends Bot {
               }
             }
             if (findClient.isPrivate) {
-              this.logger.debug(
-                `findClient isPrivate${findClient.isPrivate}`,
-                findClient
-              );
               this.logger.debug(`this._privateClient`, this._privateClient);
               EventBus.emit(Events.userOnUnsubscribe, ws.id);
               findClient.isPrivate = false;
@@ -173,8 +167,16 @@ class WSChannel extends Bot {
   // ++ CURRENT_USER UNSAVED
   async _onOpStatusUpdate(header, ws, args, redis) {
     const findClient = this._client[ws.id];
-    let { memberId } = await parseMemberId(header, redis);
-
+    this.logger.log(
+      `-----&----- [WSChabbel][FROM WS] _onOpStatusUpdate userId -----&-----`,
+      args,
+      `ws.id`,
+      ws.id
+    );
+    let { memberId, XSRFToken, peatioToken } = await parseMemberId(
+      { ...header, userid: args.userId },
+      redis
+    );
     if (!findClient.isStart) {
       findClient.channel = args.market;
       findClient.isStart = true;
@@ -187,14 +189,10 @@ class WSChannel extends Bot {
       this._channelClients[args.market][ws.id] = ws;
     }
     this.logger.log(
-      `[${this.constructor.name} _onOpStatusUpdate] memberId,`,
-      memberId,
-      `args`,
-      args,
-      `ws.id`,
-      ws.id
+      `[${this.constructor.name} _onOpStatusUpdate] memberId`,
+      memberId
     );
-    if (memberId !== -1 && args.token) {
+    if (memberId !== -1 && args.CSRFToken) {
       findClient.isPrivate = true;
       findClient.memberId = memberId;
       if (!this._privateClient[memberId]) this._privateClient[memberId] = {};
@@ -210,9 +208,11 @@ class WSChannel extends Bot {
       this._privateClient[memberId][ws.id] = findClient;
       EventBus.emit(Events.userOnSubscribe, {
         headers: {
-          cookie: header.cookie,
+          cookie: `XSRF-TOKEN=${decodeURIComponent(
+            XSRFToken
+          )};_peatio_session=${peatioToken}`,
           "content-type": "application/json",
-          "x-csrf-token": args.token,
+          "x-csrf-token": args.CSRFToken,
         },
         memberId,
         wsId: ws.id,
@@ -250,6 +250,9 @@ class WSChannel extends Bot {
       const oldChannel = findClient.channel;
       delete this._channelClients[oldChannel][ws.id];
       if (Object.values(this._channelClients[oldChannel]).length === 0) {
+        this.logger.debug(
+          `[${this.constructor.name}]_onOpSwitchMarket emit Events.tickerOnUnsubscribe:oldchannel[${oldChannel}]`
+        );
         EventBus.emit(Events.tickerOnUnsubscribe, oldChannel, ws.id);
       }
       findClient.channel = args.market;

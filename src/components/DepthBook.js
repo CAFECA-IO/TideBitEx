@@ -136,7 +136,7 @@ const DepthBook = (props) => {
 
   return (
     <section className="order-book">
-      <div className="order-book__tool-bar">
+      {/* <div className="order-book__tool-bar">
         <DropDown
           className="order-book__range-options"
           options={rangeOptions}
@@ -146,7 +146,7 @@ const DepthBook = (props) => {
         >
           {(range) => <div>{range}</div>}
         </DropDown>
-      </div>
+      </div> */}
       <ul className="order-book__header table__header flex-row">
         <ul className="order-book__header--bids flex-row">
           <li>{t("amount")}</li>

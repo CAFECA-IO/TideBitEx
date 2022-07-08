@@ -2,6 +2,7 @@ import SafeMath from "../../utils/SafeMath";
 import BookBase from "../BookBase";
 
 class AccountBook extends BookBase {
+  _currentUser;
   constructor() {
     super();
     this.name = `AccountBook`;
@@ -71,9 +72,9 @@ class AccountBook extends BookBase {
     this._difference = {};
     try {
       accounts.forEach((account) => {
-        if (this._compareFunction(this._snapshot[account.currency], account)) {
-          this._difference[account.currency] = account;
-        }
+        // if (this._compareFunction(this._snapshot[account.currency], account)) {
+        this._difference[account.currency] = account;
+        // }
         this._snapshot[account.currency] = account;
       });
       return true;

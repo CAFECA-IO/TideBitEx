@@ -1,4 +1,3 @@
-import { Config } from "../constant/Config";
 import Events from "../constant/Events";
 import AccountBook from "../libs/books/AccountBook";
 import DepthBook from "../libs/books/DepthBook";
@@ -6,10 +5,13 @@ import OrderBook from "../libs/books/OrderBook";
 import TickerBook from "../libs/books/TickerBook";
 import TradeBook from "../libs/books/TradeBook";
 import TideBitWS from "../libs/TideBitWS";
-import SafeMath from "../utils/SafeMath";
 import Communicator from "./Communicator";
+import Pusher from "pusher-js";
+import { randomID } from "dvalue";
 
 class Middleman {
+  _userId;
+  isLogin = false;
   constructor() {
     this.name = "Middleman";
     this.accountBook = new AccountBook();
@@ -18,7 +20,9 @@ class Middleman {
     this.tickerBook = new TickerBook();
     this.tradeBook = new TradeBook();
     this.tbWebSocket = new TideBitWS();
-    this.communicator = new Communicator();
+    this._userId = randomID(8);
+    // console.log(`[Middleman] userId`, this._userId);
+    this.communicator = new Communicator({ userId: this._userId });
     // -- TEST
     window.middleman = this;
     // -- TEST
@@ -177,6 +181,18 @@ class Middleman {
     }
   }
 
+  // parseXSRFToken() {
+  //   let cookies = window.document.cookie.split(";");
+  //   const data = cookies.find((v) => {
+  //     return /XSRF-TOKEN/.test(v);
+  //   });
+  //   const XSRFToken = !data
+  //     ? undefined
+  //     : decodeURIComponent(data.split("=")[1]);
+  //   console.log(`parseXSRFToken XSRFToken`, XSRFToken);
+  //   return XSRFToken;
+  // }
+
   async _getAccounts(market) {
     try {
       const accounts = await this.communicator
@@ -186,8 +202,13 @@ class Middleman {
       if (accounts) {
         this.isLogin = true;
         this.accountBook.updateAll(accounts);
-        const token = await this.communicator.CSRFTokenRenew();
-        this.tbWebSocket.setCurrentUser(market, token);
+        const CSRFToken = await this.communicator.CSRFTokenRenew();
+        // console.log(`[Middleman] _getAccounts userId`, this._userId);
+        const userId = this._userId;
+        this.tbWebSocket.setCurrentUser(market, {
+          CSRFToken,
+          userId,
+        });
         this.tickerBook.setCurrentMarket(market);
       }
     } catch (error) {
@@ -212,6 +233,21 @@ class Middleman {
     await this._getOrderList(market);
     await this._getOrderHistory(market);
     // }
+    // let pusher = new Pusher("2b78567f96a2c0f40368", {
+    //   wsHost: "pusher.tinfo.top",
+    //   port: 4567,
+    //   disableFlash: true,
+    //   disableStats: true,
+    //   disabledTransports: ["flash", "sockjs"],
+    //   forceTLS: false,
+    // });
+    // window.pusher = pusher;
+    // let channel = pusher.subscribe(`market-${market}-global`);
+    // window.channel = channel;
+    // channel.bind("update", (data) => console.log(`update`, data));
+    // channel.bind("trades", (data) => console.log(`trades`, data));
+    // let globalChannel = pusher.subscribe("market-global");
+    // globalChannel.bind("tickers", (data) => console.log(`tickers`,data));
   }
 
   _tbWSEventListener() {

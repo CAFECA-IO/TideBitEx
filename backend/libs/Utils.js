@@ -494,6 +494,7 @@ class Utils {
   }
 
   static initialDB({ homeFolder, database }) {
+    // console.log(`initialDB database`, database);
     const dbPath = path.resolve(homeFolder, "dataset");
     const dbo = new DBOperator();
     return dbo.init({ dir: dbPath, database }).then(() => dbo);
@@ -710,6 +711,17 @@ class Utils {
       day: pad(date),
       year: year,
     };
+  }
+
+  static XSRFToken(header) {
+    if (!header.cookie || typeof header.cookie !== "string") return undefined;
+    const cookies = header.cookie.split(";");
+    const data = cookies.find((v) => {
+      return /XSRF-TOKEN/.test(v);
+    });
+    if (!data) return undefined;
+    const token = decodeURIComponent(data.split("=")[1]);
+    return token;
   }
 
   static peatioToken(header) {

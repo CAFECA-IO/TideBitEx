@@ -326,12 +326,8 @@ const StoreProvider = (props) => {
         pathname: `/markets/${market}`,
       });
       await middleman.start(market);
-      setIsLogin(middleman.isLogin);
-      sync();
-      interval = setInterval(sync, 300);
-
     }
-  }, [history, location.pathname, middleman, sync]);
+  }, [history, location.pathname, middleman]);
 
   const stop = useCallback(() => {
     console.log(`stop`);
@@ -356,6 +352,7 @@ const StoreProvider = (props) => {
         tickSz,
         lotSz,
         setIsLogin,
+        sync,
         start,
         stop,
         depthBookHandler,
