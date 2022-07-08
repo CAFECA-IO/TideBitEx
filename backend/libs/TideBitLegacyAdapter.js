@@ -22,12 +22,13 @@ class TideBitLegacyAdapter {
     let peatioToken,
       XSRFToken,
       memberId = -1;
-    console.log(`parseMemberId header`, header);
     XSRFToken = Utils.XSRFToken(header);
+    console.log(`parseMemberId XSRFToken`, peatioToken);
     console.log(`parseMemberId peatioToken`, peatioToken);
     if (XSRFToken) {
       if (tokens[XSRFToken]) {
         peatioToken = tokens[XSRFToken];
+        console.log(`parseMemberId tokens[XSRFToken]`, peatioToken);
       } else {
         peatioToken = Utils.peatioToken(header);
         tokens[XSRFToken] = peatioToken;
