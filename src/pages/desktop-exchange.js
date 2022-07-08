@@ -14,17 +14,17 @@ const DesktopExchange = (props) => {
       <section className="section">
         <div className="section__container">
           <div className="section__container--left">
-            <DepthBook />
+            {/* <DepthBook /> */}
           </div>
           <div className="section__container--right">
-            <ThemeConsumer>
+            {/* <ThemeConsumer>
               {({ data }) => <TradingChart theme={data.theme} />}
-            </ThemeConsumer>
+            </ThemeConsumer> */}
           </div>
         </div>
         <div className="section__container">
           <div className="section__container--left">
-            <MarketTrade />
+            {/* <MarketTrade /> */}
           </div>
           <div className="section__container--right">
             <HistoryOrder />

@@ -20,13 +20,15 @@
   }
 
   &__header {
-    border-bottom: 1px solid #dee2e6;
-    color: white;
+    // border-bottom: 1px solid #dee2e6;
+    color: #555;
     font-weight: 700;
     font-size: 14px;
     padding: 8px 0px;
     padding-right: 5px;
-    color: #555;
+    background-color: #4597e6;
+    border-bottom: 1px solid #333;
+    color: white;
   }
   &__table {
     display: flex;
