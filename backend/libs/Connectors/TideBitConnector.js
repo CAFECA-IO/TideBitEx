@@ -1334,7 +1334,7 @@ class TibeBitConnector extends ConnectorBase {
       data,
     });
     this.logger.log(`getAuth`, {
-      url: `${this.peatio}/pusher/auth`,
+      url: `https://${this.peatio}/pusher/auth`,
       method: "POST",
       headers: {
         ...headers,

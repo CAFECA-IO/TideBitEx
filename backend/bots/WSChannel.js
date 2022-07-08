@@ -173,7 +173,7 @@ class WSChannel extends Bot {
       `ws.id`,
       ws.id
     );
-    let { memberId, XSRFToken } = await parseMemberId(
+    let { memberId, XSRFToken, peatioToken } = await parseMemberId(
       { ...header, userid: args.userId },
       redis
     );
@@ -208,7 +208,9 @@ class WSChannel extends Bot {
       this._privateClient[memberId][ws.id] = findClient;
       EventBus.emit(Events.userOnSubscribe, {
         headers: {
-          cookie: `XSRF-TOKEN=${decodeURIComponent(XSRFToken)}`,
+          cookie: `XSRF-TOKEN=${decodeURIComponent(
+            XSRFToken
+          )};_peatio_session=${peatioToken}`,
           "content-type": "application/json",
           "x-csrf-token": args.CSRFToken,
         },
