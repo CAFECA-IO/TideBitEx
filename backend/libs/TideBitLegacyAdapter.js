@@ -24,7 +24,7 @@ class TideBitLegacyAdapter {
       userId,
       memberId = -1;
     userId = header.userid;
-    console.log(`[TideBitLegacyAdapter] parseMemberId header`, header);
+    // console.log(`[TideBitLegacyAdapter] parseMemberId header`, header);
     if (userId) {
       if (tokens[userId]) {
         peatioToken = tokens[userId].peatioToken;
