@@ -24,11 +24,11 @@ const DesktopExchange = (props) => {
         </div>
         <div className="section__container">
           <div className="section__container--left">
-            {/* <MarketTrade /> */}
+            <MarketTrade />
           </div>
           <div className="section__container--right">
             <HistoryOrder />
-            <MarketHistory />
+            {/* <MarketHistory /> */}
           </div>
         </div>
       </section>
