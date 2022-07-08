@@ -98,6 +98,8 @@ class TibeBitConnector extends ConnectorBase {
       const data = JSON.parse(event.data);
       if (data.event === "pusher:connection_established") {
         this.socketId = data.data["socket_id"];
+        this.logger.log(`pusher:connection_established data`, data)
+        this.logger.log(`pusher:connection_established this.socketId`, this.socketId)
       }
       if (data.event !== "pusher:error") {
         // subscribe return
@@ -1125,15 +1127,6 @@ class TibeBitConnector extends ConnectorBase {
       // channel.bind("trade", (data) => {
       //   this._updateTrade(memberId, data);
       // });
-      this.websocket.ws.send(
-        JSON.stringify({
-          event: "pusher:subscribe",
-          data: {
-            auth,
-            channel: `private-${sn}`,
-          },
-        })
-      );
       this.logger.log(
         `[${this.constructor.name}]_registerPrivateChannel send`,
         {
@@ -1143,6 +1136,15 @@ class TibeBitConnector extends ConnectorBase {
             channel: `private-${sn}`,
           },
         }
+      );
+      this.websocket.ws.send(
+        JSON.stringify({
+          event: "pusher:subscribe",
+          data: {
+            auth,
+            channel: `private-${sn}`,
+          },
+        })
       );
     } catch (error) {
       this.logger.error(`private_channel error`, error);
