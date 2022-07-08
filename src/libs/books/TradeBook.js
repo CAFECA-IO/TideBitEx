@@ -51,13 +51,15 @@ class TradeBook extends BookBase {
       let trades;
       if (this._snapshot[market]) {
         trades = this._snapshot[market].map((trade) => {
-          if (
-            !this._prevSnapshot[market].some((_trade) =>
-              this._compareFunction(trade, _trade)
-            )
-          ) {
-            return { ...trade, update: true };
-          } else return trade;
+          // ++ WORKAROUND TODO: enhance performance
+          // if (
+          //   !this._prevSnapshot[market].some((_trade) =>
+          //     this._compareFunction(trade, _trade)
+          //   )
+          // ) {
+          //   return { ...trade, update: true };
+          // } else
+          return trade;
         });
         this._prevSnapshot[market] = this._snapshot[market];
       } else trades = [];

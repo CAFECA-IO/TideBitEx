@@ -112,8 +112,9 @@ class TickerBook extends BookBase {
     // console.log(`[TickerBook updateAll]`, tickers);
     try {
       Object.values(tickers).forEach((ticker) => {
+        // ++ WORKAROUND TODO: enhance performance
         // if (this._compareFunction(this._snapshot[ticker.market], ticker)) {
-        this._difference[ticker.market] = ticker;
+        // this._difference[ticker.market] = ticker;
         // }
         this._snapshot[ticker.market] = ticker;
       });

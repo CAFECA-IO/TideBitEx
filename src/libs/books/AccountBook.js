@@ -1,4 +1,3 @@
-import { toHaveDisplayValue } from "@testing-library/jest-dom/dist/matchers";
 import SafeMath from "../../utils/SafeMath";
 import BookBase from "../BookBase";
 

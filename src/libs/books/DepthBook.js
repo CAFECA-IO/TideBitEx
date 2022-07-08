@@ -24,12 +24,13 @@ class DepthBook extends BookBase {
         bids = [];
       if (!this._snapshot[market]) this._snapshot[market] = [];
       this._snapshot[market]?.forEach((data) => {
-        if (
-          this._difference[market].update.some((d) =>
-            this._compareFunction(d, data)
-          )
-        )
-          data = { ...data, update: true };
+        // ++ WORKAROUND TODO: enhance performance
+        // if (
+        //   this._difference[market].update.some((d) =>
+        //     this._compareFunction(d, data)
+        //   )
+        // )
+        // data = { ...data, update: true };
         if (data.side === "asks") {
           asks.push(data);
         }
