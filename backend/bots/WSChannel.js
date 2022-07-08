@@ -208,7 +208,7 @@ class WSChannel extends Bot {
       this._privateClient[memberId][ws.id] = findClient;
       EventBus.emit(Events.userOnSubscribe, {
         headers: {
-          cookie: `XSRF-TOKEN=${(XSRFToken)}`,
+          cookie: `XSRF-TOKEN=${decodeURIComponent(XSRFToken)}`,
           "content-type": "application/json",
           "x-csrf-token": args.CSRFToken,
         },
