@@ -23,12 +23,12 @@ class TideBitLegacyAdapter {
       XSRFToken,
       memberId = -1;
     XSRFToken = Utils.XSRFToken(header);
-    console.log(`parseMemberId XSRFToken`, XSRFToken);
-    console.log(`parseMemberId peatioToken`, peatioToken);
+    console.log(`[TideBitLegacyAdapter] parseMemberId XSRFToken`, XSRFToken);
+    console.log(`[TideBitLegacyAdapter] parseMemberId peatioToken`, peatioToken);
     if (XSRFToken) {
       if (tokens[XSRFToken]) {
         peatioToken = tokens[XSRFToken];
-        console.log(`parseMemberId tokens[XSRFToken:${XSRFToken}]`, peatioToken);
+        console.log(`[TideBitLegacyAdapter] parseMemberId tokens[XSRFToken:${XSRFToken}]`, peatioToken);
       } else {
         peatioToken = Utils.peatioToken(header);
         tokens[XSRFToken] = peatioToken;
@@ -46,13 +46,13 @@ class TideBitLegacyAdapter {
           memberId = await Utils.getMemberIdFromRedis(radisDomain, peatioToken);
           users[peatioToken] = { memberId, ts: Date.now() };
         } catch (error) {
-          console.error(`parseMemberId getMemberIdFromRedis error`, error);
+          console.error(`[TideBitLegacyAdapter] parseMemberId getMemberIdFromRedis error`, error);
           users[peatioToken] = { memberId, ts: Date.now() };
         }
       }
     }
     console.log(
-      `TideBitLegacyAdapter parseMemberId users[${peatioToken}]`,
+      `[TideBitLegacyAdapter] parseMemberId users[${peatioToken}]`,
       users[peatioToken],
       `memberId:${memberId}`
     );
@@ -62,7 +62,7 @@ class TideBitLegacyAdapter {
   // ++ middleware
   static async getMemberId(ctx, next, redisDomain) {
     let XSRFToken = Utils.XSRFToken(ctx.header);
-    console.log(`parseMemberId XSRFToken`, XSRFToken);
+    console.log(`[TideBitLegacyAdapter][FROM API] getMemberId XSRFToken`, XSRFToken);
     const parsedResult = await TideBitLegacyAdapter.parseMemberId(
       ctx.header,
       redisDomain
