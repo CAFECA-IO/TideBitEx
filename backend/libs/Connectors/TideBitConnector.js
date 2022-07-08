@@ -1117,13 +1117,6 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async _registerPrivateChannel(auth, memberId, sn) {
-    this.logger.log(
-      `[${this.constructor.name}]_registerPrivateChannel`,
-      `memberId`,
-      memberId,
-      `sn`,
-      sn
-    );
     let channel;
     try {
       // channel = pusher.subscribe(`private-${sn}`);
@@ -1136,10 +1129,20 @@ class TibeBitConnector extends ConnectorBase {
         JSON.stringify({
           event: "pusher:subscribe",
           data: {
-            auth, // TODO
+            auth,
             channel: `private-${sn}`,
           },
         })
+      );
+      this.logger.log(
+        `[${this.constructor.name}]_registerPrivateChannel send`,
+        {
+          event: "pusher:subscribe",
+          data: {
+            auth,
+            channel: `private-${sn}`,
+          },
+        }
       );
     } catch (error) {
       this.logger.error(`private_channel error`, error);
