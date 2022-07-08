@@ -87,23 +87,23 @@ class TickerBook extends BookBase {
       //     new Date(ticker.ts).toISOString(),
       //     this._compareFunction(this._snapshot[ticker.market], ticker)
       //   );
-      if (this._compareFunction(this._snapshot[ticker.market], ticker)) {
-        try {
-          const preTicker = { ...this._snapshot[ticker.market] };
-          this._difference[ticker.market] = {
-            ...preTicker,
-            ...ticker,
-          };
-          this._snapshot[ticker.market] = {
-            ...preTicker,
-            ...ticker,
-          };
-          return true;
-        } catch (error) {
-          console.error(`[${this.constructor.name}] error`, error);
-          return false;
-        }
+      // if (this._compareFunction(this._snapshot[ticker.market], ticker)) {
+      try {
+        const preTicker = { ...this._snapshot[ticker.market] };
+        this._difference[ticker.market] = {
+          ...preTicker,
+          ...ticker,
+        };
+        this._snapshot[ticker.market] = {
+          ...preTicker,
+          ...ticker,
+        };
+        return true;
+      } catch (error) {
+        console.error(`[${this.constructor.name}] error`, error);
+        return false;
       }
+      // }
     });
   }
 

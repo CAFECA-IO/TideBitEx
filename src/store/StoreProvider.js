@@ -294,18 +294,18 @@ const StoreProvider = (props) => {
     if (time - tickerTs > tickerInterval) {
       let ticker = middleman.getTicker();
       if (ticker) setPrecision(ticker);
-      // setSelectedTicker(middleman.getTicker());
+      setSelectedTicker(middleman.getTicker());
     }
     if (time - depthTs > depthInterval) {
       // console.log(`middleman.getDepthBooks()`, middleman.getDepthBooks());
-      // setBooks(middleman.getDepthBooks());
+      setBooks(middleman.getDepthBooks());
     }
     if (time - tradeTs > tradeInterval) {
       // console.log(`middleman.getTrades()`, middleman.getTrades());
-      // setTrades(middleman.getTrades());
+      setTrades(middleman.getTrades());
     }
     if (time - tickersTs > tickersInterval) {
-      // setTickers(middleman.getTickers());
+      setTickers(middleman.getTickers());
     }
     // // TODO orderBook is not completed
     if (time - orderTs > orderInterval) {

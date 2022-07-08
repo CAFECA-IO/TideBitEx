@@ -73,9 +73,9 @@ class AccountBook extends BookBase {
     this._difference = {};
     try {
       accounts.forEach((account) => {
-        if (this._compareFunction(this._snapshot[account.currency], account)) {
-          this._difference[account.currency] = account;
-        }
+        // if (this._compareFunction(this._snapshot[account.currency], account)) {
+        this._difference[account.currency] = account;
+        // }
         this._snapshot[account.currency] = account;
       });
       return true;
