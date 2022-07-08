@@ -174,7 +174,7 @@ class WSChannel extends Bot {
       ws.id
     );
     let { memberId } = await parseMemberId(
-      { ...header, "USER-ID": args.userId },
+      { ...header, userId: args.userId },
       redis
     );
     if (!findClient.isStart) {
