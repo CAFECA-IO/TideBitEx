@@ -28,7 +28,7 @@ class TideBitLegacyAdapter {
     if (userId) {
       if (tokens[userId]) {
         peatioToken = tokens[userId].peatioToken;
-        XSRFToken = tokens[userId].XSRFToken;
+        XSRFToken = Utils.XSRFToken(header) ?? tokens[userId].XSRFToken; // ++TODO XSRFToken 會過期， ws 拿不到 XSRFToken
         // console.log(
         //   `[TideBitLegacyAdapter] parseMemberId tokens[userId:${userId}]`,
         //   tokens[userId]
