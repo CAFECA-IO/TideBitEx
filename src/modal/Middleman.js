@@ -203,6 +203,7 @@ class Middleman {
         this.isLogin = true;
         this.accountBook.updateAll(accounts);
         const CSRFToken = await this.communicator.CSRFTokenRenew();
+        console.log(`[Middleman] _getAccounts userId`, this._userId);
         this.tbWebSocket.setCurrentUser(market, {
           CSRFToken,
           userId: this.userId,
