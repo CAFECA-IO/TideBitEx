@@ -47,10 +47,10 @@ class DepthBook extends BookBase {
     };
     this._snapshot[instId].forEach((data) => {
       if (data.side === "asks") {
-        depthBooks.asks.push([data.price, data.amount, data.total]);
+        depthBooks.asks.push([data.price, data.amount]);
       }
       if (data.side === "bids") {
-        depthBooks.bids.push([data.price, data.amount, data.total]);
+        depthBooks.bids.push([data.price, data.amount]);
       }
     });
     depthBooks.asks.sort((a, b) => +a.price - +b.price);

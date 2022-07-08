@@ -326,10 +326,10 @@ class TibeBitConnector extends ConnectorBase {
     at: 1649742406
   },}
     */
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
-    );
-    this.logger.log(`[FROM TideBit]  _updateTickers data`, data);
+    // this.logger.log(
+    //   `---------- [${this.constructor.name}]  _updateTickers [START] ----------`
+    // );
+    // this.logger.log(`[FROM TideBit]  _updateTickers data`, data);
     Object.values(data).forEach((d) => {
       const ticker = this._formateTicker(d);
       if (this._findSource(ticker.instId) === SupportedExchange.TIDEBIT) {
@@ -449,50 +449,11 @@ class TibeBitConnector extends ConnectorBase {
     }
     */
     const instId = this._findInstId(market);
-    // const difference = {
-    //   update: [],
-    //   add: [],
-    //   remove: [],
-    // };
-    // updateBooks.asks.forEach((ask) => {
-    //   if (SafeMath.eq(ask[1], 0)) {
-    //     difference.remove.push({
-    //       id: ask[0],
-    //       price: ask[0],
-    //       amount: ask[1],
-    //       side: "asks",
-    //     });
-    //   } else {
-    //     difference.add.push({
-    //       id: ask[0],
-    //       price: ask[0],
-    //       amount: ask[1],
-    //       side: "asks",
-    //     });
-    //   }
-    // });
-    // updateBooks.bids.forEach((bid) => {
-    //   if (SafeMath.eq(bid[1], 0)) {
-    //     difference.remove.push({
-    //       id: bid[0],
-    //       price: bid[0],
-    //       amount: bid[1],
-    //       side: "bids",
-    //     });
-    //   } else {
-    //     difference.add.push({
-    //       id: bid[0],
-    //       price: bid[0],
-    //       amount: bid[1],
-    //       side: "bids",
-    //     });
-    //   }
-    // });
     this.depthBook.updateAll(instId, updateBooks);
-    this.logger.log(
-      `[TO FRONTEND] market[${market}] new books`,
-      this.depthBook.getSnapshot(instId)
-    );
+    // this.logger.log(
+    //   `[TO FRONTEND] market[${market}] new books`,
+    //   this.depthBook.getSnapshot(instId)
+    // );
     this.logger.log(
       `---------- [${this.constructor.name}]  _updateBooks [END] ----------`
     );
@@ -1329,6 +1290,7 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _startPusherWithLoginToken(headers) {
+    this.logger.log(`_startPusherWithLoginToken headers`, headers)
     const pusher = new Pusher(this.key, {
       encrypted: this.encrypted,
       wsHost: this.wsHost,
@@ -1342,6 +1304,8 @@ class TibeBitConnector extends ConnectorBase {
         return {
           authorize: headers
             ? (socketId, callback) => {
+              this.logger.log(`_startPusherWithLoginToken channel[${channel.name}]`, channel)
+              this.logger.log(`_startPusherWithLoginToken socketId`, socketId)
                 const data = JSON.stringify({
                   socket_id: socketId,
                   channel_name: channel.name,
@@ -1361,6 +1325,7 @@ class TibeBitConnector extends ConnectorBase {
                         `Received ${res.statusCode} from /pusher/auth`
                       );
                     }
+                    this.logger.log(`_startPusherWithLoginToken authToken`, res.data)
                     return res.data;
                   })
                   .then((data) => {
