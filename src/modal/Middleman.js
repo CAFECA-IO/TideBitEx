@@ -233,15 +233,15 @@ class Middleman {
     await this._getOrderList(market);
     await this._getOrderHistory(market);
     // }
-    let pusher = new Pusher("2b78567f96a2c0f40368", {
-      wsHost: "pusher.tinfo.top",
-      port: 4567,
-      disableFlash: true,
-      disableStats: true,
-      disabledTransports: ["flash", "sockjs"],
-      forceTLS: false,
-    });
-    window.pusher = pusher;
+    // let pusher = new Pusher("2b78567f96a2c0f40368", {
+    //   wsHost: "pusher.tinfo.top",
+    //   port: 4567,
+    //   disableFlash: true,
+    //   disableStats: true,
+    //   disabledTransports: ["flash", "sockjs"],
+    //   forceTLS: false,
+    // });
+    // window.pusher = pusher;
     // let channel = pusher.subscribe(`market-${market}-global`);
     // window.channel = channel;
     // channel.bind("update", (data) => console.log(`update`, data));

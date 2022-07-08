@@ -126,11 +126,27 @@ const TradeForm = (props) => {
         )
       )
         setErrorMessage(
-          `Available ${storeCtx.selectedTicker?.quote_unit?.toUpperCase()} is not enough`
+          `Available ${
+            props.kind === "bid"
+              ? storeCtx.selectedTicker?.quote_unit?.toUpperCase()
+              : storeCtx.selectedTicker?.base_unit?.toUpperCase()
+          } is not enough`
         );
       else setErrorMessage(null);
     },
-    [baseCcyAvailable, price, props.kind, props.ordType, quoteCcyAvailable, storeCtx.selectedTicker?.last, storeCtx.selectedTicker?.lotSz, storeCtx.selectedTicker?.maxSz, storeCtx.selectedTicker?.minSz, storeCtx.selectedTicker?.quote_unit]
+    [
+      baseCcyAvailable,
+      price,
+      props.kind,
+      props.ordType,
+      quoteCcyAvailable,
+      storeCtx.selectedTicker?.base_unit,
+      storeCtx.selectedTicker?.last,
+      storeCtx.selectedTicker?.lotSz,
+      storeCtx.selectedTicker?.maxSz,
+      storeCtx.selectedTicker?.minSz,
+      storeCtx.selectedTicker?.quote_unit,
+    ]
   );
 
   const onSubmit = async (event, kind) => {
