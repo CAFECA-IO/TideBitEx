@@ -1342,8 +1342,7 @@ class TibeBitConnector extends ConnectorBase {
       },
       data,
     });
-    console.log(auth, auth.data)
-    return auth.data;
+    return auth.data.auth;
   }
 
   /**
