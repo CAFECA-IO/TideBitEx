@@ -20,18 +20,24 @@ class TideBitLegacyAdapter {
       TideBitLegacyAdapter.usersGC();
     }
     let peatioToken,
-      XSRFToken,
+      userId,
       memberId = -1;
-    XSRFToken = Utils.XSRFToken(header);
-    console.log(`[TideBitLegacyAdapter] parseMemberId XSRFToken`, XSRFToken);
-    console.log(`[TideBitLegacyAdapter] parseMemberId peatioToken`, peatioToken);
-    if (XSRFToken) {
-      if (tokens[XSRFToken]) {
-        peatioToken = tokens[XSRFToken];
-        console.log(`[TideBitLegacyAdapter] parseMemberId tokens[XSRFToken:${XSRFToken}]`, peatioToken);
+    userId = header["USER-ID"];
+    console.log(`[TideBitLegacyAdapter] parseMemberId userId`, userId);
+    console.log(
+      `[TideBitLegacyAdapter] parseMemberId peatioToken`,
+      peatioToken
+    );
+    if (userId) {
+      if (tokens[userId]) {
+        peatioToken = tokens[userId];
+        console.log(
+          `[TideBitLegacyAdapter] parseMemberId tokens[userId:${userId}]`,
+          peatioToken
+        );
       } else {
         peatioToken = Utils.peatioToken(header);
-        tokens[XSRFToken] = peatioToken;
+        tokens[userId] = peatioToken;
       }
     }
     if (peatioToken) {
@@ -46,7 +52,10 @@ class TideBitLegacyAdapter {
           memberId = await Utils.getMemberIdFromRedis(radisDomain, peatioToken);
           users[peatioToken] = { memberId, ts: Date.now() };
         } catch (error) {
-          console.error(`[TideBitLegacyAdapter] parseMemberId getMemberIdFromRedis error`, error);
+          // console.error(
+          //   `[TideBitLegacyAdapter] parseMemberId getMemberIdFromRedis error`,
+          //   error
+          // );
           users[peatioToken] = { memberId, ts: Date.now() };
         }
       }
@@ -61,8 +70,8 @@ class TideBitLegacyAdapter {
 
   // ++ middleware
   static async getMemberId(ctx, next, redisDomain) {
-    let XSRFToken = Utils.XSRFToken(ctx.header);
-    console.log(`[TideBitLegacyAdapter][FROM API] getMemberId XSRFToken`, XSRFToken);
+    let userId = ctx.header["USER-ID"];
+    console.log(`-----*----- [TideBitLegacyAdapter][FROM API] getMemberId userId -----*-----`, userId);
     const parsedResult = await TideBitLegacyAdapter.parseMemberId(
       ctx.header,
       redisDomain

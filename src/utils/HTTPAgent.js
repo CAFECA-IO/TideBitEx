@@ -1,6 +1,6 @@
 const axios = require("axios");
 class HTTPAgent {
-  constructor({ apiURL = "", apiVersion, apiKey, apiSecret } = {}) {
+  constructor({ userId, apiURL = "", apiVersion, apiKey, apiSecret } = {}) {
     this.url = apiURL;
     this.apiVersion = apiVersion;
     this.apiKey = apiKey;
@@ -9,6 +9,7 @@ class HTTPAgent {
       baseURL: this.url + this.apiVersion,
     });
     this.axios.defaults.headers.common["OK-ACCESS-KEY"] = apiKey;
+    this.axios.defaults.headers.common["USER-ID"] = userId;
     return this;
   }
 

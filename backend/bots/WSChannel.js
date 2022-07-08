@@ -167,11 +167,16 @@ class WSChannel extends Bot {
   // ++ CURRENT_USER UNSAVED
   async _onOpStatusUpdate(header, ws, args, redis) {
     const findClient = this._client[ws.id];
+    console.log(
+      `-----&----- [WSChabbel][FROM WS] _onOpStatusUpdate userId -----&-----`,
+      args,
+      `ws.id`,
+      ws.id
+    );
     let { memberId } = await parseMemberId(
-      { ...header, cookie: { ...header.cookie, "XSRF-TOKEN": args.XSRFToken } },
+      { ...header, "USER-ID": args.userId },
       redis
     );
-
     if (!findClient.isStart) {
       findClient.channel = args.market;
       findClient.isStart = true;
@@ -184,12 +189,8 @@ class WSChannel extends Bot {
       this._channelClients[args.market][ws.id] = ws;
     }
     this.logger.log(
-      `[${this.constructor.name} _onOpStatusUpdate] memberId,`,
-      memberId,
-      `args`,
-      args,
-      `ws.id`,
-      ws.id
+      `[${this.constructor.name} _onOpStatusUpdate] memberId`,
+      memberId
     );
     if (memberId !== -1 && args.CSRFToken) {
       findClient.isPrivate = true;

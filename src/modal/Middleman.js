@@ -1,4 +1,3 @@
-import { Config } from "../constant/Config";
 import Events from "../constant/Events";
 import AccountBook from "../libs/books/AccountBook";
 import DepthBook from "../libs/books/DepthBook";
@@ -6,12 +5,12 @@ import OrderBook from "../libs/books/OrderBook";
 import TickerBook from "../libs/books/TickerBook";
 import TradeBook from "../libs/books/TradeBook";
 import TideBitWS from "../libs/TideBitWS";
-import SafeMath from "../utils/SafeMath";
 import Communicator from "./Communicator";
 import Pusher from "pusher-js";
 import { randomID } from "dvalue";
 
 class Middleman {
+  _userId;
   constructor() {
     this.name = "Middleman";
     this.accountBook = new AccountBook();
@@ -20,7 +19,9 @@ class Middleman {
     this.tickerBook = new TickerBook();
     this.tradeBook = new TradeBook();
     this.tbWebSocket = new TideBitWS();
-    this.communicator = new Communicator();
+    this._userId = randomID(8);
+    console.log(`[Middleman] userId`, this._userId);
+    this.communicator = new Communicator({ userId: this._userId });
     // -- TEST
     window.middleman = this;
     // -- TEST
@@ -179,17 +180,17 @@ class Middleman {
     }
   }
 
-  parseXSRFToken() {
-    let cookies = window.document.cookie.split(";");
-    const data = cookies.find((v) => {
-      return /XSRF-TOKEN/.test(v);
-    });
-    const XSRFToken = !data
-      ? undefined
-      : decodeURIComponent(data.split("=")[1]);
-    console.log(`parseXSRFToken XSRFToken`, XSRFToken);
-    return XSRFToken;
-  }
+  // parseXSRFToken() {
+  //   let cookies = window.document.cookie.split(";");
+  //   const data = cookies.find((v) => {
+  //     return /XSRF-TOKEN/.test(v);
+  //   });
+  //   const XSRFToken = !data
+  //     ? undefined
+  //     : decodeURIComponent(data.split("=")[1]);
+  //   console.log(`parseXSRFToken XSRFToken`, XSRFToken);
+  //   return XSRFToken;
+  // }
 
   async _getAccounts(market) {
     try {
@@ -201,9 +202,10 @@ class Middleman {
         this.isLogin = true;
         this.accountBook.updateAll(accounts);
         const CSRFToken = await this.communicator.CSRFTokenRenew();
-        const XSRFToken = this.parseXSRFToken();
-        this.accountBook.currentUser = XSRFToken;
-        this.tbWebSocket.setCurrentUser(market, { XSRFToken, CSRFToken });
+        this.tbWebSocket.setCurrentUser(market, {
+          CSRFToken,
+          userId: this.userId,
+        });
         this.tickerBook.setCurrentMarket(market);
       }
     } catch (error) {
@@ -304,7 +306,6 @@ class Middleman {
   }
 
   async start(market) {
-    await this._getAccounts(market);
     const options = await this.communicator.getOptions();
     this.tbWebSocket.init({
       url: `${window.location.protocol === "https:" ? "wss://" : "ws://"}${
@@ -312,6 +313,7 @@ class Middleman {
       }/ws`,
     });
     this._tbWSEventListener();
+    this._getAccounts(market);
     this._getTickers();
     this.selectMarket(market);
   }

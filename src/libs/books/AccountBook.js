@@ -13,16 +13,6 @@ class AccountBook extends BookBase {
     return this;
   }
 
-  /**
-   * @param {any} userId
-   */
-  set currentUser(userId) {
-    this._currentUser = userId;
-  }
-  get currentUser() {
-    return this._currentUser;
-  }
-
   getSnapshot(instId) {
     try {
       if (instId)
