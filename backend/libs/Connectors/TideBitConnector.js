@@ -97,11 +97,13 @@ class TibeBitConnector extends ConnectorBase {
   _tidebitWsEventListener() {
     this.websocket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      this.logger.log(`pusher data`, data, data.data["socket_id"])
+      this.logger.log(`pusher data`, JSON.parse(data.data)["socket_id"]);
       if (data.event === "pusher:connection_established") {
-        this.logger.log(`pusher this`, this)
-        this.socketId = data.data["socket_id"];
-        this.logger.log(`pusher:connection_established this.socketId`, this.socketId)
+        this.socketId = JSON.parse(data.data)["socket_id"];
+        this.logger.log(
+          `pusher:connection_established this.socketId`,
+          this.socketId
+        );
       }
       if (data.event !== "pusher:error") {
         // subscribe return
@@ -1339,7 +1341,7 @@ class TibeBitConnector extends ConnectorBase {
         "Content-Length": Buffer.from(data, "utf-8").length,
       },
       data,
-    })
+    });
     return auth;
   }
 
