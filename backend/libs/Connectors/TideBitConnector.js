@@ -46,6 +46,7 @@ class TibeBitConnector extends ConnectorBase {
     key,
     secret,
     wsHost,
+    port,
     wsPort,
     wssPort,
     encrypted,
