@@ -46,7 +46,6 @@ class TibeBitConnector extends ConnectorBase {
     key,
     secret,
     wsHost,
-    port,
     wsPort,
     wssPort,
     encrypted,
@@ -65,7 +64,6 @@ class TibeBitConnector extends ConnectorBase {
     await super.init();
     this.app = app;
     this.key = key;
-    this.port = port;
     this.secret = secret;
     this.wsHost = wsHost;
     this.wsPort = wsPort;
