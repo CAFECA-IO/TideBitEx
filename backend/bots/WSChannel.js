@@ -167,7 +167,10 @@ class WSChannel extends Bot {
   // ++ CURRENT_USER UNSAVED
   async _onOpStatusUpdate(header, ws, args, redis) {
     const findClient = this._client[ws.id];
-    let { memberId } = await parseMemberId(header, redis);
+    let { memberId } = await parseMemberId(
+      { ...header, cookie: { ...header.cookie, "XSRF-TOKEN": args.XSRFToken } },
+      redis
+    );
 
     if (!findClient.isStart) {
       findClient.channel = args.market;

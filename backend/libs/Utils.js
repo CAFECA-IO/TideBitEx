@@ -719,7 +719,7 @@ class Utils {
       return /XSRF-TOKEN/.test(v);
     });
     if (!data) return undefined;
-    const token = decodeURIComponent(data.split("=")[1]);
+    const token = data.split("=")[1];
     return token;
   }
 
