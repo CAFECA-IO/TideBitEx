@@ -285,7 +285,7 @@ class mysql {
     { dbTransaction }
   ) {
     const query =
-      "INSERT INTO `tidebitstaging`.`orders` (" +
+      "INSERT INTO `orders` (" +
       "`id`, `bid`, `ask`, `currency`, `price`, `volume`, `origin_volume`, `state`," +
       " `done_at`, `type`, `member_id`, `created_at`, `updated_at`, `sn`, `source`," +
       " `ord_type`, `locked`, `origin_locked`, `funds_received`, `trades_count`)" +
@@ -369,7 +369,7 @@ class mysql {
     { dbTransaction }
   ) {
     const query =
-      "INSERT INTO `tidebitstaging`.`account_versions` (`id`, `member_id`, `account_id`, `reason`, `balance`, `locked`, `fee`, `amount`, `modifiable_id`, `modifiable_type`, `created_at`, `updated_at`, `currency`, `fun`)" +
+      "INSERT INTO `account_versions` (`id`, `member_id`, `account_id`, `reason`, `balance`, `locked`, `fee`, `amount`, `modifiable_id`, `modifiable_type`, `created_at`, `updated_at`, `currency`, `fun`)" +
       " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
     try {
       this.logger.log(
@@ -435,7 +435,7 @@ class mysql {
     { dbTransaction }
   ) {
     const query =
-      "INSERT INTO `tidebitstaging`.`vouchers` (`id`,`member_id`,`order_id`,`trade_id`,`designated_trading_fee_asset_history_id`,`ask`,`bid`,`price`,`volume`,`value`,`trend`,`ask_fee`,`bid_fee`,`created_at`)" +
+      "INSERT INTO `vouchers` (`id`,`member_id`,`order_id`,`trade_id`,`designated_trading_fee_asset_history_id`,`ask`,`bid`,`price`,`volume`,`value`,`trend`,`ask_fee`,`bid_fee`,`created_at`)" +
       " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
     try {
       this.logger.log(
@@ -493,7 +493,7 @@ class mysql {
       delete datas.id;
       const set = Object.keys(datas).map((key) => `\`${key}\` = ${datas[key]}`);
       let query =
-        "UPDATE `tidebitstaging`.`accounts` SET " +
+        "UPDATE `accounts` SET " +
         set.join(", ") +
         " WHERE " +
         where +
@@ -520,7 +520,7 @@ class mysql {
       delete datas.id;
       const set = Object.keys(datas).map((key) => `\`${key}\` = ${datas[key]}`);
       let query =
-        "UPDATE `tidebitstaging`.`orders` SET " +
+        "UPDATE `orders` SET " +
         set.join(", ") +
         " WHERE " +
         where +
