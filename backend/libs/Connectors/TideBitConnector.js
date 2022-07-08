@@ -1219,8 +1219,8 @@ class TibeBitConnector extends ConnectorBase {
       if (
         this.market_channel[`market-${market}-global`]["listener"]?.length === 0
       ) {
-        this.market_channel[`market-${market}-global`]["channel"]?.unbind();
-        this.public_pusher?.unsubscribe(`market-${market}-global`);
+        // this.market_channel[`market-${market}-global`]["channel"]?.unbind();
+        // this.public_pusher?.unsubscribe(`market-${market}-global`);
         delete this.market_channel[`market-${market}-global`];
       }
       this.logger.log(
@@ -1228,9 +1228,9 @@ class TibeBitConnector extends ConnectorBase {
         this.market_channel
       );
       if (Object.keys(this.market_channel).length === 0) {
-        this._unregisterGlobalChannel();
+        // this._unregisterGlobalChannel();
         this.market_channel = {};
-        this.public_pusher = null;
+        // this.public_pusher = null;
         this.isStart = false;
       }
     } catch (error) {
@@ -1472,7 +1472,7 @@ class TibeBitConnector extends ConnectorBase {
         `---------- [${this.constructor.name}]  _unsubscribeMarket [START] ----------`
       );
       this.logger.log(`_unsubscribeMarket market, wsId`, market, wsId);
-      // this._unregisterMarketChannel(market, wsId);
+      this._unregisterMarketChannel(market, wsId);
       this.logger.log(
         `---------- [${this.constructor.name}]  _unsubscribeMarket [END] ----------`
       );

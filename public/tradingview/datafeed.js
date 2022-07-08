@@ -1,6 +1,6 @@
 // https://zlq4863947.gitbook.io/tradingview/3-shu-ju-bang-ding/js-api
 // https://github.com/tradingview/charting-library-tutorial/blob/master/documentation/datafeed-implementation.md
-console.log(`tidebit ex test`)
+console.log(`TidebitEx test version 0001`);
 
 const getParameterByName = (name) => {
   name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
@@ -28,8 +28,8 @@ const initOnReady = () => {
     // datafeed: Datafeed,
     datafeed:
       source === "OKEx"
-        // ? Datafeed
-        ? new window.Datafeeds.UDFCompatibleDatafeed("/api/v1/tradingview")
+        ? // ? Datafeed
+          new window.Datafeeds.UDFCompatibleDatafeed("/api/v1/tradingview")
         : new window.Datafeeds.UDFCompatibleDatafeed("/api/v2/tradingview"),
     library_path: "charting_library/",
     locale: getParameterByName("lang") || "en",
@@ -57,6 +57,7 @@ const initOnReady = () => {
         ]
       : ["header_symbol_search", "header_compare"],
   }));
+  console.log(`initOnReady is called`);
 };
 
 window.addEventListener("DOMContentLoaded", initOnReady, false);
