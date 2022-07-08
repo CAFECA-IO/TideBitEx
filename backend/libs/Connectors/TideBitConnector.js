@@ -427,12 +427,15 @@ class TibeBitConnector extends ConnectorBase {
   // ++ TODO: verify function works properly
   _updateBooks(market, updateBooks) {
     this.logger.log(
-      `---------- [${this.constructor.name}]  _updateBooks [START] ----------`
+      `---------- [${this.constructor.name}]  received books update data ----------`
     );
-    this.logger.log(
-      `[FROM TideBit] market[${market}] updateBooks`,
-      updateBooks
-    );
+    // this.logger.log(
+    //   `---------- [${this.constructor.name}]  _updateBooks [START] ----------`
+    // );
+    // this.logger.log(
+    //   `[FROM TideBit] market[${market}] updateBooks`,
+    //   updateBooks
+    // );
     // WORKAROUND
     if (!updateBooks.asks.length > 0 && !updateBooks.bids.length > 0) return;
     // WORKAROUND
@@ -454,9 +457,9 @@ class TibeBitConnector extends ConnectorBase {
     //   `[TO FRONTEND] market[${market}] new books`,
     //   this.depthBook.getSnapshot(instId)
     // );
-    this.logger.log(
-      `---------- [${this.constructor.name}]  _updateBooks [END] ----------`
-    );
+    // this.logger.log(
+    //   `---------- [${this.constructor.name}]  _updateBooks [END] ----------`
+    // );
     EventBus.emit(Events.update, market, this.depthBook.getSnapshot(instId));
   }
 
