@@ -97,7 +97,7 @@ class TibeBitConnector extends ConnectorBase {
   _tidebitWsEventListener() {
     this.websocket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      this.logger.log(`pusher data`, JSON.parse(data.data)["socket_id"]);
+      this.logger.log(`pusher data`, data);
       if (data.event === "pusher:connection_established") {
         this.socketId = JSON.parse(data.data)["socket_id"];
         this.logger.log(
