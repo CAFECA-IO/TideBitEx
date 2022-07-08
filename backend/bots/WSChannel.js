@@ -171,10 +171,9 @@ class WSChannel extends Bot {
       `-----&----- [WSChabbel][FROM WS] _onOpStatusUpdate userId -----&-----`,
       args,
       `ws.id`,
-      ws.id,
-      header
+      ws.id
     );
-    let { memberId } = await parseMemberId(
+    let { memberId, XSRFToken } = await parseMemberId(
       { ...header, userid: args.userId },
       redis
     );
