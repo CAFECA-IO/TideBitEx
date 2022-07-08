@@ -1,7 +1,6 @@
 const BookBase = require("../BookBase");
 const SafeMath = require("../SafeMath");
 
-
 class DepthBook extends BookBase {
   constructor({ logger, markets }) {
     super({ logger, markets });
@@ -15,7 +14,7 @@ class DepthBook extends BookBase {
    * @property {string} price
    * @property {string} amount
    * @property {string} side 'asks' || 'bids'
-   * 
+   *
    * @param {Depth} valueA
    * @param {Depth} valueB
    */
@@ -40,22 +39,24 @@ class DepthBook extends BookBase {
   // !!!! IMPORTANT 要遵守 tideLegacy 的資料格式
   // ++ TODO: verify function works properly
   getSnapshot(instId) {
-    let depthBooks = {
-      market: instId.replace("-", "").toLowerCase(),
-      asks: [],
-      bids: [],
-    };
+    let market = instId.replace("-", "").toLowerCase(),
+      asks = [],
+      bids = [];
     this._snapshot[instId].forEach((data) => {
       if (data.side === "asks") {
-        depthBooks.asks.push([data.price, data.amount]);
+        asks.push([data.price, data.amount]);
       }
       if (data.side === "bids") {
-        depthBooks.bids.push([data.price, data.amount]);
+        bids.push([data.price, data.amount]);
       }
     });
-    depthBooks.asks.sort((a, b) => +a.price - +b.price);
-    depthBooks.bids.sort((a, b) => +b.price - +a.price);
-    return depthBooks;
+    asks = asks.sort((a, b) => +a.price - +b.price).slice(0, 100);
+    bids = bids.sort((a, b) => +b.price - +a.price).slice(0, 100);
+    return {
+      market,
+      asks,
+      bids,
+    };
   }
 
   getDifference(instId) {
@@ -91,7 +92,6 @@ class DepthBook extends BookBase {
     // console.log(`[DepthBook _formateBooks]`, bookArr);
     return bookArr;
   }
-
 
   /**
    *
