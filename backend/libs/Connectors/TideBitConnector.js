@@ -82,6 +82,7 @@ class TibeBitConnector extends ConnectorBase {
     this.accountBook = accountBook;
     this.orderBook = orderBook;
     this.tidebitMarkets = tidebitMarkets;
+    this._tidebitWsEventListener();
     await this.websocket.init({
       url: `wss://${this.wsHost}/app/${this.key}?protocol=7&client=js&version=2.2.0&flash=false`,
       heartBeat: HEART_BEAT_TIME,
@@ -1297,7 +1298,6 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   _startPusher() {
-    this._tidebitWsEventListener();
     // this.public_pusher = new Pusher(this.key, {
     //   // encrypted: this.encrypted,
     //   wsHost: this.wsHost,
