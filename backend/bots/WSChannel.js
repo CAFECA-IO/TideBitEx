@@ -167,7 +167,7 @@ class WSChannel extends Bot {
   // ++ CURRENT_USER UNSAVED
   async _onOpStatusUpdate(header, ws, args, redis) {
     const findClient = this._client[ws.id];
-    let { memberId } = await parseMemberId(header, redis);
+    let { memberId } = await parseMemberId(args.peatioToken, redis);
 
     if (!findClient.isStart) {
       findClient.channel = args.market;
@@ -188,7 +188,7 @@ class WSChannel extends Bot {
       `ws.id`,
       ws.id
     );
-    if (memberId !== -1 && args.token) {
+    if (memberId !== -1 && args.CSRFToken) {
       findClient.isPrivate = true;
       findClient.memberId = memberId;
       if (!this._privateClient[memberId]) this._privateClient[memberId] = {};
@@ -206,7 +206,7 @@ class WSChannel extends Bot {
         headers: {
           cookie: header.cookie,
           "content-type": "application/json",
-          "x-csrf-token": args.token,
+          "x-csrf-token": args.CSRFToken,
         },
         memberId,
         wsId: ws.id,

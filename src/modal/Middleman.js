@@ -178,6 +178,17 @@ class Middleman {
     }
   }
 
+  parsePeatioToken() {
+    let cookies = window.document.cookie.split(";");
+    const data = cookies.find((v) => {
+      return /_peatio_session/.test(v);
+    });
+    const peatioToken = !data ? undefined : data.split("=")[1];
+    console.log(`parsePeatioToken cookies`, cookies)
+    console.log(`parsePeatioToken peatioToken`, peatioToken)
+    return peatioToken;
+  }
+
   async _getAccounts(market) {
     try {
       const accounts = await this.communicator
@@ -187,8 +198,9 @@ class Middleman {
       if (accounts) {
         this.isLogin = true;
         this.accountBook.updateAll(accounts);
-        const token = await this.communicator.CSRFTokenRenew();
-        this.tbWebSocket.setCurrentUser(market, token);
+        const CSRFToken = await this.communicator.CSRFTokenRenew();
+        const peatioToken = this.parsePeatioToken();
+        this.tbWebSocket.setCurrentUser(market, { CSRFToken, peatioToken });
         this.tickerBook.setCurrentMarket(market);
       }
     } catch (error) {

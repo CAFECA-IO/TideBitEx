@@ -8,15 +8,15 @@ class TideBitWS {
     return this;
   }
 
-  setCurrentUser(market, token) {
+  setCurrentUser(market, userInfo) {
     this.currentMarket = market;
-    this.currentUser = token;
+    this.currentUser = userInfo;
     this.send(
       JSON.stringify({
         op: "userStatusUpdate",
         args: {
           market,
-          token,
+          ...userInfo,
         },
       })
     );
