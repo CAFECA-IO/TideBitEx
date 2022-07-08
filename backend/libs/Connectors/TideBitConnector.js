@@ -1348,7 +1348,7 @@ class TibeBitConnector extends ConnectorBase {
         const client = this.private_client[credential.memberId];
         if (!client) {
           const member = await this.database.getMemberById(credential.memberId);
-          const auth = this._startPusherWithLoginToken(
+          const auth = await this._startPusherWithLoginToken(
             credential.headers,
             member.sn
           );
