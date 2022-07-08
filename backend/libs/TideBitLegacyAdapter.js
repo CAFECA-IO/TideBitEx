@@ -22,7 +22,7 @@ class TideBitLegacyAdapter {
     let peatioToken,
       userId,
       memberId = -1;
-    userId = header.userId;
+    userId = header.userid;
     console.log(`[TideBitLegacyAdapter] parseMemberId userId`, userId);
     console.log(
       `[TideBitLegacyAdapter] parseMemberId peatioToken`,
@@ -71,7 +71,7 @@ class TideBitLegacyAdapter {
   // ++ middleware
   static async getMemberId(ctx, next, redisDomain) {
     console.log(`-----*----- [TideBitLegacyAdapter][FROM API] getMemberId ctx.header -----*-----`, ctx.header);
-    let userId = ctx.header.userId;
+    let userId = ctx.header.userid;
     console.log(`-----*----- [TideBitLegacyAdapter][FROM API] getMemberId userId -----*-----`, userId);
     const parsedResult = await TideBitLegacyAdapter.parseMemberId(
       ctx.header,

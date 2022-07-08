@@ -11,6 +11,7 @@ import { randomID } from "dvalue";
 
 class Middleman {
   _userId;
+  isLogin = false;
   constructor() {
     this.name = "Middleman";
     this.accountBook = new AccountBook();
@@ -198,8 +199,10 @@ class Middleman {
         .getAccounts
         // this.selectedTicker?.instId?.replace("-", ",")
         ();
+      console.error(`_getAccounts accounts`, accounts);
       if (accounts) {
         this.isLogin = true;
+        console.error(`_getAccounts isLogin`, this.isLogin);
         this.accountBook.updateAll(accounts);
         const CSRFToken = await this.communicator.CSRFTokenRenew();
         this.tbWebSocket.setCurrentUser(market, {
