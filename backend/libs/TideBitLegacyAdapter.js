@@ -23,12 +23,12 @@ class TideBitLegacyAdapter {
       XSRFToken,
       memberId = -1;
     XSRFToken = Utils.XSRFToken(header);
-    console.log(`parseMemberId XSRFToken`, peatioToken);
+    console.log(`parseMemberId XSRFToken`, XSRFToken);
     console.log(`parseMemberId peatioToken`, peatioToken);
     if (XSRFToken) {
       if (tokens[XSRFToken]) {
         peatioToken = tokens[XSRFToken];
-        console.log(`parseMemberId tokens[XSRFToken]`, peatioToken);
+        console.log(`parseMemberId tokens[XSRFToken:${XSRFToken}]`, peatioToken);
       } else {
         peatioToken = Utils.peatioToken(header);
         tokens[XSRFToken] = peatioToken;
@@ -61,6 +61,8 @@ class TideBitLegacyAdapter {
 
   // ++ middleware
   static async getMemberId(ctx, next, redisDomain) {
+    let XSRFToken = Utils.XSRFToken(ctx.header);
+    console.log(`parseMemberId XSRFToken`, XSRFToken);
     const parsedResult = await TideBitLegacyAdapter.parseMemberId(
       ctx.header,
       redisDomain
