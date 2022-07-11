@@ -45,6 +45,7 @@ class TibeBitConnector extends ConnectorBase {
     app,
     key,
     secret,
+    wsProtocal,
     wsHost,
     port,
     wsPort,
@@ -66,6 +67,7 @@ class TibeBitConnector extends ConnectorBase {
     this.app = app;
     this.key = key;
     this.secret = secret;
+    this.wsProtocal = wsProtocal;
     this.wsHost = wsHost;
     this.wsPort = wsPort;
     this.wssPort = wssPort;
@@ -82,7 +84,7 @@ class TibeBitConnector extends ConnectorBase {
     this.orderBook = orderBook;
     this.tidebitMarkets = tidebitMarkets;
     await this.websocket.init({
-      url: `wss://${this.wsHost}/app/${this.key}?protocol=7&client=js&version=2.2.0&flash=false`,
+      url: `${this.wsProtocal}://${this.wsHost}:${this.wsPort}/app/${this.key}?protocol=7&client=js&version=2.2.0&flash=false`,
       heartBeat: HEART_BEAT_TIME,
       options: {
         perMessageDeflate: false,
@@ -221,8 +223,14 @@ class TibeBitConnector extends ConnectorBase {
         ? "0"
         : "1";
       prev[currId] = {
+        id: tbTicker?.id,
         market: currId,
         instId,
+        name: tbTicker?.name,
+        base_unit: tbTicker.base_unit,
+        quote_unit: tbTicker.quote_unit,
+        group: tbTicker?.group,
+        pricescale: tbTicker?.price_group_fixed,
         buy: tickerObj.ticker.buy,
         sell: tickerObj.ticker.sell,
         low: tickerObj.ticker.low,
@@ -235,10 +243,10 @@ class TibeBitConnector extends ConnectorBase {
         at: parseInt(tickerObj.at),
         ts: parseInt(SafeMath.mult(tickerObj.at, "1000")),
         source: SupportedExchange.TIDEBIT,
-        ticker: tickerObj.ticker,
         tickSz: Utils.getDecimal(tbTicker?.bid?.fixed),
         lotSz: Utils.getDecimal(tbTicker?.ask?.fixed),
         minSz: Utils.getDecimal(tbTicker?.ask?.fixed),
+        ticker: tickerObj.ticker,
       };
       return prev;
     }, {});
@@ -252,16 +260,11 @@ class TibeBitConnector extends ConnectorBase {
       if (ticker)
         tickers[market.id] = {
           ...ticker,
-          group: market.group,
-          market: market.id,
-          pricescale: market.price_group_fixed,
-          name: market.name,
-          base_unit: market.base_unit,
-          quote_unit: market.quote_unit,
         };
       else {
         const instId = this._findInstId(market.id);
         tickers[market.id] = {
+          id: market.id,
           market: market.id,
           instId,
           name: market.name,
@@ -278,7 +281,8 @@ class TibeBitConnector extends ConnectorBase {
           volume: "0.0",
           change: "0.0",
           changePct: "0.0",
-          at: "0.0",
+          at: 0,
+          ts:0,
           source: SupportedExchange.TIDEBIT,
           tickSz: Utils.getDecimal(tbTicker?.bid?.fixed),
           lotSz: Utils.getDecimal(tbTicker?.ask?.fixed),
