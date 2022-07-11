@@ -45,7 +45,7 @@ class TibeBitConnector extends ConnectorBase {
     app,
     key,
     secret,
-    wsProtocal,
+    wsProtocol,
     wsHost,
     port,
     wsPort,
@@ -67,7 +67,7 @@ class TibeBitConnector extends ConnectorBase {
     this.app = app;
     this.key = key;
     this.secret = secret;
-    this.wsProtocal = wsProtocal;
+    this.wsProtocol = wsProtocol;
     this.wsHost = wsHost;
     this.wsPort = wsPort;
     this.wssPort = wssPort;
@@ -84,7 +84,7 @@ class TibeBitConnector extends ConnectorBase {
     this.orderBook = orderBook;
     this.tidebitMarkets = tidebitMarkets;
     await this.websocket.init({
-      url: `${this.wsProtocal}://${this.wsHost}:${this.wsPort}/app/${this.key}?protocol=7&client=js&version=2.2.0&flash=false`,
+      url: `${this.wsProtocol}://${this.wsHost}:${this.wsPort}/app/${this.key}?protocol=7&client=js&version=2.2.0&flash=false`,
       heartBeat: HEART_BEAT_TIME,
       options: {
         perMessageDeflate: false,
