@@ -324,8 +324,8 @@ class TibeBitConnector extends ConnectorBase {
     const updateTicker = {
       ...data,
       name: tbTicker?.name,
-      base_unit: tbTicker.base_unit,
-      quote_unit: tbTicker.quote_unit,
+      base_unit: tbTicker?.base_unit,
+      quote_unit: tbTicker?.quote_unit,
       group: tbTicker?.group,
       pricescale: tbTicker?.price_group_fixed,
       id,
