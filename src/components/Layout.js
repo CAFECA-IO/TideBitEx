@@ -42,11 +42,12 @@ const Layout = ({ children }) => {
   );
 
   useEffect(() => {
-    const lang = document.cookie
-      .split(";")
-      .filter((v) => /lang/.test(v))
-      .pop()
-      ?.split("=")[1];
+    const lang =
+      document.cookie
+        .split(";")
+        .filter((v) => /lang/.test(v))
+        .pop()
+        ?.split("=")[1] || navigator.language;
     switch (lang.toLowerCase()) {
       case "en":
       case "en-us":

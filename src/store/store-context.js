@@ -1,7 +1,7 @@
 import React from "react";
 
 const StoreContext = React.createContext({
-  languageKey: "en-US",
+  languageKey: null,
   isLogin: null,
   selectedTicker: null,
   tickers: [],
