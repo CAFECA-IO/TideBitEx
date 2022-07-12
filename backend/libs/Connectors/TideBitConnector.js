@@ -1388,6 +1388,7 @@ class TibeBitConnector extends ConnectorBase {
     } else {
       this.logger.error(`pusher:auth error socketId is`, this.socketId);
     }
+    this.logger.log(`pusher:auth`, auth);
     return auth;
   }
 
