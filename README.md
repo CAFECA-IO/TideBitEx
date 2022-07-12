@@ -110,7 +110,7 @@ domain = 'http://127.0.0.1:3000'      # 要與TideBit-Legacy application.yml中U
 domain = 'redis://127.0.0.1:6379'
 
 [database]
-protocal = 'mysql'
+protocol = 'mysql'
 host = '127.0.0.1'
 port = '3306'
 user = 'tidebitstaging'
