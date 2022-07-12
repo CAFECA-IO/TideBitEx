@@ -9,7 +9,7 @@ class mysql {
       this.logger = logger;
       // initial all database
       const initDB = { ...database };
-      initDB.dialect = initDB.protocal;
+      initDB.dialect = initDB.protocol;
       initDB.username = initDB.user;
       initDB.database = initDB.dbName;
       const initDBSequelize = new Sequelize(
