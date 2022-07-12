@@ -267,9 +267,9 @@ class TibeBitConnector extends ConnectorBase {
       const tbTicker = this.tidebitMarkets.find(
         (_market) => market.id === _market.id
       );
-    // this.logger.log(`------------------------ market:${market}(ticker) --------------------------`);
-    // this.logger.log(ticker);
-    // this.logger.log(`------------------------ market:${market}(ticker) --------------------------`);
+      // this.logger.log(`------------------------ market:${market}(ticker) --------------------------`);
+      // this.logger.log(ticker);
+      // this.logger.log(`------------------------ market:${market}(ticker) --------------------------`);
       if (ticker)
         tickers[market.id] = {
           ...ticker,
@@ -295,7 +295,7 @@ class TibeBitConnector extends ConnectorBase {
           change: "0.0",
           changePct: "0.0",
           at: 0,
-          ts:0,
+          ts: 0,
           source: SupportedExchange.TIDEBIT,
           tickSz: Utils.getDecimal(tbTicker?.bid?.fixed),
           lotSz: Utils.getDecimal(tbTicker?.ask?.fixed),
@@ -1360,29 +1360,35 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async _startPusherWithLoginToken(headers, sn) {
-    const data = JSON.stringify({
-      socket_id: this.socketId,
-      channel_name: `private-${sn}`,
-    });
-    const auth = await axios({
-      url: `${this.peatio}/pusher/auth`,
-      method: "POST",
-      headers: {
-        ...headers,
-        "Content-Length": Buffer.from(data, "utf-8").length,
-      },
-      data,
-    });
-    this.logger.log(`getAuth`, {
-      url: `https://${this.peatio}/pusher/auth`,
-      method: "POST",
-      headers: {
-        ...headers,
-        "Content-Length": Buffer.from(data, "utf-8").length,
-      },
-      data,
-    });
-    return auth.data.auth;
+    let auth;
+    if (this.socketId) {
+      const data = JSON.stringify({
+        socket_id: this.socketId,
+        channel_name: `private-${sn}`,
+      });
+      const authRes = await axios({
+        url: `${this.peatio}/pusher/auth`,
+        method: "POST",
+        headers: {
+          ...headers,
+          "Content-Length": Buffer.from(data, "utf-8").length,
+        },
+        data,
+      });
+      this.logger.log(`getAuth`, {
+        url: `https://${this.peatio}/pusher/auth`,
+        method: "POST",
+        headers: {
+          ...headers,
+          "Content-Length": Buffer.from(data, "utf-8").length,
+        },
+        data,
+      });
+      auth = authRes.data.auth;
+    } else {
+      this.logger.error(`pusher:auth error socketId is`, this.socketId);
+    }
+    return auth;
   }
 
   /**
@@ -1406,30 +1412,38 @@ class TibeBitConnector extends ConnectorBase {
             credential.headers,
             member.sn
           );
-          const channel = await this._registerPrivateChannel(
-            auth,
-            credential.memberId,
-            member.sn
+          if (auth) {
+            const channel = await this._registerPrivateChannel(
+              auth,
+              credential.memberId,
+              member.sn
+            );
+            this.sn[member.sn] = credential.memberId;
+            this.private_client[credential.memberId] = {
+              memberId: credential.memberId,
+              sn: member.sn,
+              wsIds: [credential.wsId],
+              auth,
+              channel,
+            };
+          } else {
+            this.private_client[credential.memberId].wsIds.push(
+              credential.wsId
+            );
+          }
+          this.logger.log(
+            `_subscribeUser this.private_client`,
+            this.private_client
           );
-          this.sn[member.sn] = credential.memberId;
-          this.private_client[credential.memberId] = {
-            memberId: credential.memberId,
-            sn: member.sn,
-            wsIds: [credential.wsId],
-            auth,
-            channel,
-          };
-        } else {
-          this.private_client[credential.memberId].wsIds.push(credential.wsId);
         }
         this.logger.log(
-          `_subscribeUser this.private_client`,
-          this.private_client
+          `++++++++ [${this.constructor.name}]  _subscribeUser [END] ++++++`
+        );
+      } else {
+        this.logger.error(
+          `++++++++ [${this.constructor.name}]  _subscribeUser [FAILED: did not auth] ++++++`
         );
       }
-      this.logger.log(
-        `++++++++ [${this.constructor.name}]  _subscribeUser [END] ++++++`
-      );
     } catch (error) {
       this.logger.error(`_subscribeUser error`, error);
       throw error;
