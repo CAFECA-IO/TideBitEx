@@ -64,9 +64,9 @@ const Layout = ({ children }) => {
       case "zh-cn":
         changeLanguage("zh-CN");
         break;
-      case "jp":
-        changeLanguage("jp");
-        break;
+      // case "jp":
+      //   changeLanguage("jp");
+      //   break;
       default:
         changeLanguage("en-US");
         break;
