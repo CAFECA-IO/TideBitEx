@@ -197,12 +197,12 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async getTickers({ optional }) {
-    this.logger.log(`------------------------ tidebitMarkets --------------------------`);
-    this.logger.log( this.tidebitMarkets);
-    this.logger.log(`------------------------ tidebitMarkets --------------------------`);
-    this.logger.log(`------------------------ getTickers optiona l--------------------------`);
-    this.logger.log(optional);
-    this.logger.log(`------------------------  getTickers optional --------------------------`);
+    // this.logger.log(`------------------------ tidebitMarkets --------------------------`);
+    // this.logger.log( this.tidebitMarkets);
+    // this.logger.log(`------------------------ tidebitMarkets --------------------------`);
+    // this.logger.log(`------------------------ getTickers optiona l--------------------------`);
+    // this.logger.log(optional);
+    // this.logger.log(`------------------------  getTickers optional --------------------------`);
 
     const tBTickersRes = await axios.get(`${this.peatio}/api/v2/tickers`);
     if (!tBTickersRes || !tBTickersRes.data) {
@@ -212,9 +212,9 @@ class TibeBitConnector extends ConnectorBase {
       });
     }
     const tBTickers = tBTickersRes.data;
-    this.logger.log(`------------------------ tBTickers --------------------------`);
-    this.logger.log(tBTickers);
-    this.logger.log(`------------------------ tBTickers --------------------------`);
+    // this.logger.log(`------------------------ tBTickers --------------------------`);
+    // this.logger.log(tBTickers);
+    // this.logger.log(`------------------------ tBTickers --------------------------`);
     const formatTickers = Object.keys(tBTickers).reduce((prev, currId) => {
       const instId = this._findInstId(currId);
       const tickerObj = tBTickers[currId];
@@ -259,17 +259,17 @@ class TibeBitConnector extends ConnectorBase {
       return prev;
     }, {});
     const tickers = {};
-    this.logger.log(`------------------------ formatTickers --------------------------`);
-    this.logger.log(formatTickers);
-    this.logger.log(`------------------------ formatTickers --------------------------`);
+    // this.logger.log(`------------------------ formatTickers --------------------------`);
+    // this.logger.log(formatTickers);
+    // this.logger.log(`------------------------ formatTickers --------------------------`);
     optional.mask.forEach((market) => {
       let ticker = formatTickers[market.id];
       const tbTicker = this.tidebitMarkets.find(
         (_market) => market.id === _market.id
       );
-    this.logger.log(`------------------------ market:${market}(ticker) --------------------------`);
-    this.logger.log(ticker);
-    this.logger.log(`------------------------ market:${market}(ticker) --------------------------`);
+    // this.logger.log(`------------------------ market:${market}(ticker) --------------------------`);
+    // this.logger.log(ticker);
+    // this.logger.log(`------------------------ market:${market}(ticker) --------------------------`);
       if (ticker)
         tickers[market.id] = {
           ...ticker,
@@ -303,9 +303,9 @@ class TibeBitConnector extends ConnectorBase {
         };
       }
     });
-    this.logger.log(`------------------------ (tickers) --------------------------`);
-    this.logger.log(tickers);
-    this.logger.log(`------------------------ (tickers) --------------------------`);
+    // this.logger.log(`------------------------ (tickers) --------------------------`);
+    // this.logger.log(tickers);
+    // this.logger.log(`------------------------ (tickers) --------------------------`);
     // ++ TODO !!! Ticker dataFormate is different
     // this.tickerBook.updateAll(tickers);
     return new ResponseFormat({
@@ -467,9 +467,9 @@ class TibeBitConnector extends ConnectorBase {
 
   // ++ TODO: verify function works properly
   _updateBooks(market, updateBooks) {
-    this.logger.log(
-      `---------- [${this.constructor.name}]  received books update data ----------`
-    );
+    // this.logger.log(
+    //   `---------- [${this.constructor.name}]  received books update data ----------`
+    // );
     // this.logger.log(
     //   `---------- [${this.constructor.name}]  _updateBooks [START] ----------`
     // );
