@@ -1427,11 +1427,10 @@ class TibeBitConnector extends ConnectorBase {
               auth,
               channel,
             };
-          } else {
-            this.private_client[credential.memberId].wsIds.push(
-              credential.wsId
-            );
           }
+        } else {
+          this.private_client[credential.memberId].wsIds.push(credential.wsId);
+
           this.logger.log(
             `_subscribeUser this.private_client`,
             this.private_client
