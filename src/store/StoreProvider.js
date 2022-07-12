@@ -37,7 +37,7 @@ const StoreProvider = (props) => {
   const [lotSz, setLotSz] = useState(null);
   const [activePage, setActivePage] = useState("market");
   const [depthBook, setDepthbook] = useState(null);
-  const [languageKey, setLanguageKey] = useState("en");
+  const [languageKey, setLanguageKey] = useState("en-US");
   const [focusEl, setFocusEl] = useState(null);
 
   const action = useCallback(
