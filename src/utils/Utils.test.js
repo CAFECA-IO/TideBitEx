@@ -1,5 +1,87 @@
-import { compareStr, splitStr } from "./Utils";
+const onlyInLeft = (left, right) =>
+  left.filter(
+    (leftValue) => !right.some((rightValue) => leftValue === rightValue)
+  );
 
+const splitStr = (str) => {
+  let arr = [],
+    length = str.length / 8 + 1;
+  for (let i = 0; i < length; i++) {
+    arr.push(str.slice(i, i + 8));
+  }
+  return arr;
+};
+
+const compareStr = (str1, str2) => {
+  const arr1 = splitStr(str1); //.slice(44,48);
+  const arr2 = splitStr(str2); //.slice(38,46);
+  // console.log(arr2);
+
+  const onlyInArr1 = onlyInLeft(arr1, arr2);
+  const onlyInArr2 = onlyInLeft(arr2, arr1);
+
+  console.log(onlyInArr1);
+  console.log(onlyInArr2);
+
+  const diffIndexArr1 = onlyInArr1.map((v) => arr1.findIndex((_v) => v === _v));
+  const diffIndexArr2 = onlyInArr2.map((v) => arr2.findIndex((_v) => v === _v));
+
+  console.log(diffIndexArr1);
+  console.log(diffIndexArr2);
+
+  const map1 = diffIndexArr1.reduce((prev, curr) => {
+    if (prev.length > 0) {
+      if (prev[prev.length - 1]?.length > 0) {
+        const arr = prev[prev.length - 1];
+        if (arr[arr.length - 1] + 1 === curr) {
+          prev[prev.length - 1].push(curr);
+        } else {
+          prev[prev.length] = [curr];
+        }
+      } else {
+        prev[prev.length - 1].push([curr]);
+      }
+    } else {
+      prev.push([curr]);
+    }
+    return prev;
+  }, []);
+  const map2 = diffIndexArr2.reduce((prev, curr) => {
+    if (prev.length > 0) {
+      if (prev[prev.length - 1]?.length > 0) {
+        const arr = prev[prev.length - 1];
+        if (arr[arr.length - 1] + 1 === curr) {
+          prev[prev.length - 1].push(curr);
+        } else {
+          prev[prev.length - 1] = [curr];
+        }
+      } else {
+        prev[prev.length - 1].push([curr]);
+      }
+    } else {
+      prev.push([curr]);
+    }
+    return prev;
+  }, []);
+
+  console.log(`map1`, map1);
+  console.log(`map2`, map2);
+
+  const map1Str = arr1.reduce((prev, curr) => {
+    prev += curr;
+    return prev;
+  }, "");
+
+  const map2Str = map2.map((arr) =>
+    arr.reduce((prev, curr) => {
+      prev += arr1[curr];
+      return prev;
+    }, "")
+  );
+
+  console.log(`map1Str`, map1Str);
+  console.log(`map2Str`, map2Str);
+};
 //0-15
 const memberId1 =
   "04087b0849220e6d656d6265725f6964063a06454669064922105f637372665f746f6b656e063b00464922314832396757757a7153465536646930524c637762376e34694e6c5a65626e6b62506162375a486d474e716b3d063b004649220a666c617368063b00547b0749220c64697363617264063b00545b0649220c73756363657373063b004649220c666c6173686573063b00547b0649220c73756363657373063b004649224c57656c636f6d65203c623e6172657468616c69616e672b3040676d61696c2e636f6d3c2f623e2e20596f7520617265207375636365737366756c6c79207369676e656420696e2e063b0054";

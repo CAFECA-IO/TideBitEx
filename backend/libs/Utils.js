@@ -735,11 +735,6 @@ class Utils {
     return token;
   }
 
-  static onlyInLeft = (left, right) =>
-    left.filter(
-      (leftValue) => !right.some((rightValue) => leftValue === rightValue)
-    );
-
   static splitStr = (str) => {
     let arr = [],
       length = str.length / 8 + 1;
@@ -748,18 +743,6 @@ class Utils {
     }
     return arr;
   };
-
-  static decodeBuffer(buffer) {
-    const split1 = buffer.toString("latin1").split("member_id\x06:\x06EFi\x02");
-    if (split1.length > 0) {
-      const memberIdLatin1 = split1[1].split('I"')[0];
-      const memberIdString = Buffer.from(memberIdLatin1, "latin1")
-        .reverse()
-        .toString("hex");
-      const memberId = parseInt(memberIdString, 16);
-      return memberId;
-    }
-  }
 
   static decodeMemberId(value) {
     let memberId, memberIdHexR, memberIdBufferR, memberIdBuffer;
