@@ -393,3 +393,90 @@ export const hexToAscii = (hex) => {
   }
   return str;
 };
+
+const onlyInLeft = (left, right) =>
+  left.filter(
+    (leftValue) => !right.some((rightValue) => leftValue === rightValue)
+  );
+
+export const splitStr = (str) => {
+  let arr = [],
+    length = str.length / 8 + 1;
+  for (let i = 0; i < length; i++) {
+    arr.push(str.slice(i, i + 8));
+  }
+  return arr;
+};
+export const compareStr = (str1, str2) => {
+  const arr1 = splitStr(str1); //.slice(44,48);
+  // const arr2 = splitStr(str2).slice(38,46);
+  const memberIdL = parseInt(arr1[44].slice(0, 2), 16);
+  const memberIdBuffer = arr1[44].slice(2, memberIdL * 2 + 1);
+  console.log(memberIdBuffer);
+  // console.log(arr2);
+
+  // const onlyInArr1 = onlyInLeft(arr1, arr2);
+  // const onlyInArr2 = onlyInLeft(arr2, arr1);
+
+  // console.log(onlyInArr1);
+  // console.log(onlyInArr2);
+
+  // const diffIndexArr1 = onlyInArr1.map((v) => arr1.findIndex((_v) => v === _v));
+  // const diffIndexArr2 = onlyInArr2.map((v) => arr2.findIndex((_v) => v === _v));
+
+  // console.log(diffIndexArr1);
+  // console.log(diffIndexArr2);
+
+  // const map1 = diffIndexArr1.reduce((prev, curr) => {
+  //   if (prev.length > 0) {
+  //     if (prev[prev.length - 1]?.length > 0) {
+  //       const arr = prev[prev.length - 1];
+  //       if (arr[arr.length - 1] + 1 === curr) {
+  //         prev[prev.length - 1].push(curr);
+  //       } else {
+  //         prev[prev.length] = [curr];
+  //       }
+  //     } else {
+  //       prev[prev.length - 1].push([curr]);
+  //     }
+  //   } else {
+  //     prev.push([curr]);
+  //   }
+  //   return prev;
+  // }, []);
+  // const map2 = diffIndexArr2.reduce((prev, curr) => {
+  //   if (prev.length > 0) {
+  //     if (prev[prev.length - 1]?.length > 0) {
+  //       const arr = prev[prev.length - 1];
+  //       if (arr[arr.length - 1] + 1 === curr) {
+  //         prev[prev.length - 1].push(curr);
+  //       } else {
+  //         prev[prev.length - 1] = [curr];
+  //       }
+  //     } else {
+  //       prev[prev.length - 1].push([curr]);
+  //     }
+  //   } else {
+  //     prev.push([curr]);
+  //   }
+  //   return prev;
+  // }, []);
+
+  // console.log(`map1`, map1);
+  // console.log(`map2`, map2);
+
+  // const map1Str = arr1.reduce((prev, curr) => {
+  //   prev += curr;
+  //   return prev;
+  // }, "");
+
+  // const map2Str = map2.map((arr) =>
+  //   arr.reduce((prev, curr) => {
+  //     prev += arr1[curr];
+  //     return prev;
+  //   }, "")
+  // );
+
+  // console.log(`map1Str`, map1Str);
+  // console.log(`map2Str`, map2Str);
+};
