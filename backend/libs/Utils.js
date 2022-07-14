@@ -735,6 +735,34 @@ class Utils {
     return token;
   }
 
+  static splitStr = (str) => {
+    let arr = [],
+      length = str.length / 8 + 1;
+    for (let i = 0; i < length; i++) {
+      arr.push(str.slice(i, i + 8));
+    }
+    return arr;
+  };
+
+  static decodeMemberId(value) {
+    let memberId, memberIdHexR, memberIdBufferR, memberIdBuffer;
+    const valueBuffer = Buffer.from(value);
+    const valueHex = valueBuffer.toString("hex");
+    const valueArr = Utils.splitStr(valueHex); // memeberId is hide in index 44-46 (38,48)
+    const memberIdL = parseInt(valueArr[44].slice(0, 2), 16);
+    if (memberIdL > 5) memberId = memberIdL - 5;
+    else if (memberIdL <= 4) {
+      if (memberIdL === 4) memberIdHexR = valueArr[46];
+      else memberIdHexR = valueArr[44].slice(2, memberIdL * 2 + 2);
+      memberIdBufferR = Buffer.from(memberIdHexR, "hex");
+      memberIdBuffer = memberIdBufferR.reverse();
+      console.log(`memberIdBuffer`, memberIdBuffer);
+      memberId = parseInt(memberIdBufferR.toString("hex"), 16);
+      console.log(`memberId`, memberId);
+    } else throw Error("Could not decode memberId");
+    return memberId;
+  }
+
   static async getMemberIdFromRedis(redisDomain, peatioSession) {
     const client = redis.createClient({
       url: redisDomain,
@@ -748,23 +776,13 @@ class Utils {
         peatioSession
       );
       await client.quit();
-      // ++ TODO: 下面補error handle
-      const split1 = value
-        .toString("latin1")
-        .split("member_id\x06:\x06EFi\x02");
-      if (split1.length > 0) {
-        const memberIdLatin1 = split1[1].split('I"')[0];
-        const memberIdString = Buffer.from(memberIdLatin1, "latin1")
-          .reverse()
-          .toString("hex");
-        const memberId = parseInt(memberIdString, 16);
-        return memberId;
-      } else throw Error("memberId not found");
+      const memberId = Utils.decodeMemberId(value);
+      return memberId;
     } catch (error) {
       try {
         await client.quit();
         throw error;
-      } catch (error) {
+      } catch (_error) {
         throw error;
       }
     }

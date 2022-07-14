@@ -180,6 +180,7 @@ class ExchangeHub extends Bot {
           app: this.config.pusher.app,
           key: this.config.pusher.key,
           secret: this.config.pusher.secret,
+          wsProtocol: this.config.pusher.protocol,
           wsHost: this.config.pusher.host,
           port: this.config.pusher.port,
           wsPort: this.config.pusher.wsPort,

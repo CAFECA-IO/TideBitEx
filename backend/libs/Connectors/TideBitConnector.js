@@ -45,6 +45,7 @@ class TibeBitConnector extends ConnectorBase {
     app,
     key,
     secret,
+    wsProtocol,
     wsHost,
     port,
     wsPort,
@@ -66,6 +67,7 @@ class TibeBitConnector extends ConnectorBase {
     this.app = app;
     this.key = key;
     this.secret = secret;
+    this.wsProtocol = wsProtocol;
     this.wsHost = wsHost;
     this.wsPort = wsPort;
     this.wssPort = wssPort;
@@ -81,8 +83,8 @@ class TibeBitConnector extends ConnectorBase {
     this.accountBook = accountBook;
     this.orderBook = orderBook;
     this.tidebitMarkets = tidebitMarkets;
-    await this.websocket.init({
-      url: `wss://${this.wsHost}/app/${this.key}?protocol=7&client=js&version=2.2.0&flash=false`,
+    this.websocket.init({
+      url: `${this.wsProtocol}://${this.wsHost}:${this.wsPort}/app/${this.key}?protocol=7&client=js&version=2.2.0&flash=false`,
       heartBeat: HEART_BEAT_TIME,
       options: {
         perMessageDeflate: false,
@@ -162,31 +164,34 @@ class TibeBitConnector extends ConnectorBase {
         code: Codes.API_UNKNOWN_ERROR,
       });
     }
-    const tBTicker = tBTickerRes.data;
-    const change = SafeMath.minus(tBTicker.ticker.last, tBTicker.ticker.open);
-    const changePct = SafeMath.gt(tBTicker.ticker.open, "0")
-      ? SafeMath.div(change, tBTicker.ticker.open)
+    const tickerObj = tBTickerRes.data;
+    const change = SafeMath.minus(tickerObj.ticker.last, tickerObj.ticker.open);
+    const changePct = SafeMath.gt(tickerObj.ticker.open, "0")
+      ? SafeMath.div(change, tickerObj.ticker.open)
       : SafeMath.eq(change, "0")
       ? "0"
       : "1";
 
     const formatTBTicker = {};
+    const tbTicker = this.tidebitMarkets.find(
+      (market) => market.id === query.id
+    );
     formatTBTicker[query.id] = {
       market: query.id,
       instId: query.instId,
       name: optional.market.name,
-      base_unit: optional.market.base_unit,
-      quote_unit: optional.market.quote_unit,
-      ...tBTicker.ticker,
-      at: tBTicker.at,
-      ts: parseInt(SafeMath.mult(tBTicker.at, "1000")),
+      base_unit: tbTicker.base_unit,
+      quote_unit: tbTicker.quote_unit,
+      group: tbTicker?.group,
+      pricescale: tbTicker?.price_group_fixed,
+      ...tickerObj.ticker,
+      at: tickerObj.at,
+      ts: parseInt(SafeMath.mult(tickerObj.at, "1000")),
       change,
       changePct,
-      volume: tBTicker.ticker.vol.toString(),
+      volume: tickerObj.ticker.vol.toString(),
       source: SupportedExchange.TIDEBIT,
-      group: optional.market.group,
-      pricescale: optional.market.price_group_fixed,
-      ticker: tBTicker.ticker,
+      ticker: tickerObj.ticker,
     };
     return new ResponseFormat({
       message: "getTicker",
@@ -195,7 +200,13 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async getTickers({ optional }) {
-    // this.logger.log(`getTickers tidebitMarkets`, this.tidebitMarkets);
+    // this.logger.log(`------------------------ tidebitMarkets --------------------------`);
+    // this.logger.log( this.tidebitMarkets);
+    // this.logger.log(`------------------------ tidebitMarkets --------------------------`);
+    // this.logger.log(`------------------------ getTickers optiona l--------------------------`);
+    // this.logger.log(optional);
+    // this.logger.log(`------------------------  getTickers optional --------------------------`);
+
     const tBTickersRes = await axios.get(`${this.peatio}/api/v2/tickers`);
     if (!tBTickersRes || !tBTickersRes.data) {
       return new ResponseFormat({
@@ -204,6 +215,9 @@ class TibeBitConnector extends ConnectorBase {
       });
     }
     const tBTickers = tBTickersRes.data;
+    // this.logger.log(`------------------------ tBTickers --------------------------`);
+    // this.logger.log(tBTickers);
+    // this.logger.log(`------------------------ tBTickers --------------------------`);
     const formatTickers = Object.keys(tBTickers).reduce((prev, currId) => {
       const instId = this._findInstId(currId);
       const tickerObj = tBTickers[currId];
@@ -211,7 +225,6 @@ class TibeBitConnector extends ConnectorBase {
         tickerObj.ticker.last,
         tickerObj.ticker.open
       );
-      // this.logger.log(`getTickers currId`, currId);
       const tbTicker = this.tidebitMarkets.find(
         (market) => market.id === currId
       );
@@ -221,8 +234,14 @@ class TibeBitConnector extends ConnectorBase {
         ? "0"
         : "1";
       prev[currId] = {
+        id: tbTicker?.id,
         market: currId,
         instId,
+        name: tbTicker?.name,
+        base_unit: tbTicker.base_unit,
+        quote_unit: tbTicker.quote_unit,
+        group: tbTicker?.group,
+        pricescale: tbTicker?.price_group_fixed,
         buy: tickerObj.ticker.buy,
         sell: tickerObj.ticker.sell,
         low: tickerObj.ticker.low,
@@ -235,33 +254,27 @@ class TibeBitConnector extends ConnectorBase {
         at: parseInt(tickerObj.at),
         ts: parseInt(SafeMath.mult(tickerObj.at, "1000")),
         source: SupportedExchange.TIDEBIT,
-        ticker: tickerObj.ticker,
         tickSz: Utils.getDecimal(tbTicker?.bid?.fixed),
         lotSz: Utils.getDecimal(tbTicker?.ask?.fixed),
         minSz: Utils.getDecimal(tbTicker?.ask?.fixed),
+        ticker: tickerObj.ticker,
       };
       return prev;
     }, {});
     const tickers = {};
-
     optional.mask.forEach((market) => {
       let ticker = formatTickers[market.id];
-      const tbTicker = this.tidebitMarkets.find(
-        (_market) => market.id === _market.id
-      );
       if (ticker)
         tickers[market.id] = {
           ...ticker,
-          group: market.group,
-          market: market.id,
-          pricescale: market.price_group_fixed,
-          name: market.name,
-          base_unit: market.base_unit,
-          quote_unit: market.quote_unit,
         };
       else {
+        const tbTicker = this.tidebitMarkets.find(
+          (_market) => market.id === _market.id
+        );
         const instId = this._findInstId(market.id);
         tickers[market.id] = {
+          id: market.id,
           market: market.id,
           instId,
           name: market.name,
@@ -278,7 +291,8 @@ class TibeBitConnector extends ConnectorBase {
           volume: "0.0",
           change: "0.0",
           changePct: "0.0",
-          at: "0.0",
+          at: 0,
+          ts: 0,
           source: SupportedExchange.TIDEBIT,
           tickSz: Utils.getDecimal(tbTicker?.bid?.fixed),
           lotSz: Utils.getDecimal(tbTicker?.ask?.fixed),
@@ -286,6 +300,9 @@ class TibeBitConnector extends ConnectorBase {
         };
       }
     });
+    // this.logger.log(`------------------------ (tickers) --------------------------`);
+    // this.logger.log(tickers);
+    // this.logger.log(`------------------------ (tickers) --------------------------`);
     // ++ TODO !!! Ticker dataFormate is different
     // this.tickerBook.updateAll(tickers);
     return new ResponseFormat({
@@ -297,6 +314,7 @@ class TibeBitConnector extends ConnectorBase {
   _formateTicker(data) {
     // return tickerData.map((data) => {
     const id = data.name.replace("/", "").toLowerCase();
+    const tbTicker = this.tidebitMarkets.find((market) => market.id === id);
     const change = SafeMath.minus(data.last, data.open);
     const changePct = SafeMath.gt(data.open, "0")
       ? SafeMath.div(change, data.open)
@@ -305,6 +323,11 @@ class TibeBitConnector extends ConnectorBase {
       : "1";
     const updateTicker = {
       ...data,
+      name: tbTicker?.name,
+      base_unit: tbTicker?.base_unit,
+      quote_unit: tbTicker?.quote_unit,
+      group: tbTicker?.group,
+      pricescale: tbTicker?.price_group_fixed,
       id,
       ts: parseInt(SafeMath.mult(data.at, "1000")),
       at: parseInt(data.at),
@@ -323,6 +346,9 @@ class TibeBitConnector extends ConnectorBase {
         open: data.open,
         vol: data.volume,
       },
+      tickSz: Utils.getDecimal(tbTicker?.bid?.fixed),
+      lotSz: Utils.getDecimal(tbTicker?.ask?.fixed),
+      minSz: Utils.getDecimal(tbTicker?.ask?.fixed),
     };
     return updateTicker;
     // });
@@ -447,9 +473,9 @@ class TibeBitConnector extends ConnectorBase {
 
   // ++ TODO: verify function works properly
   _updateBooks(market, updateBooks) {
-    this.logger.log(
-      `---------- [${this.constructor.name}]  received books update data ----------`
-    );
+    // this.logger.log(
+    //   `---------- [${this.constructor.name}]  received books update data ----------`
+    // );
     // this.logger.log(
     //   `---------- [${this.constructor.name}]  _updateBooks [START] ----------`
     // );
@@ -1143,13 +1169,14 @@ class TibeBitConnector extends ConnectorBase {
       // channel.bind("trade", (data) => {
       //   this._updateTrade(memberId, data);
       // });
+      channel = `private-${sn}`;
       this.logger.log(
         `[${this.constructor.name}]_registerPrivateChannel send`,
         {
           event: "pusher:subscribe",
           data: {
             auth,
-            channel: `private-${sn}`,
+            channel,
           },
         }
       );
@@ -1158,7 +1185,7 @@ class TibeBitConnector extends ConnectorBase {
           event: "pusher:subscribe",
           data: {
             auth,
-            channel: `private-${sn}`,
+            channel,
           },
         })
       );
@@ -1340,29 +1367,36 @@ class TibeBitConnector extends ConnectorBase {
   }
 
   async _startPusherWithLoginToken(headers, sn) {
-    const data = JSON.stringify({
-      socket_id: this.socketId,
-      channel_name: `private-${sn}`,
-    });
-    const auth = await axios({
-      url: `${this.peatio}/pusher/auth`,
-      method: "POST",
-      headers: {
-        ...headers,
-        "Content-Length": Buffer.from(data, "utf-8").length,
-      },
-      data,
-    });
-    this.logger.log(`getAuth`, {
-      url: `https://${this.peatio}/pusher/auth`,
-      method: "POST",
-      headers: {
-        ...headers,
-        "Content-Length": Buffer.from(data, "utf-8").length,
-      },
-      data,
-    });
-    return auth.data.auth;
+    let auth;
+    if (this.socketId) {
+      const data = JSON.stringify({
+        socket_id: this.socketId,
+        channel_name: `private-${sn}`,
+      });
+      const authRes = await axios({
+        url: `${this.peatio}/pusher/auth`,
+        method: "POST",
+        headers: {
+          ...headers,
+          "Content-Length": Buffer.from(data, "utf-8").length,
+        },
+        data,
+      });
+      this.logger.log(`getAuth`, {
+        url: `https://${this.peatio}/pusher/auth`,
+        method: "POST",
+        headers: {
+          ...headers,
+          "Content-Length": Buffer.from(data, "utf-8").length,
+        },
+        data,
+      });
+      auth = authRes.data.auth;
+    } else {
+      this.logger.error(`pusher:auth error socketId is`, this.socketId);
+    }
+    this.logger.log(`pusher:auth`, auth);
+    return auth;
   }
 
   /**
@@ -1386,30 +1420,37 @@ class TibeBitConnector extends ConnectorBase {
             credential.headers,
             member.sn
           );
-          const channel = await this._registerPrivateChannel(
-            auth,
-            credential.memberId,
-            member.sn
-          );
-          this.sn[member.sn] = credential.memberId;
-          this.private_client[credential.memberId] = {
-            memberId: credential.memberId,
-            sn: member.sn,
-            wsIds: [credential.wsId],
-            auth,
-            channel,
-          };
+          if (auth) {
+            const channel = await this._registerPrivateChannel(
+              auth,
+              credential.memberId,
+              member.sn
+            );
+            this.sn[member.sn] = credential.memberId;
+            this.private_client[credential.memberId] = {
+              memberId: credential.memberId,
+              sn: member.sn,
+              wsIds: [credential.wsId],
+              auth,
+              channel,
+            };
+          }
         } else {
           this.private_client[credential.memberId].wsIds.push(credential.wsId);
+
+          this.logger.log(
+            `_subscribeUser this.private_client`,
+            this.private_client
+          );
         }
         this.logger.log(
-          `_subscribeUser this.private_client`,
-          this.private_client
+          `++++++++ [${this.constructor.name}]  _subscribeUser [END] ++++++`
+        );
+      } else {
+        this.logger.error(
+          `++++++++ [${this.constructor.name}]  _subscribeUser [FAILED: did not auth] ++++++`
         );
       }
-      this.logger.log(
-        `++++++++ [${this.constructor.name}]  _subscribeUser [END] ++++++`
-      );
     } catch (error) {
       this.logger.error(`_subscribeUser error`, error);
       throw error;
