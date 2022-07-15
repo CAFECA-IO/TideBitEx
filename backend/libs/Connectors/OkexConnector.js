@@ -827,7 +827,10 @@ class OkexConnector extends ConnectorBase {
       // posSide: body.posSide,
       ordType: body.ordType === "market" ? "ioc" : body.ordType,
       sz: body.volume,
-      px: (parseFloat(body.price) * 1.1).toString(),
+      px:
+        body.ordType === "market"
+          ? (parseFloat(body.price) * 1.1).toString()
+          : body.price,
       // reduceOnly: body.reduceOnly,
       // tgtCcy: body.tgtCcy,
     };
