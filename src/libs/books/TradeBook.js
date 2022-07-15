@@ -42,25 +42,28 @@ class TradeBook extends BookBase {
       return false;
     }
   }
-  _trim(data) {
-    return data.slice(0, 30);
-  }
+  // _trim(data) {
+  //   return data.slice(0, 30);
+  // }
 
-  getSnapshot(market) {
+  getSnapshot(market, lotSz) {
     try {
       let trades;
       if (this._snapshot[market]) {
-        trades = this._snapshot[market].map((trade) => {
-          // ++ WORKAROUND TODO: enhance performance
-          // if (
-          //   !this._prevSnapshot[market].some((_trade) =>
-          //     this._compareFunction(trade, _trade)
-          //   )
-          // ) {
-          //   return { ...trade, update: true };
-          // } else
-          return trade;
-        });
+        trades = this._snapshot[market]
+          .filter((trade) => trade.volume >= lotSz)
+          .slice(0, 30);
+        // .map((trade) => {
+        // ++ WORKAROUND TODO: enhance performance
+        // if (
+        //   !this._prevSnapshot[market].some((_trade) =>
+        //     this._compareFunction(trade, _trade)
+        //   )
+        // ) {
+        //   return { ...trade, update: true };
+        // } else
+        //   return trade;
+        // });
         this._prevSnapshot[market] = this._snapshot[market];
       } else trades = [];
       return trades;

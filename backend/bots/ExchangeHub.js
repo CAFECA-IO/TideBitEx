@@ -361,12 +361,20 @@ class ExchangeHub extends Bot {
 
   async getTicker({ params, query }) {
     const instId = this._findInstId(query.id);
-    this.logger.log(`[${this.constructor.name}] getTicker`, instId);
     const index = this.tidebitMarkets.findIndex(
       (market) => instId === market.instId
     );
+    this.logger.log(
+      `[${this.constructor.name}] getTicker[index:${index}]`,
+      instId
+    );
     if (index !== -1) {
-      switch (this._findSource(instId)) {
+      const source = this._findSource(instId)
+      this.logger.log(
+        `[${this.constructor.name}] getTicker ticketSource`,
+        source
+      );
+      switch (source) {
         case SupportedExchange.OKEX:
           return this.okexConnector.router("getTicker", {
             params,
@@ -1233,7 +1241,10 @@ class ExchangeHub extends Bot {
   }
 
   async getOptions({ query }) {
-    this.logger.debug(`[${this.constructor.name}] getOptions`, this.config.websocket.domain);
+    this.logger.debug(
+      `[${this.constructor.name}] getOptions`,
+      this.config.websocket.domain
+    );
     return Promise.resolve(
       new ResponseFormat({
         message: "getOptions",
