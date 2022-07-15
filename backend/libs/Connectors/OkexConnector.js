@@ -82,24 +82,24 @@ class OkexConnector extends ConnectorBase {
     this.sync();
     return this;
   }
-//   {
-//     "side": "sell",
-//     "fillSz": "0.002",
-//     "fillPx": "1195.86",
-//     "fee": "-0.001913376",
-//     "ordId": "467755654093094921",
-//     "instType": "SPOT",
-//     "instId": "ETH-USDT",
-//     "clOrdId": "377bd372412fSCDE2m332576077o",
-//     "posSide": "net",
-//     "billId": "467871903972212805",
-//     "tag": "377bd372412fSCDE",
-//     "execType": "M",
-//     "tradeId": "225260494",
-//     "feeCcy": "USDT",
-//     "ts": "1657821354546"
-// }
-/**
+  //   {
+  //     "side": "sell",
+  //     "fillSz": "0.002",
+  //     "fillPx": "1195.86",
+  //     "fee": "-0.001913376",
+  //     "ordId": "467755654093094921",
+  //     "instType": "SPOT",
+  //     "instId": "ETH-USDT",
+  //     "clOrdId": "377bd372412fSCDE2m332576077o",
+  //     "posSide": "net",
+  //     "billId": "467871903972212805",
+  //     "tag": "377bd372412fSCDE",
+  //     "execType": "M",
+  //     "tradeId": "225260494",
+  //     "feeCcy": "USDT",
+  //     "ts": "1657821354546"
+  // }
+  /**
    * @typedef {Object} Trade
    * @property {string} side "sell"
    * @property {string} fillSz "0.002"
@@ -437,7 +437,11 @@ class OkexConnector extends ConnectorBase {
         return prev;
       }, defaultObj);
       const filteredTickers = Utils.tickersFilterInclude(
-        this.instIds,
+        this.instIds.map((instId) =>
+          this.markets.find(
+            (market) => market.id === instId.replace("-", "").toLowerCase()
+          )
+        ),
         tickers,
         instruments
       );
