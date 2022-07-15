@@ -59,6 +59,7 @@ class OkexConnector extends ConnectorBase {
     orderBook,
     currencies,
     database,
+    tidebitMarkets,
   }) {
     await super.init();
     this.domain = domain;
@@ -79,6 +80,7 @@ class OkexConnector extends ConnectorBase {
     this.orderBook = orderBook;
     this.currencies = currencies;
     this.database = database;
+    this.tidebitMarkets = tidebitMarkets;
     // this.sync();
     return this;
   }
@@ -438,7 +440,7 @@ class OkexConnector extends ConnectorBase {
       }, defaultObj);
       const filteredTickers = Utils.tickersFilterInclude(
         this.instIds.map((instId) =>
-          this.markets.find(
+          this.tidebitMarkets.find(
             (market) => market.id === instId.replace("-", "").toLowerCase()
           )
         ),

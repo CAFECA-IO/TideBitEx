@@ -218,6 +218,7 @@ class ExchangeHub extends Bot {
           accountBook: this.accountBook,
           currencies: this.currencies,
           database: this.database,
+          tidebitMarkets: this.tidebitMarkets,
         });
         return this;
       });
