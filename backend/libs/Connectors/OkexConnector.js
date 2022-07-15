@@ -12,6 +12,7 @@ const SafeMath = require("../SafeMath");
 const SupportedExchange = require("../../constants/SupportedExchange");
 const Utils = require("../Utils");
 const { waterfallPromise } = require("../Utils");
+const { clear } = require("console");
 
 const HEART_BEAT_TIME = 25000;
 
@@ -23,6 +24,7 @@ class OkexConnector extends ConnectorBase {
   // _tickersTimestamp = 0;
   // _booksTimestamp = 0;
   // _tradesTimestamp = 0;
+  _timer;
   _lastSyncTime = 0;
   _syncInterval = 24 * 60 * 60 * 1000;
   tickers = {};
@@ -77,10 +79,11 @@ class OkexConnector extends ConnectorBase {
     this.orderBook = orderBook;
     this.currencies = currencies;
     this.database = database;
+    this.sync();
     return this;
   }
 
-  async sync() {
+  sync() {
     const time = Date.now();
     if (time - this._lastSyncTime > this._syncInterval)
       this.instIds.forEach((instId) => {
@@ -91,7 +94,9 @@ class OkexConnector extends ConnectorBase {
           // limit
         });
       });
-    setTimeout(this.sync, this._syncInterval + 1000);
+    this._syncInterval = Date.now();
+    clearTimeout(this.timer);
+    this.timer = setTimeout(this.sync, this._syncInterval + 1000);
   }
 
   async start() {
