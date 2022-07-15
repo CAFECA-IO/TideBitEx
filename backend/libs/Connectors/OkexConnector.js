@@ -26,7 +26,7 @@ class OkexConnector extends ConnectorBase {
   // _tradesTimestamp = 0;
   _timer;
   _lastSyncTime = 0;
-  _syncInterval = 24 * 60 * 60 * 1000;
+  _syncInterval = 10 * 60 * 1000; // 10mins
   tickers = {};
   okexWsChannels = {};
   instIds = [];
@@ -82,21 +82,165 @@ class OkexConnector extends ConnectorBase {
     this.sync();
     return this;
   }
+//   {
+//     "side": "sell",
+//     "fillSz": "0.002",
+//     "fillPx": "1195.86",
+//     "fee": "-0.001913376",
+//     "ordId": "467755654093094921",
+//     "instType": "SPOT",
+//     "instId": "ETH-USDT",
+//     "clOrdId": "377bd372412fSCDE2m332576077o",
+//     "posSide": "net",
+//     "billId": "467871903972212805",
+//     "tag": "377bd372412fSCDE",
+//     "execType": "M",
+//     "tradeId": "225260494",
+//     "feeCcy": "USDT",
+//     "ts": "1657821354546"
+// }
+/**
+   * @typedef {Object} Trade
+   * @property {string} side "sell"
+   * @property {string} fillSz "0.002"
+   * @property {string} fillPx "1195.86"
+   * @property {string} fee "-0.001913376"
+   * @property {string} ordd "467755654093094921"
+   * @property {string} insType "SPOT"
+   * @property {string} insId "ETH-USDT"
+   * @property {string} clOdId "377bd372412fSCDE2m332576077o"
+   * @property {string} poside "net"
+   * @property {string} bilId "467871903972212805"
+   * @property {string} tag "377bd372412fSCDE"
+   * @property {string} exeType "M"
+   * @property {string} tradeId "225260494"
+   * @property {string} feecy "USDT"
+   * @property {string} ts "1657821354546
+   */
+  /**
+   * @returns {Promise<Trade>}
+   */
+  async _tradeFills() {
+    const method = "GET";
+    const path = "/api/v5/trade/fills";
+    const timeString = new Date().toISOString();
+    const okAccessSign = await this.okAccessSign({
+      timeString,
+      method,
+      path: `${path}`,
+    });
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}`,
+        headers: this.getHeaders(true, { timeString, okAccessSign }),
+      });
+      if (res.data && res.data.code !== "0") {
+        const message = JSON.stringify(res.data);
+        this.logger.trace(message);
+      }
+      EventBus.emit(Events.tradesDetailUpdate, res.data.data);
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  async _getOrderHistory(options) {
+    const { instType, instId, after, limit } = options;
+    const method = "GET";
+    const path = "/api/v5/trade/orders-history";
+
+    this.logger.log(`-------------- [START] sync OrderHistory ---------------`);
+    const arr = [];
+    if (instType) arr.push(`instType=${instType}`);
+    if (instId) arr.push(`instId=${instId}`);
+    if (after) arr.push(`after=${after}`);
+    if (limit) arr.push(`limit=${limit}`);
+
+    const qs = !!arr.length ? `?${arr.join("&")}` : "";
+
+    const timeString = new Date().toISOString();
+    const okAccessSign = await this.okAccessSign({
+      timeString,
+      method,
+      path: `${path}${qs}`,
+    });
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}${qs}`,
+        headers: this.getHeaders(true, { timeString, okAccessSign }),
+      });
+      if (res.data && res.data.code !== "0") {
+        const message = JSON.stringify(res.data);
+        this.logger.trace(message);
+      }
+      const formatOrders = {};
+      const formatOrdersForLib = {};
+      res.data.data.forEach((data) => {
+        const tmp = data.clOrdId.replace(this.brokerId, "");
+        const memberId = tmp.substr(0, tmp.indexOf("m"));
+        if (!formatOrders[memberId]) formatOrders[memberId] = [];
+        if (!formatOrdersForLib[memberId]) formatOrdersForLib[memberId] = [];
+        formatOrders[memberId].push({
+          ...data,
+          cTime: parseInt(data.cTime),
+          fillTime: parseInt(data.fillTime),
+          uTime: parseInt(data.uTime),
+        });
+        formatOrdersForLib.push({
+          instId,
+          market: instId.replace("-", "").toLowerCase(),
+          clOrdId: data.clOrdId,
+          id: data.ordId,
+          ordType: data.ordType,
+          price: data.px,
+          kind: data.side === "buy" ? "bid" : "ask",
+          volume: SafeMath.minus(data.sz, data.fillSz),
+          origin_volume: data.sz,
+          filled: data.state === "filled",
+          state:
+            data.state === "canceled"
+              ? "canceled"
+              : data.state === "filled"
+              ? "done"
+              : "wait",
+          state_text:
+            data.state === "canceled"
+              ? "Canceled"
+              : data.state === "filled"
+              ? "Done"
+              : "Waiting",
+          at: parseInt(SafeMath.div(data.uTime, "1000")),
+          ts: parseInt(data.uTime),
+        });
+      });
+      this.logger.log(`res.data.data`, res.data.data);
+      Object.keys(formatOrdersForLib).forEach((memberId) => {
+        this.orderBook.updateAll(
+          memberId,
+          instId,
+          formatOrdersForLib[memberId]
+        );
+      });
+      EventBus.emit(Events.orderDetailUpdate, instType, formatOrders);
+      this.logger.log(`-------------- [END] sync OrderHistory ---------------`);
+    } catch (error) {
+      this.logger.error(error);
+      this.logger.log(
+        `-------------- [ERROR] sync OrderHistory ---------------`
+      );
+    }
+  }
 
   sync() {
     const time = Date.now();
-    if (time - this._lastSyncTime > this._syncInterval)
-      this.instIds.forEach((instId) => {
-        this._getOrderHistory({
-          instType: "SPOT",
-          instId,
-          // after,
-          // limit
-        });
-      });
-    this._syncInterval = Date.now();
-    clearTimeout(this.timer);
-    this.timer = setTimeout(this.sync, this._syncInterval + 1000);
+    if (time - this._lastSyncTime > this._syncInterval) {
+      this._tradeFills();
+      this._lastSyncTime = Date.now();
+      clearTimeout(this.timer);
+      this.timer = setTimeout(this.sync, this._syncInterval + 1000);
+    }
   }
 
   async start() {
@@ -1031,98 +1175,6 @@ class OkexConnector extends ConnectorBase {
       message: "getOrderList",
       payload: this.orderBook.getSnapshot(memberId, instId, "pending"),
     });
-  }
-
-  async _getOrderHistory(options) {
-    const { instType, instId, after, limit } = options;
-    const method = "GET";
-    const path = "/api/v5/trade/orders-history";
-
-    this.logger.log(`-------------- [START] sync OrderHistory ---------------`);
-    const arr = [];
-    if (instType) arr.push(`instType=${instType}`);
-    if (instId) arr.push(`instId=${instId}`);
-    if (after) arr.push(`after=${after}`);
-    if (limit) arr.push(`limit=${limit}`);
-
-    const qs = !!arr.length ? `?${arr.join("&")}` : "";
-
-    const timeString = new Date().toISOString();
-    const okAccessSign = await this.okAccessSign({
-      timeString,
-      method,
-      path: `${path}${qs}`,
-    });
-    try {
-      const res = await axios({
-        method: method.toLocaleLowerCase(),
-        url: `${this.domain}${path}${qs}`,
-        headers: this.getHeaders(true, { timeString, okAccessSign }),
-      });
-      if (res.data && res.data.code !== "0") {
-        const message = JSON.stringify(res.data);
-        this.logger.trace(message);
-        return new ResponseFormat({
-          message,
-          code: Codes.THIRD_PARTY_API_ERROR,
-        });
-      }
-      const formatOrders = {};
-      const formatOrdersForLib = {};
-      res.data.data.forEach((data) => {
-        const tmp = data.clOrdId.replace(this.brokerId, "");
-        const memberId = tmp.substr(0, tmp.indexOf("m"));
-        if (!formatOrders[memberId]) formatOrders[memberId] = [];
-        if (!formatOrdersForLib[memberId]) formatOrdersForLib[memberId] = [];
-        formatOrders[memberId].push({
-          ...data,
-          cTime: parseInt(data.cTime),
-          fillTime: parseInt(data.fillTime),
-          uTime: parseInt(data.uTime),
-        });
-        formatOrdersForLib.push({
-          instId,
-          market: instId.replace("-", "").toLowerCase(),
-          clOrdId: data.clOrdId,
-          id: data.ordId,
-          ordType: data.ordType,
-          price: data.px,
-          kind: data.side === "buy" ? "bid" : "ask",
-          volume: SafeMath.minus(data.sz, data.fillSz),
-          origin_volume: data.sz,
-          filled: data.state === "filled",
-          state:
-            data.state === "canceled"
-              ? "canceled"
-              : data.state === "filled"
-              ? "done"
-              : "wait",
-          state_text:
-            data.state === "canceled"
-              ? "Canceled"
-              : data.state === "filled"
-              ? "Done"
-              : "Waiting",
-          at: parseInt(SafeMath.div(data.uTime, "1000")),
-          ts: parseInt(data.uTime),
-        });
-      });
-      this.logger.log(`res.data.data`, res.data.data);
-      Object.keys(formatOrdersForLib).forEach((memberId) => {
-        this.orderBook.updateAll(
-          memberId,
-          instId,
-          formatOrdersForLib[memberId]
-        );
-      });
-      EventBus.emit(Events.orderDetailUpdate, instType, formatOrders);
-      this.logger.log(`-------------- [END] sync OrderHistory ---------------`);
-    } catch (error) {
-      this.logger.error(error);
-      this.logger.log(
-        `-------------- [ERROR] sync OrderHistory ---------------`
-      );
-    }
   }
 
   async postCancelOrder({ body }) {
