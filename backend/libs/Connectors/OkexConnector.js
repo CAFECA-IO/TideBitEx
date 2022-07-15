@@ -79,7 +79,7 @@ class OkexConnector extends ConnectorBase {
     this.orderBook = orderBook;
     this.currencies = currencies;
     this.database = database;
-    this.sync();
+    // this.sync();
     return this;
   }
   //   {
