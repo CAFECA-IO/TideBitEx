@@ -823,14 +823,14 @@ class Utils {
 
   static tickersFilterInclude(masks, tickersObj, instruments) {
     let updateTickers = {};
-    Object.keys(tickersObj).forEach((id) => {
-      const maskData = masks.find((mask) => mask.id === id);
+    Object.keys(tickersObj).forEach((instId) => {
+      const maskData = masks.find((mask) => mask === instId);
       const instData = instruments?.find(
-        (inst) => inst.instId === tickersObj[id].instId
+        (inst) => inst.instId === instId
       );
       if (maskData) {
-        updateTickers[id] = {
-          ...tickersObj[id],
+        updateTickers[instId] = {
+          ...tickersObj[instId],
           pricescale: maskData["price_group_fixed"],
           tickSz: Math.max(
             parseFloat(instData.tickSz),

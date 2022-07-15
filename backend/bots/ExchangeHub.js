@@ -369,7 +369,7 @@ class ExchangeHub extends Bot {
       instId
     );
     if (index !== -1) {
-      const source = this._findSource(instId)
+      const source = this._findSource(instId);
       this.logger.log(
         `[${this.constructor.name}] getTicker ticketSource`,
         source
@@ -412,7 +412,6 @@ class ExchangeHub extends Bot {
       try {
         const okexRes = await this.okexConnector.router("getTickers", {
           query,
-          optional: { mask: this.tidebitMarkets },
         });
         if (okexRes.success) {
           filteredOkexTickers = okexRes.payload;
@@ -450,7 +449,7 @@ class ExchangeHub extends Bot {
           });
         }
         // this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
-        // this.logger.log(`filteredTBTickers`, filteredTBTickers);
+        this.logger.log(`filteredTBTickers`, filteredTBTickers);
         this.tickerBook.updateAll({
           ...filteredOkexTickers,
           ...filteredTBTickers,
@@ -745,81 +744,77 @@ class ExchangeHub extends Bot {
 
   // TODO integrate getOrderList and getOrderHistory into one
   async getOrderList({ query, memberId }) {
-    // this.logger.log(
-    //   `[${this.constructor.name} getOrderList] memberId:`,
-    //   memberId
-    //   // `query`,
-    //   // query
-    // );
+    this.logger.log(
+      `-------------[${this.constructor.name} getOrderList]----------`
+    );
+    this.logger.log(` memberId:`, memberId);
     const instId = this._findInstId(query.market);
-    // this.logger.log(`[${this.constructor.name} getOrderList] instId:`, instId);
+    this.logger.log(` instId:`, instId);
     const market = this._findMarket(instId);
-    // this.logger.log(`[${this.constructor.name} getOrderList] market:`, market);
-    if (memberId === -1) {
-      // return new ResponseFormat({
-      //   message: "member_id not found",
-      //   code: Codes.MEMBER_ID_NOT_FOUND,
-      // });
-      return new ResponseFormat({
-        message: "getOrderList",
-        payload: null,
-      });
-    }
-    switch (this._findSource(instId)) {
-      case SupportedExchange.OKEX:
-        const res = await this.okexConnector.router("getOrderList", {
-          query: {
-            ...query,
-            instId,
-            // market,
-            memberId,
-          },
-        });
-        const list = res.payload;
-        if (Array.isArray(list)) {
-          const newList = list.filter((order) =>
-            order.clOrdId.includes(`${memberId}m`)
-          ); // 可能發生與brokerId, randomId碰撞
-          res.payload = newList;
-        }
-        return res;
-      case SupportedExchange.TIDEBIT:
-        if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = {};
-        let ts = Date.now();
-        if (
-          !this.fetchedOrders[memberId][instId] ||
-          SafeMath.gt(
-            SafeMath.minus(ts, this.fetchedOrders[memberId][instId]),
-            this.fetchedOrdersInterval
-          )
-        )
-          try {
-            const orders = await this.getOrdersFromDb({
+    this.logger.log(` market:`, market);
+    const source = this._findMarket(instId);
+    this.logger.log(` market:`, source);
+    if (memberId !== -1) {
+      switch (source) {
+        case SupportedExchange.OKEX:
+          const res = await this.okexConnector.router("getOrderList", {
+            query: {
               ...query,
-              memberId,
               instId,
               market,
-            });
-            this.orderBook.updateAll(memberId, instId, orders);
-            this.fetchedOrders[memberId][instId] = ts;
-          } catch (error) {
-            this.logger.error(error);
-            const message = error.message;
-            return new ResponseFormat({
-              message,
-              code: Codes.API_UNKNOWN_ERROR,
-            });
+              memberId,
+            },
+          });
+          const list = res.payload;
+          if (Array.isArray(list)) {
+            const newList = list.filter((order) =>
+              order.clOrdId.includes(`${memberId}m`)
+            ); // 可能發生與brokerId, randomId碰撞
+            res.payload = newList;
           }
-        return new ResponseFormat({
-          message: "getOrderList",
-          payload: this.orderBook.getSnapshot(memberId, instId, "pending"),
-        });
-      default:
-        return new ResponseFormat({
-          message: "getOrderList",
-          payload: null,
-        });
+          return res;
+        case SupportedExchange.TIDEBIT:
+          if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = {};
+          let ts = Date.now();
+          if (
+            !this.fetchedOrders[memberId][instId] ||
+            SafeMath.gt(
+              SafeMath.minus(ts, this.fetchedOrders[memberId][instId]),
+              this.fetchedOrdersInterval
+            )
+          )
+            try {
+              const orders = await this.getOrdersFromDb({
+                ...query,
+                memberId,
+                instId,
+                market,
+              });
+              this.orderBook.updateAll(memberId, instId, orders);
+              this.fetchedOrders[memberId][instId] = ts;
+            } catch (error) {
+              this.logger.error(error);
+              const message = error.message;
+              return new ResponseFormat({
+                message,
+                code: Codes.API_UNKNOWN_ERROR,
+              });
+            }
+          return new ResponseFormat({
+            message: "getOrderList",
+            payload: this.orderBook.getSnapshot(memberId, instId, "pending"),
+          });
+        default:
+          return new ResponseFormat({
+            message: "getOrderList",
+            payload: null,
+          });
+      }
     }
+    return new ResponseFormat({
+      message: "getOrderList",
+      payload: null,
+    });
   }
 
   async getOrderHistory({ query, memberId }) {
