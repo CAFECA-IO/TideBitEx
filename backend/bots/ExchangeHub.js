@@ -753,11 +753,8 @@ class ExchangeHub extends Bot {
     );
     this.logger.log(` memberId:`, memberId);
     const instId = this._findInstId(query.market);
-    this.logger.log(` instId:`, instId);
     const market = this._findMarket(instId);
-    this.logger.log(` market:`, market);
-    const source = this._findMarket(instId);
-    this.logger.log(` market:`, source);
+    const source = this._findSource(instId);
     if (memberId !== -1) {
       switch (source) {
         case SupportedExchange.OKEX:
