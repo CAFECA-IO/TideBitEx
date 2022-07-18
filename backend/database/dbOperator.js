@@ -38,6 +38,9 @@ class DBOperator {
     ORDER: "Order",
     TRADE: "Trade",
   };
+  EXCHANGE = {
+    OKEX: 11,
+  };
 
   constructor() {
     return this;
@@ -197,8 +200,26 @@ class DBOperator {
     );
   }
 
+  async insertOuterTrades(
+    id, // trade_fk `${EXCHANGE_CODE}${trade.tradeId}`
+    exchange_code, // EXCHANGE_CODE
+    update_at,
+    status, // 0: unprocessed, 1: updateOrders, 2: updateAccounts, 3: insertTrades, 4: updateVouchers, 5: account_version
+    json,
+    { dbTransaction }
+  ) {
+    console.log(`[DBOperator] insertOuterTrades`)
+    return this.database.insertOuterTrades(
+      id, // trade_fk `${EXCHANGE_CODE}${trade.tradeId}`
+      exchange_code, // EXCHANGE_CODE
+      update_at,
+      status, // 0: unprocessed, 1: updateOrders, 2: updateAccounts, 3: insertTrades, 4: updateVouchers, 5: account_version
+      json,
+      { dbTransaction }
+    );
+  }
+
   async insertTrades(
-    id,
     price,
     volume,
     ask_id,
@@ -214,7 +235,6 @@ class DBOperator {
     { dbTransaction }
   ) {
     return this.database.insertTrades(
-      id,
       price,
       volume,
       ask_id,

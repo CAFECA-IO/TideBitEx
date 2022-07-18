@@ -14,5 +14,5 @@ module.exports = {
   trade: "trade",
   candleOnUpdate: "candleOnUpdate",
   orderDetailUpdate: "orderDetailUpdate",
-  tradesDetailUpdate:"tradesDetailUpdate"
+  // tradesDetailUpdate:"tradesDetailUpdate"
 };

@@ -418,8 +418,43 @@ class mysql {
     }
   }
 
+  async insertOuterTrades(
+    id, // trade_fk `${EXCHANGE_CODE}${trade.tradeId}`
+    exchange_code, // EXCHANGE_CODE
+    update_at,
+    status, // 0: unprocessed, 1: updateOrders, 2: updateAccounts, 3: insertTrades, 4: updateVouchers, 5: account_version
+    json,
+    { dbTransaction }
+  ) {
+    const query =
+      "INSERT INTO `outer_trades` (`id`,`exchange_code`,`update_at`,`status`,`json`)" +
+      " VALUES (?, ?, ?, ?, ?);";
+    try {
+      this.logger.log(
+        "[mysql] insertOuterTrades",
+        query,
+        id,
+        exchange_code,
+        update_at,
+        status,
+        json
+      );
+      // await this.db.query(
+      //   {
+      //     query,
+      //     values: [id, exchange_code, update_at, status, json],
+      //   },
+      //   {
+      //     transaction: dbTransaction,
+      //   }
+      // );
+    } catch (error) {
+      this.logger.error(error);
+      if (dbTransaction) throw error;
+    }
+  }
+
   async insertTrades(
-    id,
     price,
     volume,
     ask_id,
@@ -442,7 +477,6 @@ class mysql {
         "insertAccountVersion",
         query,
         "DEFAULT",
-        id,
         price,
         volume,
         ask_id,
@@ -461,7 +495,6 @@ class mysql {
           query,
           values: [
             "DEFAULT",
-            id,
             price,
             volume,
             ask_id,

@@ -12,8 +12,6 @@ const SafeMath = require("../SafeMath");
 const SupportedExchange = require("../../constants/SupportedExchange");
 const Utils = require("../Utils");
 const { waterfallPromise } = require("../Utils");
-const { clear } = require("console");
-
 const HEART_BEAT_TIME = 25000;
 
 class OkexConnector extends ConnectorBase {
@@ -24,9 +22,7 @@ class OkexConnector extends ConnectorBase {
   // _tickersTimestamp = 0;
   // _booksTimestamp = 0;
   // _tradesTimestamp = 0;
-  _timer;
-  _lastSyncTime = 0;
-  _syncInterval = 10 * 60 * 1000; // 10mins
+
   tickers = {};
   okexWsChannels = {};
   instIds = [];
@@ -81,7 +77,6 @@ class OkexConnector extends ConnectorBase {
     this.currencies = currencies;
     this.database = database;
     this.tidebitMarkets = tidebitMarkets;
-    // this.sync();
     return this;
   }
   //   {
@@ -122,29 +117,48 @@ class OkexConnector extends ConnectorBase {
   /**
    * @returns {Promise<Trade>}
    */
-  async _tradeFills() {
-    const method = "GET";
-    const path = "/api/v5/trade/fills";
-    const timeString = new Date().toISOString();
-    const okAccessSign = await this.okAccessSign({
-      timeString,
-      method,
-      path: `${path}`,
-    });
-    try {
-      const res = await axios({
-        method: method.toLocaleLowerCase(),
-        url: `${this.domain}${path}`,
-        headers: this.getHeaders(true, { timeString, okAccessSign }),
-      });
-      if (res.data && res.data.code !== "0") {
-        const message = JSON.stringify(res.data);
-        this.logger.trace(message);
-      }
-      EventBus.emit(Events.tradesDetailUpdate, res.data.data);
-    } catch (error) {
-      this.logger.error(error);
-    }
+  async tradeFills({ query }) {
+    this.logger.log(`[${this.constructor.name}] tradeFills`);
+    // let result;
+    // const method = "GET";
+    // const path = "/api/v5/trade/fills";
+    // const timeString = new Date().toISOString();
+    // const okAccessSign = await this.okAccessSign({
+    //   timeString,
+    //   method,
+    //   path: `${path}`,
+    // });
+    // try {
+    //   const res = await axios({
+    //     method: method.toLocaleLowerCase(),
+    //     url: `${this.domain}${path}`,
+    //     headers: this.getHeaders(true, { timeString, okAccessSign }),
+    //   });
+    //   if (res.data && res.data.code !== "0") {
+    //     const message = JSON.stringify(res.data);
+    //     this.logger.trace(message);
+    //   }
+    //   const data = res.data.data.map((trade) => ({
+    //     ...trade,
+    //     // tradeId: `${this.database.EXCHANGE.OKEX.toString()}${this.tradeId}`,
+    //     status: 0,
+    //     source: SupportedExchange.OKEX,
+    //   }));
+    //   result = new ResponseFormat({
+    //     message: "tradeFills",
+    //     payload: data,
+    //   });
+    // } catch (error) {
+    //   this.logger.error(error);
+    //   let message = error.message;
+    //   if (error.response && error.response.data)
+    //     message = error.response.data.msg;
+    //   result = new ResponseFormat({
+    //     message,
+    //     code: Codes.API_UNKNOWN_ERROR,
+    //   });
+    // }
+    // return result;
   }
 
   async _getOrderHistory(options) {
@@ -232,16 +246,6 @@ class OkexConnector extends ConnectorBase {
       this.logger.log(
         `-------------- [ERROR] sync OrderHistory ---------------`
       );
-    }
-  }
-
-  sync() {
-    const time = Date.now();
-    if (time - this._lastSyncTime > this._syncInterval) {
-      this._tradeFills();
-      this._lastSyncTime = Date.now();
-      clearTimeout(this.timer);
-      this.timer = setTimeout(this.sync, this._syncInterval + 1000);
     }
   }
 
@@ -999,7 +1003,9 @@ class OkexConnector extends ConnectorBase {
       sz: body.volume,
       px:
         body.ordType === "market"
-          ? (parseFloat(body.price) * 1.1).toString()
+          ? body.kind === "bid"
+            ? (parseFloat(body.price) * 1.1).toString()
+            : (parseFloat(body.price) * 0.9).toString()
           : body.price,
       // reduceOnly: body.reduceOnly,
       // tgtCcy: body.tgtCcy,
@@ -1442,6 +1448,111 @@ class OkexConnector extends ConnectorBase {
     this.okexWsChannels[channel][instType] = instData;
   }
 
+  /**
+ * 
+ * @param {*} instType 
+ * @param {*} orderData 
+ * [
+ {
+    accFillSz: '0',
+    amendResult: '',
+    avgPx: '0',
+    cTime: '1658123851878',
+    category: 'normal',
+    ccy: '',
+    clOrdId: '377bd372412fSCDE11235m55o',
+    code: '0',
+    execType: '',
+    fee: '0',
+    feeCcy: 'USDT',
+    fillFee: '0',
+    fillFeeCcy: '',
+    fillNotionalUsd: '',
+    fillPx: '',
+    fillSz: '0',
+    fillTime: '',
+    instId: 'ETH-USDT',
+    instType: 'SPOT',
+    lever: '0',
+    msg: '',
+    notionalUsd: '1.5795892',
+    ordId: '469140669741809706',
+    ordType: 'ioc',
+    pnl: '0',
+    posSide: '',
+    px: '1580',
+    rebate: '0',
+    rebateCcy: 'ETH',
+    reduceOnly: 'false',
+    reqId: '',
+    side: 'sell',
+    slOrdPx: '',
+    slTriggerPx: '',
+    slTriggerPxType: 'last',
+    source: '',
+    state: 'live',
+    sz: '0.001',
+    tag: '377bd372412fSCDE',
+    tdMode: 'cash',
+    tgtCcy: '',
+    tpOrdPx: '',
+    tpTriggerPx: '',
+    tpTriggerPxType: 'last',
+    tradeId: '',
+    uTime: '1658123851878'
+  }]
+ * [
+   {
+     accFillSz: '0',
+     amendResult: '',
+     avgPx: '0',
+     cTime: '1658123851878',
+     category: 'normal',
+     ccy: '',
+     clOrdId: '377bd372412fSCDE11235m55o',
+     code: '0',
+     execType: '',
+     fee: '0',
+     feeCcy: 'USDT',
+     fillFee: '0',
+     fillFeeCcy: '',
+     fillNotionalUsd: '',
+     fillPx: '',
+     fillSz: '0',
+     fillTime: '',
+     instId: 'ETH-USDT',
+     instType: 'SPOT',
+     lever: '0',
+     msg: '',
+     notionalUsd: '1.5795892',
+     ordId: '469140669741809706',
+     ordType: 'ioc',
+     pnl: '0',
+     posSide: '',
+     px: '1580',
+     rebate: '0',
+     rebateCcy: 'ETH',
+     reduceOnly: 'false',
+     reqId: '',
+     side: 'sell',
+     slOrdPx: '',
+     slTriggerPx: '',
+     slTriggerPxType: 'last',
+     source: '',
+     state: 'canceled',
+     sz: '0.001',
+     tag: '377bd372412fSCDE',
+     tdMode: 'cash',
+     tgtCcy: '',
+     tpOrdPx: '',
+     tpTriggerPx: '',
+     tpTriggerPxType: 'last',
+     tradeId: '',
+     uTime: '1658123851889'
+   }
+ ]
+
+ */
   _updateOrderDetails(instType, orderData) {
     const formatOrders = [];
     orderData.forEach((data) => {
