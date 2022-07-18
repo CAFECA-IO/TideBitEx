@@ -55,7 +55,6 @@ const MarketHistory = (props) => {
       <ul className="market-history__list scrollbar-custom">
         {storeCtx.trades &&
           storeCtx.trades
-            .filter((trade) => trade.volume >= storeCtx.selectedTicker?.lotSz)
             .map((trade) => (
               <TradeTile key={`${trade.market}-${trade.id}`} trade={trade} />
             ))}

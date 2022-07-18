@@ -197,6 +197,40 @@ class DBOperator {
     );
   }
 
+  async insertTrades(
+    id,
+    price,
+    volume,
+    ask_id,
+    bid_id,
+    trend,
+    currency,
+    created_at,
+    updated_at,
+    ask_member_id,
+    bid_member_id,
+    funds,
+    trade_fk,
+    { dbTransaction }
+  ) {
+    return this.database.insertTrades(
+      id,
+      price,
+      volume,
+      ask_id,
+      bid_id,
+      trend,
+      currency,
+      created_at,
+      updated_at,
+      ask_member_id,
+      bid_member_id,
+      funds,
+      trade_fk,
+      { dbTransaction }
+    );
+  }
+
   async insertVouchers(
     member_id,
     order_id,

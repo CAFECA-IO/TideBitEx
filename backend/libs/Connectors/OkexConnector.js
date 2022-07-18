@@ -12,6 +12,7 @@ const SafeMath = require("../SafeMath");
 const SupportedExchange = require("../../constants/SupportedExchange");
 const Utils = require("../Utils");
 const { waterfallPromise } = require("../Utils");
+const { clear } = require("console");
 
 const HEART_BEAT_TIME = 25000;
 
@@ -23,7 +24,9 @@ class OkexConnector extends ConnectorBase {
   // _tickersTimestamp = 0;
   // _booksTimestamp = 0;
   // _tradesTimestamp = 0;
-
+  _timer;
+  _lastSyncTime = 0;
+  _syncInterval = 10 * 60 * 1000; // 10mins
   tickers = {};
   okexWsChannels = {};
   instIds = [];
@@ -56,6 +59,7 @@ class OkexConnector extends ConnectorBase {
     orderBook,
     currencies,
     database,
+    tidebitMarkets,
   }) {
     await super.init();
     this.domain = domain;
@@ -76,7 +80,169 @@ class OkexConnector extends ConnectorBase {
     this.orderBook = orderBook;
     this.currencies = currencies;
     this.database = database;
+    this.tidebitMarkets = tidebitMarkets;
+    // this.sync();
     return this;
+  }
+  //   {
+  //     "side": "sell",
+  //     "fillSz": "0.002",
+  //     "fillPx": "1195.86",
+  //     "fee": "-0.001913376",
+  //     "ordId": "467755654093094921",
+  //     "instType": "SPOT",
+  //     "instId": "ETH-USDT",
+  //     "clOrdId": "377bd372412fSCDE2m332576077o",
+  //     "posSide": "net",
+  //     "billId": "467871903972212805",
+  //     "tag": "377bd372412fSCDE",
+  //     "execType": "M",
+  //     "tradeId": "225260494",
+  //     "feeCcy": "USDT",
+  //     "ts": "1657821354546"
+  // }
+  /**
+   * @typedef {Object} Trade
+   * @property {string} side "sell"
+   * @property {string} fillSz "0.002"
+   * @property {string} fillPx "1195.86"
+   * @property {string} fee "-0.001913376"
+   * @property {string} ordd "467755654093094921"
+   * @property {string} insType "SPOT"
+   * @property {string} insId "ETH-USDT"
+   * @property {string} clOdId "377bd372412fSCDE2m332576077o"
+   * @property {string} poside "net"
+   * @property {string} bilId "467871903972212805"
+   * @property {string} tag "377bd372412fSCDE"
+   * @property {string} exeType "M"
+   * @property {string} tradeId "225260494"
+   * @property {string} feecy "USDT"
+   * @property {string} ts "1657821354546
+   */
+  /**
+   * @returns {Promise<Trade>}
+   */
+  async _tradeFills() {
+    const method = "GET";
+    const path = "/api/v5/trade/fills";
+    const timeString = new Date().toISOString();
+    const okAccessSign = await this.okAccessSign({
+      timeString,
+      method,
+      path: `${path}`,
+    });
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}`,
+        headers: this.getHeaders(true, { timeString, okAccessSign }),
+      });
+      if (res.data && res.data.code !== "0") {
+        const message = JSON.stringify(res.data);
+        this.logger.trace(message);
+      }
+      EventBus.emit(Events.tradesDetailUpdate, res.data.data);
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  async _getOrderHistory(options) {
+    const { instType, instId, after, limit } = options;
+    const method = "GET";
+    const path = "/api/v5/trade/orders-history";
+
+    this.logger.log(`-------------- [START] sync OrderHistory ---------------`);
+    const arr = [];
+    if (instType) arr.push(`instType=${instType}`);
+    if (instId) arr.push(`instId=${instId}`);
+    if (after) arr.push(`after=${after}`);
+    if (limit) arr.push(`limit=${limit}`);
+
+    const qs = !!arr.length ? `?${arr.join("&")}` : "";
+
+    const timeString = new Date().toISOString();
+    const okAccessSign = await this.okAccessSign({
+      timeString,
+      method,
+      path: `${path}${qs}`,
+    });
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}${qs}`,
+        headers: this.getHeaders(true, { timeString, okAccessSign }),
+      });
+      if (res.data && res.data.code !== "0") {
+        const message = JSON.stringify(res.data);
+        this.logger.trace(message);
+      }
+      const formatOrders = {};
+      const formatOrdersForLib = {};
+      res.data.data.forEach((data) => {
+        const tmp = data.clOrdId.replace(this.brokerId, "");
+        const memberId = tmp.substr(0, tmp.indexOf("m"));
+        if (!formatOrders[memberId]) formatOrders[memberId] = [];
+        if (!formatOrdersForLib[memberId]) formatOrdersForLib[memberId] = [];
+        formatOrders[memberId].push({
+          ...data,
+          cTime: parseInt(data.cTime),
+          fillTime: parseInt(data.fillTime),
+          uTime: parseInt(data.uTime),
+        });
+        formatOrdersForLib.push({
+          instId,
+          market: instId.replace("-", "").toLowerCase(),
+          clOrdId: data.clOrdId,
+          id: data.ordId,
+          ordType: data.ordType,
+          price: data.px,
+          kind: data.side === "buy" ? "bid" : "ask",
+          volume: SafeMath.minus(data.sz, data.fillSz),
+          origin_volume: data.sz,
+          filled: data.state === "filled",
+          state:
+            data.state === "canceled"
+              ? "canceled"
+              : data.state === "filled"
+              ? "done"
+              : "wait",
+          state_text:
+            data.state === "canceled"
+              ? "Canceled"
+              : data.state === "filled"
+              ? "Done"
+              : "Waiting",
+          at: parseInt(SafeMath.div(data.uTime, "1000")),
+          ts: parseInt(data.uTime),
+        });
+      });
+      this.logger.log(`res.data.data`, res.data.data);
+      Object.keys(formatOrdersForLib).forEach((memberId) => {
+        this.orderBook.updateAll(
+          memberId,
+          instId,
+          formatOrdersForLib[memberId]
+        );
+      });
+      EventBus.emit(Events.orderDetailUpdate, instType, formatOrders);
+      this.logger.log(`-------------- [END] sync OrderHistory ---------------`);
+    } catch (error) {
+      this.logger.error(error);
+      this.logger.log(
+        `-------------- [ERROR] sync OrderHistory ---------------`
+      );
+    }
+  }
+
+  sync() {
+    const time = Date.now();
+    if (time - this._lastSyncTime > this._syncInterval) {
+      this._tradeFills();
+      this._lastSyncTime = Date.now();
+      clearTimeout(this.timer);
+      this.timer = setTimeout(this.sync, this._syncInterval + 1000);
+    }
   }
 
   async start() {
@@ -238,7 +404,7 @@ class OkexConnector extends ConnectorBase {
   }
   // account api end
   // market api
-  async getTickers({ query, optional }) {
+  async getTickers({ query }) {
     let instruments,
       instrumentsRes = await this.getInstruments({ query });
     if (instrumentsRes.success) {
@@ -269,16 +435,20 @@ class OkexConnector extends ConnectorBase {
       }
       const defaultObj = {};
       const tickers = res.data.data.reduce((prev, data) => {
-        const id = data.instId.replace("-", "").toLowerCase();
-        prev[id] = this._formateTicker(data);
+        prev[data.instId] = this._formateTicker(data);
         return prev;
       }, defaultObj);
       const filteredTickers = Utils.tickersFilterInclude(
-        optional.mask,
+        this.instIds.map((instId) =>
+          this.tidebitMarkets.find(
+            (market) => market.id === instId.replace("-", "").toLowerCase()
+          )
+        ),
         tickers,
         instruments
       );
-      // console.log(`filteredTickers`, filteredTickers)
+      this.logger.log(`instId`, this.instId);
+      this.logger.log(`filteredTickers`, filteredTickers);
       // this.tickerBook.updateAll(tickers);
       return new ResponseFormat({
         message: "getTickers from OKEx",
@@ -827,7 +997,10 @@ class OkexConnector extends ConnectorBase {
       // posSide: body.posSide,
       ordType: body.ordType === "market" ? "ioc" : body.ordType,
       sz: body.volume,
-      px: (parseFloat(body.price) * 1.1).toString(),
+      px:
+        body.ordType === "market"
+          ? (parseFloat(body.price) * 1.1).toString()
+          : body.price,
       // reduceOnly: body.reduceOnly,
       // tgtCcy: body.tgtCcy,
     };
@@ -1007,133 +1180,6 @@ class OkexConnector extends ConnectorBase {
     return new ResponseFormat({
       message: "getOrderList",
       payload: this.orderBook.getSnapshot(memberId, instId, "pending"),
-    });
-  }
-
-  async getOrderHistory({ query }) {
-    // const {
-    //   instType,
-    //   uly,
-    //   instId,
-    //   ordType,
-    //   state,
-    //   category,
-    //   after,
-    //   before,
-    //   limit,
-    //   memberId,
-    // } = query;
-    // const method = "GET";
-    // const path = "/api/v5/trade/orders-history";
-
-    // const arr = [];
-    // if (instType) arr.push(`instType=${instType}`);
-    // if (uly) arr.push(`uly=${uly}`);
-    // if (instId) arr.push(`instId=${instId}`);
-    // if (ordType) arr.push(`ordType=${ordType}`);
-    // if (state) arr.push(`state=${state}`);
-    // if (category) arr.push(`category=${category}`);
-    // if (after) arr.push(`after=${after}`);
-    // if (before) arr.push(`before=${before}`);
-    // if (limit) arr.push(`limit=${limit}`);
-
-    // const qs = !!arr.length ? `?${arr.join("&")}` : "";
-
-    // const timeString = new Date().toISOString();
-
-    // const okAccessSign = await this.okAccessSign({
-    //   timeString,
-    //   method,
-    //   path: `${path}${qs}`,
-    // });
-
-    // try {
-    //   const res = await axios({
-    //     method: method.toLocaleLowerCase(),
-    //     url: `${this.domain}${path}${qs}`,
-    //     headers: this.getHeaders(true, { timeString, okAccessSign }),
-    //   });
-    //   if (res.data && res.data.code !== "0") {
-    //     const message = JSON.stringify(res.data);
-    //     this.logger.trace(message);
-    //     return new ResponseFormat({
-    //       message,
-    //       code: Codes.THIRD_PARTY_API_ERROR,
-    //     });
-    //   }
-
-    //   const orders = res.data.data.map((data) => {
-    //     return {
-    //       instId,
-    //       market: instId.replace("-", "").toLowerCase(),
-    //       clOrdId: data.clOrdId,
-    //       id: data.ordId,
-    //       ordType: data.ordType,
-    //       price: data.px,
-    //       kind: data.side === "buy" ? "bid" : "ask",
-    //       volume: SafeMath.minus(data.sz, data.fillSz),
-    //       origin_volume: data.sz,
-    //       filled: data.state === "filled",
-    //       state:
-    //         data.state === "canceled"
-    //           ? "canceled"
-    //           : state === "filled"
-    //           ? "done"
-    //           : "wait",
-    //       state_text:
-    //         data.state === "canceled"
-    //           ? "Canceled"
-    //           : state === "filled"
-    //           ? "Done"
-    //           : "Waiting",
-    //       at: parseInt(SafeMath.div(data.uTime, "1000")),
-    //       ts: parseInt(data.uTime),
-    //     };
-    //   });
-    //   this.orderBook.updateAll(memberId, instId, orders);
-    // } catch (error) {
-    //   this.logger.error(error);
-    //   let message = error.message;
-    //   if (error.response && error.response.data)
-    //     message = error.response.data.msg;
-    //   return new ResponseFormat({
-    //     message,
-    //     code: Codes.API_UNKNOWN_ERROR,
-    //   });
-    // }
-    // return new ResponseFormat({
-    //   message: "getOrderList",
-    //   payload: this.orderBook.getSnapshot(memberId, instId, "history"),
-    // });
-    const { instId, memberId } = query;
-    this.logger.log(
-      `[${this.constructor.name} getOrderHistory${instId}] memberId ${memberId}[${this.fetchedOrders[memberId]}:`
-    );
-    if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = {};
-    let ts = Date.now();
-    if (
-      !this.fetchedOrders[memberId][instId] ||
-      SafeMath.gt(
-        SafeMath.minus(ts, this.fetchedOrders[memberId][instId]),
-        this.fetchedOrdersInterval
-      )
-    ) {
-      try {
-        const orders = await this.tbGetOrderList(query);
-        this.orderBook.updateAll(memberId, instId, orders);
-        this.fetchedOrders[memberId][instId] = ts;
-      } catch (error) {
-        this.logger.error(error);
-        const message = error.message;
-        return new ResponseFormat({
-          message,
-          code: Codes.API_UNKNOWN_ERROR,
-        });
-      }
-    }
-    return new ResponseFormat({
-      message: "getOrderHistory",
-      payload: this.orderBook.getSnapshot(memberId, instId, "history"),
     });
   }
 

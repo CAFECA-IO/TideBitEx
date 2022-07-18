@@ -145,6 +145,9 @@ class ExchangeHub extends Bot {
         }
       }
     });
+    EventBus.on(Events.tradesDetailUpdate, async (trades) => {
+      await this._updateTradesDetail(trades);
+    });
   }
 
   init({ config, database, logger, i18n }) {
@@ -215,6 +218,7 @@ class ExchangeHub extends Bot {
           accountBook: this.accountBook,
           currencies: this.currencies,
           database: this.database,
+          tidebitMarkets: this.tidebitMarkets,
         });
         return this;
       });
@@ -361,12 +365,20 @@ class ExchangeHub extends Bot {
 
   async getTicker({ params, query }) {
     const instId = this._findInstId(query.id);
-    this.logger.log(`[${this.constructor.name}] getTicker`, instId);
     const index = this.tidebitMarkets.findIndex(
       (market) => instId === market.instId
     );
+    this.logger.log(
+      `[${this.constructor.name}] getTicker[index:${index}]`,
+      instId
+    );
     if (index !== -1) {
-      switch (this._findSource(instId)) {
+      const source = this._findSource(instId);
+      this.logger.log(
+        `[${this.constructor.name}] getTicker ticketSource`,
+        source
+      );
+      switch (source) {
         case SupportedExchange.OKEX:
           return this.okexConnector.router("getTicker", {
             params,
@@ -404,7 +416,6 @@ class ExchangeHub extends Bot {
       try {
         const okexRes = await this.okexConnector.router("getTickers", {
           query,
-          optional: { mask: this.tidebitMarkets },
         });
         if (okexRes.success) {
           filteredOkexTickers = okexRes.payload;
@@ -442,7 +453,7 @@ class ExchangeHub extends Bot {
           });
         }
         // this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
-        // this.logger.log(`filteredTBTickers`, filteredTBTickers);
+        this.logger.log(`filteredTBTickers`, filteredTBTickers);
         this.tickerBook.updateAll({
           ...filteredOkexTickers,
           ...filteredTBTickers,
@@ -737,81 +748,74 @@ class ExchangeHub extends Bot {
 
   // TODO integrate getOrderList and getOrderHistory into one
   async getOrderList({ query, memberId }) {
-    // this.logger.log(
-    //   `[${this.constructor.name} getOrderList] memberId:`,
-    //   memberId
-    //   // `query`,
-    //   // query
-    // );
+    this.logger.log(
+      `-------------[${this.constructor.name} getOrderList]----------`
+    );
+    this.logger.log(` memberId:`, memberId);
     const instId = this._findInstId(query.market);
-    // this.logger.log(`[${this.constructor.name} getOrderList] instId:`, instId);
     const market = this._findMarket(instId);
-    // this.logger.log(`[${this.constructor.name} getOrderList] market:`, market);
-    if (memberId === -1) {
-      // return new ResponseFormat({
-      //   message: "member_id not found",
-      //   code: Codes.MEMBER_ID_NOT_FOUND,
-      // });
-      return new ResponseFormat({
-        message: "getOrderList",
-        payload: null,
-      });
-    }
-    switch (this._findSource(instId)) {
-      case SupportedExchange.OKEX:
-        const res = await this.okexConnector.router("getOrderList", {
-          query: {
-            ...query,
-            instId,
-            // market,
-            memberId,
-          },
-        });
-        const list = res.payload;
-        if (Array.isArray(list)) {
-          const newList = list.filter((order) =>
-            order.clOrdId.includes(`${memberId}m`)
-          ); // 可能發生與brokerId, randomId碰撞
-          res.payload = newList;
-        }
-        return res;
-      case SupportedExchange.TIDEBIT:
-        if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = {};
-        let ts = Date.now();
-        if (
-          !this.fetchedOrders[memberId][instId] ||
-          SafeMath.gt(
-            SafeMath.minus(ts, this.fetchedOrders[memberId][instId]),
-            this.fetchedOrdersInterval
-          )
-        )
-          try {
-            const orders = await this.getOrdersFromDb({
+    const source = this._findSource(instId);
+    if (memberId !== -1) {
+      switch (source) {
+        case SupportedExchange.OKEX:
+          const res = await this.okexConnector.router("getOrderList", {
+            query: {
               ...query,
-              memberId,
               instId,
               market,
-            });
-            this.orderBook.updateAll(memberId, instId, orders);
-            this.fetchedOrders[memberId][instId] = ts;
-          } catch (error) {
-            this.logger.error(error);
-            const message = error.message;
-            return new ResponseFormat({
-              message,
-              code: Codes.API_UNKNOWN_ERROR,
-            });
+              memberId,
+            },
+          });
+          const list = res.payload;
+          if (Array.isArray(list)) {
+            const newList = list.filter((order) =>
+              order.clOrdId.includes(`${memberId}m`)
+            ); // 可能發生與brokerId, randomId碰撞
+            res.payload = newList;
           }
-        return new ResponseFormat({
-          message: "getOrderList",
-          payload: this.orderBook.getSnapshot(memberId, instId, "pending"),
-        });
-      default:
-        return new ResponseFormat({
-          message: "getOrderList",
-          payload: null,
-        });
+          return res;
+        case SupportedExchange.TIDEBIT:
+          if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = {};
+          let ts = Date.now();
+          if (
+            !this.fetchedOrders[memberId][instId] ||
+            SafeMath.gt(
+              SafeMath.minus(ts, this.fetchedOrders[memberId][instId]),
+              this.fetchedOrdersInterval
+            )
+          )
+            try {
+              const orders = await this.getOrdersFromDb({
+                ...query,
+                memberId,
+                instId,
+                market,
+              });
+              this.orderBook.updateAll(memberId, instId, orders);
+              this.fetchedOrders[memberId][instId] = ts;
+            } catch (error) {
+              this.logger.error(error);
+              const message = error.message;
+              return new ResponseFormat({
+                message,
+                code: Codes.API_UNKNOWN_ERROR,
+              });
+            }
+          return new ResponseFormat({
+            message: "getOrderList",
+            payload: this.orderBook.getSnapshot(memberId, instId, "pending"),
+          });
+        default:
+          return new ResponseFormat({
+            message: "getOrderList",
+            payload: null,
+          });
+      }
     }
+    return new ResponseFormat({
+      message: "getOrderList",
+      payload: null,
+    });
   }
 
   async getOrderHistory({ query, memberId }) {
@@ -1233,7 +1237,10 @@ class ExchangeHub extends Bot {
   }
 
   async getOptions({ query }) {
-    this.logger.debug(`[${this.constructor.name}] getOptions`, this.config.websocket.domain);
+    this.logger.debug(
+      `[${this.constructor.name}] getOptions`,
+      this.config.websocket.domain
+    );
     return Promise.resolve(
       new ResponseFormat({
         message: "getOptions",
@@ -1242,6 +1249,124 @@ class ExchangeHub extends Bot {
         },
       })
     );
+  }
+
+  async _updateVouchers(memberId, trade, t) {
+    /* !!! HIGH RISK (start) !!! */
+    // 1. insert Vouchers to DB
+    const tmp = trade.instId.toLowerCase().split("-");
+    const askId = tmp[0];
+    const bidId = tmp[1];
+
+    if (!askId || !bidId)
+      throw Error(
+        `order base_unit[order.ask: ${askId}] or quote_unit[order.bid: ${bidId}] not found`
+      );
+    await this.database.insertVouchers(
+      memberId,
+      trade.clOdId, // orderId
+      trade.tradeId,
+      null,
+      askId, // -- need change
+      bidId, // -- need change
+      trade.fillPx,
+      trade.fillSz,
+      SafeMath.mult(trade.fillPx, trade.fillSz),
+      trade.side === "sell" ? "ask" : "bid",
+      trade.side === "sell" ? trade.fee : "0", // get bid, so fee is bid
+      trade.side === "sell" ? "0" : trade.fee, // get ask, so fee is ask
+      trade.ts,
+      { dbTransaction: t }
+    );
+  }
+  async _updateAccByAskTrade(memberId, askCurr, bidCurr, trade) {
+    // ex => ask:eth sell ask:eth => bid:usdt 增加 - (feeCcy bid:usdt) , release locked ask:eth
+    /* !!! HIGH RISK (start) !!! */
+    // 1. get askAccount from table
+    // 2. get bidAccount from table
+    // 3. calculate askAccount balance change
+    // 3.1 askAccount: balanceDiff = 0
+    // 3.2 askAccount: balance = SafeMath.plus(accountAsk.balance, balanceDiff)
+    // 3.3 askAccount: lockedDiff = SafeMath.mult(fillSz, "-1")
+    // 3.4 askAccount: locked = SafeMath.plus(accountAsk.locked, lockedDiff),
+    // 4. calculate bidAccount balance change
+    // 4.1 bidAccount: balanceDiff = SafeMath.minus(SafeMath.mult(trade.fillPx, trade.fillSz), trade.fee)
+    // 4.2 bidAccount: balance = SafeMath.plus(accountAbidAccountsk.balance, balanceDiff)
+    // 4.1 bidAccount: lockedDiff  = 0
+    // 4.2 bidAccount: locked = SafeMath.plus(accountAsk.locked, lockedDiff),
+    // 5. update accountBook
+    // 6. update DB
+  }
+
+  async _updateAccByBidTrade(memberId, askCurr, bidCurr, trade) {
+    // ex => bid:usdt buy ask:eth =>  bid:usdt 減少 , ask:eth 增加 - (feeCcy bid:usdt)
+    /* !!! HIGH RISK (start) !!! */
+    // 1. get askAccount from table
+    // 2. get bidAccount from table
+    // 3. calculate askAccount balance change
+    // 3.1 askAccount: balanceDiff = 0
+    // 3.2 askAccount: balance = SafeMath.plus(accountAsk.balance, balanceDiff)
+    // 3.3 askAccount: lockedDiff = SafeMath.mult(fillSz, "-1")
+    // 3.4 askAccount: locked = SafeMath.plus(accountAsk.locked, lockedDiff),
+    // 4. calculate bidAccount balance change
+    // 4.1 bidAccount: balanceDiff = SafeMath.minus(SafeMath.mult(trade.fillPx, trade.fillSz), trade.fee)
+    // 4.2 bidAccount: balance = SafeMath.plus(accountAbidAccountsk.balance, balanceDiff)
+    // 4.1 bidAccount: lockedDiff  = 0
+    // 4.2 bidAccount: locked = SafeMath.plus(accountAsk.locked, lockedDiff),
+    // 5. update accountBook
+    // 6. update DB
+  }
+
+  async _updateOrderbyTrade(orderfromDB, trade) {
+    /* !!! HIGH RISK (start) !!! */
+    // 1. compare fillSz => volume, state, locked, funds_received, trades_count
+  }
+
+  async _updateTrade(trade) {
+    /* !!! HIGH RISK (start) !!! */
+    // 1. insert trade to DB
+  }
+
+  /**
+   * @param {Trade} trade
+   */
+  async _updateTradeDetail(trade) {
+    const t = await this.database.transaction();
+    /* !!! HIGH RISK (start) !!! */
+    // 1. get order by trade.clOrdId from table
+    // 2. _updateTrade
+    // 3. _updateOrderbyTrade
+    // 4. side === 'buy' ? _updateAccByBidTrade : _updateAccByAskTrade
+    // 5. _updateVouchers
+    // 6. add account_version
+  }
+
+  /**
+   * @typedef {Object} Trade
+   * @property {string} side "sell"
+   * @property {string} fillSz "0.002"
+   * @property {string} fillPx "1195.86"
+   * @property {string} fee "-0.001913376"
+   * @property {string} ordd "467755654093094921"
+   * @property {string} insType "SPOT"
+   * @property {string} insId "ETH-USDT"
+   * @property {string} clOdId "377bd372412fSCDE2m332576077o"
+   * @property {string} poside "net"
+   * @property {string} bilId "467871903972212805"
+   * @property {string} tag "377bd372412fSCDE"
+   * @property {string} exeType "M"
+   * @property {string} traeId "225260494"
+   * @property {string} feecy "USDT"
+   * @property {string} ts "1657821354546
+   */
+  /**
+   * @param {Trade} trades
+   */
+  async _updateTradesDetail(trades) {
+    //  select not exist in table by trade_fk
+    // trades
+    //.filter()
+    // .forEach(async (trade) => await this._updateTradeDetail(trade));
   }
 
   async _updateOrderDetail(formatOrder) {
@@ -1255,7 +1380,7 @@ class ExchangeHub extends Bot {
     // 3. find and lock account
     // 4. update order state
     // 5. get balance and locked value from order
-    // 6. add trade // -- CAUTION!!! skip now, tradeId use okex tradeId
+    // 6. add trade // -- CAUTION!!! skip now, tradeId use okex tradeId ++ TODO
     // 7. add vouchers
     // 8. add account_version
     // 9. update account balance and locked
@@ -1450,13 +1575,13 @@ class ExchangeHub extends Bot {
       );
       let _updateAcc = {
         balance: SafeMath.plus(accountAsk.balance, balanceA),
-        locked: SafeMath.plus(accountAsk.balance, lockedA),
+        locked: SafeMath.plus(accountAsk.balance, lockedA), //++ TODO verify => SafeMath.plus(accountAsk.balance, lockedA)
         currency: this.currencies.find(
           (curr) => curr.id === accountAsk.currency
         )?.symbol,
         total: SafeMath.plus(
           SafeMath.plus(accountAsk.balance, balanceA),
-          SafeMath.plus(accountAsk.balance, lockedA)
+          SafeMath.plus(accountAsk.balance, lockedA) //++ TODO verify => SafeMath.plus(accountAsk.balance, lockedA)
         ),
       };
       this.accountBook.updateByDifference(memberId, _updateAcc);

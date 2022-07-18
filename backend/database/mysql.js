@@ -418,6 +418,74 @@ class mysql {
     }
   }
 
+  async insertTrades(
+    id,
+    price,
+    volume,
+    ask_id,
+    bid_id,
+    trend,
+    currency,
+    created_at,
+    updated_at,
+    ask_member_id,
+    bid_member_id,
+    funds,
+    trade_fk,
+    { dbTransaction }
+  ) {
+    const query =
+      "INSERT INTO `trades` (`id`,`price`,`volume`,`ask_id`,`bid_id`,`trend`,`created_at`,`updated_at`,`ask_member_id`,`bid_member_id`,`funds`,`trade_fk`)" +
+      " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+    try {
+      this.logger.log(
+        "insertAccountVersion",
+        query,
+        "DEFAULT",
+        id,
+        price,
+        volume,
+        ask_id,
+        bid_id,
+        trend,
+        currency,
+        created_at,
+        updated_at,
+        ask_member_id,
+        bid_member_id,
+        funds,
+        trade_fk
+      );
+      await this.db.query(
+        {
+          query,
+          values: [
+            "DEFAULT",
+            id,
+            price,
+            volume,
+            ask_id,
+            bid_id,
+            trend,
+            currency,
+            created_at,
+            updated_at,
+            ask_member_id,
+            bid_member_id,
+            funds,
+            trade_fk,
+          ],
+        },
+        {
+          transaction: dbTransaction,
+        }
+      );
+    } catch (error) {
+      this.logger.error(error);
+      if (dbTransaction) throw error;
+    }
+  }
+
   async insertVouchers(
     member_id,
     order_id,
@@ -493,11 +561,7 @@ class mysql {
       delete datas.id;
       const set = Object.keys(datas).map((key) => `\`${key}\` = ${datas[key]}`);
       let query =
-        "UPDATE `accounts` SET " +
-        set.join(", ") +
-        " WHERE " +
-        where +
-        ";";
+        "UPDATE `accounts` SET " + set.join(", ") + " WHERE " + where + ";";
       this.logger.log("updateAccount", query);
       await this.db.query(
         {
@@ -520,11 +584,7 @@ class mysql {
       delete datas.id;
       const set = Object.keys(datas).map((key) => `\`${key}\` = ${datas[key]}`);
       let query =
-        "UPDATE `orders` SET " +
-        set.join(", ") +
-        " WHERE " +
-        where +
-        ";";
+        "UPDATE `orders` SET " + set.join(", ") + " WHERE " + where + ";";
       this.logger.log("updateOrder", query);
       await this.db.query(
         {

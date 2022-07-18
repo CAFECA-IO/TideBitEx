@@ -38,10 +38,14 @@ class DepthBook extends BookBase {
           bids.push(data);
         }
       });
-      length = 50; //Math.min(asks.length, bids.length, 50);
+      length =
+      asks.length > 40 && bids.length > 40
+        ? Math.min(asks.length, bids.length, 50)
+        : 50;
       return {
         market,
         asks: asks
+          .filter((book) => book.amount >= lotSz)
           .sort((a, b) => parseFloat(a.price) - parseFloat(b.price))
           .slice(0, length)
           .map((ask) => {
@@ -49,6 +53,7 @@ class DepthBook extends BookBase {
             return { ...ask, total: sumAskAmount };
           }),
         bids: bids
+          .filter((book) => book.amount >= lotSz)
           .sort((a, b) => parseFloat(b.price) - parseFloat(a.price))
           .slice(0, length)
           .map((bid) => {
@@ -116,14 +121,14 @@ class DepthBook extends BookBase {
   // ++ TODO: verify function works properly
   _formateBooks(bookObj) {
     const bookArr = [];
-    bookObj.asks.forEach((ask) => {
+    bookObj.asks?.forEach((ask) => {
       bookArr.push({
         price: ask[0],
         amount: ask[1],
         side: "asks",
       });
     });
-    bookObj.bids.forEach((bid) => {
+    bookObj.bids?.forEach((bid) => {
       bookArr.push({
         price: bid[0],
         amount: bid[1],
