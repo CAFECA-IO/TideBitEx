@@ -117,8 +117,8 @@ class OkexConnector extends ConnectorBase {
   /**
    * @returns {Promise<Trade>}
    */
-  async tradeFills({ query }) {
-    this.logger.log(`[${this.constructor.name}] tradeFills`);
+  async fetchTradeFillsRecords({ query }) {
+    this.logger.log(`[${this.constructor.name}] fetchTradeFillsRecords`);
     // let result;
     // const method = "GET";
     // const path = "/api/v5/trade/fills";

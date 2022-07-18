@@ -28,40 +28,21 @@ class ExchangeHubService {
   async sync() {
     this.logger.log(`[${this.constructor.name}] sync`);
     const time = Date.now();
+    // 1. 定期（10mins）執行工作
     if (time - this._lastSyncTime > this._syncInterval) {
-      this._lastSyncTime = Date.now();
-      this.syncOuterTrades("OKEx");
+      // 2. 從 API 那 outertradesrecord 並寫入 DB
+      const result = await this.syncOuterTrades("OKEx");
+      if (result) {
+        this._lastSyncTime = Date.now();
+        // 3. 觸發從 DB 取 outertradesrecord 更新下列 DB table trades、orders、accounts、accounts_version、vouchers
+        this._processOuterTrades();
+      }else{
+        // ++ TODO 
+      }
       clearTimeout(this.timer);
-      this.timer = setTimeout(this.sync, this._syncInterval + 1000);
+      // 4. 休息
+      this.timer = setTimeout(() => this.sync(), this._syncInterval + 1000);
     }
-  }
-
-  async insertOuterTrades(exchange, outerTrades) {
-    this.logger.log(`[${this.constructor.name}] insertOuterTrades`);
-    outerTrades.forEach((trade) => {
-      this.database.insertOuterTrades(trade);
-    });
-    return true;
-  }
-
-  async getOuterTradesFromAPI(exchange) {
-    this.logger.log(`[${this.constructor.name}] getOuterTradesFromAPI`);
-    let outerTrades;
-    switch (exchange) {
-      case "OKEx":
-      default:
-        const okexRes = await this.okexConnector.router("tradeFills", {
-          query: {},
-        });
-        if (okexRes.success) {
-          outerTrades = okexRes.payload;
-        } else {
-          this.logger.error(okexRes);
-        }
-        break;
-    }
-    // return outerTrades;
-    return [1,2,3]
   }
 
   async _updateVouchers(memberId, trade, t) {
@@ -184,7 +165,7 @@ class ExchangeHubService {
   /**
    * @param {Trade} trade
    */
-  async _updateTradeDetail(trade) {
+  async _processOuterTrade(trade) {
     const { memberId, orderId } = Utils.parseClOrdId(trade.clOrdId);
     /* !!! HIGH RISK (start) !!! */
     // 1. get order by trade.clOrdId from orders table
@@ -199,24 +180,49 @@ class ExchangeHubService {
     this._updateTrade(memberId, orderId, trade);
   }
 
-  async _updateTradesDetail() {
-    this.logger.log(`[${this.constructor.name}] _updateTradesDetail`);
+  async _processOuterTrades() {
+    this.logger.log(`[${this.constructor.name}] _processOuterTrades`);
     // 1. get all records from outer_trades_record table
     // 2. fillter records if record.status === 5
-    // 3. _updateTradeDetail
+    // 3. _processOuterTrade
+  }
+
+  async insertOuterTrades(exchange, outerTrades) {
+    this.logger.log(`[${this.constructor.name}] insertOuterTrades`);
+    outerTrades.forEach((trade) => {
+      this.database.insertOuterTrades(trade);
+    });
+    return true;
+  }
+
+  async getOuterTradesFromAPI(exchange) {
+    this.logger.log(`[${this.constructor.name}] getOuterTradesFromAPI`);
+    let outerTrades;
+    switch (exchange) {
+      case "OKEx":
+      default:
+        const okexRes = await this.okexConnector.router(
+          "fetchTradeFillsRecords",
+          {
+            query: {},
+          }
+        );
+        if (okexRes.success) {
+          outerTrades = okexRes.payload;
+        } else {
+          this.logger.error(okexRes);
+        }
+        break;
+    }
+    // return outerTrades;
+    return [1, 2, 3];
   }
 
   async syncOuterTrades(exchange) {
-    // 1. 定期（10mins）執行工作
-    // 2. 從 API 那 outertradesrecord 並寫入 DB
-    // 3. 觸發從 DB 取 outertradesrecord 更新下列 DB table trades、orders、accounts、accounts_version、vouchers
-    // 4. 休息
     this.logger.log(`[${this.constructor.name}] syncOuterTrades`);
     const outerTrades = await this.getOuterTradesFromAPI(exchange);
     const result = this.insertOuterTrades(exchange, outerTrades);
-    if (result) {
-      this._updateTradesDetail();
-    }
+    return result;
   }
 }
 
