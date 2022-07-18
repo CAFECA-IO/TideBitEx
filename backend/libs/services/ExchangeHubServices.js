@@ -30,7 +30,7 @@ class ExchangeHubService {
     const time = Date.now();
     // 1. 定期（10mins）執行工作
     if (time - this._lastSyncTime > this._syncInterval) {
-      // 2. 從 API 那 outertradesrecord 並寫入 DB
+      // 2. 從 API 取 outerTrades 並寫入 DB
       const result = await this.syncOuterTrades("OKEx");
       if (result) {
         this._lastSyncTime = Date.now();
@@ -182,12 +182,13 @@ class ExchangeHubService {
 
   async _processOuterTrades() {
     this.logger.log(`[${this.constructor.name}] _processOuterTrades`);
-    // 1. get all records from outer_trades_record table
+    // 1. get all records from outer_trades table
     // 2. fillter records if record.status === 5
     // 3. _processOuterTrade
   }
 
   async insertOuterTrades(exchange, outerTrades) {
+     /* !!! HIGH RISK (start) !!! */
     this.logger.log(`[${this.constructor.name}] insertOuterTrades`);
     outerTrades.forEach((trade) => {
       this.database.insertOuterTrades(trade);
