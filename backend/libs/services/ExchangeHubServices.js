@@ -260,13 +260,6 @@ class ExchangeHubService {
     const t = await this.database.transaction();
     try {
       this.logger.log(`outerTrade`, outerTrade);
-      this.logger.log(`this.database.EXCHANGE[
-        outerTrade.source.toUpperCase()
-      ].toString()`, this.database.EXCHANGE[
-        outerTrade.source.toUpperCase()
-      ].toString());
-      this.logger.log(`outerTrade.tradeId`, outerTrade.tradeId);
-
       await this.database.insertOuterTrades(
         parseInt(
           `${this.database.EXCHANGE[
