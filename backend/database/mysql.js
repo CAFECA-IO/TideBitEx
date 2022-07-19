@@ -490,7 +490,7 @@ class mysql {
       " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
     try {
       this.logger.log(
-        "insertAccountVersion",
+        "trades",
         query,
         "DEFAULT",
         price,
@@ -506,29 +506,29 @@ class mysql {
         funds,
         trade_fk
       );
-      // await this.db.query(
-      //   {
-      //     query,
-      //     values: [
-      //       "DEFAULT",
-      //       price,
-      //       volume,
-      //       ask_id,
-      //       bid_id,
-      //       trend,
-      //       currency,
-      //       created_at,
-      //       updated_at,
-      //       ask_member_id,
-      //       bid_member_id,
-      //       funds,
-      //       trade_fk,
-      //     ],
-      //   },
-      //   {
-      //     transaction: dbTransaction,
-      //   }
-      // );
+      await this.db.query(
+        {
+          query,
+          values: [
+            "DEFAULT",
+            price,
+            volume,
+            ask_id,
+            bid_id,
+            trend,
+            currency,
+            created_at,
+            updated_at,
+            ask_member_id,
+            bid_member_id,
+            funds,
+            trade_fk,
+          ],
+        },
+        {
+          transaction: dbTransaction,
+        }
+      );
     } catch (error) {
       this.logger.error(error);
       if (dbTransaction) throw error;

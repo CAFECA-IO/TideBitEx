@@ -226,6 +226,7 @@ class ExchangeHub extends Bot {
           // connectors: {
           //   OKEX: this.okexConnector,
           // },
+          systemMemberId: this.config.peatio.systemMemberId,
           okexConnector: this.okexConnector,
           tidebitMarkets: this.tidebitMarkets,
           logger,

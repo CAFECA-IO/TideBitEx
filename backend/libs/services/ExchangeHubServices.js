@@ -10,12 +10,14 @@ class ExchangeHubService {
   constructor({
     database,
     // connectors,
+    systemMemberId,
     okexConnector,
     tidebitMarkets,
     logger,
   }) {
     this.database = database;
     // this.connectors = connectors;
+    this.systemMemberId= systemMemberId
     this.tidebitMarkets = tidebitMarkets;
     this.okexConnector = okexConnector;
     this.logger = logger;
