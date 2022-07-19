@@ -143,7 +143,7 @@ class ExchangeHub extends Bot {
             formatOrder.accFillSz !== "0" /* create order */
           ) {
             // await this._updateOrderDetail(formatOrder);
-            this.exchangeHubService.sync(SupportedExchange.OKEX, true)
+            this.exchangeHubService.sync(SupportedExchange.OKEX, true);
           }
         }
       }
@@ -227,6 +227,7 @@ class ExchangeHub extends Bot {
           //   OKEX: this.okexConnector,
           // },
           okexConnector: this.okexConnector,
+          tidebitMarkets: this.tidebitMarkets,
           logger,
         });
         return this;

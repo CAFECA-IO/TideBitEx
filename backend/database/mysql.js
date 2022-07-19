@@ -443,7 +443,7 @@ class mysql {
     { dbTransaction }
   ) {
     const query =
-      "INSERT INTO `outer_trades` (`id`,`exchange_code`,`update_at`,`status`,`data`)" +
+      "INSERT IGNORE INTO `outer_trades` (`id`,`exchange_code`,`update_at`,`status`,`data`)" +
       " VALUES (?, ?, ?, ?, ?);";
     try {
       this.logger.log(
@@ -455,15 +455,15 @@ class mysql {
         status,
         data
       );
-      // await this.db.query(
-      //   {
-      //     query,
-      //     values: [id, exchange_code, update_at, status, data],
-      //   },
-      //   {
-      //     transaction: dbTransaction,
-      //   }
-      // );
+      await this.db.query(
+        {
+          query,
+          values: [id, exchange_code, update_at, status, data],
+        },
+        {
+          transaction: dbTransaction,
+        }
+      );
     } catch (error) {
       this.logger.error(error);
       if (dbTransaction) throw error;
@@ -649,7 +649,7 @@ class mysql {
       if (dbTransaction) throw error;
     }
   }
-  
+
   async updateOuterTrade(datas, { dbTransaction }) {
     try {
       const id = datas.id;

@@ -11,10 +11,12 @@ class ExchangeHubService {
     database,
     // connectors,
     okexConnector,
+    tidebitMarkets,
     logger,
   }) {
     this.database = database;
     // this.connectors = connectors;
+    this.tidebitMarkets = tidebitMarkets;
     this.okexConnector = okexConnector;
     this.logger = logger;
     this.name = "ExchangeHubService";
@@ -159,10 +161,10 @@ class ExchangeHubService {
       /* !!! HIGH RISK (start) !!! */
       // 1. get order data from table
       const order = await this.database.getOrder(orderId, { dbTransaction: t });
-      this.logger.log(`order`, order);
+      this.logger.log(`order`, order, order.member_id, typeof order.member_id);
       // 2. check if order.memberId === memberId, if not do nothing
       if (
-        order.memberId === memberId &&
+        order.member_id.toString() === memberId &&
         order.state === this.database.ORDER_STATE.WAIT
       ) {
         value = SafeMath.mult(trade.fillPx, trade.fillSz);
@@ -195,21 +197,28 @@ class ExchangeHubService {
         await this.database.updateOrder(newOrder, { dbTransaction: t });
       } else {
         await t.rollback();
-        if (order.memberId === memberId)
+        if (order.member_id.toString() === memberId)
           this.logger.error("order has been closed");
         else this.logger.error("this order is in other environment");
       }
       // ++ TODO
       this.logger.log(`_updateOuterTrade`);
       await this._updateOuterTrade({ id: trade.id, status: 1 });
-      await t.commit();
     } catch (error) {
       this.logger.error(`_updateOrderbyTrade`, error);
       await t.rollback();
     }
   }
   // ++ TODO
-  async _updateOuterTrade({ id, status }) {}
+  async _updateOuterTrade({ id, status }) {
+    const t = await this.database.transaction();
+    try {
+      await this.database.updateOuterTrade({ id, status });
+      await t.commit();
+    } catch (error) {
+      await t.rollback();
+    }
+  }
   /**
    * @typedef {Object} Trade
    * @property {string} side "sell"
@@ -255,6 +264,7 @@ class ExchangeHubService {
       this.database.EXCHANGE[exchange.toUpperCase()],
       5
     );
+    this.logger.log(`outerTrades`, outerTrades);
     // 2. _processOuterTrade
     for (let trade of outerTrades) {
       await this._processOuterTrade(JSON.parse(trade.data));
@@ -322,6 +332,9 @@ class ExchangeHubService {
     const outerTrades = await this._getOuterTradesFromAPI(exchange);
     const result = this._insertOuterTrades(outerTrades);
     return result;
+  }
+  _findMarket(instId) {
+    return this.tidebitMarkets.find((m) => m.instId === instId);
   }
 }
 
