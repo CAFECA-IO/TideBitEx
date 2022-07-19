@@ -423,11 +423,11 @@ class mysql {
     exchange_code, // EXCHANGE_CODE
     update_at,
     status, // 0: unprocessed, 1: updateOrders, 2: updateAccounts, 3: insertTrades, 4: updateVouchers, 5: account_version
-    json,
+    data,
     { dbTransaction }
   ) {
     const query =
-      "INSERT INTO `outer_trades` (`id`,`exchange_code`,`update_at`,`status`,`json`)" +
+      "INSERT INTO `outer_trades` (`id`,`exchange_code`,`update_at`,`status`,`data`)" +
       " VALUES (?, ?, ?, ?, ?);";
     try {
       this.logger.log(
@@ -437,12 +437,12 @@ class mysql {
         exchange_code,
         update_at,
         status,
-        json
+        data
       );
       // await this.db.query(
       //   {
       //     query,
-      //     values: [id, exchange_code, update_at, status, json],
+      //     values: [id, exchange_code, update_at, status, data],
       //   },
       //   {
       //     transaction: dbTransaction,
@@ -490,29 +490,29 @@ class mysql {
         funds,
         trade_fk
       );
-      await this.db.query(
-        {
-          query,
-          values: [
-            "DEFAULT",
-            price,
-            volume,
-            ask_id,
-            bid_id,
-            trend,
-            currency,
-            created_at,
-            updated_at,
-            ask_member_id,
-            bid_member_id,
-            funds,
-            trade_fk,
-          ],
-        },
-        {
-          transaction: dbTransaction,
-        }
-      );
+      // await this.db.query(
+      //   {
+      //     query,
+      //     values: [
+      //       "DEFAULT",
+      //       price,
+      //       volume,
+      //       ask_id,
+      //       bid_id,
+      //       trend,
+      //       currency,
+      //       created_at,
+      //       updated_at,
+      //       ask_member_id,
+      //       bid_member_id,
+      //       funds,
+      //       trade_fk,
+      //     ],
+      //   },
+      //   {
+      //     transaction: dbTransaction,
+      //   }
+      // );
     } catch (error) {
       this.logger.error(error);
       if (dbTransaction) throw error;

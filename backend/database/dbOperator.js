@@ -39,7 +39,7 @@ class DBOperator {
     TRADE: "Trade",
   };
   EXCHANGE = {
-    OKEX: 11,
+    OKEX: 10,
   };
 
   constructor() {
@@ -205,7 +205,7 @@ class DBOperator {
     exchange_code, // EXCHANGE_CODE
     update_at,
     status, // 0: unprocessed, 1: updateOrders, 2: updateAccounts, 3: insertTrades, 4: updateVouchers, 5: account_version
-    json,
+    data,
     { dbTransaction }
   ) {
     console.log(`[DBOperator] insertOuterTrades`)
@@ -214,7 +214,7 @@ class DBOperator {
       exchange_code, // EXCHANGE_CODE
       update_at,
       status, // 0: unprocessed, 1: updateOrders, 2: updateAccounts, 3: insertTrades, 4: updateVouchers, 5: account_version
-      json,
+      data,
       { dbTransaction }
     );
   }

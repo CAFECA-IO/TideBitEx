@@ -1,3 +1,4 @@
+const SupportedExchange = require("../../constants/SupportedExchange");
 const SafeMath = require("../SafeMath");
 const Utils = require("../Utils");
 
@@ -31,13 +32,13 @@ class ExchangeHubService {
     // 1. 定期（10mins）執行工作
     if (time - this._lastSyncTime > this._syncInterval) {
       // 2. 從 API 取 outerTrades 並寫入 DB
-      const result = await this.syncOuterTrades("OKEx");
+      const result = await this.syncOuterTrades(SupportedExchange.OKEX);
       if (result) {
         this._lastSyncTime = Date.now();
         // 3. 觸發從 DB 取 outertradesrecord 更新下列 DB table trades、orders、accounts、accounts_version、vouchers
         this._processOuterTrades();
-      }else{
-        // ++ TODO 
+      } else {
+        // ++ TODO
       }
       clearTimeout(this.timer);
       // 4. 休息
@@ -122,7 +123,7 @@ class ExchangeHubService {
     const t = await this.database.transaction();
     try {
       const market = this._findMarket(trade.instId);
-      await this.database.insertTrade(
+      await this.database.insertTrades(
         trade.fillPx, //price
         trade.fillSz, //volume
         trade.side === "sell" ? orderId : null, // ask_id: order_id
@@ -187,20 +188,38 @@ class ExchangeHubService {
     // 3. _processOuterTrade
   }
 
-  async insertOuterTrades(exchange, outerTrades) {
-     /* !!! HIGH RISK (start) !!! */
+  async insertOuterTrades(outerTrades) {
+    /* !!! HIGH RISK (start) !!! */
+    let result;
     this.logger.log(`[${this.constructor.name}] insertOuterTrades`);
-    outerTrades.forEach((trade) => {
-      this.database.insertOuterTrades(trade);
-    });
-    return true;
+    for (let trade in outerTrades) {
+      try {
+        this.logger.log(`trade`, trade);
+        this.database.insertOuterTrades(
+          parseInt(
+            `${this.database.EXCHANGE[trade.source.toUpperCase()].toString()}${
+              trade.tradeId
+            }`
+          ),
+          this.database.EXCHANGE[trade.source.toUpperCase()],
+          trade.at,
+          trade.status,
+          JSON.stringify(trade)
+        );
+        result = true;
+      } catch (error) {
+        this.logger.error(`insertOuterTrades`, error);
+        break;
+      }
+    }
+    return result;
   }
 
   async getOuterTradesFromAPI(exchange) {
     this.logger.log(`[${this.constructor.name}] getOuterTradesFromAPI`);
     let outerTrades;
     switch (exchange) {
-      case "OKEx":
+      case SupportedExchange.OKEX:
       default:
         const okexRes = await this.okexConnector.router(
           "fetchTradeFillsRecords",
@@ -211,18 +230,17 @@ class ExchangeHubService {
         if (okexRes.success) {
           outerTrades = okexRes.payload;
         } else {
-          this.logger.error(okexRes);
+          this.logger.error(`getOuterTradesFromAPI`, okexRes);
         }
         break;
     }
-    // return outerTrades;
-    return [1, 2, 3];
+    return outerTrades;
   }
 
   async syncOuterTrades(exchange) {
     this.logger.log(`[${this.constructor.name}] syncOuterTrades`);
     const outerTrades = await this.getOuterTradesFromAPI(exchange);
-    const result = this.insertOuterTrades(exchange, outerTrades);
+    const result = this.insertOuterTrades(outerTrades);
     return result;
   }
 }
