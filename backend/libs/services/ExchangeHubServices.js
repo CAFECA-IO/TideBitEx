@@ -1,3 +1,4 @@
+const { Json } = require("sequelize/types/utils");
 const SupportedExchange = require("../../constants/SupportedExchange");
 const SafeMath = require("../SafeMath");
 const Utils = require("../Utils");
@@ -32,11 +33,11 @@ class ExchangeHubService {
     // 1. 定期（10mins）執行工作
     if (time - this._lastSyncTime > this._syncInterval) {
       // 2. 從 API 取 outerTrades 並寫入 DB
-      const result = await this.syncOuterTrades(SupportedExchange.OKEX);
+      const result = await this._syncOuterTrades(SupportedExchange.OKEX);
       if (result) {
         this._lastSyncTime = Date.now();
         // 3. 觸發從 DB 取 outertradesrecord 更新下列 DB table trades、orders、accounts、accounts_version、vouchers
-        this._processOuterTrades();
+        this._processOuterTrades(SupportedExchange.OKEX);
       } else {
         // ++ TODO
       }
@@ -46,7 +47,7 @@ class ExchangeHubService {
     }
   }
 
-  async _updateVouchers(memberId, trade, t) {
+  async _insertVouchers(memberId, trade, t) {
     /* !!! HIGH RISK (start) !!! */
     // 1. insert Vouchers to DB
     const tmp = trade.instId.toLowerCase().split("-");
@@ -112,12 +113,7 @@ class ExchangeHubService {
     // 6. update DB
   }
 
-  async _updateOrderbyTrade(orderfromDB, trade) {
-    /* !!! HIGH RISK (start) !!! */
-    // 1. compare fillSz => volume, state, locked, funds_received, trades_count
-  }
-
-  async _updateTrade(memberId, orderId, trade) {
+  async _insertTrades(memberId, orderId, trade) {
     /* !!! HIGH RISK (start) !!! */
     // 1. insert trade to DB
     const t = await this.database.transaction();
@@ -130,10 +126,10 @@ class ExchangeHubService {
         trade.side === "buy" ? orderId : null, // bid_id: order_id
         null, // trend
         market.code, // currency
-        trade.ts, // created_at
-        trade.ts, // updated_at
+        new Date(parseInt(trade.ts)).toISOString(), // created_at
+        new Date(parseInt(trade.ts)).toISOString(), // updated_at
         trade.side === "sell" ? memberId : this.systemMemberId, // ask_member_id
-        trade.buy === "sell" ? memberId : this.systemMemberId, // bid_member_id
+        trade.side === "buy" ? memberId : this.systemMemberId, // bid_member_id
         SafeMath.mult(trade.fillPx, trade.fillSz), // funds
         trade.tradeId, // trade_fk
         { dbTransaction: t }
@@ -145,6 +141,68 @@ class ExchangeHubService {
     }
   }
 
+  async _updateOrderbyTrade(memberId, orderId, trade) {
+    this.logger.log(
+      `------------- [${this.constructor.name}] _updateOrderbyTrade -------------`
+    );
+    this.logger.log(`memberId`, memberId);
+    this.logger.log(`orderId`, orderId);
+    this.logger.log(`trade`, trade);
+    const t = await this.database.transaction();
+    let state, volume, locked, updateAt, fundsReceived, tradesCount, value;
+    try {
+      /* !!! HIGH RISK (start) !!! */
+      // 1. get order data from table
+      const order = await this.database.getOrder(orderId, { dbTransaction: t });
+      this.logger.log(`order`, order);
+      // 2. check if order.memberId === memberId, if not do nothing
+      if (
+        order.memberId === memberId &&
+        order.state === this.database.ORDER_STATE.WAIT
+      ) {
+        value = SafeMath.mult(trade.fillPx, trade.fillSz);
+        // 1. compare fillSz => volume, state, locked, funds_received, trades_count, update_at
+        volume = SafeMath.minus(order.volume, trade.fillSz);
+        // ++ TODO Check value
+        locked =
+          trade.side === "buy"
+            ? SafeMath.minus(order.locked, SafeMath.mult(order.price, volume))
+            : SafeMath.minus(order.locked, volume);
+        // updateAt = new Date(parseInt(trade.ts)).toISOString();
+        fundsReceived =
+          trade.side === "buy"
+            ? SafeMath.plus(order.funds_received, trade.fillSz)
+            : SafeMath.plus(order.funds_received, value);
+        tradesCount = SafeMath.plus(order.trades_count, "1");
+        if (SafeMath.eq(volume, "0")) {
+          state = this.database.ORDER_STATE.DONE;
+        }
+        const newOrder = {
+          id: orderId,
+          volume,
+          state,
+          locked,
+          funds_received: fundsReceived,
+          trades_count: tradesCount,
+          // update_at: updateAt
+        };
+        await this.database.updateOrder(newOrder, { dbTransaction: t });
+        // ++ TODO
+        await this._updateOuterTrade({ id: trade.id, status: 1 });
+        await t.commit();
+      } else {
+        await t.rollback();
+        if (order.memberId === memberId)
+          this.logger.error("order has been closed");
+        else this.logger.error("this order is in other environment");
+      }
+    } catch (error) {
+      this.logger.error(`_updateOrderbyTrade`, error);
+      await t.rollback();
+    }
+  }
+  // ++ TODO
+  async _updateOuterTrade({ id, status }) {}
   /**
    * @typedef {Object} Trade
    * @property {string} side "sell"
@@ -167,33 +225,48 @@ class ExchangeHubService {
    * @param {Trade} trade
    */
   async _processOuterTrade(trade) {
+    // 1. parse  memberId, orderId from trade.clOrdId
     const { memberId, orderId } = Utils.parseClOrdId(trade.clOrdId);
     /* !!! HIGH RISK (start) !!! */
-    // 1. get order by trade.clOrdId from orders table
-    // 2. check if order.memberId === memberId, if not do nothing
-    // 3. _updateOrderbyTrade
+    // 1. _updateOrderbyTrade
+    // 2. _insertTrades
+    // 3. _insertVouchers
     // 4. side === 'buy' ? _updateAccByBidTrade : _updateAccByAskTrade
-    // 5. _updateTrade
-    // 6. _updateVouchers
-    // 7. add account_version
+    // 5. _insertAccountVersions
     // ----------
-    // 1. _updateTrade
-    this._updateTrade(memberId, orderId, trade);
+
+    // 1. _updateOrderbyTrade
+    await this._updateOrderbyTrade(memberId, orderId, trade);
+    // 2. _insertTrades
+    await this._insertTrades(memberId, orderId, trade);
   }
 
-  async _processOuterTrades() {
+  async _processOuterTrades(exchange) {
     this.logger.log(`[${this.constructor.name}] _processOuterTrades`);
-    // 1. get all records from outer_trades table
-    // 2. fillter records if record.status === 5
-    // 3. _processOuterTrade
+    // 1. get all records from outer_trades table &  fillter records if record.status === 5
+    const outerTrades = await this.database.getOuterTrades(
+      this.database.EXCHANGE[exchange.toUpperCase()],
+      5
+    );
+    // 2. _processOuterTrade
+    for (let trade of outerTrades) {
+      await this._processOuterTrade(JSON.parse(trade.data));
+    }
   }
 
-  async insertOuterTrade(outerTrade) {
+  async _insertOuterTrade(outerTrade) {
     /* !!! HIGH RISK (start) !!! */
     let result;
     const t = await this.database.transaction();
     try {
       this.logger.log(`outerTrade`, outerTrade);
+      this.logger.log(`this.database.EXCHANGE[
+        outerTrade.source.toUpperCase()
+      ].toString()`, this.database.EXCHANGE[
+        outerTrade.source.toUpperCase()
+      ].toString());
+      this.logger.log(`outerTrade.tradeId`, outerTrade.tradeId);
+
       await this.database.insertOuterTrades(
         parseInt(
           `${this.database.EXCHANGE[
@@ -216,18 +289,18 @@ class ExchangeHubService {
     return result;
   }
 
-  async insertOuterTrades(outerTrades) {
+  async _insertOuterTrades(outerTrades) {
     /* !!! HIGH RISK (start) !!! */
     let result;
     this.logger.log(`[${this.constructor.name}] insertOuterTrades`);
     for (let trade of outerTrades) {
-      await this.insertOuterTrade(trade);
+      await this._insertOuterTrade(trade);
     }
     return result;
   }
 
-  async getOuterTradesFromAPI(exchange) {
-    this.logger.log(`[${this.constructor.name}] getOuterTradesFromAPI`);
+  async _getOuterTradesFromAPI(exchange) {
+    this.logger.log(`[${this.constructor.name}] _getOuterTradesFromAPI`);
     let outerTrades;
     switch (exchange) {
       case SupportedExchange.OKEX:
@@ -241,17 +314,17 @@ class ExchangeHubService {
         if (okexRes.success) {
           outerTrades = okexRes.payload;
         } else {
-          this.logger.error(`getOuterTradesFromAPI`, okexRes);
+          this.logger.error(`_getOuterTradesFromAPI`, okexRes);
         }
         break;
     }
     return outerTrades;
   }
 
-  async syncOuterTrades(exchange) {
-    this.logger.log(`[${this.constructor.name}] syncOuterTrades`);
-    const outerTrades = await this.getOuterTradesFromAPI(exchange);
-    const result = this.insertOuterTrades(outerTrades);
+  async _syncOuterTrades(exchange) {
+    this.logger.log(`[${this.constructor.name}] _syncOuterTrades`);
+    const outerTrades = await this._getOuterTradesFromAPI(exchange);
+    const result = this._insertOuterTrades(outerTrades);
     return result;
   }
 }

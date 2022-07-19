@@ -119,6 +119,10 @@ class DBOperator {
     return this.database.getVouchersByOrderId(orderId, { dbTransaction });
   }
 
+  async getOuterTrades(exchangeCode, status) {
+    return this.database.getTrades(exchangeCode, status);
+  }
+
   /* !!! HIGH RISK (start) !!! */
   async insertOrder(
     bid,
@@ -208,7 +212,7 @@ class DBOperator {
     data,
     { dbTransaction }
   ) {
-    console.log(`[DBOperator] insertOuterTrades`)
+    console.log(`[DBOperator] insertOuterTrades`);
     return this.database.insertOuterTrades(
       id, // trade_fk `${EXCHANGE_CODE}${trade.tradeId}`
       exchange_code, // EXCHANGE_CODE
@@ -291,6 +295,10 @@ class DBOperator {
 
   async updateOrder(datas, { dbTransaction }) {
     return this.database.updateOrder(datas, { dbTransaction });
+  }
+
+  async updateOuterTrade(datas, { dbTransaction }) {
+    return this.database.updateOuterTrade(datas, { dbTransaction });
   }
   /* !!! HIGH RISK (end) !!! */
 }
