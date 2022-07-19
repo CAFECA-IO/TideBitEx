@@ -290,7 +290,7 @@ class ExchangeHubService {
     let result;
     this.logger.log(`[${this.constructor.name}] insertOuterTrades`);
     for (let trade of outerTrades) {
-      await this._insertOuterTrade(trade);
+      result = await this._insertOuterTrade(trade);
     }
     return result;
   }
