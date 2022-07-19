@@ -188,29 +188,40 @@ class ExchangeHubService {
     // 3. _processOuterTrade
   }
 
+  async insertOuterTrade(outerTrade) {
+    /* !!! HIGH RISK (start) !!! */
+    let result;
+    const t = await this.database.transaction();
+    try {
+      this.logger.log(`outerTrade`, outerTrade);
+      await this.database.insertOuterTrades(
+        parseInt(
+          `${this.database.EXCHANGE[
+            outerTrade.source.toUpperCase()
+          ].toString()}${outerTrade.tradeId}`
+        ),
+        this.database.EXCHANGE[outerTrade.source.toUpperCase()],
+        new Date(parseInt(outerTrade.ts)).toISOString(),
+        outerTrade.status,
+        JSON.stringify(outerTrade),
+        { dbTransaction: t }
+      );
+      result = true;
+      await t.commit();
+    } catch (error) {
+      this.logger.error(`insertOuterTrades`, error);
+      result = false;
+      await t.rollback();
+    }
+    return result;
+  }
+
   async insertOuterTrades(outerTrades) {
     /* !!! HIGH RISK (start) !!! */
     let result;
     this.logger.log(`[${this.constructor.name}] insertOuterTrades`);
-    for (let trade in outerTrades) {
-      try {
-        this.logger.log(`trade`, trade);
-        this.database.insertOuterTrades(
-          parseInt(
-            `${this.database.EXCHANGE[trade.source.toUpperCase()].toString()}${
-              trade.tradeId
-            }`
-          ),
-          this.database.EXCHANGE[trade.source.toUpperCase()],
-          trade.at,
-          trade.status,
-          JSON.stringify(trade)
-        );
-        result = true;
-      } catch (error) {
-        this.logger.error(`insertOuterTrades`, error);
-        break;
-      }
+    for (let trade of outerTrades) {
+      await this.insertOuterTrade(trade);
     }
     return result;
   }
