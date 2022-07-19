@@ -298,6 +298,7 @@ class DBOperator {
   }
 
   async updateOuterTrade(datas, { dbTransaction }) {
+    this.logger.log("[dbOperator] updateOuterTrade", datas);
     return this.database.updateOuterTrade(datas, { dbTransaction });
   }
   /* !!! HIGH RISK (end) !!! */

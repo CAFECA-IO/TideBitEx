@@ -17,7 +17,7 @@ class ExchangeHubService {
   }) {
     this.database = database;
     // this.connectors = connectors;
-    this.systemMemberId= systemMemberId
+    this.systemMemberId = systemMemberId;
     this.tidebitMarkets = tidebitMarkets;
     this.okexConnector = okexConnector;
     this.logger = logger;
@@ -142,7 +142,6 @@ class ExchangeHubService {
         trade.tradeId, // trade_fk
         { dbTransaction: t }
       );
-      await this._updateOuterTrade({ id: trade.id, status: 2 });
       await t.commit();
     } catch (error) {
       this.logger.error(error);
@@ -203,17 +202,14 @@ class ExchangeHubService {
           this.logger.error("order has been closed");
         else this.logger.error("this order is in other environment");
       }
-      // ++ TODO
-      this.logger.log(`_updateOuterTrade`);
-      await this._updateOuterTrade({ id: trade.id, status: 1 });
     } catch (error) {
       this.logger.error(`_updateOrderbyTrade`, error);
       await t.rollback();
     }
   }
   // ++ TODO
-  async _updateOuterTrade({ id, status }) {
-    const t = await this.database.transaction();
+  async _updateOuterTrade({ id, status }, t) {
+    this.logger.log("[Service] _updateOuterTrade", { id, status });
     try {
       await this.database.updateOuterTrade({ id, status });
       await t.commit();

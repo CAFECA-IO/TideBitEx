@@ -220,18 +220,18 @@ class mysql {
 
   async getOuterTrades(exchangeCode, status) {
     const query =
-    "SELECT * FROM `outer_trades` WHERE `outer_trades`.`exchange_code` = ? AND `outer_trades`.`status` <> ?;";
-  try {
-    this.logger.log("getOuterTrades", query, `[${exchangeCode}, ${status}]`);
-    const [outerTrades] = await this.db.query({
-      query,
-      values: [exchangeCode, status],
-    });
-    return outerTrades;
-  } catch (error) {
-    this.logger.log(error);
-    return [];
-  }
+      "SELECT * FROM `outer_trades` WHERE `outer_trades`.`exchange_code` = ? AND `outer_trades`.`status` <> ?;";
+    try {
+      this.logger.log("getOuterTrades", query, `[${exchangeCode}, ${status}]`);
+      const [outerTrades] = await this.db.query({
+        query,
+        values: [exchangeCode, status],
+      });
+      return outerTrades;
+    } catch (error) {
+      this.logger.log(error);
+      return [];
+    }
   }
 
   async getOrder(orderId, { dbTransaction }) {
@@ -486,11 +486,11 @@ class mysql {
     { dbTransaction }
   ) {
     const query =
-      "INSERT INTO `trades` (`id`,`price`,`volume`,`ask_id`,`bid_id`,`trend`,`created_at`,`updated_at`,`ask_member_id`,`bid_member_id`,`funds`,`trade_fk`)" +
+      "INSERT INTO `trades` (`id`,`price`,`volume`,`ask_id`,`bid_id`,`trend`,`currency`,`created_at`,`updated_at`,`ask_member_id`,`bid_member_id`,`funds`,`trade_fk`)" +
       " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
     try {
       this.logger.log(
-        "trades",
+        "insertTrades",
         query,
         "DEFAULT",
         price,
