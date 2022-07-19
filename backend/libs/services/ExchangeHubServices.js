@@ -1,4 +1,3 @@
-const { Json } = require("sequelize/types/utils");
 const SupportedExchange = require("../../constants/SupportedExchange");
 const SafeMath = require("../SafeMath");
 const Utils = require("../Utils");
@@ -114,6 +113,9 @@ class ExchangeHubService {
   }
 
   async _insertTrades(memberId, orderId, trade) {
+    this.logger.log(
+      `------------- [${this.constructor.name}] _insertTrades -------------`
+    );
     /* !!! HIGH RISK (start) !!! */
     // 1. insert trade to DB
     const t = await this.database.transaction();
@@ -134,6 +136,7 @@ class ExchangeHubService {
         trade.tradeId, // trade_fk
         { dbTransaction: t }
       );
+      await this._updateOuterTrade({ id: trade.id, status: 2 });
       await t.commit();
     } catch (error) {
       this.logger.error(error);
@@ -176,6 +179,7 @@ class ExchangeHubService {
         tradesCount = SafeMath.plus(order.trades_count, "1");
         if (SafeMath.eq(volume, "0")) {
           state = this.database.ORDER_STATE.DONE;
+          locked = "0";
         }
         const newOrder = {
           id: orderId,
@@ -187,15 +191,16 @@ class ExchangeHubService {
           // update_at: updateAt
         };
         await this.database.updateOrder(newOrder, { dbTransaction: t });
-        // ++ TODO
-        await this._updateOuterTrade({ id: trade.id, status: 1 });
-        await t.commit();
       } else {
         await t.rollback();
         if (order.memberId === memberId)
           this.logger.error("order has been closed");
         else this.logger.error("this order is in other environment");
       }
+      // ++ TODO
+      this.logger.log(`_updateOuterTrade`);
+      await this._updateOuterTrade({ id: trade.id, status: 1 });
+      await t.commit();
     } catch (error) {
       this.logger.error(`_updateOrderbyTrade`, error);
       await t.rollback();
@@ -261,11 +266,7 @@ class ExchangeHubService {
     try {
       this.logger.log(`outerTrade`, outerTrade);
       await this.database.insertOuterTrades(
-        parseInt(
-          `${this.database.EXCHANGE[
-            outerTrade.source.toUpperCase()
-          ].toString()}${outerTrade.tradeId}`
-        ),
+        outerTrade.tradeId, // ++ TODO 之後加上其他交易所 primary ID 是要由 id 及 source 組合
         this.database.EXCHANGE[outerTrade.source.toUpperCase()],
         new Date(parseInt(outerTrade.ts)).toISOString(),
         outerTrade.status,
