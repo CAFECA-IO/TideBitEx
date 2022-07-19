@@ -26,13 +26,15 @@ class ExchangeHubService {
     this.sync();
   }
 
-  async sync() {
+  async sync(exchange, force = false) {
     this.logger.log(`[${this.constructor.name}] sync`);
     const time = Date.now();
     // 1. 定期（10mins）執行工作
-    if (time - this._lastSyncTime > this._syncInterval) {
+    if (time - this._lastSyncTime > this._syncInterval || force) {
       // 2. 從 API 取 outerTrades 並寫入 DB
-      const result = await this._syncOuterTrades(SupportedExchange.OKEX);
+      const result = await this._syncOuterTrades(
+        exchange || SupportedExchange.OKEX
+      );
       if (result) {
         this._lastSyncTime = Date.now();
         // 3. 觸發從 DB 取 outertradesrecord 更新下列 DB table trades、orders、accounts、accounts_version、vouchers

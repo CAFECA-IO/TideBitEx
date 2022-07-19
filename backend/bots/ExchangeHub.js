@@ -142,7 +142,8 @@ class ExchangeHub extends Bot {
             formatOrder.state !== "canceled" /* cancel order */ &&
             formatOrder.accFillSz !== "0" /* create order */
           ) {
-            await this._updateOrderDetail(formatOrder);
+            // await this._updateOrderDetail(formatOrder);
+            this.exchangeHubService.sync(SupportedExchange.OKEX, true)
           }
         }
       }

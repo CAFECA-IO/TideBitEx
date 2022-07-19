@@ -120,7 +120,7 @@ class DBOperator {
   }
 
   async getOuterTrades(exchangeCode, status) {
-    return this.database.getTrades(exchangeCode, status);
+    return this.database.getOuterTrades(exchangeCode, status);
   }
 
   /* !!! HIGH RISK (start) !!! */
