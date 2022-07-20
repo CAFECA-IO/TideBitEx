@@ -481,7 +481,7 @@ class ExchangeHubService {
     /* !!! HIGH RISK (start) !!! */
     try {
       // 1. get _trade By trade_fk
-      const _trade = this.database.getTradeByTradeFk(trade.tradeId);
+      const _trade = await this.database.getTradeByTradeFk(trade.tradeId);
       this.logger.log(`_trade`, _trade);
       // 2. if _trade is not exist
       if (!_trade) {
@@ -655,7 +655,7 @@ class ExchangeHubService {
       // 4. _updateOuterTradeStatus
       await this._updateOuterTradeStatus({
         id: trade.tradeId,
-        exchangeCode: trade.exchange_code,
+        exchangeCode: this.database.EXCHANGE[trade.source.toUpperCase()],
         status: 1,
         dbTransaction: t,
       });
