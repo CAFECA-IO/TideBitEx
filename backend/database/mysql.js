@@ -277,25 +277,19 @@ class mysql {
     }
   }
 
-  async getTradeByTradeFk(tradeFk, { dbTransaction }) {
+  async getTradeByTradeFk(tradeFk) {
     const query = "SELECT * FROM `trades` WHERE `trade_fk` = ?;";
     try {
       this.logger.log("getTradeByTradeFk", query, tradeFk);
-      const [[trade]] = await this.db.query(
-        {
-          query,
-          values: [tradeFk],
-        },
-        {
-          transaction: dbTransaction,
-        }
-      );
+      const [[trade]] = await this.db.query({
+        query,
+        values: [tradeFk],
+      });
       this.logger.log("getTradeByTradeFk trade", trade);
       return trade;
     } catch (error) {
       this.logger.log(error);
-      if (dbTransaction) throw error;
-      return [];
+      return null;
     }
   }
 

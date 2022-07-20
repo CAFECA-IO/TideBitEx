@@ -517,10 +517,8 @@ class ExchangeHubService {
     this.logger.log(
       `------------- [${this.constructor.name}] _updateOrderbyTrade -------------`
     );
-    // get _order data from table
-    const _order = await this.database.getOrder(orderId, { dbTransaction });
-    this.logger.log(`_order`, _order);
-    let _updateOrder,
+    let _order,
+      _updateOrder,
       state,
       volume,
       locked,
@@ -528,7 +526,10 @@ class ExchangeHubService {
       fundsReceived,
       tradesCount,
       value;
+    // get _order data from table
     this.logger.log(`orderId`, orderId);
+    _order = await this.database.getOrder(orderId, { dbTransaction });
+    this.logger.log(`_order`, _order);
     try {
       if (
         _order &&
@@ -566,7 +567,10 @@ class ExchangeHubService {
       } else {
         if (_order?.member_id.toString() === memberId)
           this.logger.error("order has been closed");
-        else this.logger.error("this order is in other environment");
+        else {
+          this.logger.error("this order is in other environment");
+          _order = null;
+        }
       }
     } catch (error) {
       this.logger.error(`_updateOrderbyTrade`, error);
@@ -624,42 +628,48 @@ class ExchangeHubService {
         trade,
         dbTransaction: t,
       });
-      // 2. _insertTrades & _insertVouchers
-      let result = await this._insertTradesRecord({
-        memberId,
-        orderId,
-        trade,
-        dbTransaction: t,
-      });
-      // 3. side === 'buy' ? _updateAccByBidTrade : _updateAccByAskTrade
-      if (result) {
-        if (trade.side === "buy")
-          await this._updateAccByBidTrade({
-            memberId,
-            askCurr: order.ask,
-            bidCurr: order.bid,
-            order: updateOrder,
-            trade,
-            dbTransaction: t,
-          });
-        else
-          await this._updateAccByAskTrade({
-            memberId,
-            askCurr: order.ask,
-            bidCurr: order.bid,
-            order: updateOrder,
-            trade,
-            dbTransaction: t,
-          });
+      // if this order is in this environment
+      if (order) {
+        // 2. _insertTrades & _insertVouchers
+        let result = await this._insertTradesRecord({
+          memberId,
+          orderId,
+          trade,
+          dbTransaction: t,
+        });
+        // 3. side === 'buy' ? _updateAccByBidTrade : _updateAccByAskTrade
+        // if this trade does need update
+        if (result) {
+          if (trade.side === "buy")
+            await this._updateAccByBidTrade({
+              memberId,
+              askCurr: order.ask,
+              bidCurr: order.bid,
+              orderState: updateOrder?.state || order?.state,
+              trade,
+              dbTransaction: t,
+            });
+          else
+            await this._updateAccByAskTrade({
+              memberId,
+              askCurr: order.ask,
+              bidCurr: order.bid,
+              orderState: updateOrder?.state || order?.state,
+              trade,
+              dbTransaction: t,
+            });
+        }
+        // 4. _updateOuterTradeStatus
+        await this._updateOuterTradeStatus({
+          id: trade.tradeId,
+          exchangeCode: this.database.EXCHANGE[trade.source.toUpperCase()],
+          status: 1,
+          dbTransaction: t,
+        });
+        await t.commit();
+      } else {
+        await t.rollback();
       }
-      // 4. _updateOuterTradeStatus
-      await this._updateOuterTradeStatus({
-        id: trade.tradeId,
-        exchangeCode: this.database.EXCHANGE[trade.source.toUpperCase()],
-        status: 1,
-        dbTransaction: t,
-      });
-      await t.commit();
     } catch (error) {
       this.logger.error(`_processOuterTrade`, error);
       await t.rollback();
