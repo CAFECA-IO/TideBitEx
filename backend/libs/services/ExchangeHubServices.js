@@ -130,7 +130,7 @@ class ExchangeHubService {
     memberId,
     askCurr,
     bidCurr,
-    order,
+    orderState,
     trade,
     dbTransaction,
   }) {
@@ -203,7 +203,7 @@ class ExchangeHubService {
         accLocDiff: askLocDiff,
         accLoc: askLoc,
         reason:
-          order.state === this.database.ORDER_STATE.DONE
+          orderState === this.database.ORDER_STATE.DONE
             ? this.database.REASON.ORDER_FULLFILLED
             : this.database.REASON.STRIKE_UNLOCK,
         fee: 0,
@@ -241,7 +241,7 @@ class ExchangeHubService {
         accLocDiff: bidLocDiff,
         accLoc: bidLoc,
         reason:
-          order.state === this.database.ORDER_STATE.DONE
+          orderState === this.database.ORDER_STATE.DONE
             ? this.database.REASON.ORDER_FULLFILLED
             : this.database.REASON.STRIKE_ADD,
         fee: SafeMath.abs(trade.fee),
@@ -263,7 +263,7 @@ class ExchangeHubService {
     memberId,
     askCurr,
     bidCurr,
-    order,
+    orderState,
     trade,
     dbTransaction,
   }) {
@@ -338,7 +338,7 @@ class ExchangeHubService {
         accLocDiff: askLocDiff,
         accLoc: askLoc,
         reason:
-          order.state === this.database.ORDER_STATE.DONE
+          orderState === this.database.ORDER_STATE.DONE
             ? this.database.REASON.ORDER_FULLFILLED
             : this.database.REASON.STRIKE_ADD,
         fee: SafeMath.abs(trade.fee),
@@ -376,7 +376,7 @@ class ExchangeHubService {
         accLocDiff: bidLocDiff,
         accLoc: bidLoc,
         reason:
-          order.state === this.database.ORDER_STATE.DONE
+          orderState === this.database.ORDER_STATE.DONE
             ? this.database.REASON.ORDER_FULLFILLED
             : this.database.REASON.STRIKE_UNLOCK,
         fee: 0,
@@ -394,7 +394,7 @@ class ExchangeHubService {
     }
   }
 
-  async _insertVouchers({ memberId, trade, dbTransaction }) {
+  async _insertVouchers({ memberId, orderId, trade, dbTransaction }) {
     this.logger.log(
       `------------- [${this.constructor.name}] _insertVouchers -------------`
     );
@@ -413,11 +413,11 @@ class ExchangeHubService {
     try {
       result = await this.database.insertVouchers(
         memberId,
-        trade.clOrdId, // orderId
-        trade.tradeId,
+        orderId, // ++TODO check order_id is trade.clOrdId or orderId
+        trade.id,
         null,
-        askId, // -- need change
-        bidId, // -- need change
+        askId,
+        bidId,
         trade.fillPx,
         trade.fillSz,
         SafeMath.mult(trade.fillPx, trade.fillSz),
@@ -478,29 +478,33 @@ class ExchangeHubService {
     this.logger.log(
       `------------- [${this.constructor.name}] _insertTradesRecord -------------`
     );
+    let _trade;
     /* !!! HIGH RISK (start) !!! */
     try {
       // 1. get _trade By trade_fk
-      const _trade = await this.database.getTradeByTradeFk(trade.tradeId);
+      _trade = await this.database.getTradeByTradeFk(trade.tradeId);
       this.logger.log(`_trade`, _trade);
       // 2. if _trade is not exist
       if (!_trade) {
         // 3. insert trade to DB
-        insertVouchersResult = await this.insertTrades({
+        insertTradesResult = await this.insertTrades({
           memberId,
           orderId,
           trade,
           dbTransaction,
         });
+        _trade = await this.database.getTradeByTradeFk(trade.tradeId);
+        this.logger.log(`inserted _trade`, _trade);
         this.logger.log(`_insertTrades result`, insertTradesResult);
         // 3. insert voucher to DB
         insertVouchersResult = await this._insertVouchers({
           memberId,
-          trade,
+          orderId,
+          trade: _trade,
           dbTransaction,
         });
         this.logger.log(`insertVouchers result`, insertVouchersResult);
-        result = true;
+        result = _trade.id;
       }
     } catch (error) {
       this.logger.error(`_insertTradesRecord`, error);
