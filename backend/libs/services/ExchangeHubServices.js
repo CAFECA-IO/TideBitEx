@@ -207,7 +207,7 @@ class ExchangeHubService {
             ? this.database.REASON.ORDER_FULLFILLED
             : this.database.REASON.STRIKE_UNLOCK,
         fee: 0,
-        modifiableId: trade.tradeId,
+        modifiableId: trade.id,
         updateAt: new Date(parseInt(trade.ts)).toISOString(),
         fun: this.database.FUNC.UNLOCK_AND_SUB_FUNDS,
         dbTransaction,
@@ -245,7 +245,7 @@ class ExchangeHubService {
             ? this.database.REASON.ORDER_FULLFILLED
             : this.database.REASON.STRIKE_ADD,
         fee: SafeMath.abs(trade.fee),
-        modifiableId: trade.tradeId,
+        modifiableId: trade.id,
         updateAt: new Date(parseInt(trade.ts)).toISOString(),
         fun: this.database.FUNC.PLUS_FUNDS,
         dbTransaction,
@@ -342,7 +342,7 @@ class ExchangeHubService {
             ? this.database.REASON.ORDER_FULLFILLED
             : this.database.REASON.STRIKE_ADD,
         fee: SafeMath.abs(trade.fee),
-        modifiableId: trade.tradeId,
+        modifiableId: trade.id,
         updateAt: new Date(parseInt(trade.ts)).toISOString(),
         fun: this.database.FUNC.PLUS_FUNDS,
         dbTransaction,
@@ -380,7 +380,7 @@ class ExchangeHubService {
             ? this.database.REASON.ORDER_FULLFILLED
             : this.database.REASON.STRIKE_UNLOCK,
         fee: 0,
-        modifiableId: trade.tradeId,
+        modifiableId: trade.id,
         updateAt: new Date(parseInt(trade.ts)).toISOString(),
         fun: this.database.FUNC.UNLOCK_AND_SUB_FUNDS,
         dbTransaction,
@@ -493,18 +493,16 @@ class ExchangeHubService {
           trade,
           dbTransaction,
         });
-        _trade = await this.database.getTradeByTradeFk(trade.tradeId);
-        this.logger.log(`inserted _trade`, _trade);
         this.logger.log(`_insertTrades result`, insertTradesResult);
         // 3. insert voucher to DB
         insertVouchersResult = await this._insertVouchers({
           memberId,
           orderId,
-          trade: _trade,
+          trade: { ...trade, id: insertTradesResult },
           dbTransaction,
         });
         this.logger.log(`insertVouchers result`, insertVouchersResult);
-        result = _trade.id;
+        result = insertTradesResult;
       }
     } catch (error) {
       this.logger.error(`_insertTradesRecord`, error);
@@ -643,14 +641,14 @@ class ExchangeHubService {
         });
         // 3. side === 'buy' ? _updateAccByBidTrade : _updateAccByAskTrade
         // if this trade does need update
-        if (result) {
+        if (result !== -1) {
           if (trade.side === "buy")
             await this._updateAccByBidTrade({
               memberId,
               askCurr: order.ask,
               bidCurr: order.bid,
               orderState: updateOrder?.state || order?.state,
-              trade,
+              trade: { ...trade, id: result },
               dbTransaction: t,
             });
           else
@@ -659,7 +657,7 @@ class ExchangeHubService {
               askCurr: order.ask,
               bidCurr: order.bid,
               orderState: updateOrder?.state || order?.state,
-              trade,
+              trade: { ...trade, id: result },
               dbTransaction: t,
             });
         }
