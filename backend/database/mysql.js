@@ -501,7 +501,7 @@ class mysql {
     trade_fk,
     { dbTransaction }
   ) {
-    let result;
+    let result, tradeId;
     const query =
       "INSERT INTO `trades` (`id`,`price`,`volume`,`ask_id`,`bid_id`,`trend`,`currency`,`created_at`,`updated_at`,`ask_member_id`,`bid_member_id`,`funds`,`trade_fk`)" +
       // " OUTPUT Inserted.ID " +
@@ -547,11 +547,12 @@ class mysql {
           transaction: dbTransaction,
         }
       );
+      tradeId = result[0];
     } catch (error) {
       this.logger.error(error);
       if (dbTransaction) throw error;
     }
-    return result[0];
+    return tradeId;
   }
 
   async insertVouchers(
