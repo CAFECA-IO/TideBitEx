@@ -112,13 +112,19 @@ class DBOperator {
   async getTrades(quoteCcy, baseCcy) {
     return this.database.getTrades(quoteCcy, baseCcy);
   }
+
   async getVouchers({ memberId, ask, bid }) {
     return this.database.getVouchers({ memberId, ask, bid });
   }
+
   async getVouchersByOrderId(orderId, { dbTransaction }) {
     return this.database.getVouchersByOrderId(orderId, { dbTransaction });
   }
 
+  async getTradeByTradeFk(tradeFk) {
+    return this.database.getTradeByTradeFk(tradeFk);
+  }
+  
   async getOuterTrades(exchangeCode, status) {
     return this.database.getOuterTrades(exchangeCode, status);
   }

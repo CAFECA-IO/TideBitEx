@@ -277,6 +277,28 @@ class mysql {
     }
   }
 
+  async getTradeByTradeFk(tradeFk, { dbTransaction }) {
+    const query = "SELECT * FROM `trades` WHERE `trade_fk` = ?;";
+    try {
+      this.logger.log("getTradeByTradeFk", query, tradeFk);
+      const [[trade]] = await this.db.query(
+        {
+          query,
+          values: [tradeFk],
+        },
+        {
+          transaction: dbTransaction,
+        }
+      );
+      this.logger.log("getTradeByTradeFk trade", trade);
+      return trade;
+    } catch (error) {
+      this.logger.log(error);
+      if (dbTransaction) throw error;
+      return [];
+    }
+  }
+
   /* !!! HIGH RISK (start) !!! */
   async insertOrder(
     bid,
