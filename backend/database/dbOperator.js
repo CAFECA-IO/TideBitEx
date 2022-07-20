@@ -124,7 +124,7 @@ class DBOperator {
   async getTradeByTradeFk(tradeFk) {
     return this.database.getTradeByTradeFk(tradeFk);
   }
-  
+
   async getOuterTrades(exchangeCode, status) {
     return this.database.getOuterTrades(exchangeCode, status);
   }
@@ -304,7 +304,6 @@ class DBOperator {
   }
 
   async updateOuterTrade(datas, { dbTransaction }) {
-    this.logger.log("[dbOperator] updateOuterTrade", datas);
     return this.database.updateOuterTrade(datas, { dbTransaction });
   }
   /* !!! HIGH RISK (end) !!! */
