@@ -501,9 +501,10 @@ class mysql {
     trade_fk,
     { dbTransaction }
   ) {
+    let result;
     const query =
       "INSERT INTO `trades` (`id`,`price`,`volume`,`ask_id`,`bid_id`,`trend`,`currency`,`created_at`,`updated_at`,`ask_member_id`,`bid_member_id`,`funds`,`trade_fk`)" +
-      " OUTPUT Inserted.ID " +
+      // " OUTPUT Inserted.ID " +
       " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
     try {
       this.logger.log(
@@ -523,7 +524,7 @@ class mysql {
         funds,
         trade_fk
       );
-      await this.db.query(
+      result = await this.db.query(
         {
           query,
           values: [
@@ -550,6 +551,7 @@ class mysql {
       this.logger.error(error);
       if (dbTransaction) throw error;
     }
+    return result;
   }
 
   async insertVouchers(
@@ -568,6 +570,7 @@ class mysql {
     created_at,
     { dbTransaction }
   ) {
+    let result;
     const query =
       "INSERT INTO `vouchers` (`id`,`member_id`,`order_id`,`trade_id`,`designated_trading_fee_asset_history_id`,`ask`,`bid`,`price`,`volume`,`value`,`trend`,`ask_fee`,`bid_fee`,`created_at`)" +
       " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
@@ -590,7 +593,7 @@ class mysql {
         bid_fee,
         created_at
       );
-      await this.db.query(
+      result = await this.db.query(
         {
           query,
           values: [
@@ -618,6 +621,7 @@ class mysql {
       this.logger.error(error);
       if (dbTransaction) throw error;
     }
+    return result;
   }
 
   async updateAccount(datas, { dbTransaction }) {
