@@ -551,7 +551,7 @@ class mysql {
       this.logger.error(error);
       if (dbTransaction) throw error;
     }
-    return result;
+    return result[0];
   }
 
   async insertVouchers(
