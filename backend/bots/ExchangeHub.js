@@ -136,6 +136,9 @@ class ExchangeHub extends Bot {
 
     EventBus.on(Events.orderDetailUpdate, async (instType, formatOrders) => {
       if (instType === "SPOT") {
+        this.logger.log(
+          ` ------------- [${this.constructor.name}] EventBus.on(Events.orderDetailUpdate ---------------`
+        );
         // TODO: using message queue
         for (const formatOrder of formatOrders) {
           if (
@@ -154,6 +157,13 @@ class ExchangeHub extends Bot {
               newTrade = result.newTrade,
               updateAskAccount = result.updateAskAccount,
               updateBidAccount = result.updateBidAccount;
+            this.logger.log(`memberId`, memberId);
+            this.logger.log(`market`, market);
+            this.logger.log(`instId`, instId);
+            this.logger.log(`updateOrder`, updateOrder);
+            this.logger.log(`newTrade`, newTrade);
+            this.logger.log(`updateAskAccount`, updateAskAccount);
+            this.logger.log(`updateBidAccount`, updateBidAccount);
             if (updateOrder) {
               this.orderBook.updateByDifference(memberId, instId, {
                 add: [updateOrder],
@@ -164,8 +174,18 @@ class ExchangeHub extends Bot {
               });
             }
             if (newTrade) {
-              this.tradeBook.updateByDifference(instId, { add: [newTrade] });
-              EventBus.emit(Events.trade, memberId, newTrade);
+              this.tradeBook.updateByDifference(instId, {
+                add: [
+                  {
+                    ...newTrade,
+                    ts: parseInt(SafeMath.mult(newTrade.at, "1000")),
+                  },
+                ],
+              });
+              EventBus.emit(Events.trade, memberId, newTrade.market, {
+                market: newTrade.market,
+                difference: this.tradeBook.getDifference(instId),
+              });
             }
             if (updateAskAccount) {
               this.accountBook.updateByDifference(memberId, updateAskAccount);

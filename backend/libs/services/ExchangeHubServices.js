@@ -58,8 +58,16 @@ class ExchangeHubService {
    * */
 
   async sync(exchange, force = false) {
-    this.logger.log(`[${this.constructor.name}] sync`);
+    this.logger.log(
+      `------------- [${this.constructor.name}] sync -------------`
+    );
     const time = Date.now();
+    this.logger.log(
+      `time - this._lastSyncTime > this._syncInterval`,
+      time - this._lastSyncTime > this._syncInterval
+    );
+    this.logger.log(`force`, force);
+    this.logger.log(`this._isStarted`, this._isStarted);
     // 1. 定期（10mins）執行工作
     if (
       time - this._lastSyncTime > this._syncInterval ||
@@ -852,6 +860,9 @@ class ExchangeHubService {
   }
 
   async _insertOuterTrade(outerTrade) {
+    this.logger.log(
+      `------------- [${this.constructor.name}] _insertOuterTrade -------------`
+    );
     /* !!! HIGH RISK (start) !!! */
     let result;
     const t = await this.database.transaction();
@@ -872,6 +883,9 @@ class ExchangeHubService {
       result = false;
       await t.rollback();
     }
+    this.logger.log(
+      `------------- [${this.constructor.name}] _insertOuterTrade [END] -------------`
+    );
     return result;
   }
 
@@ -886,13 +900,16 @@ class ExchangeHubService {
   }
 
   async _getOuterTradesFromAPI(exchange) {
-    this.logger.log(`[${this.constructor.name}] _getOuterTradesFromAPI`);
+    this.logger.log(
+      `------------- [${this.constructor.name}] _getOuterTradesFromAPI --------------`
+    );
     let outerTrades;
     switch (exchange) {
       case SupportedExchange.OKEX:
       default:
         let okexRes;
         if (!this._isStarted) {
+          this.logger.log(`fetchTradeFillsHistoryRecords`);
           okexRes = await this.okexConnector.router(
             "fetchTradeFillsHistoryRecords",
             {
@@ -904,6 +921,7 @@ class ExchangeHubService {
           );
           this._isStarted = true;
         } else {
+          this.logger.log(`fetchTradeFillsRecords`);
           okexRes = await this.okexConnector.router("fetchTradeFillsRecords", {
             query: {},
           });
