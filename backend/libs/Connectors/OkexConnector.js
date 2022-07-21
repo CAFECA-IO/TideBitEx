@@ -1604,6 +1604,7 @@ class OkexConnector extends ConnectorBase {
  */
   _updateOrderDetails(instType, orderData) {
     const formatOrders = [];
+    this.logger.log(`-------------- _updateOrderDetails ---------------`);
     orderData.forEach((data) => {
       if (data.clOrdId.startsWith(this.brokerId)) {
         formatOrders.push({
@@ -1614,7 +1615,8 @@ class OkexConnector extends ConnectorBase {
         });
       }
     });
-
+    this.logger.log(`formatOrders`,formatOrders)
+    this.logger.log(`-------------- [END] _updateOrderDetails ---------------`);
     EventBus.emit(Events.orderDetailUpdate, instType, formatOrders);
   }
 
