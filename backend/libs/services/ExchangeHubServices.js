@@ -151,7 +151,7 @@ class ExchangeHubService {
        * 3.5 update accountBook
        * 3.6 update DB
        * 4. calculate bidAccount balance change
-       * 4.1 bidAccount: balanceDiff = SafeMath.minus(SafeMath.mult(trade.fillPx, trade.fillSz), SafeMath.mult(SafeMath.mult(trade.fillPx, trade.fillSz), market.bid.fee)) // ++TODO verify is bid.fee || ask.fee
+       * 4.1 bidAccount: balanceDiff = SafeMath.minus(SafeMath.mult(trade.fillPx, trade.fillSz), SafeMath.mult(SafeMath.mult(trade.fillPx, trade.fillSz), market.ask.fee))
        * 4.2 bidAccount: balance = SafeMath.plus(bidAccount.balance, balanceDiff)
        * 4.3 bidAccount: lockedDiff  = 0
        * 4.4 bidAccount: locked = SafeMath.plus(bidAccount.locked, lockedDiff),
@@ -217,8 +217,8 @@ class ExchangeHubService {
       // 4.1 bidAccount: balanceDiff = SafeMath.minus(SafeMath.mult(trade.fillPx, trade.fillSz), trade.fee)
       bidAccBalDiff = SafeMath.minus(
         SafeMath.mult(trade.fillPx, trade.fillSz),
-        SafeMath.mult(SafeMath.mult(trade.fillPx, trade.fillSz), market.bid.fee)
-      ); // ++TODO verify is bid.fee || ask.fee
+        SafeMath.mult(SafeMath.mult(trade.fillPx, trade.fillSz), market.ask.fee)
+      );
       // 4.2 bidAccount: balance = SafeMath.plus(bidAccount.balance, balanceDiff)
       bidAccBal = SafeMath.plus(bidAccount.balance, bidAccBalDiff);
       // 4.3 bidAccount: lockedDiff  = 0
@@ -244,7 +244,7 @@ class ExchangeHubService {
         reason:
           orderState === this.database.ORDER_STATE.DONE
             ? this.database.REASON.ORDER_FULLFILLED
-            : this.database.REASON.STRIKE_ADD,
+            : this.database.REASON.STRIKE_SUB,
         fee: SafeMath.abs(trade.fee),
         modifiableId: trade.id,
         updateAt: new Date(parseInt(trade.ts)).toISOString(),
@@ -279,7 +279,7 @@ class ExchangeHubService {
        * 1. get askAccount from table
        * 2. get bidAccount from table
        * 3. calculate askAccount balance change
-       * 3.1 askAccount: SafeMath.minus(trade.fillSz, SafeMath.mult(trade.fillSz, market.ask.fee)); //++ TODO to be verify: is market.bid.fee || market.ask.fee need test (TideBit-Legacy config/markerts/markets.yml 裡 ask.fee 及 bid.fee 設定不一樣，使用 TideBit ticker 測試)
+       * 3.1 askAccount: SafeMath.minus(trade.fillSz, SafeMath.mult(trade.fillSz, market.bid.fee)); //++ TODO to be verify: is market.bid.fee || market.ask.fee need test (TideBit-Legacy config/markerts/markets.yml 裡 ask.fee 及 bid.fee 設定不一樣，使用 TideBit ticker 測試)
        * 3.2 askAccount: balance = SafeMath.plus(askAccount.balance, balanceDiff)
        * 3.3 askAccount: lockedDiff = 0;
        * 3.4 askAccount: locked = SafeMath.plus(askAccount.locked, lockedDiff),
@@ -319,7 +319,7 @@ class ExchangeHubService {
       //++ TODO to be verify: is market.bid.fee || market.ask.fee need test (TideBit-Legacy config/markerts/markets.yml 裡 ask.fee 及 bid.fee 設定不一樣，使用 TideBit ticker 測試)
       askAccBalDiff = SafeMath.minus(
         trade.fillSz,
-        SafeMath.mult(trade.fillSz, market.ask.fee)
+        SafeMath.mult(trade.fillSz, market.bid.fee)
       );
       // 3.2 askAccount: balance = SafeMath.plus(askAccount.balance, balanceDiff)
       askAccBal = SafeMath.plus(askAccount.balance, askAccBalDiff);
@@ -385,7 +385,7 @@ class ExchangeHubService {
         reason:
           orderState === this.database.ORDER_STATE.DONE
             ? this.database.REASON.ORDER_FULLFILLED
-            : this.database.REASON.STRIKE_UNLOCK,
+            : this.database.REASON.STRIKE_SUB,
         fee: 0,
         modifiableId: trade.id,
         updateAt: new Date(parseInt(trade.ts)).toISOString(),
@@ -419,7 +419,7 @@ class ExchangeHubService {
       );
     /**
      * ++ TODO
-     * fee 也要根據用戶的等級來收，要開票
+     * fee 也要根據用戶的等級來收，#672
      */
     try {
       result = await this.database.insertVouchers(
@@ -436,11 +436,11 @@ class ExchangeHubService {
         trade.side === "sell"
           ? SafeMath.mult(
               SafeMath.mult(trade.fillPx, trade.fillSz),
-              market.bid.fee //++ TODO to be verify: is market.bid.fee || market.ask.fee need test (TideBit-Legacy config/markerts/markets.yml 裡 ask.fee 及 bid.fee 設定不一樣，使用 TideBit ticker 測試)
+              market.ask.fee
             )
           : "0", //ask_fee
         trade.side === "buy"
-          ? SafeMath.mult(trade.fillSz, market.ask.fee) //++ TODO to be verify: is market.bid.fee || market.ask.fee need test (TideBit-Legacy config/markerts/markets.yml 裡 ask.fee 及 bid.fee 設定不一樣，使用 TideBit ticker 測試)
+          ? SafeMath.mult(trade.fillSz, market.bid.fee)
           : "0", //bid_fee
         trade.ts,
         { dbTransaction }
@@ -614,6 +614,36 @@ class ExchangeHubService {
     return { updateOrder: _updateOrder, order: _order };
   }
 
+  /**
+   * - id: xpaeth
+       code: 18
+       name: XPA/ETH
+       base_unit: xpa
+       quote_unit: eth
+       bid: {fee: 0.001, currency: eth, fixed: 8, hero_fee: 0, vip_fee: 0.001}
+       ask: {fee: 0.002, currency: xpa, fixed: 2, hero_fee: 0, vip_fee: 0.001}
+       sort_order: 7
+       tab_category: alts
+       price_group_fixed: 8
+       primary: true
+   * order=64: price = 101 eth bid 1 xpa => locked 101 eth
+   * account_version=155: reason = 600(=ORDER_SUBMIT), balance = -101, locked = 101 modified_id = 64 , modified_type = Order, currency = 3(=eth), fun = 2(LOCK_FUNDS)
+   * order=65: price = 100 eth ask 0.01 xpa => locked 0.01 eth
+   * account_version=156: reason = 600(=ORDER_SUBMIT), balance = -0.01, locked = 0.01 modified_id = 65 , modified_type = Order, currency = 9(=xpa), fun = 2(LOCK_FUNDS)
+   * trade=153:  price = 101, volume = 0.01, ask=65, bid=64, trend = 1, currency=18, ask_member_id=65538, bid_member_id = 65538, funds = 1.01
+   * order=64: bid=3, ask=9, currency=18, price = 101, volume = 0.99, origin_volume = 1, state = 100, type = OrderBid, member_id = 65538, locked = 99.9900000000000000, origin_locked = 101.0000000000000000, fund_receive= 0.0100000000000000,
+   * order=65: bid=3, ask=9, currency=18, price = 100, volume = 0, origin_volume = 0.01, state = 200, type = OrderAsk, member_id = 65538, locked = 0.0000000000000000, origin_locked = 0.0100000000000000, fund_receive = 1.0100000000000000, 
+   * vouchers=33: member_id = 65538, order_id = 64, trade_id = 153, ask = xpa, bid = eth, price = 101, volume = 0.01, value = 1.01, trend = bid, ask_fee = 0, bid_fee = 0.00001(fillSz*bid.feeRate),
+   * vouchers=34: member_id = 65538, order_id = 65, trade_id = 153, ask = xpa, bid = eth, price = 101, volume = 0.01, value = 1.01, trend = ask, ask_fee = 0.0020200000000000 , bid_fee = 0,
+   * --- order=64,vouchers=33,trend:bid, bid:xpa, fee:xpa(fillSz*bid.feeRate)
+   * account_version=158: eth, reason= 120(STRIKE_SUB: 120),  balance = 0, locked = -1.01(fillPx:101, fillSz: 0.01), fee = 0, modified_id = 153, modified_type = trade, currency = 3, fuc = 5(UNLOCK_AND_SUB_FUNDS: 5)
+   * account_version=159: xpa, reason= 110(STRIKE_ADD: 110),  balance = 0.00999(fillSz - fee), locked = 0, fee = 0.00001(same as: voucher=33, fillSz:0.01, bid.fee: 0.001), modified_id = 153, modified_type = trade, currency = 9, fuc = 3PLUS_FUNDS: 3)
+   * --- order=65,vouchers=34,trend:ask, ask:xpa, fee:eth
+   * account_version=160: xpa, reason= 120(STRIKE_SUB: 120),  balance = 0, locked = -0.01, fee = 0, modified_id = 153, modified_type = trade, currency = 9, fuc = 5(UNLOCK_AND_SUB_FUNDS: 5)
+   * account_version=161: eth, reason= 110(STRIKE_ADD: 110),  balance = 1.00798, locked = 0, fee = 0.00202(same as: voucher=34, fillPx:101* fillSz: 0.01* ask.fee: 0.001), modified_id = 153, modified_type = trade, currency = 3, fuc = 3(PLUS_FUNDS: 3)
+   * account=3,memberId=65538: balance = 898.9737600000000000, locked = 99.9910000000000000
+   * account=9,memberId=65538: balance = 999.9996300000000000, locked = 0.0100000000000000
+   */
   /**
    * @typedef {Object} Trade
    * @property {string} side "sell"
