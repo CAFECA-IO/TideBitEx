@@ -657,6 +657,16 @@ class ExchangeHubService {
         /* !!! HIGH RISK (start) !!! */
         // update order data from table
         await this.database.updateOrder(_updateOrder, { dbTransaction });
+        _updateOrder = {
+          ..._order,
+          ..._updateOrder,
+          kind: trade.side === "buy" ? "bid" : "ask",
+          clOrdId: trade.clOrdId,
+          at: parseInt(SafeMath.div(trade.ts, "1000")),
+          ts: parseInt(trade.ts),
+          state_text,
+          ordType: _order.ord_type,
+        };
       } else {
         if (_order?.member_id.toString() === memberId)
           this.logger.error("order has been closed");
@@ -673,16 +683,6 @@ class ExchangeHubService {
     this.logger.log(
       `------------- [${this.constructor.name}] _updateOrderbyTrade [END] -------------`
     );
-    _updateOrder = {
-      ..._order,
-      ..._updateOrder,
-      kind: trade.side === "buy" ? "bid" : "ask",
-      clOrdId: trade.clOrdId,
-      at: parseInt(SafeMath.div(trade.ts, "1000")),
-      ts: parseInt(trade.ts),
-      state_text,
-      ordType: _order.ord_type,
-    };
     this.logger.log(`_updateOrder[FOR UI]`, _updateOrder);
     return { updateOrder: _updateOrder, order: _order };
   }
@@ -778,7 +778,7 @@ class ExchangeHubService {
         newTrade = await this._insertTradesRecord({
           memberId,
           orderId,
-          market: market.id,
+          market,
           trade,
           dbTransaction: t,
         });
@@ -788,6 +788,7 @@ class ExchangeHubService {
           if (trade.side === "buy")
             resultOnAccUpdate = await this._updateAccByBidTrade({
               memberId,
+              market,
               askCurr: order.ask,
               bidCurr: order.bid,
               trade: { ...trade, id: newTrade.id },
@@ -796,6 +797,7 @@ class ExchangeHubService {
           else
             resultOnAccUpdate = await this._updateAccByAskTrade({
               memberId,
+              market,
               askCurr: order.ask,
               bidCurr: order.bid,
               trade: { ...trade, id: newTrade.id },
@@ -923,7 +925,10 @@ class ExchangeHubService {
         } else {
           this.logger.log(`fetchTradeFillsRecords`);
           okexRes = await this.okexConnector.router("fetchTradeFillsRecords", {
-            query: {},
+            query: {
+              instType: "SPOT",
+              before: Date.now() - this._maxInterval,
+            },
           });
         }
         if (okexRes.success) {

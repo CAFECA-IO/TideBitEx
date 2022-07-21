@@ -170,8 +170,8 @@ class OkexConnector extends ConnectorBase {
     if (instType) arr.push(`instType=${instType}`);
     if (before) arr.push(`before=${before}`);
     const path = "/api/v5/trade/fills-history";
-    const timeString = new Date().toISOString();
     const qs = !!arr.length ? `?${arr.join("&")}` : "";
+    const timeString = new Date().toISOString();
     const okAccessSign = await this.okAccessSign({
       timeString,
       method,
@@ -180,7 +180,7 @@ class OkexConnector extends ConnectorBase {
     try {
       const res = await axios({
         method: method.toLocaleLowerCase(),
-        url: `${this.domain}${path}`,
+        url: `${this.domain}${path}${qs}`,
         headers: this.getHeaders(true, { timeString, okAccessSign }),
       });
       if (res.data && res.data.code !== "0") {
