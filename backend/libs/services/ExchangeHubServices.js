@@ -31,7 +31,7 @@ class ExchangeHubService {
   }
 
   /**
-   * ++TODO gc
+   * ++TODO gc，#674
    * 每筆 outerTrade 只保留180天
    * outerTrade不能抓180天以前的資料
    * */
@@ -132,9 +132,10 @@ class ExchangeHubService {
     bidCurr,
     orderState,
     trade,
+    market,
     dbTransaction,
   }) {
-    // ex => ask:eth sell ask:eth => bid:usdt 增加 - (feeCcy bid:usdt) , release partial/all locked ask:eth
+    // ex => ask:eth sell ask:eth => bid:usdt 增加 - (feeCcy bid:usdt) , decrease partial/all locked ask:eth
     this.logger.log(
       `------------- [${this.constructor.name}] _updateAccByAskTrade -------------`
     );
@@ -150,7 +151,7 @@ class ExchangeHubService {
        * 3.5 update accountBook
        * 3.6 update DB
        * 4. calculate bidAccount balance change
-       * 4.1 bidAccount: balanceDiff = SafeMath.minus(SafeMath.mult(trade.fillPx, trade.fillSz), trade.fee)
+       * 4.1 bidAccount: balanceDiff = SafeMath.minus(SafeMath.mult(trade.fillPx, trade.fillSz), SafeMath.mult(SafeMath.mult(trade.fillPx, trade.fillSz), market.bid.fee)) // ++TODO verify is bid.fee || ask.fee
        * 4.2 bidAccount: balance = SafeMath.plus(bidAccount.balance, balanceDiff)
        * 4.3 bidAccount: lockedDiff  = 0
        * 4.4 bidAccount: locked = SafeMath.plus(bidAccount.locked, lockedDiff),
@@ -216,8 +217,8 @@ class ExchangeHubService {
       // 4.1 bidAccount: balanceDiff = SafeMath.minus(SafeMath.mult(trade.fillPx, trade.fillSz), trade.fee)
       bidAccBalDiff = SafeMath.minus(
         SafeMath.mult(trade.fillPx, trade.fillSz),
-        trade.fee
-      );
+        SafeMath.mult(SafeMath.mult(trade.fillPx, trade.fillSz), market.bid.fee)
+      ); // ++TODO verify is bid.fee || ask.fee
       // 4.2 bidAccount: balance = SafeMath.plus(bidAccount.balance, balanceDiff)
       bidAccBal = SafeMath.plus(bidAccount.balance, bidAccBalDiff);
       // 4.3 bidAccount: lockedDiff  = 0
@@ -264,20 +265,21 @@ class ExchangeHubService {
     askCurr,
     bidCurr,
     orderState,
+    market,
     trade,
     dbTransaction,
   }) {
     this.logger.log(
       `------------- [${this.constructor.name}] _updateAccByBidTrade -------------`
     );
-    // ex => bid:usdt buy ask:eth => release partial/all locked bid:usdt , ask:eth - (feeCcy ask:eth)增加
+    // ex => bid:usdt buy ask:eth => decrease partial/all locked bid:usdt , ask:eth - (feeCcy ask:eth)增加
     try {
       /**
        * !!! HIGH RISK (start) !!!
        * 1. get askAccount from table
        * 2. get bidAccount from table
        * 3. calculate askAccount balance change
-       * 3.1 askAccount: SafeMath.plus(trade.fillSz, trade.fee);
+       * 3.1 askAccount: SafeMath.minus(trade.fillSz, SafeMath.mult(trade.fillSz, market.ask.fee)); //++ TODO to be verify: is market.bid.fee || market.ask.fee need test (TideBit-Legacy config/markerts/markets.yml 裡 ask.fee 及 bid.fee 設定不一樣，使用 TideBit ticker 測試)
        * 3.2 askAccount: balance = SafeMath.plus(askAccount.balance, balanceDiff)
        * 3.3 askAccount: lockedDiff = 0;
        * 3.4 askAccount: locked = SafeMath.plus(askAccount.locked, lockedDiff),
@@ -314,7 +316,11 @@ class ExchangeHubService {
       );
       // 3. calculate askAccount balance change
       // 3.1 askAccount: SafeMath.plus(trade.fillSz, trade.fee);
-      askAccBalDiff = SafeMath.plus(trade.fillSz, trade.fee);
+      //++ TODO to be verify: is market.bid.fee || market.ask.fee need test (TideBit-Legacy config/markerts/markets.yml 裡 ask.fee 及 bid.fee 設定不一樣，使用 TideBit ticker 測試)
+      askAccBalDiff = SafeMath.minus(
+        trade.fillSz,
+        SafeMath.mult(trade.fillSz, market.ask.fee)
+      );
       // 3.2 askAccount: balance = SafeMath.plus(askAccount.balance, balanceDiff)
       askAccBal = SafeMath.plus(askAccount.balance, askAccBalDiff);
       // 3.3 askAccount: lockedDiff = 0
@@ -358,6 +364,7 @@ class ExchangeHubService {
         "-1"
       );
       // 4.2 bidAccount: locked = SafeMath.plus(bidAccount.locked, lockedDiff),
+      // ++ TODO if bidLoc < 0 ,!!! alert , systemError send email to all admins
       bidLoc = SafeMath.plus(bidAccount.locked, bidLocDiff);
       // ++ TODO 4.5 update accountBook
       // 4.6 update DB
@@ -394,7 +401,7 @@ class ExchangeHubService {
     }
   }
 
-  async _insertVouchers({ memberId, orderId, trade, dbTransaction }) {
+  async _insertVouchers({ memberId, orderId, trade, market, dbTransaction }) {
     this.logger.log(
       `------------- [${this.constructor.name}] _insertVouchers -------------`
     );
@@ -410,6 +417,10 @@ class ExchangeHubService {
       throw Error(
         `order base_unit[order.ask: ${askId}] or quote_unit[order.bid: ${bidId}] not found`
       );
+    /**
+     * ++ TODO
+     * fee 也要根據用戶的等級來收，要開票
+     */
     try {
       result = await this.database.insertVouchers(
         memberId,
@@ -422,8 +433,15 @@ class ExchangeHubService {
         trade.fillSz,
         SafeMath.mult(trade.fillPx, trade.fillSz),
         trade.side === "sell" ? "ask" : "bid",
-        trade.side === "sell" ? trade.fee : "0", // get bid, so fee is bid
-        trade.side === "sell" ? "0" : trade.fee, // get ask, so fee is ask
+        trade.side === "sell"
+          ? SafeMath.mult(
+              SafeMath.mult(trade.fillPx, trade.fillSz),
+              market.bid.fee //++ TODO to be verify: is market.bid.fee || market.ask.fee need test (TideBit-Legacy config/markerts/markets.yml 裡 ask.fee 及 bid.fee 設定不一樣，使用 TideBit ticker 測試)
+            )
+          : "0", //ask_fee
+        trade.side === "buy"
+          ? SafeMath.mult(trade.fillSz, market.ask.fee) //++ TODO to be verify: is market.bid.fee || market.ask.fee need test (TideBit-Legacy config/markerts/markets.yml 裡 ask.fee 及 bid.fee 設定不一樣，使用 TideBit ticker 測試)
+          : "0", //bid_fee
         trade.ts,
         { dbTransaction }
       );
@@ -437,14 +455,13 @@ class ExchangeHubService {
     return result;
   }
 
-  async insertTrades({ memberId, orderId, trade, dbTransaction }) {
+  async insertTrades({ memberId, orderId, market, trade, dbTransaction }) {
     this.logger.log(
       `------------- [${this.constructor.name}] insertTrades -------------`
     );
     /* !!! HIGH RISK (start) !!! */
     // 1. insert Vouchers to DB
-    let result,
-      market = this._findMarket(trade.instId);
+    let result = -1;
     this.logger.log(`market`, market);
     if (!market) throw Error(`market not found`);
     try {
@@ -473,7 +490,13 @@ class ExchangeHubService {
     return result;
   }
 
-  async _insertTradesRecord({ memberId, orderId, trade, dbTransaction }) {
+  async _insertTradesRecord({
+    memberId,
+    orderId,
+    market,
+    trade,
+    dbTransaction,
+  }) {
     let insertTradesResult, insertVouchersResult, result;
     this.logger.log(
       `------------- [${this.constructor.name}] _insertTradesRecord -------------`
@@ -491,6 +514,7 @@ class ExchangeHubService {
           memberId,
           orderId,
           trade,
+          market,
           dbTransaction,
         });
         this.logger.log(`_insertTrades result`, insertTradesResult);
@@ -499,6 +523,7 @@ class ExchangeHubService {
           memberId,
           orderId,
           trade: { ...trade, id: insertTradesResult },
+          market,
           dbTransaction,
         });
         this.logger.log(`insertVouchers result`, insertVouchersResult);
@@ -548,11 +573,11 @@ class ExchangeHubService {
         fundsReceived =
           trade.side === "buy"
             ? SafeMath.plus(_order.funds_received, trade.fillSz)
-            : SafeMath.plus(_order.funds_received, value);
+            : SafeMath.plus(_order.funds_received, value); //++ TODO to be verify: 使用 TideBit ticker 測試)
         tradesCount = SafeMath.plus(_order.trades_count, "1");
         if (SafeMath.eq(volume, "0")) {
           state = this.database.ORDER_STATE.DONE;
-          locked = "0";
+          locked = "0"; //++ TODO to be verify: 使用 TideBit ticker 測試)
         }
         _updateOrder = {
           id: _order.id,
@@ -612,6 +637,7 @@ class ExchangeHubService {
     );
     // 1. parse  memberId, orderId from trade.clOrdId
     const { memberId, orderId } = Utils.parseClOrdId(trade.clOrdId);
+    const market = this._findMarket(trade.instId);
     /* !!! HIGH RISK (start) !!! */
     // 1. _updateOrderbyTrade
     // 2. _insertTrades & _insertVoucher
@@ -636,6 +662,7 @@ class ExchangeHubService {
         let result = await this._insertTradesRecord({
           memberId,
           orderId,
+          market,
           trade,
           dbTransaction: t,
         });
@@ -661,6 +688,15 @@ class ExchangeHubService {
               dbTransaction: t,
             });
         }
+        /**
+         * ++ TODO，要開票
+         * 1. 記錄 tidebit 要付給 okex 的 手續費 或是 tidebit 從 okex 收到的 手續費
+         * 2. 根據 member 的推薦人發送獎勵 （抽成比例由 DB 裡面記錄 member 的方案來確認 (
+         *     referral_commissions
+         *     commission_plans
+         *     commission_policies)
+         *    ）
+         */
         // 4. _updateOuterTradeStatus
         await this._updateOuterTradeStatus({
           id: trade.tradeId,
