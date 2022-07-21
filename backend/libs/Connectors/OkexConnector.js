@@ -161,6 +161,55 @@ class OkexConnector extends ConnectorBase {
     return result;
   }
 
+  async fetchTradeFillsHistoryRecords({ query }) {
+    const { instType, before } = query;
+    this.logger.log(`[${this.constructor.name}] fetchTradeFillsHistoryRecords`);
+    let result;
+    const method = "GET";
+    const arr = [];
+    if (instType) arr.push(`instType=${instType}`);
+    if (before) arr.push(`before=${before}`);
+    const path = "/api/v5/trade/fills-history";
+    const timeString = new Date().toISOString();
+    const qs = !!arr.length ? `?${arr.join("&")}` : "";
+    const okAccessSign = await this.okAccessSign({
+      timeString,
+      method,
+      path: `${path}${qs}`,
+    });
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}`,
+        headers: this.getHeaders(true, { timeString, okAccessSign }),
+      });
+      if (res.data && res.data.code !== "0") {
+        const message = JSON.stringify(res.data);
+        this.logger.trace(message);
+      }
+      const data = res.data.data.map((trade) => ({
+        ...trade,
+        // tradeId: `${this.database.EXCHANGE.OKEX.toString()}${this.tradeId}`,
+        status: 0,
+        source: SupportedExchange.OKEX,
+      }));
+      result = new ResponseFormat({
+        message: "tradeFills",
+        payload: data,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      let message = error.message;
+      if (error.response && error.response.data)
+        message = error.response.data.msg;
+      result = new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+    return result;
+  }
+
   async _getOrderHistory(options) {
     const { instType, instId, after, limit } = options;
     const method = "GET";

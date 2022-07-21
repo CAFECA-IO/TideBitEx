@@ -229,34 +229,20 @@ class DBOperator {
     );
   }
 
-  async insertTrades(
-    price,
-    volume,
-    ask_id,
-    bid_id,
-    trend,
-    currency,
-    created_at,
-    updated_at,
-    ask_member_id,
-    bid_member_id,
-    funds,
-    trade_fk,
-    { dbTransaction }
-  ) {
+  async insertTrades(trade, { dbTransaction }) {
     return this.database.insertTrades(
-      price,
-      volume,
-      ask_id,
-      bid_id,
-      trend,
-      currency,
-      created_at,
-      updated_at,
-      ask_member_id,
-      bid_member_id,
-      funds,
-      trade_fk,
+      trade.price,
+      trade.volume,
+      trade.ask_id,
+      trade.bid_id,
+      trade.trend,
+      trade.currency,
+      trade.created_at,
+      trade.updated_at,
+      trade.ask_member_id,
+      trade.bid_member_id,
+      trade.funds,
+      trade.trade_fk,
       { dbTransaction }
     );
   }
@@ -305,6 +291,10 @@ class DBOperator {
 
   async updateOuterTrade(datas, { dbTransaction }) {
     return this.database.updateOuterTrade(datas, { dbTransaction });
+  }
+
+  async deleteOuterTrade(datas, { dbTransaction }) {
+    return this.database.deleteOuterTrade(datas, { dbTransaction });
   }
   /* !!! HIGH RISK (end) !!! */
 }

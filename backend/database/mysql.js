@@ -695,6 +695,29 @@ class mysql {
       if (dbTransaction) throw error;
     }
   }
+
+  async deleteOuterTrade(datas, { dbTransaction }) {
+    const query =
+      "DELETE FROM `outer_trades` WHERE `outer_trades`.`id` = ? AND `outer_trades`.`exchange_code` = ?;";
+    const values = [datas.id, datas.exchange_code];
+    try {
+      const result = await this.db.query(
+        {
+          query,
+          values,
+        },
+        // {
+        //   transaction: dbTransaction,
+        //   lock: dbTransaction.LOCK., // ++ TODO verify
+        // }
+      );
+      this.logger.log(query, values);
+      return result;
+    } catch (error) {
+      this.logger.error(error);
+      return [];
+    }
+  }
   /* !!! HIGH RISK (end) !!! */
 }
 

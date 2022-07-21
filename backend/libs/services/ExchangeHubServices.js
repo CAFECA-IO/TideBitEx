@@ -6,6 +6,8 @@ class ExchangeHubService {
   _timer;
   _lastSyncTime = 0;
   _syncInterval = 10 * 60 * 1000; // 10mins
+  _maxInterval = 180 * 24 * 60 * 60 * 1000;
+  _isStarted = false;
 
   constructor({
     database,
@@ -25,6 +27,25 @@ class ExchangeHubService {
     return this;
   }
 
+  // 到 new.tidebit.com 拿 DB 資料
+
+  async garbageCollection(outerTrades) {
+    for (let trade of outerTrades) {
+      const date = new Date(trade.update_at);
+      const timestamp = date.getTime();
+      if (timestamp > this._maxInterval && parseInt(trade.status) === 1) {
+        const t = await this.database.transaction();
+        try {
+          await this.database.deleteOuterTrade(trade, { dbTransaction: t });
+          await t.commit();
+        } catch (error) {
+          this.logger.error(`deleteOuterTrade`, error);
+          await t.rollback();
+        }
+      }
+    }
+  }
+
   start() {
     this.logger.log(`[${this.constructor.name}] start`);
     this.sync();
@@ -40,7 +61,11 @@ class ExchangeHubService {
     this.logger.log(`[${this.constructor.name}] sync`);
     const time = Date.now();
     // 1. 定期（10mins）執行工作
-    if (time - this._lastSyncTime > this._syncInterval || force) {
+    if (
+      time - this._lastSyncTime > this._syncInterval ||
+      force ||
+      !this._isStarted
+    ) {
       // 2. 從 API 取 outerTrades 並寫入 DB
       const result = await this._syncOuterTrades(
         exchange || SupportedExchange.OKEX
@@ -130,7 +155,6 @@ class ExchangeHubService {
     memberId,
     askCurr,
     bidCurr,
-    orderState,
     trade,
     market,
     dbTransaction,
@@ -139,6 +163,16 @@ class ExchangeHubService {
     this.logger.log(
       `------------- [${this.constructor.name}] _updateAccByAskTrade -------------`
     );
+    let askAccBalDiff,
+      askAccBal,
+      askLocDiff,
+      askLoc,
+      bidAccBalDiff,
+      bidAccBal,
+      bidLocDiff,
+      bidLoc,
+      updateAskAccount,
+      updateBidAccount;
     try {
       /** !!! HIGH RISK (start) !!!
        * 1. get askAccount from table
@@ -158,14 +192,6 @@ class ExchangeHubService {
        * 4.5 update accountBook
        * 4.6 update DB
        */
-      let askAccBalDiff,
-        askAccBal,
-        askLocDiff,
-        askLoc,
-        bidAccBalDiff,
-        bidAccBal,
-        bidLocDiff,
-        bidLoc;
       // 1. get askAccount from table
       const askAccount = await this.database.getAccountByMemberIdCurrency(
         memberId,
@@ -188,6 +214,12 @@ class ExchangeHubService {
       // 3.4 askAccount: locked = SafeMath.plus(askAccount.locked, lockedDiff),
       askLoc = SafeMath.plus(askAccount.locked, askLocDiff);
       // ++ TODO 3.5 update accountBook
+      updateAskAccount = {
+        balace: askAccBal,
+        locked: askLoc,
+        currency: market.ask.currency,
+        total: SafeMath.plus(askAccBal, askLoc),
+      };
       // 3.6 update DB
       this.logger.log(`askAccount`, askAccount);
       this.logger.log(`askAccBalDiff`, askAccBalDiff);
@@ -203,10 +235,7 @@ class ExchangeHubService {
         accBal: askAccBal,
         accLocDiff: askLocDiff,
         accLoc: askLoc,
-        reason:
-          orderState === this.database.ORDER_STATE.DONE
-            ? this.database.REASON.ORDER_FULLFILLED
-            : this.database.REASON.STRIKE_UNLOCK,
+        reason: this.database.REASON.STRIKE_SUB,
         fee: 0,
         modifiableId: trade.id,
         updateAt: new Date(parseInt(trade.ts)).toISOString(),
@@ -226,6 +255,12 @@ class ExchangeHubService {
       // 4.4 bidAccount: locked = SafeMath.plus(bidAccount.locked, lockedDiff),
       bidLoc = SafeMath.plus(bidAccount.locked, bidLocDiff);
       // ++ TODO 4.5 update accountBook
+      updateBidAccount = {
+        balace: bidAccBal,
+        locked: bidLoc,
+        currency: market.bid.currency,
+        total: SafeMath.plus(bidAccBal, bidLoc),
+      };
       // 4.6 update DB
       this.logger.log(`bidAccount`, bidAccount);
       this.logger.log(`bidAccBalDiff`, bidAccBalDiff);
@@ -241,10 +276,7 @@ class ExchangeHubService {
         accBal: bidAccBal,
         accLocDiff: bidLocDiff,
         accLoc: bidLoc,
-        reason:
-          orderState === this.database.ORDER_STATE.DONE
-            ? this.database.REASON.ORDER_FULLFILLED
-            : this.database.REASON.STRIKE_SUB,
+        reason: this.database.REASON.STRIKE_ADD,
         fee: SafeMath.abs(trade.fee),
         modifiableId: trade.id,
         updateAt: new Date(parseInt(trade.ts)).toISOString(),
@@ -258,13 +290,13 @@ class ExchangeHubService {
       this.logger.error(`_updateAccByAskTrade`, error);
       throw error;
     }
+    return { updateAskAccount, updateBidAccount };
   }
 
   async _updateAccByBidTrade({
     memberId,
     askCurr,
     bidCurr,
-    orderState,
     market,
     trade,
     dbTransaction,
@@ -273,6 +305,16 @@ class ExchangeHubService {
       `------------- [${this.constructor.name}] _updateAccByBidTrade -------------`
     );
     // ex => bid:usdt buy ask:eth => decrease partial/all locked bid:usdt , ask:eth - (feeCcy ask:eth)增加
+    let askAccBalDiff,
+      askAccBal,
+      askLocDiff,
+      askLoc,
+      bidAccBalDiff,
+      bidAccBal,
+      bidLocDiff,
+      bidLoc,
+      updateAskAccount,
+      updateBidAccount;
     try {
       /**
        * !!! HIGH RISK (start) !!!
@@ -294,14 +336,6 @@ class ExchangeHubService {
        * 4.6 update DB
        * -----
        */
-      let askAccBalDiff,
-        askAccBal,
-        askLocDiff,
-        askLoc,
-        bidAccBalDiff,
-        bidAccBal,
-        bidLocDiff,
-        bidLoc;
       // 1. get askAccount from table
       const askAccount = await this.database.getAccountByMemberIdCurrency(
         memberId,
@@ -328,6 +362,12 @@ class ExchangeHubService {
       // 3.4 askAccount: locked = SafeMath.plus(askAccount.locked, lockedDiff),
       askLoc = SafeMath.plus(askAccount.locked, askLocDiff);
       // ++ TODO 3.5 update accountBook
+      updateAskAccount = {
+        balace: askAccBal,
+        locked: askLoc,
+        currency: market.ask.currency,
+        total: SafeMath.plus(askAccBal, askLoc),
+      };
       // 3.6 update DB
       this.logger.log(`askAccount`, askAccount);
       this.logger.log(`askAccBalDiff`, askAccBalDiff);
@@ -343,10 +383,7 @@ class ExchangeHubService {
         accBal: askAccBal,
         accLocDiff: askLocDiff,
         accLoc: askLoc,
-        reason:
-          orderState === this.database.ORDER_STATE.DONE
-            ? this.database.REASON.ORDER_FULLFILLED
-            : this.database.REASON.STRIKE_ADD,
+        reason: this.database.REASON.STRIKE_ADD,
         fee: SafeMath.abs(trade.fee),
         modifiableId: trade.id,
         updateAt: new Date(parseInt(trade.ts)).toISOString(),
@@ -367,6 +404,12 @@ class ExchangeHubService {
       // ++ TODO if bidLoc < 0 ,!!! alert , systemError send email to all admins
       bidLoc = SafeMath.plus(bidAccount.locked, bidLocDiff);
       // ++ TODO 4.5 update accountBook
+      updateBidAccount = {
+        balace: bidAccBal,
+        locked: bidLoc,
+        currency: market.bid.currency,
+        total: SafeMath.plus(bidAccBal, bidLoc),
+      };
       // 4.6 update DB
       this.logger.log(`bidAccount`, bidAccount);
       this.logger.log(`bidAccBalDiff`, bidAccBalDiff);
@@ -382,10 +425,7 @@ class ExchangeHubService {
         accBal: bidAccBal,
         accLocDiff: bidLocDiff,
         accLoc: bidLoc,
-        reason:
-          orderState === this.database.ORDER_STATE.DONE
-            ? this.database.REASON.ORDER_FULLFILLED
-            : this.database.REASON.STRIKE_SUB,
+        reason: this.database.REASON.STRIKE_SUB,
         fee: 0,
         modifiableId: trade.id,
         updateAt: new Date(parseInt(trade.ts)).toISOString(),
@@ -399,6 +439,7 @@ class ExchangeHubService {
       this.logger.error(`_updateAccByAskTrade`, error);
       throw error;
     }
+    return { updateAskAccount, updateBidAccount };
   }
 
   async _insertVouchers({ memberId, orderId, trade, market, dbTransaction }) {
@@ -461,25 +502,25 @@ class ExchangeHubService {
     );
     /* !!! HIGH RISK (start) !!! */
     // 1. insert Vouchers to DB
-    let result;
+    let id, _trade;
     this.logger.log(`market`, market);
     if (!market) throw Error(`market not found`);
+    _trade = {
+      price: trade.fillPx,
+      volume: trade.fillSz,
+      ask_id: trade.side === "sell" ? orderId : null,
+      bid_id: trade.side === "buy" ? orderId : null,
+      trend: null,
+      currency: market.code,
+      created_at: new Date(parseInt(trade.ts)).toISOString(),
+      updated_at: new Date(parseInt(trade.ts)).toISOString(),
+      ask_member_id: trade.side === "sell" ? memberId : this.systemMemberId,
+      bid_member_id: trade.side === "buy" ? memberId : this.systemMemberId,
+      funds: SafeMath.mult(trade.fillPx, trade.fillSz),
+      trade_fk: trade.tradeId,
+    };
     try {
-      result = await this.database.insertTrades(
-        trade.fillPx, //price
-        trade.fillSz, //volume
-        trade.side === "sell" ? orderId : null, // ask_id: order_id
-        trade.side === "buy" ? orderId : null, // bid_id: order_id
-        null, // trend
-        market.code, // currency
-        new Date(parseInt(trade.ts)).toISOString(), // created_at
-        new Date(parseInt(trade.ts)).toISOString(), // updated_at
-        trade.side === "sell" ? memberId : this.systemMemberId, // ask_member_id
-        trade.side === "buy" ? memberId : this.systemMemberId, // bid_member_id
-        SafeMath.mult(trade.fillPx, trade.fillSz), // funds
-        trade.tradeId, // trade_fk
-        { dbTransaction }
-      );
+      id = await this.database.insertTrades(_trade, { dbTransaction });
     } catch (error) {
       this.logger.error(`insertVouchers`, error);
       throw error;
@@ -487,7 +528,18 @@ class ExchangeHubService {
     this.logger.log(
       `------------- [${this.constructor.name}] insertTrades [END] -------------`
     );
-    return result;
+    _trade = {
+      ..._trade,
+      id,
+      tid: id,
+      type: trade.side === "sell" ? "ask" : "bid",
+      date: trade.ts,
+      amount: trade.fillSz,
+      market: market.id,
+      at: parseInt(SafeMath.div(trade.ts, "1000")),
+      ts: trade.ts,
+    };
+    return _trade;
   }
 
   async _insertTradesRecord({
@@ -497,10 +549,7 @@ class ExchangeHubService {
     trade,
     dbTransaction,
   }) {
-    let insertTradesResult,
-      insertVouchersResult,
-      result = -1,
-      _trade;
+    let insertTradesResult, insertVouchersResult, newTrade, _trade;
     this.logger.log(
       `------------- [${this.constructor.name}] _insertTradesRecord -------------`
     );
@@ -524,14 +573,14 @@ class ExchangeHubService {
         insertVouchersResult = await this._insertVouchers({
           memberId,
           orderId,
-          trade: { ...trade, id: insertTradesResult },
+          trade: { ...trade, id: insertTradesResult.id },
           market,
           dbTransaction,
         });
         this.logger.log(`insertVouchers result`, insertVouchersResult);
-        result = insertTradesResult;
+        newTrade = insertTradesResult;
       } else {
-        this.logger.log(`this trade is already exist result`);
+        this.logger.log(`this trade is already exist`);
       }
     } catch (error) {
       this.logger.error(`_insertTradesRecord`, error);
@@ -541,7 +590,7 @@ class ExchangeHubService {
     this.logger.log(
       `------------- [${this.constructor.name}] _insertTradesRecord [END]-------------`
     );
-    return result;
+    return newTrade;
   }
 
   async _updateOrderbyTrade({ memberId, orderId, trade, dbTransaction }) {
@@ -551,6 +600,8 @@ class ExchangeHubService {
     let _order,
       _updateOrder,
       state,
+      state_text = "Waiting",
+      filled = false,
       volume,
       locked,
       updateAt,
@@ -581,6 +632,8 @@ class ExchangeHubService {
         tradesCount = SafeMath.plus(_order.trades_count, "1");
         if (SafeMath.eq(volume, "0")) {
           state = this.database.ORDER_STATE.DONE;
+          state_text = "Done";
+          filled = true;
           locked = "0"; //++ TODO to be verify: 使用 TideBit ticker 測試)
         }
         _updateOrder = {
@@ -591,6 +644,7 @@ class ExchangeHubService {
           funds_received: fundsReceived,
           trades_count: tradesCount,
           update_at: updateAt,
+          filled,
         };
         /* !!! HIGH RISK (start) !!! */
         // update order data from table
@@ -611,6 +665,17 @@ class ExchangeHubService {
     this.logger.log(
       `------------- [${this.constructor.name}] _updateOrderbyTrade [END] -------------`
     );
+    _updateOrder = {
+      ..._order,
+      ..._updateOrder,
+      kind: trade.side === "buy" ? "bid" : "ask",
+      clOrdId: trade.clOrdId,
+      at: parseInt(SafeMath.div(trade.ts, "1000")),
+      ts: parseInt(trade.ts),
+      state_text,
+      ordType: _order.ord_type,
+    };
+    this.logger.log(`_updateOrder[FOR UI]`, _updateOrder);
     return { updateOrder: _updateOrder, order: _order };
   }
 
@@ -672,6 +737,13 @@ class ExchangeHubService {
     // 1. parse  memberId, orderId from trade.clOrdId
     const { memberId, orderId } = Utils.parseClOrdId(trade.clOrdId);
     const market = this._findMarket(trade.instId);
+    let order,
+      resultOnOrderUpdate,
+      updateOrder,
+      newTrade,
+      resultOnAccUpdate,
+      updateAskAccount,
+      updateBidAccount;
     /* !!! HIGH RISK (start) !!! */
     // 1. _updateOrderbyTrade
     // 2. _insertTrades & _insertVoucher
@@ -684,43 +756,45 @@ class ExchangeHubService {
     const t = await this.database.transaction();
     try {
       // 1. _updateOrderbyTrade
-      const { order, updateOrder } = await this._updateOrderbyTrade({
+      resultOnOrderUpdate = await this._updateOrderbyTrade({
         memberId,
         orderId,
         trade,
         dbTransaction: t,
       });
+      order = resultOnOrderUpdate?.order;
+      updateOrder = resultOnOrderUpdate?.updateOrder;
       // if this order is in this environment
       if (order) {
         // 2. _insertTrades & _insertVouchers
-        let result = await this._insertTradesRecord({
+        newTrade = await this._insertTradesRecord({
           memberId,
           orderId,
-          market,
+          market: market.id,
           trade,
           dbTransaction: t,
         });
         // 3. side === 'buy' ? _updateAccByBidTrade : _updateAccByAskTrade
         // if this trade does need update
-        if (result !== -1) {
+        if (newTrade) {
           if (trade.side === "buy")
-            await this._updateAccByBidTrade({
+            resultOnAccUpdate = await this._updateAccByBidTrade({
               memberId,
               askCurr: order.ask,
               bidCurr: order.bid,
-              orderState: updateOrder?.state || order?.state,
-              trade: { ...trade, id: result },
+              trade: { ...trade, id: newTrade.id },
               dbTransaction: t,
             });
           else
-            await this._updateAccByAskTrade({
+            resultOnAccUpdate = await this._updateAccByAskTrade({
               memberId,
               askCurr: order.ask,
               bidCurr: order.bid,
-              orderState: updateOrder?.state || order?.state,
-              trade: { ...trade, id: result },
+              trade: { ...trade, id: newTrade.id },
               dbTransaction: t,
             });
+          updateAskAccount = resultOnAccUpdate.updateAskAccount;
+          updateBidAccount = resultOnAccUpdate.updateBidAccount;
         }
         /**
          * ++ TODO，要開票
@@ -749,6 +823,15 @@ class ExchangeHubService {
     this.logger.log(
       `------------- [${this.constructor.name}] _processOuterTrade [END] -------------`
     );
+    return {
+      memberId,
+      instId: trade.instId,
+      market,
+      updateOrder,
+      newTrade,
+      updateAskAccount,
+      updateBidAccount,
+    };
   }
 
   async _processOuterTrades(exchange) {
@@ -758,6 +841,9 @@ class ExchangeHubService {
       this.database.EXCHANGE[exchange.toUpperCase()],
       5
     );
+    if (Math.random() < 0.01) {
+      this.garbageCollection(outerTrades);
+    }
     this.logger.log(`outerTrades`, outerTrades);
     // 2. _processOuterTrade
     for (let trade of outerTrades) {
@@ -805,12 +891,23 @@ class ExchangeHubService {
     switch (exchange) {
       case SupportedExchange.OKEX:
       default:
-        const okexRes = await this.okexConnector.router(
-          "fetchTradeFillsRecords",
-          {
+        let okexRes;
+        if (!this._isStarted) {
+          okexRes = await this.okexConnector.router(
+            "fetchTradeFillsHistoryRecords",
+            {
+              query: {
+                instType: "SPOT",
+                before: Date.now() - this._maxInterval,
+              },
+            }
+          );
+          this._isStarted = true;
+        } else {
+          okexRes = await this.okexConnector.router("fetchTradeFillsRecords", {
             query: {},
-          }
-        );
+          });
+        }
         if (okexRes.success) {
           outerTrades = okexRes.payload;
         } else {

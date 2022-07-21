@@ -143,7 +143,46 @@ class ExchangeHub extends Bot {
             formatOrder.accFillSz !== "0" /* create order */
           ) {
             // await this._updateOrderDetail(formatOrder);
-            this.exchangeHubService.sync(SupportedExchange.OKEX, true);
+            const result = this.exchangeHubService.sync(
+              SupportedExchange.OKEX,
+              true
+            );
+            const memberId = result.memberId,
+              market = result.market,
+              instId = result.instId,
+              updateOrder = result.updateOrder,
+              newTrade = result.newTrade,
+              updateAskAccount = result.updateAskAccount,
+              updateBidAccount = result.updateBidAccount;
+            if (updateOrder) {
+              this.orderBook.updateByDifference(memberId, instId, {
+                add: [updateOrder],
+              });
+              EventBus.emit(Events.order, memberId, market, {
+                market,
+                difference: this.orderBook.getDifference(memberId, instId),
+              });
+            }
+            if (newTrade) {
+              this.tradeBook.updateByDifference(instId, { add: [newTrade] });
+              EventBus.emit(Events.trade, memberId, newTrade);
+            }
+            if (updateAskAccount) {
+              this.accountBook.updateByDifference(memberId, updateAskAccount);
+              EventBus.emit(
+                Events.account,
+                memberId,
+                this.accountBook.getDifference(memberId)
+              );
+            }
+            if (updateBidAccount) {
+              this.accountBook.updateByDifference(memberId, updateBidAccount);
+              EventBus.emit(
+                Events.account,
+                memberId,
+                this.accountBook.getDifference(memberId)
+              );
+            }
           }
         }
       }
