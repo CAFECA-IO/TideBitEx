@@ -461,7 +461,7 @@ class ExchangeHubService {
     );
     /* !!! HIGH RISK (start) !!! */
     // 1. insert Vouchers to DB
-    let result = -1;
+    let result;
     this.logger.log(`market`, market);
     if (!market) throw Error(`market not found`);
     try {
@@ -497,11 +497,13 @@ class ExchangeHubService {
     trade,
     dbTransaction,
   }) {
-    let insertTradesResult, insertVouchersResult, result;
+    let insertTradesResult,
+      insertVouchersResult,
+      result = -1,
+      _trade;
     this.logger.log(
       `------------- [${this.constructor.name}] _insertTradesRecord -------------`
     );
-    let _trade;
     /* !!! HIGH RISK (start) !!! */
     try {
       // 1. get _trade By trade_fk
@@ -528,6 +530,8 @@ class ExchangeHubService {
         });
         this.logger.log(`insertVouchers result`, insertVouchersResult);
         result = insertTradesResult;
+      } else {
+        this.logger.log(`this trade is already exist result`);
       }
     } catch (error) {
       this.logger.error(`_insertTradesRecord`, error);
