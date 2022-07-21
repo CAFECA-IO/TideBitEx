@@ -305,6 +305,7 @@ class ExchangeHubService {
     memberId,
     askCurr,
     bidCurr,
+    order,
     market,
     trade,
     dbTransaction,
@@ -405,7 +406,7 @@ class ExchangeHubService {
       bidAccBal = SafeMath.plus(bidAccount.balance, bidAccBalDiff);
       // 4.1 bidAccount: lockedDiff  = SafeMath.mult(SafeMath.mult(trade.fillPx, trade.fillSz), "-1");
       bidLocDiff = SafeMath.mult(
-        SafeMath.mult(trade.fillPx, trade.fillSz),
+        SafeMath.mult(order.price, trade.fillSz),
         "-1"
       );
       // 4.2 bidAccount: locked = SafeMath.plus(bidAccount.locked, lockedDiff),
@@ -802,6 +803,7 @@ class ExchangeHubService {
               resultOnAccUpdate = await this._updateAccByBidTrade({
                 memberId,
                 market,
+                order,
                 askCurr: order.ask,
                 bidCurr: order.bid,
                 trade: { ...trade, id: newTrade.id },
