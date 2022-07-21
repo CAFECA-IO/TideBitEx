@@ -61,7 +61,9 @@ class ExchangeHubService {
     this.logger.log(
       `------------- [${this.constructor.name}] sync -------------`
     );
-    const time = Date.now();
+    let time = Date.now(),
+      upateData,
+      result;
     this.logger.log(
       `time - this._lastSyncTime > this._syncInterval`,
       time - this._lastSyncTime > this._syncInterval
@@ -75,13 +77,11 @@ class ExchangeHubService {
       !this._isStarted
     ) {
       // 2. 從 API 取 outerTrades 並寫入 DB
-      const result = await this._syncOuterTrades(
-        exchange || SupportedExchange.OKEX
-      );
+      result = await this._syncOuterTrades(exchange || SupportedExchange.OKEX);
       if (result) {
         this._lastSyncTime = Date.now();
         // 3. 觸發從 DB 取 outertradesrecord 更新下列 DB table trades、orders、accounts、accounts_version、vouchers
-        this._processOuterTrades(SupportedExchange.OKEX);
+        upateData = await this._processOuterTrades(SupportedExchange.OKEX);
       } else {
         // ++ TODO
       }
@@ -89,6 +89,7 @@ class ExchangeHubService {
       // 4. 休息
       this.timer = setTimeout(() => this.sync(), this._syncInterval + 1000);
     }
+    return upateData;
   }
 
   // ++ TODO
@@ -873,11 +874,13 @@ class ExchangeHubService {
   }
 
   async _processOuterTrades(exchange) {
+    let tmp,
+      updateData = [];
     this.logger.log(`[${this.constructor.name}] _processOuterTrades`);
     // 1. get all records from outer_trades table &  fillter records if record.status === 5
     const outerTrades = await this.database.getOuterTrades(
       this.database.EXCHANGE[exchange.toUpperCase()],
-      5
+      0
     );
     if (Math.random() < 0.01) {
       this.garbageCollection(outerTrades);
@@ -885,8 +888,10 @@ class ExchangeHubService {
     this.logger.log(`outerTrades`, outerTrades);
     // 2. _processOuterTrade
     for (let trade of outerTrades) {
-      await this._processOuterTrade(JSON.parse(trade.data));
+      tmp = await this._processOuterTrade(JSON.parse(trade.data));
+      updateData.push(tmp);
     }
+    return updateData;
   }
 
   async _insertOuterTrade(outerTrade) {

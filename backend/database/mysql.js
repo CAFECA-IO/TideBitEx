@@ -220,7 +220,7 @@ class mysql {
 
   async getOuterTrades(exchangeCode, status) {
     const query =
-      "SELECT * FROM `outer_trades` WHERE `outer_trades`.`exchange_code` = ? AND `outer_trades`.`status` <> ?;";
+      "SELECT * FROM `outer_trades` WHERE `outer_trades`.`exchange_code` = ? AND `outer_trades`.`status` = ?;";
     try {
       this.logger.log("getOuterTrades", query, `[${exchangeCode}, ${status}]`);
       const [outerTrades] = await this.db.query({
@@ -577,7 +577,7 @@ class mysql {
       " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
     try {
       this.logger.log(
-        "insertAccountVersion",
+        "insertVouchers",
         query,
         "DEFAULT",
         member_id,

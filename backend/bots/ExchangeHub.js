@@ -146,62 +146,73 @@ class ExchangeHub extends Bot {
             formatOrder.accFillSz !== "0" /* create order */
           ) {
             // await this._updateOrderDetail(formatOrder);
-            const result = this.exchangeHubService.sync(
+            const updateData = await this.exchangeHubService.sync(
               SupportedExchange.OKEX,
               true
             );
-            const memberId = result.memberId,
-              market = result.market,
-              instId = result.instId,
-              updateOrder = result.updateOrder,
-              newTrade = result.newTrade,
-              updateAskAccount = result.updateAskAccount,
-              updateBidAccount = result.updateBidAccount;
-            this.logger.log(`memberId`, memberId);
-            this.logger.log(`market`, market);
-            this.logger.log(`instId`, instId);
-            this.logger.log(`updateOrder`, updateOrder);
-            this.logger.log(`newTrade`, newTrade);
-            this.logger.log(`updateAskAccount`, updateAskAccount);
-            this.logger.log(`updateBidAccount`, updateBidAccount);
-            if (updateOrder) {
-              this.orderBook.updateByDifference(memberId, instId, {
-                add: [updateOrder],
-              });
-              EventBus.emit(Events.order, memberId, market, {
-                market,
-                difference: this.orderBook.getDifference(memberId, instId),
-              });
-            }
-            if (newTrade) {
-              this.tradeBook.updateByDifference(instId, {
-                add: [
-                  {
-                    ...newTrade,
-                    ts: parseInt(SafeMath.mult(newTrade.at, "1000")),
-                  },
-                ],
-              });
-              EventBus.emit(Events.trade, memberId, newTrade.market, {
-                market: newTrade.market,
-                difference: this.tradeBook.getDifference(instId),
-              });
-            }
-            if (updateAskAccount) {
-              this.accountBook.updateByDifference(memberId, updateAskAccount);
-              EventBus.emit(
-                Events.account,
-                memberId,
-                this.accountBook.getDifference(memberId)
-              );
-            }
-            if (updateBidAccount) {
-              this.accountBook.updateByDifference(memberId, updateBidAccount);
-              EventBus.emit(
-                Events.account,
-                memberId,
-                this.accountBook.getDifference(memberId)
-              );
+            this.logger.log(`updateData`, updateData);
+            if (updateData) {
+              for (const data of updateData) {
+                const memberId = data.memberId,
+                  market = data.market,
+                  instId = data.instId,
+                  updateOrder = data.updateOrder,
+                  newTrade = data.newTrade,
+                  updateAskAccount = data.updateAskAccount,
+                  updateBidAccount = data.updateBidAccount;
+                this.logger.log(`memberId`, memberId);
+                this.logger.log(`market`, market);
+                this.logger.log(`instId`, instId);
+                this.logger.log(`updateOrder`, updateOrder);
+                this.logger.log(`newTrade`, newTrade);
+                this.logger.log(`updateAskAccount`, updateAskAccount);
+                this.logger.log(`updateBidAccount`, updateBidAccount);
+                if (updateOrder) {
+                  this.orderBook.updateByDifference(memberId, instId, {
+                    add: [updateOrder],
+                  });
+                  EventBus.emit(Events.order, memberId, market, {
+                    market,
+                    difference: this.orderBook.getDifference(memberId, instId),
+                  });
+                }
+                if (newTrade) {
+                  this.tradeBook.updateByDifference(instId, {
+                    add: [
+                      {
+                        ...newTrade,
+                        ts: parseInt(SafeMath.mult(newTrade.at, "1000")),
+                      },
+                    ],
+                  });
+                  EventBus.emit(Events.trade, memberId, newTrade.market, {
+                    market: newTrade.market,
+                    difference: this.tradeBook.getDifference(instId),
+                  });
+                }
+                if (updateAskAccount) {
+                  this.accountBook.updateByDifference(
+                    memberId,
+                    updateAskAccount
+                  );
+                  EventBus.emit(
+                    Events.account,
+                    memberId,
+                    this.accountBook.getDifference(memberId)
+                  );
+                }
+                if (updateBidAccount) {
+                  this.accountBook.updateByDifference(
+                    memberId,
+                    updateBidAccount
+                  );
+                  EventBus.emit(
+                    Events.account,
+                    memberId,
+                    this.accountBook.getDifference(memberId)
+                  );
+                }
+              }
             }
           }
         }
