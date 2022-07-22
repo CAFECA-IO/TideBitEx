@@ -485,9 +485,11 @@ class mysql {
   ) {
     let query =
         "INSERT IGNORE INTO `outer_trades` (`id`,`exchange_code`,`update_at`,`status`,`data`) VALUES",
-      values = [],index = 0;
+      values = [],
+      index = 0;
     for (let trade of trades) {
-      query += index === trades.length -1 ? " (?, ?, ?, ?, ?);":" (?, ?, ?, ?, ?),";
+      query +=
+        index === trades.length - 1 ? " (?, ?, ?, ?, ?);" : " (?, ?, ?, ?, ?),";
       // values.push([
       //   trade.tradeId,
       //   trade.exchangeCode,

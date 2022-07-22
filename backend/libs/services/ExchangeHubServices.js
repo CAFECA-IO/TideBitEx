@@ -100,19 +100,18 @@ class ExchangeHubService {
   }
 
   // ++ TODO
-  async _updateOuterTradeStatus({ id, exchangeCode, status, dbTransaction }) {
+  async _updateOuterTradeStatus({ id, status, update_at, dbTransaction }) {
     this.logger.log(
       `------------- [${this.constructor.name}] _updateOuterTradeStatus -------------`
     );
     this.logger.log("data", {
       id,
-      exchangeCode,
       status,
-      update_at: new Date().toISOString().slice(0, 19).replace("T", " "),
+      update_at,
     });
     try {
       await this.database.updateOuterTrade(
-        { id, exchange_code: exchangeCode, status },
+        { id, status, update_at },
         { dbTransaction }
       );
     } catch (error) {
@@ -160,7 +159,7 @@ class ExchangeHubService {
         id: account.id,
         balance: accBal,
         locked: accLoc,
-        updated_at: updateAt.slice(0, 19).replace("T", " "),
+        updated_at: `"${updateAt.slice(0, 19).replace("T", " ")}"`,
       };
       await this.database.updateAccount(updateAccount, { dbTransaction });
       /* !!! HIGH RISK (end) !!! */
@@ -656,10 +655,10 @@ class ExchangeHubService {
           trade.side === "buy"
             ? SafeMath.minus(_order.locked, SafeMath.mult(_order.price, volume))
             : SafeMath.minus(_order.locked, volume);
-        updateAt = new Date(parseInt(trade.ts))
+        updateAt = `"${new Date(parseInt(trade.ts))
           .toISOString()
           .slice(0, 19)
-          .replace("T", " ");
+          .replace("T", " ")}"`;
         fundsReceived =
           trade.side === "buy"
             ? SafeMath.plus(_order.funds_received, trade.fillSz)
@@ -861,18 +860,25 @@ class ExchangeHubService {
           // 4. _updateOuterTradeStatus
           await this._updateOuterTradeStatus({
             id: trade.tradeId,
-            exchangeCode: this.database.EXCHANGE[trade.source.toUpperCase()],
-            status: this.database.OUTERTRADE_STATUS.OTHER_SYSTEM_TRADE,
+            status: this.database.OUTERTRADE_STATUS.DONE,
+            update_at: `"${new Date()
+              .toISOString()
+              .slice(0, 19)
+              .replace("T", " ")}"`,
             dbTransaction: t,
           });
           await t.commit();
         } else {
           await this._updateOuterTradeStatus({
             id: trade.tradeId,
-            exchangeCode: this.database.EXCHANGE[trade.source.toUpperCase()],
-            status: this.database.OUTERTRADE_STATUS.DONE,
+            status: this.database.OUTERTRADE_STATUS.OTHER_SYSTEM_TRADE,
+            update_at: `"${new Date()
+              .toISOString()
+              .slice(0, 19)
+              .replace("T", " ")}"`,
             dbTransaction: t,
           });
+          await t.commit();
         }
       } catch (error) {
         this.logger.error(`_processOuterTrade`, error);
@@ -909,41 +915,44 @@ class ExchangeHubService {
     this.logger.log(`need processOuterTrade`, outerTrades);
     // 2. _processOuterTrade
     for (let trade of outerTrades) {
-      tmp = await this._processOuterTrade(JSON.parse(trade.data));
+      tmp = await this._processOuterTrade({
+        ...JSON.parse(trade.data),
+        exchangeCode: trade.exchangeCode,
+      });
       if (tmp) updateData.push(tmp);
     }
     return updateData;
   }
 
-  async _insertOuterTrade(outerTrade) {
-    this.logger.log(
-      `------------- [${this.constructor.name}] _insertOuterTrade -------------`
-    );
-    /* !!! HIGH RISK (start) !!! */
-    let result;
-    const t = await this.database.transaction();
-    try {
-      this.logger.log(`outerTrade`, outerTrade);
-      await this.database.insertOuterTrades(
-        outerTrade.tradeId, // ++ TODO 之後加上其他交易所 primary ID 是要由 id 及 source 組合
-        this.database.EXCHANGE[outerTrade.source.toUpperCase()],
-        new Date(parseInt(outerTrade.ts)).toISOString(),
-        outerTrade.status,
-        JSON.stringify(outerTrade),
-        { dbTransaction: t }
-      );
-      result = true;
-      await t.commit();
-    } catch (error) {
-      this.logger.error(`insertOuterTrades`, error);
-      result = false;
-      await t.rollback();
-    }
-    this.logger.log(
-      `------------- [${this.constructor.name}] _insertOuterTrade [END] -------------`
-    );
-    return result;
-  }
+  // async _insertOuterTrade(outerTrade) {
+  //   this.logger.log(
+  //     `------------- [${this.constructor.name}] _insertOuterTrade -------------`
+  //   );
+  //   /* !!! HIGH RISK (start) !!! */
+  //   let result;
+  //   const t = await this.database.transaction();
+  //   try {
+  //     this.logger.log(`outerTrade`, outerTrade);
+  //     await this.database.insertOuterTrades(
+  //       outerTrade.tradeId, // ++ TODO 之後加上其他交易所 primary ID 是要由 id 及 source 組合
+  //       this.database.EXCHANGE[outerTrade.source.toUpperCase()],
+  //       new Date(parseInt(outerTrade.ts)).toISOString(),
+  //       outerTrade.status,
+  //       JSON.stringify(outerTrade),
+  //       { dbTransaction: t }
+  //     );
+  //     result = true;
+  //     await t.commit();
+  //   } catch (error) {
+  //     this.logger.error(`insertOuterTrades`, error);
+  //     result = false;
+  //     await t.rollback();
+  //   }
+  //   this.logger.log(
+  //     `------------- [${this.constructor.name}] _insertOuterTrade [END] -------------`
+  //   );
+  //   return result;
+  // }
 
   // ++TODO check, rm sql inside forLoop
   async _insertOuterTrades(outerTrades) {
@@ -1010,27 +1019,33 @@ class ExchangeHubService {
     return outerTrades;
   }
 
-  async _getTransactionsDetail(exchange, clOrdId) {
+  async _getTransactionsDetail(exchange, clOrdId, retry = 3) {
     this.logger.log(
       `--- [${this.constructor.name}] _getTransactionsDetail ---`
     );
     let outerTrades = await this._getOuterTradesFromAPI(exchange, clOrdId);
-    let index;
+    let index, newRetry;
     if (clOrdId) {
       this.logger.log(`clOrdId`, clOrdId);
       index = outerTrades.findIndex((trade) => trade.clOrdId === clOrdId);
-      if (index === -1) {
-        this.logger.log(`_getOuterTradesFromAPI recall`);
+      if (index === -1 && retry > 0) {
+        newRetry = retry - 1;
+        this.logger.log(`_getOuterTradesFromAPI recall newRetry`, newRetry);
         await Promise.resolve(
           setTimeout(async () => {
-            outerTrades = await this._getOuterTradesFromAPI(exchange, clOrdId);
-          }, 2000)
+            outerTrades = await this._getTransactionsDetail(
+              exchange,
+              clOrdId,
+              newRetry
+            );
+          }, 2500)
         );
       }
     }
     this.logger.log(
       `--- [${this.constructor.name}] _getTransactionsDetail [END]---`
     );
+    this._try = 0;
     return outerTrades;
   }
 

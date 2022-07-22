@@ -843,10 +843,12 @@ class ExchangeHub extends Bot {
               //   _updateOrder
               // );
               // ++ TODO verify
-              this.logger.log({ memberId,
+              this.logger.log({
+                memberId,
                 instId: body.instId,
                 market: body.market,
-                order: _updateOrder})
+                order: _updateOrder,
+              });
               this._emitUpdateOrder({
                 memberId,
                 instId: body.instId,
