@@ -91,6 +91,10 @@ class ExchangeHubService {
       // 4. 休息
       this.timer = setTimeout(() => this.sync(), this._syncInterval + 1000);
     }
+    this.logger.log(`upateData`, upateData);
+    this.logger.log(
+      `------------- [${this.constructor.name}] sync [END] -------------`
+    );
     return upateData;
   }
 
@@ -988,9 +992,6 @@ class ExchangeHubService {
     );
     const result = this._insertOuterTrades(_filtered);
     return result;
-  }
-  _findMarket(instId) {
-    return this.tidebitMarkets.find((m) => m.instId === instId);
   }
 }
 
