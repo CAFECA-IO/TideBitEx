@@ -194,7 +194,7 @@ class ExchangeHub extends Bot {
     EventBus.emit(
       Events.account,
       memberId,
-      this.accountBook.getDifference(memberId)
+      account
     );
     this.logger.log(
       `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _emitUpdateAccount[memberId:${memberId}]`,
@@ -299,7 +299,6 @@ class ExchangeHub extends Bot {
     this.logger.log(`updateData length`, updateData?.length);
     if (updateData) {
       for (const data of updateData) {
-        this.logger.log(`data`, data);
         const memberId = data.memberId,
           market = data.market,
           instId = data.instId,
@@ -827,10 +826,13 @@ class ExchangeHub extends Bot {
             return okexOrderRes;
           } else {
             if (body.ordType !== "market") {
+              let { memberId, orderId } = Utils.parseClOrdId(
+                okexOrderRes.payload.clOrdId
+              );
               let _updateOrder = {
                 instId: body.instId,
                 ordType: body.ordType === "market" ? "ioc" : body.ordType,
-                id: okexOrderRes.payload.ordId,
+                id: orderId,
                 clOrdId: okexOrderRes.payload.clOrdId,
                 at: parseInt(SafeMath.div(Date.now(), "1000")),
                 ts: Date.now(),
