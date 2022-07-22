@@ -286,6 +286,9 @@ class ExchangeHub extends Bot {
   }
 
   async _syncTransactionDetail(formatOrder) {
+    this.logger.log(
+      ` ------------- [${this.constructor.name}] _syncTransactionDetail [START]---------------`
+    );
     const updateData = await this.exchangeHubService.sync(
       SupportedExchange.OKEX,
       true,
@@ -368,6 +371,9 @@ class ExchangeHub extends Bot {
         }
       }
     }
+    this.logger.log(
+      ` ------------- [${this.constructor.name}] _syncTransactionDetail [END]---------------`
+    );
   }
 
   getTidebitMarkets() {
