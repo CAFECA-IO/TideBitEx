@@ -780,7 +780,8 @@ class ExchangeHubService {
       resultOnAccUpdate,
       updateAskAccount,
       updateBidAccount,
-      result;
+      result,
+      t = await this.database.transaction();
     // 1. parse  memberId, orderId from trade.clOrdId
     try {
       tmp = Utils.parseClOrdId(trade.clOrdId);
@@ -802,7 +803,6 @@ class ExchangeHubService {
       this.logger.log(`outerTrade`, trade);
       this.logger.log(`memberId`, memberId);
       this.logger.log(`orderId`, orderId);
-      const t = await this.database.transaction();
       try {
         // 1. _updateOrderbyTrade
         resultOnOrderUpdate = await this._updateOrderbyTrade({
@@ -896,6 +896,17 @@ class ExchangeHubService {
         updateAskAccount,
         updateBidAccount,
       };
+    } else {
+      await this._updateOuterTradeStatus({
+        id: trade.tradeId,
+        status: this.database.OUTERTRADE_STATUS.ClORDId_ERROR,
+        update_at: `"${new Date()
+          .toISOString()
+          .slice(0, 19)
+          .replace("T", " ")}"`,
+        dbTransaction: t,
+      });
+      await t.commit();
     }
     return result;
   }
@@ -917,7 +928,7 @@ class ExchangeHubService {
     for (let trade of outerTrades) {
       tmp = await this._processOuterTrade({
         ...JSON.parse(trade.data),
-        exchangeCode: trade.exchangeCode,
+        exchangeCode: trade.exchange_code,
       });
       if (tmp) updateData.push(tmp);
     }
@@ -1056,7 +1067,7 @@ class ExchangeHubService {
       !this._isStarted ? 180 : 1
     );
     let outerTrades = await this._getTransactionsDetail(exchange, clOrdId);
-    this.logger.log(`outerTrades`, outerTrades);
+    // this.logger.log(`outerTrades`, outerTrades);
     const _filtered = outerTrades.filter(
       (trade) =>
         _outerTrades.findIndex(
