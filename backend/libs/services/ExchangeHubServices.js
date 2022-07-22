@@ -153,10 +153,12 @@ class ExchangeHubService {
         fun,
         { dbTransaction }
       );
+      // ++TODO check updateAt
       const updateAccount = {
         id: account.id,
         balance: accBal,
         locked: accLoc,
+        // ++ updated_at
       };
       await this.database.updateAccount(updateAccount, { dbTransaction });
       /* !!! HIGH RISK (end) !!! */
@@ -652,7 +654,10 @@ class ExchangeHubService {
           trade.side === "buy"
             ? SafeMath.minus(_order.locked, SafeMath.mult(_order.price, volume))
             : SafeMath.minus(_order.locked, volume);
-        updateAt = new Date(parseInt(trade.ts)).toISOString();
+        updateAt = new Date(parseInt(trade.ts))
+          .toISOString()
+          .slice(0, 19)
+          .replace("T", " ");
         fundsReceived =
           trade.side === "buy"
             ? SafeMath.plus(_order.funds_received, trade.fillSz)
@@ -664,6 +669,7 @@ class ExchangeHubService {
           filled = true;
           locked = "0"; //++ TODO to be verify: 使用 TideBit ticker 測試)
         }
+         // ++TODO check updateAt
         _updateOrder = {
           id: _order.id,
           volume,
@@ -671,7 +677,7 @@ class ExchangeHubService {
           locked,
           funds_received: fundsReceived,
           trades_count: tradesCount,
-          // update_at: updateAt,
+          // updated_at: updateAt,
         };
         /* !!! HIGH RISK (start) !!! */
         // update order data from table
@@ -930,13 +936,35 @@ class ExchangeHubService {
     return result;
   }
 
+  // ++TODO check, rm inside for loop sql
   async _insertOuterTrades(outerTrades) {
     /* !!! HIGH RISK (start) !!! */
     let result;
     this.logger.log(`[${this.constructor.name}] insertOuterTrades`);
-    for (let trade of outerTrades) {
-      result = await this._insertOuterTrade(trade);
+    // for (let trade of outerTrades) {
+    //   result = await this._insertOuterTrade(trade);
+    // }
+    const t = await this.database.transaction();
+    try {
+      this.logger.log(`outerTrades`, outerTrades);
+      const _trades = outerTrades.map((trade) => ({
+        id: trade.tradeId, // ++ TODO 之後加上其他交易所 primary ID 是要由 id 及 source 組合
+        exchange_code: this.database.EXCHANGE[trade.source.toUpperCase()],
+        update_at: new Date(parseInt(trade.ts)).toISOString(),
+        status: trade.status,
+        data: JSON.stringify(trade),
+      }));
+      await this.database.insertOuterTrades(_trades, { dbTransaction: t });
+      result = true;
+      await t.commit();
+    } catch (error) {
+      this.logger.error(`insertOuterTrades`, error);
+      result = false;
+      await t.rollback();
     }
+    this.logger.log(
+      `------------- [${this.constructor.name}] _insertOuterTrade [END] -------------`
+    );
     return result;
   }
 

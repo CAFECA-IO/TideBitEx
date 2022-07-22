@@ -215,22 +215,16 @@ class DBOperator {
   }
 
   async insertOuterTrades(
-    id, // trade_fk `${EXCHANGE_CODE}${trade.tradeId}`
-    exchange_code, // EXCHANGE_CODE
-    update_at,
-    status, // 0: unprocessed, 1: updateOrders, 2: updateAccounts, 3: insertTrades, 4: updateVouchers, 5: account_version
-    data,
+    // id, // trade_fk `${EXCHANGE_CODE}${trade.tradeId}`
+    // exchange_code, // EXCHANGE_CODE
+    // update_at,
+    // status, // 0: unprocessed, 1: updateOrders, 2: updateAccounts, 3: insertTrades, 4: updateVouchers, 5: account_version
+    // data,
+    trades,
     { dbTransaction }
   ) {
     console.log(`[DBOperator] insertOuterTrades`);
-    return this.database.insertOuterTrades(
-      id, // trade_fk `${EXCHANGE_CODE}${trade.tradeId}`
-      exchange_code, // EXCHANGE_CODE
-      update_at,
-      status, // 0: unprocessed, 1: updateOrders, 2: updateAccounts, 3: insertTrades, 4: updateVouchers, 5: account_version
-      data,
-      { dbTransaction }
-    );
+    return this.database.insertOuterTrades(trades, { dbTransaction });
   }
 
   async insertTrades(trade, { dbTransaction }) {

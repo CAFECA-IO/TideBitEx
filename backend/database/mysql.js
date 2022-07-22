@@ -475,30 +475,33 @@ class mysql {
   }
 
   async insertOuterTrades(
-    id, // trade_fk `${EXCHANGE_CODE}${trade.tradeId}`
-    exchange_code, // EXCHANGE_CODE
-    update_at,
-    status, // 0: unprocessed, 1: _updateOrderbyTrade, 2: _insertTrades, 3: _insertVouchers, 4: _updateAccounts, 5: _insertAccountVersions
-    data,
+    // id, // trade_fk `${EXCHANGE_CODE}${trade.tradeId}`
+    // exchange_code, // EXCHANGE_CODE
+    // update_at,
+    // status, // 0: unprocessed, 1: _updateOrderbyTrade, 2: _insertTrades, 3: _insertVouchers, 4: _updateAccounts, 5: _insertAccountVersions
+    // data,
+    trades,
     { dbTransaction }
   ) {
-    const query =
-      "INSERT IGNORE INTO `outer_trades` (`id`,`exchange_code`,`update_at`,`status`,`data`)" +
-      " VALUES (?, ?, ?, ?, ?);";
+    let query =
+        "INSERT IGNORE INTO `outer_trades` (`id`,`exchange_code`,`update_at`,`status`,`data`) VALUES",
+      values = [];
+    for (let trade of trades) {
+      query += " (?, ?, ?, ?, ?);";
+      values.push([
+        trade.id,
+        trade.exchange_code,
+        trade.update_at,
+        trade.status,
+        trade.data,
+      ]);
+    }
     try {
-      this.logger.log(
-        "[mysql] insertOuterTrades",
-        query,
-        id,
-        exchange_code,
-        update_at,
-        status,
-        data
-      );
+      this.logger.log("[mysql] insertOuterTrades", query, values);
       await this.db.query(
         {
           query,
-          values: [id, exchange_code, update_at, status, data],
+          values,
         },
         {
           transaction: dbTransaction,
