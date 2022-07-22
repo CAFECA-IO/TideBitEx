@@ -51,25 +51,25 @@ class ExchangeHubService {
     }
   }
 
-  start() {
-    this.logger.log(`[${this.constructor.name}] start`);
-    this.sync();
-  }
+  // async start() {
+  //   this.logger.log(`[${this.constructor.name}] start`);
+  //   await this.sync();
+  // }
 
   async sync(exchange, force = false, data) {
+    await Promise.resolve(
+      setTimeout(() => {
+        this.logger.log(`wait`);
+      }, 5000)
+    );
     this.logger.log(
       `------------- [${this.constructor.name}] sync -------------`
     );
+    this.logger.log(`data`, data);
     let time = Date.now(),
       upateData,
       result,
       clOrdId = data?.clOrdId;
-    this.logger.log(
-      `time - this._lastSyncTime > this._syncInterval`,
-      time - this._lastSyncTime > this._syncInterval
-    );
-    this.logger.log(`force`, force);
-    this.logger.log(`this._isStarted`, this._isStarted);
     // 1. 定期（10mins）執行工作
     if (
       time - this._lastSyncTime > this._syncInterval ||
@@ -624,13 +624,20 @@ class ExchangeHubService {
     return newTrade;
   }
 
-  async _updateOrderbyTrade({ memberId, orderId, trade, dbTransaction }) {
+  async _updateOrderbyTrade({
+    memberId,
+    orderId,
+    market,
+    trade,
+    dbTransaction,
+  }) {
     this.logger.log(
       `------------- [${this.constructor.name}] _updateOrderbyTrade -------------`
     );
     let _order,
       _updateOrder,
-      state,
+      stateCode = this.database.ORDER_STATE.WAIT,
+      state = "wait",
       state_text = "Waiting",
       filled = false,
       volume,
@@ -665,7 +672,8 @@ class ExchangeHubService {
             : SafeMath.plus(_order.funds_received, value); //++ TODO to be verify: 使用 TideBit ticker 測試)
         tradesCount = SafeMath.plus(_order.trades_count, "1");
         if (SafeMath.eq(volume, "0")) {
-          state = this.database.ORDER_STATE.DONE;
+          stateCode = this.database.ORDER_STATE.DONE;
+          state = "done";
           state_text = "Done";
           filled = true;
           locked = "0"; //++ TODO to be verify: 使用 TideBit ticker 測試)
@@ -674,7 +682,7 @@ class ExchangeHubService {
         _updateOrder = {
           id: _order.id,
           volume,
-          state,
+          state: stateCode,
           locked,
           funds_received: fundsReceived,
           trades_count: tradesCount,
@@ -693,6 +701,9 @@ class ExchangeHubService {
           state_text,
           ordType: _order.ord_type,
           filled,
+          market: market.id,
+          instId: trade.instId,
+          state,
         };
       } else {
         if (_order?.member_id.toString() === memberId)
@@ -809,6 +820,7 @@ class ExchangeHubService {
           memberId,
           orderId,
           trade,
+          market,
           dbTransaction: t,
         });
         order = resultOnOrderUpdate?.order;
@@ -1030,6 +1042,17 @@ class ExchangeHubService {
     return outerTrades;
   }
 
+  _wait(second) {
+    let ts = Date.now();
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        let _ts = Date.now();
+        console.log(_ts - ts);
+        resolve(true);
+      }, second * 1000);
+    });
+  }
+
   async _getTransactionsDetail(exchange, clOrdId, retry = 3) {
     this.logger.log(
       `--- [${this.constructor.name}] _getTransactionsDetail ---`
@@ -1042,21 +1065,14 @@ class ExchangeHubService {
       if (index === -1 && retry > 0) {
         newRetry = retry - 1;
         this.logger.log(`_getOuterTradesFromAPI recall newRetry`, newRetry);
-        await Promise.resolve(
-          setTimeout(async () => {
-            outerTrades = await this._getTransactionsDetail(
-              exchange,
-              clOrdId,
-              newRetry
-            );
-          }, 2500)
-        );
+        await this._wait(2.5);
+        return this._getTransactionsDetail(exchange, clOrdId, newRetry);
       }
     }
+    this.logger.log(`outerTrades[${index}]`, outerTrades[index]);
     this.logger.log(
       `--- [${this.constructor.name}] _getTransactionsDetail [END]---`
     );
-    this._try = 0;
     return outerTrades;
   }
 

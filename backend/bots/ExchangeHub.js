@@ -154,8 +154,10 @@ class ExchangeHub extends Bot {
     });
     EventBus.emit(Events.order, memberId, market, {
       market: market,
-      difference: this.orderBook.getDifference(memberId, instId),
-    });
+      // difference: this.orderBook.getDifference(memberId, instId),
+      difference: {
+        add: [order],
+      }});
     this.logger.log(
       `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] _emitUpdateOrder[market:${market}][memberId:${memberId}][instId:${instId}]`,
       order
@@ -172,7 +174,15 @@ class ExchangeHub extends Bot {
     });
     EventBus.emit(Events.trade, memberId, market, {
       market,
-      difference: this.tradeBook.getDifference(instId),
+      // difference: this.tradeBook.getDifference(instId),
+      difference: {
+        add: [
+          {
+            ...trade,
+            ts: parseInt(SafeMath.mult(trade.at, "1000")),
+          },
+        ],
+      },
     });
     this.logger.log(
       `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.trade}] _emitNewTrade[market:${market}][memberId:${memberId}][instId:${instId}]`,
@@ -277,14 +287,6 @@ class ExchangeHub extends Bot {
       });
   }
 
-  async start() {
-    await super.start();
-    await this.okexConnector.start();
-    this.exchangeHubService.start();
-    this._eventListener();
-    return this;
-  }
-
   async _syncTransactionDetail(formatOrder) {
     this.logger.log(
       ` ------------- [${this.constructor.name}] _syncTransactionDetail [START]---------------`
@@ -297,6 +299,7 @@ class ExchangeHub extends Bot {
     this.logger.log(`updateData length`, updateData?.length);
     if (updateData) {
       for (const data of updateData) {
+        this.logger.log(`data`, data);
         const memberId = data.memberId,
           market = data.market,
           instId = data.instId,
@@ -374,6 +377,14 @@ class ExchangeHub extends Bot {
     this.logger.log(
       ` ------------- [${this.constructor.name}] _syncTransactionDetail [END]---------------`
     );
+  }
+
+  async start() {
+    await super.start();
+    await this.okexConnector.start();
+    this._eventListener();
+    this._syncTransactionDetail();
+    return this;
   }
 
   getTidebitMarkets() {
