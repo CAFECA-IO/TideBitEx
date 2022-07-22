@@ -56,13 +56,14 @@ class ExchangeHubService {
     this.sync();
   }
 
-  async sync(exchange, force = false) {
+  async sync(exchange, force = false, { data }) {
     this.logger.log(
       `------------- [${this.constructor.name}] sync -------------`
     );
     let time = Date.now(),
       upateData,
-      result;
+      result,
+      clOrdId = data?.clOrdId;
     this.logger.log(
       `time - this._lastSyncTime > this._syncInterval`,
       time - this._lastSyncTime > this._syncInterval
@@ -76,7 +77,10 @@ class ExchangeHubService {
       !this._isStarted
     ) {
       // 2. 從 API 取 outerTrades 並寫入 DB
-      result = await this._syncOuterTrades(exchange || SupportedExchange.OKEX);
+      result = await this._syncOuterTrades(
+        exchange || SupportedExchange.OKEX,
+        clOrdId
+      );
       if (result) {
         this._lastSyncTime = Date.now();
         // 3. 觸發從 DB 取 outertradesrecord 更新下列 DB table trades、orders、accounts、accounts_version、vouchers
@@ -875,7 +879,7 @@ class ExchangeHubService {
     return {
       memberId,
       instId: trade.instId,
-      market,
+      market: market.id,
       updateOrder,
       newTrade,
       updateAskAccount,
@@ -999,13 +1003,24 @@ class ExchangeHubService {
     return outerTrades;
   }
 
-  async _syncOuterTrades(exchange) {
+  async _syncOuterTrades(exchange, clOrdId) {
     this.logger.log(`[${this.constructor.name}] _syncOuterTrades`);
     const _outerTrades = await this.database.getOuterTradesByDayAfter(
       this.database.EXCHANGE[exchange.toUpperCase()],
       !this._isStarted ? 15 : 1
     );
-    const outerTrades = await this._getOuterTradesFromAPI(exchange);
+    let outerTrades = await this._getOuterTradesFromAPI(exchange);
+    let index;
+    if (clOrdId) {
+      index = outerTrades.findIndex((trade) => trade.clOrdId === clOrdId);
+      if (index === -1) {
+        await Promise.resolve(
+          setTimeout(async () => {
+            outerTrades = await this._getOuterTradesFromAPI(exchange);
+          }, 2000)
+        );
+      }
+    }
     const _filtered = outerTrades.filter(
       (trade) => !_outerTrades.some((_trade) => trade.id === _trade.id)
     );
