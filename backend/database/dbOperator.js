@@ -49,6 +49,7 @@ class DBOperator {
     UNPROCESS: 0,
     DONE: 1,
     SYSTEM_ERROR: 9,
+    OTHER_SYSTEM_TRADE: 8,
   };
 
   constructor() {

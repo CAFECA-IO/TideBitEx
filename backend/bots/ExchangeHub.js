@@ -294,7 +294,7 @@ class ExchangeHub extends Bot {
       true,
       { clOrdId: formatOrder?.clOrdId }
     );
-    this.logger.log(`updateData length`, updateData.length);
+    this.logger.log(`updateData length`, updateData?.length);
     if (updateData) {
       for (const data of updateData) {
         const memberId = data.memberId,
@@ -843,6 +843,10 @@ class ExchangeHub extends Bot {
               //   _updateOrder
               // );
               // ++ TODO verify
+              this.logger.log({ memberId,
+                instId: body.instId,
+                market: body.market,
+                order: _updateOrder})
               this._emitUpdateOrder({
                 memberId,
                 instId: body.instId,
@@ -870,7 +874,7 @@ class ExchangeHub extends Bot {
               //   `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:800`,
               //   _updateAccount
               // );
-              this._emitUpdateOrder({
+              this._emitUpdateAccount({
                 memberId,
                 account: _updateAccount,
               });

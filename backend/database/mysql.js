@@ -485,16 +485,22 @@ class mysql {
   ) {
     let query =
         "INSERT IGNORE INTO `outer_trades` (`id`,`exchange_code`,`update_at`,`status`,`data`) VALUES",
-      values = [];
+      values = [],index = 0;
     for (let trade of trades) {
-      query += " (?, ?, ?, ?, ?);";
-      values.push([
-        trade.tradeId,
-        trade.exchangeCode,
-        trade.updatedAt,
-        trade.status,
-        trade.data,
-      ]);
+      query += index === trades.length -1 ? " (?, ?, ?, ?, ?);":" (?, ?, ?, ?, ?),";
+      // values.push([
+      //   trade.tradeId,
+      //   trade.exchangeCode,
+      //   trade.updatedAt,
+      //   trade.status,
+      //   trade.data,
+      // ]);
+      values.push(trade.tradeId);
+      values.push(trade.exchangeCode);
+      values.push(trade.updatedAt);
+      values.push(trade.status);
+      values.push(trade.data);
+      index++;
     }
     try {
       this.logger.log("[mysql] insertOuterTrades", query, values);
