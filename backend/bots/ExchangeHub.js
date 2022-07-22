@@ -535,7 +535,7 @@ class ExchangeHub extends Bot {
           });
         }
         // this.logger.log(`filteredOkexTickers`, filteredOkexTickers);
-        this.logger.log(`filteredTBTickers`, filteredTBTickers);
+        // this.logger.log(`filteredTBTickers`, filteredTBTickers);
         this.tickerBook.updateAll({
           ...filteredOkexTickers,
           ...filteredTBTickers,
@@ -776,7 +776,7 @@ class ExchangeHub extends Bot {
                 difference: this.orderBook.getDifference(memberId, body.instId),
               });
               this.logger.log(
-                `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] _updateOrder ln:616`,
+                `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] _updateOrder ln:779`,
                 _updateOrder
               );
               let _updateAccount = {
@@ -797,7 +797,7 @@ class ExchangeHub extends Bot {
                 this.accountBook.getDifference(memberId)
               );
               this.logger.log(
-                `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:425`,
+                `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:800`,
                 _updateAccount
               );
             }

@@ -119,19 +119,23 @@ class OkexConnector extends ConnectorBase {
    */
   async fetchTradeFillsRecords({ query }) {
     this.logger.log(`[${this.constructor.name}] fetchTradeFillsRecords`);
-    let result;
+    const { before } = query;
+    let result,
+      arr = [];
+    if (before) arr.push(`before=${before}`);
+    const qs = !!arr.length ? `?${arr.join("&")}` : "";
     const method = "GET";
     const path = "/api/v5/trade/fills";
     const timeString = new Date().toISOString();
     const okAccessSign = await this.okAccessSign({
       timeString,
       method,
-      path: `${path}`,
+      path: `${path}${qs}`,
     });
     try {
       const res = await axios({
         method: method.toLocaleLowerCase(),
-        url: `${this.domain}${path}`,
+        url: `${this.domain}${path}${qs}`,
         headers: this.getHeaders(true, { timeString, okAccessSign }),
       });
       if (res.data && res.data.code !== "0") {
@@ -164,9 +168,9 @@ class OkexConnector extends ConnectorBase {
   async fetchTradeFillsHistoryRecords({ query }) {
     const { instType, before } = query;
     this.logger.log(`[${this.constructor.name}] fetchTradeFillsHistoryRecords`);
-    let result;
+    let result,
+      arr = [];
     const method = "GET";
-    const arr = [];
     if (instType) arr.push(`instType=${instType}`);
     if (before) arr.push(`before=${before}`);
     const path = "/api/v5/trade/fills-history";
@@ -439,7 +443,7 @@ class OkexConnector extends ConnectorBase {
       const ticker = {};
       ticker[data.instId.replace("-", "").toLowerCase()] =
         this._formateTicker(data);
-      this.logger.log(`[${this.constructor.name}] getTicker`, ticker);
+      // this.logger.log(`[${this.constructor.name}] getTicker`, ticker);
       return new ResponseFormat({
         message: "getTicker",
         payload: ticker,
@@ -1615,7 +1619,7 @@ class OkexConnector extends ConnectorBase {
         });
       }
     });
-    this.logger.log(`formatOrders`,formatOrders)
+    this.logger.log(`formatOrders`, formatOrders);
     this.logger.log(`-------------- [END] _updateOrderDetails ---------------`);
     EventBus.emit(Events.orderDetailUpdate, instType, formatOrders);
   }

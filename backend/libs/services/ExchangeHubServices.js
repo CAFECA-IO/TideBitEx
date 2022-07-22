@@ -6,7 +6,9 @@ class ExchangeHubService {
   _timer;
   _lastSyncTime = 0;
   _syncInterval = 10 * 60 * 1000; // 10mins
-  _maxInterval = 180 * 24 * 60 * 60 * 1000;
+  _minInterval = 1 * 24 * 60 * 60 * 1000; // 1天
+  _interval = 15 * 24 * 60 * 60 * 1000; // 15天
+  _maxInterval = 180 * 24 * 60 * 60 * 1000; // 180天
   _isStarted = false;
 
   constructor({
@@ -878,7 +880,7 @@ class ExchangeHubService {
       updateData = [];
     this.logger.log(`[${this.constructor.name}] _processOuterTrades`);
     // 1. get all records from outer_trades table &  fillter records if record.status === 5
-    const outerTrades = await this.database.getOuterTrades(
+    const outerTrades = await this.database.getOuterTradesByStatus(
       this.database.EXCHANGE[exchange.toUpperCase()],
       0
     );
@@ -950,7 +952,7 @@ class ExchangeHubService {
             {
               query: {
                 instType: "SPOT",
-                before: Date.now() - this._maxInterval,
+                before: Date.now() - this._interval,
               },
             }
           );
@@ -960,7 +962,7 @@ class ExchangeHubService {
           okexRes = await this.okexConnector.router("fetchTradeFillsRecords", {
             query: {
               instType: "SPOT",
-              before: Date.now() - this._maxInterval,
+              before: Date.now() - this._minInterval,
             },
           });
         }
@@ -976,8 +978,15 @@ class ExchangeHubService {
 
   async _syncOuterTrades(exchange) {
     this.logger.log(`[${this.constructor.name}] _syncOuterTrades`);
+    const _outerTrades = await this.database.getOuterTradesByDayAfter(
+      this.database.EXCHANGE[exchange.toUpperCase()],
+      !this._isStarted ? 15 : 1
+    );
     const outerTrades = await this._getOuterTradesFromAPI(exchange);
-    const result = this._insertOuterTrades(outerTrades);
+    const _filtered = outerTrades.filter(
+      (trade) => !_outerTrades.some((_trade) => trade.id === _trade.id)
+    );
+    const result = this._insertOuterTrades(_filtered);
     return result;
   }
   _findMarket(instId) {

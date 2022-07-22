@@ -218,14 +218,38 @@ class mysql {
     }
   }
 
-  async getOuterTrades(exchangeCode, status) {
+  async getOuterTradesByStatus(exchangeCode, status) {
     const query =
       "SELECT * FROM `outer_trades` WHERE `outer_trades`.`exchange_code` = ? AND `outer_trades`.`status` = ?;";
     try {
-      this.logger.log("getOuterTrades", query, `[${exchangeCode}, ${status}]`);
+      this.logger.log(
+        "getOuterTradesByStatus",
+        query,
+        `[${exchangeCode}, ${status}]`
+      );
       const [outerTrades] = await this.db.query({
         query,
         values: [exchangeCode, status],
+      });
+      return outerTrades;
+    } catch (error) {
+      this.logger.log(error);
+      return [];
+    }
+  }
+
+  async getOuterTradesByDayAfter(exchangeCode, day) {
+    const query =
+      "SELECT * FROM `outer_trades` WHERE `outer_trades`.`exchange_code` = ? AND `outer_trades`.`update_at` > DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY);";
+    try {
+      this.logger.log(
+        "getOuterTradesByDayAfter",
+        query,
+        `[${exchangeCode}, ${day}]`
+      );
+      const [outerTrades] = await this.db.query({
+        query,
+        values: [exchangeCode, day],
       });
       return outerTrades;
     } catch (error) {
@@ -705,7 +729,7 @@ class mysql {
         {
           query,
           values,
-        },
+        }
         // {
         //   transaction: dbTransaction,
         //   lock: dbTransaction.LOCK., // ++ TODO verify

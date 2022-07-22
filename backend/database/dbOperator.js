@@ -125,8 +125,12 @@ class DBOperator {
     return this.database.getTradeByTradeFk(tradeFk);
   }
 
-  async getOuterTrades(exchangeCode, status) {
-    return this.database.getOuterTrades(exchangeCode, status);
+  async getOuterTradesByStatus(exchangeCode, status) {
+    return this.database.getOuterTradesByStatus(exchangeCode, status);
+  }
+
+  async getOuterTradesByDayAfter(exchangeCode, day) {
+    return this.database.getOuterTradesByDayAfter(exchangeCode, day);
   }
 
   /* !!! HIGH RISK (start) !!! */
