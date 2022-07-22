@@ -826,9 +826,6 @@ class ExchangeHub extends Bot {
             return okexOrderRes;
           } else {
             if (body.ordType !== "market") {
-              let { memberId, orderId } = Utils.parseClOrdId(
-                okexOrderRes.payload.clOrdId
-              );
               let _updateOrder = {
                 instId: body.instId,
                 ordType: body.ordType === "market" ? "ioc" : body.ordType,
