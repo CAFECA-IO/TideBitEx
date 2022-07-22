@@ -37,7 +37,6 @@ class DepthBook extends BookBase {
   // }
 
   // !!!! IMPORTANT 要遵守 tideLegacy 的資料格式
-  // ++ TODO: verify function works properly
   getSnapshot(instId) {
     let market = instId.replace("-", "").toLowerCase(),
       asks = [],
@@ -72,7 +71,6 @@ class DepthBook extends BookBase {
    * @param {Book} bookObj
    * @returns {Array<Depth>}
    */
-  // ++ TODO: verify function works properly
   _formateBooks(bookObj) {
     const bookArr = [];
     bookObj.asks.forEach((ask) => {

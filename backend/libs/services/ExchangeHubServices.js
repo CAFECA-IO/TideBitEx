@@ -29,8 +29,11 @@ class ExchangeHubService {
     return this;
   }
 
-  // 到 new.tidebit.com 拿 DB 資料
-
+  /**
+   * ++TODO gc，#674
+   * 每筆 outerTrade 只保留180天
+   * outerTrade不能抓180天以前的資料
+   * */
   async garbageCollection(outerTrades) {
     for (let trade of outerTrades) {
       const date = new Date(trade.update_at);
@@ -52,12 +55,6 @@ class ExchangeHubService {
     this.logger.log(`[${this.constructor.name}] start`);
     this.sync();
   }
-
-  /**
-   * ++TODO gc，#674
-   * 每筆 outerTrade 只保留180天
-   * outerTrade不能抓180天以前的資料
-   * */
 
   async sync(exchange, force = false) {
     this.logger.log(
@@ -107,6 +104,7 @@ class ExchangeHubService {
       id,
       exchangeCode,
       status,
+      update_at: new Date().toISOString().slice(0, 19).replace("T", " "),
     });
     try {
       await this.database.updateOuterTrade(
@@ -158,7 +156,7 @@ class ExchangeHubService {
         id: account.id,
         balance: accBal,
         locked: accLoc,
-        // ++ updated_at
+        updated_at: updateAt.slice(0, 19).replace("T", " "),
       };
       await this.database.updateAccount(updateAccount, { dbTransaction });
       /* !!! HIGH RISK (end) !!! */
@@ -669,7 +667,7 @@ class ExchangeHubService {
           filled = true;
           locked = "0"; //++ TODO to be verify: 使用 TideBit ticker 測試)
         }
-         // ++TODO check updateAt
+        // ++TODO check updateAt
         _updateOrder = {
           id: _order.id,
           volume,
@@ -677,7 +675,7 @@ class ExchangeHubService {
           locked,
           funds_received: fundsReceived,
           trades_count: tradesCount,
-          // updated_at: updateAt,
+          updated_at: updateAt,
         };
         /* !!! HIGH RISK (start) !!! */
         // update order data from table
@@ -936,7 +934,7 @@ class ExchangeHubService {
     return result;
   }
 
-  // ++TODO check, rm inside for loop sql
+  // ++TODO check, rm sql inside forLoop
   async _insertOuterTrades(outerTrades) {
     /* !!! HIGH RISK (start) !!! */
     let result;
@@ -947,14 +945,7 @@ class ExchangeHubService {
     const t = await this.database.transaction();
     try {
       this.logger.log(`outerTrades`, outerTrades);
-      const _trades = outerTrades.map((trade) => ({
-        id: trade.tradeId, // ++ TODO 之後加上其他交易所 primary ID 是要由 id 及 source 組合
-        exchange_code: this.database.EXCHANGE[trade.source.toUpperCase()],
-        update_at: new Date(parseInt(trade.ts)).toISOString(),
-        status: trade.status,
-        data: JSON.stringify(trade),
-      }));
-      await this.database.insertOuterTrades(_trades, { dbTransaction: t });
+      await this.database.insertOuterTrades(outerTrades, { dbTransaction: t });
       result = true;
       await t.commit();
     } catch (error) {

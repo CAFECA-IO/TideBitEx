@@ -41,6 +41,15 @@ class DBOperator {
   EXCHANGE = {
     OKEX: 10,
   };
+  // ++ TODO outerTrades status
+  // 0: unproccess
+  // 1: done
+  // 9: ERROR: order is Done but outerTrades is not
+  OUTERTRADE_STATUS = {
+    UNPROCESS: 0,
+    DONE: 1,
+    SYSTEM_ERROR: 9,
+  };
 
   constructor() {
     return this;

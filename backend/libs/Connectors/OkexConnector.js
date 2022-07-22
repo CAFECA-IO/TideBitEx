@@ -145,8 +145,11 @@ class OkexConnector extends ConnectorBase {
       const data = res.data.data.map((trade) => ({
         ...trade,
         // tradeId: `${this.database.EXCHANGE.OKEX.toString()}${this.tradeId}`,
-        status: 0,
-        source: SupportedExchange.OKEX,
+        status: this.database.OUTERTRADE_STATUS.UNPROCESS,
+        exchangeCode:
+          this.database.EXCHANGE[SupportedExchange.OKEX.toUpperCase()],
+        updatedAt: new Date(parseInt(trade.ts)).toISOString(),
+        data: JSON.stringify(trade),
       }));
       result = new ResponseFormat({
         message: "tradeFills",
@@ -194,8 +197,11 @@ class OkexConnector extends ConnectorBase {
       const data = res.data.data.map((trade) => ({
         ...trade,
         // tradeId: `${this.database.EXCHANGE.OKEX.toString()}${this.tradeId}`,
-        status: 0,
-        source: SupportedExchange.OKEX,
+        status: this.database.OUTERTRADE_STATUS.UNPROCESS,
+        exchangeCode:
+          this.database.EXCHANGE[SupportedExchange.OKEX.toUpperCase()],
+        updatedAt: new Date(parseInt(trade.ts)).toISOString(),
+        data: JSON.stringify(trade),
       }));
       result = new ResponseFormat({
         message: "tradeFills",

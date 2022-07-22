@@ -10,7 +10,6 @@ class OrderBook extends BookBase {
     return this;
   }
 
-  // ++ TODO: verify function works properly
   _calculateDifference(arrayA, arrayB) {
     const { add } = super._calculateDifference(arrayA, arrayB);
     const update = arrayB.filter((arrayBValue) =>
@@ -27,7 +26,6 @@ class OrderBook extends BookBase {
     };
   }
 
-  // ++ TODO: verify function works properly
   _trim(instId, data) {
     const pendingOrders = [];
     const historyOrders = [];
@@ -46,7 +44,6 @@ class OrderBook extends BookBase {
     return pendingOrders.concat(historyOrders);
   }
 
-  // ++ TODO: verify function works properly
   getDifference(memberId, instId) {
     if (!this._snapshot[memberId]) return null;
     else if (!this._snapshot[memberId][instId]) return null;
@@ -55,7 +52,6 @@ class OrderBook extends BookBase {
     }
   }
 
-  // ++ TODO: verify function works properly
   getSnapshot(memberId, instId, state) {
     if (!this._snapshot[memberId]) return [];
     else if (!this._snapshot[memberId][instId]) return [];

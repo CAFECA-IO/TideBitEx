@@ -48,7 +48,6 @@ class ExchangeHub extends Bot {
   }
 
   async _eventListener() {
-    // ++ TODO TEST
     EventBus.on(Events.account, (memberId, account) => {
       this.logger.log(
         `[${this.constructor.name}] EventBus.on(Events.account)`,
@@ -61,7 +60,6 @@ class ExchangeHub extends Bot {
       });
     });
 
-    // ++ TODO TEST
     EventBus.on(Events.order, (memberId, market, order) => {
       this.logger.log(
         `[${this.constructor.name}] EventBus.on(Events.order)`,
@@ -76,7 +74,6 @@ class ExchangeHub extends Bot {
       });
     });
 
-    // ++ TODO TEST
     EventBus.on(Events.trade, (memberId, market, tradeData) => {
       if (this._isIncludeTideBitMarket(market)) {
         this.logger.log(
@@ -93,7 +90,6 @@ class ExchangeHub extends Bot {
       }
     });
 
-    // ++ TODO TEST
     EventBus.on(Events.trades, (market, tradesData) => {
       this.broadcast(market, {
         type: Events.trades,
@@ -101,13 +97,7 @@ class ExchangeHub extends Bot {
       });
     });
 
-    // depthBooksOnUpdate
-    // ++ TODO TEST
     EventBus.on(Events.update, (market, booksData) => {
-      // this.logger.debug(
-      //   `[${this.name}]_updateBooks booksData`,
-      //   booksData
-      // );
       this.broadcast(market, {
         type: Events.update,
         data: booksData,
@@ -121,13 +111,7 @@ class ExchangeHub extends Bot {
       });
     });
 
-    // tickersOnUpdate
     EventBus.on(Events.tickers, (updateTickers) => {
-      // if (updateTickers["BTC-USDT"])
-      //   this.logger.log(
-      //     `[${this.constructor.name}]_updateTickers updateTickers["BTC-USDT"].last`,
-      //     updateTickers["BTC-USDT"].last
-      //   );
       this.broadcastAllClient({
         type: Events.tickers,
         data: updateTickers,
@@ -813,7 +797,7 @@ class ExchangeHub extends Bot {
           });
         }
       /* !!! HIGH RISK (end) !!! */
-      case SupportedExchange.TIDEBIT: // ++ TODO 待驗證
+      case SupportedExchange.TIDEBIT:
         await t.commit();
         return this.tideBitConnector.router("postPlaceOrder", {
           header,
@@ -1008,7 +992,6 @@ class ExchangeHub extends Bot {
     this.orderBook.updateByDifference(memberId, _updateOrder.instId, {
       add: [_updateOrder],
     });
-    // ++ TODO: verify function works properly
     EventBus.emit(Events.order, memberId, _updateOrder.market, {
       market: _updateOrder.market,
       difference: this.orderBook.getDifference(memberId, _updateOrder.instId),
@@ -1514,7 +1497,6 @@ class ExchangeHub extends Bot {
         `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] updateOrder ln:1092`,
         _updateOrder
       );
-      // ++ TODO: verify function works properly
       this.orderBook.updateByDifference(memberId, instId, {
         add: [_updateOrder],
       });

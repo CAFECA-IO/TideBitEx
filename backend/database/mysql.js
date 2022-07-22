@@ -489,9 +489,9 @@ class mysql {
     for (let trade of trades) {
       query += " (?, ?, ?, ?, ?);";
       values.push([
-        trade.id,
-        trade.exchange_code,
-        trade.update_at,
+        trade.tradeId,
+        trade.exchangeCode,
+        trade.updatedAt,
         trade.status,
         trade.data,
       ]);
