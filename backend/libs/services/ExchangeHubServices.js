@@ -33,6 +33,8 @@ class ExchangeHubService {
    * ++TODO gc，#674
    * 每筆 outerTrade 只保留180天
    * outerTrade不能抓180天以前的資料
+   * !!! 目前外部交易所收取的手續費只有記錄在 outer_trades 的 data 欄位，
+   * 做 GC的時候要先有地方記錄外部交易所收取的手續費 !!!
    * */
   async garbageCollection(outerTrades) {
     for (let trade of outerTrades) {
@@ -963,9 +965,9 @@ class ExchangeHubService {
       this.database.EXCHANGE[exchange.toUpperCase()],
       0
     );
-    if (Math.random() < 0.01) {
-      this.garbageCollection(outerTrades);
-    }
+    // if (Math.random() < 0.01) {
+    //   this.garbageCollection(outerTrades);
+    // }
     this.logger.log(`need processOuterTrade`, outerTrades);
     // 2. _processOuterTrade
     for (let trade of outerTrades) {
