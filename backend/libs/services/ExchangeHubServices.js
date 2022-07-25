@@ -57,11 +57,6 @@ class ExchangeHubService {
   // }
 
   async sync(exchange, force = false, data) {
-    await Promise.resolve(
-      setTimeout(() => {
-        this.logger.log(`wait`);
-      }, 5000)
-    );
     this.logger.log(
       `------------- [${this.constructor.name}] sync -------------`
     );
@@ -1045,17 +1040,6 @@ class ExchangeHubService {
     return outerTrades;
   }
 
-  _wait(second) {
-    let ts = Date.now();
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        let _ts = Date.now();
-        console.log(_ts - ts);
-        resolve(true);
-      }, second * 1000);
-    });
-  }
-
   async _getTransactionsDetail(exchange, clOrdId, retry = 3) {
     this.logger.log(
       `--- [${this.constructor.name}] _getTransactionsDetail ---`
@@ -1068,7 +1052,7 @@ class ExchangeHubService {
       if (index === -1 && retry > 0) {
         newRetry = retry - 1;
         this.logger.log(`_getOuterTradesFromAPI recall newRetry`, newRetry);
-        await this._wait(2.5);
+        await Utils.wait(2500);
         return this._getTransactionsDetail(exchange, clOrdId, newRetry);
       }
     }
