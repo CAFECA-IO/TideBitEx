@@ -300,13 +300,6 @@ class ExchangeHub extends Bot {
           updateAskAccount = data.updateAskAccount,
           updateBidAccount = data.updateBidAccount;
         if (updateOrder && memberId && instId) {
-          // this.orderBook.updateByDifference(memberId, instId, {
-          //   add: [updateOrder],
-          // });
-          // EventBus.emit(Events.order, memberId, market, {
-          //   market,
-          //   difference: this.orderBook.getDifference(memberId, instId),
-          // });
           this._emitUpdateOrder({
             memberId,
             instId,
@@ -315,18 +308,6 @@ class ExchangeHub extends Bot {
           });
         }
         if (newTrade) {
-          // this.tradeBook.updateByDifference(instId, {
-          //   add: [
-          //     {
-          //       ...newTrade,
-          //       ts: parseInt(SafeMath.mult(newTrade.at, "1000")),
-          //     },
-          //   ],
-          // });
-          // EventBus.emit(Events.trade, memberId, newTrade.market, {
-          //   market: newTrade.market,
-          //   difference: this.tradeBook.getDifference(instId),
-          // });
           this._emitNewTrade({
             memberId,
             instId,
@@ -335,30 +316,12 @@ class ExchangeHub extends Bot {
           });
         }
         if (updateAskAccount) {
-          // this.accountBook.updateByDifference(
-          //   memberId,
-          //   updateAskAccount
-          // );
-          // EventBus.emit(
-          //   Events.account,
-          //   memberId,
-          //   this.accountBook.getDifference(memberId)
-          // );
           this._emitUpdateAccount({
             memberId,
             account: updateAskAccount,
           });
         }
         if (updateBidAccount) {
-          // this.accountBook.updateByDifference(
-          //   memberId,
-          //   updateBidAccount
-          // );
-          // EventBus.emit(
-          //   Events.account,
-          //   memberId,
-          //   this.accountBook.getDifference(memberId)
-          // );
           this._emitUpdateAccount({
             memberId,
             account: updateBidAccount,
