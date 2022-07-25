@@ -474,30 +474,26 @@ class mysql {
     }
   }
 
-  async insertOuterTrades(
-    // id, // trade_fk `${EXCHANGE_CODE}${trade.tradeId}`
-    // exchange_code, // EXCHANGE_CODE
-    // update_at,
-    // status, // 0: unprocessed, 1: _updateOrderbyTrade, 2: _insertTrades, 3: _insertVouchers, 4: _updateAccounts, 5: _insertAccountVersions
-    // data,
-    trades,
-    { dbTransaction }
-  ) {
+  async insertOuterTrades(trades, { dbTransaction }) {
     let query =
         "INSERT IGNORE INTO `outer_trades` (`id`,`exchange_code`,`update_at`,`status`,`data`) VALUES",
-      values = [];
+      values = [],
+      index = 0;
     for (let trade of trades) {
-      query += " (?, ?, ?, ?, ?);";
-      values.push([
-        trade.tradeId,
-        trade.exchangeCode,
-        trade.updatedAt,
-        trade.status,
-        trade.data,
-      ]);
+      query +=
+        index === trades.length - 1 ? " (?, ?, ?, ?, ?);" : " (?, ?, ?, ?, ?),";
+      values.push(trade.tradeId);
+      values.push(trade.exchangeCode);
+      values.push(trade.updatedAt);
+      values.push(trade.status);
+      values.push(trade.data);
+      index++;
     }
     try {
-      this.logger.log("[mysql] insertOuterTrades", query, values);
+      this.logger.log(
+        "[mysql] insertOuterTrades"
+        // , query, values
+      );
       await this.db.query(
         {
           query,

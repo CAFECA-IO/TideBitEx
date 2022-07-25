@@ -91,7 +91,6 @@ class OrderBook extends BookBase {
         `[${this.constructor.name}] updateByDifference error`,
         error
       );
-
       return false;
     }
   }
