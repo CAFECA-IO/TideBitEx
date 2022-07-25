@@ -1073,17 +1073,6 @@ class ExchangeHub extends Bot {
       at: parseInt(SafeMath.div(Date.now(), "1000")),
       ts: Date.now(),
     };
-    // this.logger.log(
-    //   `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] updateOrder ln:1092`,
-    //   _updateOrder
-    // );
-    // this.orderBook.updateByDifference(memberId, _updateOrder.instId, {
-    //   add: [_updateOrder],
-    // });
-    // EventBus.emit(Events.order, memberId, _updateOrder.market, {
-    //   market: _updateOrder.market,
-    //   difference: this.orderBook.getDifference(memberId, _updateOrder.instId),
-    // });
     this._emitUpdateOrder({
       memberId,
       instId: _updateOrder.instId,
@@ -1103,16 +1092,6 @@ class ExchangeHub extends Bot {
             SafeMath.plus(account.locked, locked)
           ),
         };
-        // this.accountBook.updateByDifference(memberId, _updateAccount);
-        // EventBus.emit(
-        //   Events.account,
-        //   memberId,
-        //   this.accountBook.getDifference(memberId)
-        // );
-        // this.logger.log(
-        //   `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:425`,
-        //   _updateAccount
-        // );
         this._emitUpdateAccount({ memberId, account: _updateAccount });
         await this._updateAccount(
           account,
