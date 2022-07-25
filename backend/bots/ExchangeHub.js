@@ -154,10 +154,12 @@ class ExchangeHub extends Bot {
     });
     EventBus.emit(Events.order, memberId, market, {
       market: market,
-      // difference: this.orderBook.getDifference(memberId, instId),
-      difference: {
-        add: [order],
-      }});
+      difference: this.orderBook.getDifference(memberId, instId),
+    });
+    this.logger.log(
+      `difference`,
+      this.orderBook.getDifference(memberId, instId)
+    );
     this.logger.log(
       `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] _emitUpdateOrder[market:${market}][memberId:${memberId}][instId:${instId}]`,
       order
@@ -174,16 +176,9 @@ class ExchangeHub extends Bot {
     });
     EventBus.emit(Events.trade, memberId, market, {
       market,
-      // difference: this.tradeBook.getDifference(instId),
-      difference: {
-        add: [
-          {
-            ...trade,
-            ts: parseInt(SafeMath.mult(trade.at, "1000")),
-          },
-        ],
-      },
+      difference: this.tradeBook.getDifference(instId),
     });
+    this.logger.log(`difference`, this.tradeBook.getDifference(instId));
     this.logger.log(
       `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.trade}] _emitNewTrade[market:${market}][memberId:${memberId}][instId:${instId}]`,
       trade
@@ -194,8 +189,9 @@ class ExchangeHub extends Bot {
     EventBus.emit(
       Events.account,
       memberId,
-      account
+      this.accountBook.getDifference(memberId)
     );
+    this.logger.log(`difference`,  this.accountBook.getDifference(memberId));
     this.logger.log(
       `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _emitUpdateAccount[memberId:${memberId}]`,
       account
@@ -729,6 +725,23 @@ class ExchangeHub extends Bot {
   }
   // market api end
   // trade api
+  /**
+   * ++ TODO
+   * 外部 Order 掛單流程調整
+   * 1. DB transaction
+   * 2. 根據 order 單內容更新 account locked 與 balance
+   * 3. 新增 account version
+   * 4. 建立 TideBit order 單
+   * 5. commit transaction
+   * 6. 建立 OKX order 單
+   * 6.1 掛單成功
+   * 6.2 掛單失敗
+   * 6.2.1 DB transaction
+   * 6.2.2 根據 order locked amount 減少 account locked amount 並增加 balance amount
+   * 6.2.3 新增 account_versions 記錄
+   * 6.2.4 更新 order 為 cancel 狀態
+   * 6.2.5 commit transaction
+   */
   async postPlaceOrder({ header, params, query, body, memberId }) {
     if (memberId === -1) {
       return new ResponseFormat({
@@ -829,7 +842,7 @@ class ExchangeHub extends Bot {
               let _updateOrder = {
                 instId: body.instId,
                 ordType: body.ordType === "market" ? "ioc" : body.ordType,
-                id: orderId,
+                id: okexOrderRes.payload.ordId,
                 clOrdId: okexOrderRes.payload.clOrdId,
                 at: parseInt(SafeMath.div(Date.now(), "1000")),
                 ts: Date.now(),
@@ -886,6 +899,10 @@ class ExchangeHub extends Bot {
               //   `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:800`,
               //   _updateAccount
               // );
+              this.logger.log({
+                memberId,
+                account: _updateAccount,
+              });
               this._emitUpdateAccount({
                 memberId,
                 account: _updateAccount,

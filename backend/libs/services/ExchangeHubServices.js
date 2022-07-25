@@ -307,13 +307,15 @@ class ExchangeHubService {
         fun: this.database.FUNC.PLUS_FUNDS,
         dbTransaction,
       });
-      this.logger.log(
-        `------------- [${this.constructor.name}] _updateAccByAskTrade [END]-------------`
-      );
     } catch (error) {
       this.logger.error(`_updateAccByAskTrade`, error);
       throw error;
     }
+    this.logger.log(`for [FRONTEND] updateAskAccount`, updateAskAccount);
+    this.logger.log(`for [FRONTEND] updateBidAccount`, updateBidAccount);
+    this.logger.log(
+      `------------- [${this.constructor.name}] _updateAccByAskTrade [END]-------------`
+    );
     return { updateAskAccount, updateBidAccount };
   }
 
@@ -463,13 +465,15 @@ class ExchangeHubService {
         fun: this.database.FUNC.UNLOCK_AND_SUB_FUNDS,
         dbTransaction,
       });
-      this.logger.log(
-        `------------- [${this.constructor.name}] _updateAccByBidTrade [END]-------------`
-      );
     } catch (error) {
       this.logger.error(`_updateAccByAskTrade`, error);
       throw error;
     }
+    this.logger.log(`for [FRONTEND] updateAskAccount`, updateAskAccount);
+    this.logger.log(`for [FRONTEND] updateBidAccount`, updateBidAccount);
+    this.logger.log(
+      `------------- [${this.constructor.name}] _updateAccByBidTrade [END]-------------`
+    );
     return { updateAskAccount, updateBidAccount };
   }
 
@@ -556,20 +560,18 @@ class ExchangeHubService {
       this.logger.error(`insertVouchers`, error);
       throw error;
     }
-    this.logger.log(
-      `------------- [${this.constructor.name}] insertTrades [END] -------------`
-    );
     _trade = {
-      ..._trade,
       id,
-      tid: id,
-      type: trade.side === "sell" ? "ask" : "bid",
-      date: trade.ts,
-      amount: trade.fillSz,
+      price: trade.fillPx,
+      volume: trade.fillSz,
       market: market.id,
       at: parseInt(SafeMath.div(trade.ts, "1000")),
       ts: trade.ts,
     };
+    this.logger.log(`for [FORNTEND] _updateTrade`, _trade);
+    this.logger.log(
+      `------------- [${this.constructor.name}] insertTrades [END] -------------`
+    );
     return _trade;
   }
 
@@ -599,7 +601,8 @@ class ExchangeHubService {
           market,
           dbTransaction,
         });
-        this.logger.log(`_insertTrades result`, insertTradesResult);
+        newTrade = insertTradesResult;
+        this.logger.log(`for [FORNTEND] _updateTrade`, newTrade);
         // 3. insert voucher to DB
         insertVouchersResult = await this._insertVouchers({
           memberId,
@@ -608,8 +611,6 @@ class ExchangeHubService {
           market,
           dbTransaction,
         });
-        this.logger.log(`insertVouchers result`, insertVouchersResult);
-        newTrade = insertTradesResult;
       } else {
         this.logger.log(`this trade is already exist`);
       }
@@ -617,7 +618,6 @@ class ExchangeHubService {
       this.logger.error(`_insertTradesRecord`, error);
       throw error;
     }
-    this.logger.log(`_insertTradesRecord result`, insertVouchersResult);
     this.logger.log(
       `------------- [${this.constructor.name}] _insertTradesRecord [END]-------------`
     );
@@ -678,7 +678,6 @@ class ExchangeHubService {
           filled = true;
           locked = "0"; //++ TODO to be verify: 使用 TideBit ticker 測試)
         }
-        // ++TODO check updateAt
         _updateOrder = {
           id: _order.id,
           volume,
@@ -689,22 +688,26 @@ class ExchangeHubService {
           updated_at: updateAt,
         };
         /* !!! HIGH RISK (start) !!! */
-        // update order data from table
+        // update orders table order data
         await this.database.updateOrder(_updateOrder, { dbTransaction });
+        // update orderbook order data
         _updateOrder = {
-          ..._order,
-          ..._updateOrder,
-          kind: trade.side === "buy" ? "bid" : "ask",
+          instId: trade.instId,
+          ordType: _order.ord_type,
+          id: trade.ordId,
           clOrdId: trade.clOrdId,
           at: parseInt(SafeMath.div(trade.ts, "1000")),
           ts: parseInt(trade.ts),
-          state_text,
-          ordType: _order.ord_type,
-          filled,
           market: market.id,
-          instId: trade.instId,
+          kind: trade.side === "buy" ? "bid" : "ask",
+          price: _order.price,
+          volume,
+          origin_volume: _order.origin_volume,
+          state_text,
+          filled,
           state,
         };
+        this.logger.log("_updateOrder for [FRONTEND]", _updateOrder);
       } else {
         if (_order?.member_id.toString() === memberId)
           this.logger.error("order has been closed");
