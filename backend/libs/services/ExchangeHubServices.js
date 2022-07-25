@@ -168,6 +168,7 @@ class ExchangeHubService {
     memberId,
     askCurr,
     bidCurr,
+    askFeeRate,
     trade,
     market,
     dbTransaction,
@@ -198,7 +199,7 @@ class ExchangeHubService {
        * 3.5 update accountBook
        * 3.6 update DB
        * 4. calculate bidAccount balance change
-       * 4.1 bidAccount: balanceDiff = SafeMath.minus(SafeMath.mult(trade.fillPx, trade.fillSz), SafeMath.mult(SafeMath.mult(trade.fillPx, trade.fillSz), market.ask.fee))
+       * 4.1 bidAccount: balanceDiff = SafeMath.minus(SafeMath.mult(trade.fillPx, trade.fillSz), SafeMath.mult(SafeMath.mult(trade.fillPx, trade.fillSz), askFeeRate))
        * 4.2 bidAccount: balance = SafeMath.plus(bidAccount.balance, balanceDiff)
        * 4.3 bidAccount: lockedDiff  = 0
        * 4.4 bidAccount: locked = SafeMath.plus(bidAccount.locked, lockedDiff),
@@ -230,7 +231,7 @@ class ExchangeHubService {
       updateAskAccount = {
         balace: askAccBal,
         locked: askLoc,
-        currency: market.ask.currency,
+        currency: market.ask.currency.toUpperCase(),
         total: SafeMath.plus(askAccBal, askLoc),
       };
       // 3.6 update DB
@@ -259,7 +260,7 @@ class ExchangeHubService {
       // 4.1 bidAccount: balanceDiff = SafeMath.minus(SafeMath.mult(trade.fillPx, trade.fillSz), trade.fee)
       bidAccBalDiff = SafeMath.minus(
         SafeMath.mult(trade.fillPx, trade.fillSz),
-        SafeMath.mult(SafeMath.mult(trade.fillPx, trade.fillSz), market.ask.fee)
+        SafeMath.mult(SafeMath.mult(trade.fillPx, trade.fillSz), askFeeRate)
       );
       // 4.2 bidAccount: balance = SafeMath.plus(bidAccount.balance, balanceDiff)
       bidAccBal = SafeMath.plus(bidAccount.balance, bidAccBalDiff);
@@ -271,7 +272,7 @@ class ExchangeHubService {
       updateBidAccount = {
         balace: bidAccBal,
         locked: bidLoc,
-        currency: market.bid.currency,
+        currency: market.bid.currency.toUpperCase(),
         total: SafeMath.plus(bidAccBal, bidLoc),
       };
       // 4.6 update DB
@@ -282,7 +283,7 @@ class ExchangeHubService {
       this.logger.log(`bidLoc`, bidLoc);
       this.logger.log(
         `bidFee`,
-        SafeMath.mult(SafeMath.mult(trade.fillPx, trade.fillSz), market.ask.fee)
+        SafeMath.mult(SafeMath.mult(trade.fillPx, trade.fillSz), askFeeRate)
       );
       this.logger.log(`modifiableId`, trade.tradeId);
       this.logger.log(`updateAt`, new Date(parseInt(trade.ts)).toISOString());
@@ -295,7 +296,7 @@ class ExchangeHubService {
         reason: this.database.REASON.STRIKE_ADD,
         fee: SafeMath.mult(
           SafeMath.mult(trade.fillPx, trade.fillSz),
-          market.ask.fee
+          askFeeRate
         ),
         modifiableId: trade.id,
         updateAt: new Date(parseInt(trade.ts)).toISOString(),
@@ -316,6 +317,7 @@ class ExchangeHubService {
 
   async _updateAccByBidTrade({
     memberId,
+    bidFeeRate,
     askCurr,
     bidCurr,
     order,
@@ -343,7 +345,7 @@ class ExchangeHubService {
        * 1. get askAccount from table
        * 2. get bidAccount from table
        * 3. calculate askAccount balance change
-       * 3.1 askAccount: SafeMath.minus(trade.fillSz, SafeMath.mult(trade.fillSz, market.bid.fee)); //++ TODO to be verify: is market.bid.fee || market.ask.fee need test (TideBit-Legacy config/markerts/markets.yml 裡 ask.fee 及 bid.fee 設定不一樣，使用 TideBit ticker 測試)
+       * 3.1 askAccount: SafeMath.minus(trade.fillSz, SafeMath.mult(trade.fillSz, bidFeeRate));
        * 3.2 askAccount: balance = SafeMath.plus(askAccount.balance, balanceDiff)
        * 3.3 askAccount: lockedDiff = 0;
        * 3.4 askAccount: locked = SafeMath.plus(askAccount.locked, lockedDiff),
@@ -372,10 +374,9 @@ class ExchangeHubService {
       );
       // 3. calculate askAccount balance change
       // 3.1 askAccount: SafeMath.plus(trade.fillSz, trade.fee);
-      //++ TODO to be verify: is market.bid.fee || market.ask.fee need test (TideBit-Legacy config/markerts/markets.yml 裡 ask.fee 及 bid.fee 設定不一樣，使用 TideBit ticker 測試)
       askAccBalDiff = SafeMath.minus(
         trade.fillSz,
-        SafeMath.mult(trade.fillSz, market.bid.fee)
+        SafeMath.mult(trade.fillSz, bidFeeRate)
       );
       // 3.2 askAccount: balance = SafeMath.plus(askAccount.balance, balanceDiff)
       askAccBal = SafeMath.plus(askAccount.balance, askAccBalDiff);
@@ -387,7 +388,7 @@ class ExchangeHubService {
       updateAskAccount = {
         balace: askAccBal,
         locked: askLoc,
-        currency: market.ask.currency,
+        currency: market.ask.currency.toUpperCase(),
         total: SafeMath.plus(askAccBal, askLoc),
       };
       // 3.6 update DB
@@ -406,7 +407,7 @@ class ExchangeHubService {
         accLocDiff: askLocDiff,
         accLoc: askLoc,
         reason: this.database.REASON.STRIKE_ADD,
-        fee: SafeMath.mult(trade.fillSz, market.bid.fee),
+        fee: SafeMath.mult(trade.fillSz, bidFeeRate),
         modifiableId: trade.id,
         updateAt: new Date(parseInt(trade.ts)).toISOString(),
         fun: this.database.FUNC.PLUS_FUNDS,
@@ -435,7 +436,7 @@ class ExchangeHubService {
       updateBidAccount = {
         balace: bidAccBal,
         locked: bidLoc,
-        currency: market.bid.currency,
+        currency: market.bid.currency.toUpperCase(),
         total: SafeMath.plus(bidAccBal, bidLoc),
       };
       // 4.6 update DB
@@ -472,7 +473,15 @@ class ExchangeHubService {
     return { updateAskAccount, updateBidAccount };
   }
 
-  async _insertVouchers({ memberId, orderId, trade, market, dbTransaction }) {
+  async _insertVouchers({
+    memberId,
+    askFeeRate,
+    bidFeeRate,
+    orderId,
+    trade,
+    market,
+    dbTransaction,
+  }) {
     this.logger.log(
       `------------- [${this.constructor.name}] _insertVouchers -------------`
     );
@@ -505,14 +514,9 @@ class ExchangeHubService {
         SafeMath.mult(trade.fillPx, trade.fillSz),
         trade.side === "sell" ? "ask" : "bid",
         trade.side === "sell"
-          ? SafeMath.mult(
-              SafeMath.mult(trade.fillPx, trade.fillSz),
-              market.ask.fee
-            )
+          ? SafeMath.mult(SafeMath.mult(trade.fillPx, trade.fillSz), askFeeRate)
           : "0", //ask_fee
-        trade.side === "buy"
-          ? SafeMath.mult(trade.fillSz, market.bid.fee)
-          : "0", //bid_fee
+        trade.side === "buy" ? SafeMath.mult(trade.fillSz, bidFeeRate) : "0", //bid_fee
         trade.ts,
         { dbTransaction }
       );
@@ -533,7 +537,7 @@ class ExchangeHubService {
     /* !!! HIGH RISK (start) !!! */
     // 1. insert Vouchers to DB
     let id, _trade;
-    this.logger.log(`market`, market);
+    // this.logger.log(`market`, market);
     if (!market) throw Error(`market not found`);
     _trade = {
       price: trade.fillPx,
@@ -572,6 +576,8 @@ class ExchangeHubService {
 
   async _insertTradesRecord({
     memberId,
+    askFeeRate,
+    bidFeeRate,
     orderId,
     market,
     trade,
@@ -601,6 +607,8 @@ class ExchangeHubService {
         // 3. insert voucher to DB
         insertVouchersResult = await this._insertVouchers({
           memberId,
+          askFeeRate,
+          bidFeeRate,
           orderId,
           trade: { ...trade, id: insertTradesResult.id },
           market,
@@ -715,11 +723,10 @@ class ExchangeHubService {
       this.logger.error(`_updateOrderbyTrade`, error);
       throw error;
     }
-    this.logger.log(`_updateOrder`, _updateOrder);
+    this.logger.log(`for [FRONTEND] _updateOrder`, _updateOrder);
     this.logger.log(
       `------------- [${this.constructor.name}] _updateOrderbyTrade [END] -------------`
     );
-    this.logger.log(`_updateOrder[FOR UI]`, _updateOrder);
     return { updateOrder: _updateOrder, order: _order };
   }
 
@@ -780,6 +787,10 @@ class ExchangeHubService {
     );
     let tmp,
       memberId,
+      member,
+      memberTag,
+      askFeeRate,
+      bidFeeRate,
       orderId,
       market,
       order,
@@ -803,6 +814,22 @@ class ExchangeHubService {
       market = this._findMarket(trade.instId);
       memberId = tmp.memberId;
       orderId = tmp.orderId;
+      member = await this.database.getMemberById(memberId);
+      memberTag = member.member_tag;
+      this.logger.log(`member.member_tag`, member.member_tag); // 1 是 vip， 2 是 hero
+      if (memberTag) {
+        if (memberTag.toString() === "1") {
+          askFeeRate = market.ask.vip_fee;
+          bidFeeRate = market.bid.vip_fee;
+        }
+        if (memberTag.toString() === "2") {
+          askFeeRate = market.ask.hero_fee;
+          bidFeeRate = market.bid.hero_fee;
+        }
+      } else {
+        askFeeRate = market.ask.fee;
+        bidFeeRate = market.bid.fee;
+      }
       /* !!! HIGH RISK (start) !!! */
       // 1. _updateOrderbyTrade
       // 2. _insertTrades & _insertVoucher
@@ -812,6 +839,8 @@ class ExchangeHubService {
       this.logger.log(`outerTrade`, trade);
       this.logger.log(`memberId`, memberId);
       this.logger.log(`orderId`, orderId);
+      this.logger.log(`askFeeRate`, askFeeRate);
+      this.logger.log(`bidFeeRate`, bidFeeRate);
       try {
         // 1. _updateOrderbyTrade
         resultOnOrderUpdate = await this._updateOrderbyTrade({
@@ -828,6 +857,8 @@ class ExchangeHubService {
           // 2. _insertTrades & _insertVouchers
           newTrade = await this._insertTradesRecord({
             memberId,
+            askFeeRate,
+            bidFeeRate,
             orderId,
             market,
             trade,
@@ -839,6 +870,7 @@ class ExchangeHubService {
             if (trade.side === "buy")
               resultOnAccUpdate = await this._updateAccByBidTrade({
                 memberId,
+                bidFeeRate,
                 market,
                 order: updateOrder,
                 askCurr: order.ask,
@@ -849,6 +881,7 @@ class ExchangeHubService {
             else
               resultOnAccUpdate = await this._updateAccByAskTrade({
                 memberId,
+                askFeeRate,
                 market,
                 askCurr: order.ask,
                 bidCurr: order.bid,
@@ -1079,7 +1112,7 @@ class ExchangeHubService {
     );
     let result = false;
     if (_filtered.length > 0) {
-      this.logger.log(`_filtered[${_filtered.length}]`, _filtered);
+      this.logger.log(`_filtered[${_filtered.length}]`);
       result = await this._insertOuterTrades(_filtered);
     }
     return result;

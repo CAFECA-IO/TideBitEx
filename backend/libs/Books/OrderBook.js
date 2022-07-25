@@ -68,23 +68,12 @@ class OrderBook extends BookBase {
   }
 
   updateByDifference(memberId, instId, difference) {
-    this.logger.log(
-      `------------- [${this.constructor.name}] updateByDifference [START] -------------`
-    );
     try {
       if (!this._difference[memberId]) this._difference[memberId] = {};
       if (!this._snapshot[memberId]) this._snapshot[memberId] = {};
       if (!this._snapshot[memberId][instId])
         this._snapshot[memberId][instId] = [];
-      this.logger.log(
-        `[${this.constructor.name}] difference [BEFORE]`,
-        this._difference[memberId][instId]
-      );
       this._difference[memberId][instId] = difference;
-      this.logger.log(
-        `[${this.constructor.name}] difference [AFtER]`,
-        this._difference[memberId][instId]
-      );
       let updateSnapshot = this._snapshot[memberId][instId]
         .filter(
           (data) =>
@@ -104,9 +93,6 @@ class OrderBook extends BookBase {
       );
       return false;
     }
-    this.logger.log(
-      `------------- [${this.constructor.name}] updateByDifference [END] -------------`
-    );
   }
 
   updateAll(memberId, instId, data) {

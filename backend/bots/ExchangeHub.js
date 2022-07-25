@@ -156,13 +156,10 @@ class ExchangeHub extends Bot {
       market: market,
       difference: this.orderBook.getDifference(memberId, instId),
     });
-    this.logger.log(
-      `difference`,
-      this.orderBook.getDifference(memberId, instId)
-    );
+    this.logger.log(`difference`, order);
     this.logger.log(
       `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] _emitUpdateOrder[market:${market}][memberId:${memberId}][instId:${instId}]`,
-      order
+      this.orderBook.getDifference(memberId, instId)
     );
   }
   _emitNewTrade({ memberId, instId, market, trade }) {
@@ -178,10 +175,10 @@ class ExchangeHub extends Bot {
       market,
       difference: this.tradeBook.getDifference(instId),
     });
-    this.logger.log(`difference`, this.tradeBook.getDifference(instId));
+    this.logger.log(`difference`, trade);
     this.logger.log(
       `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.trade}] _emitNewTrade[market:${market}][memberId:${memberId}][instId:${instId}]`,
-      trade
+      this.tradeBook.getDifference(instId)
     );
   }
   _emitUpdateAccount({ memberId, account }) {
@@ -191,10 +188,10 @@ class ExchangeHub extends Bot {
       memberId,
       this.accountBook.getDifference(memberId)
     );
-    this.logger.log(`difference`,  this.accountBook.getDifference(memberId));
+    this.logger.log(`difference`, account);
     this.logger.log(
       `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _emitUpdateAccount[memberId:${memberId}]`,
-      account
+      this.accountBook.getDifference(memberId)
     );
   }
 
@@ -854,24 +851,6 @@ class ExchangeHub extends Bot {
                 state_text: "Waiting",
                 volume: body.volume,
               };
-              // this.orderBook.updateByDifference(memberId, body.instId, {
-              //   add: [_updateOrder],
-              // });
-              // EventBus.emit(Events.order, memberId, body.market, {
-              //   market: body.market,
-              //   difference: this.orderBook.getDifference(memberId, body.instId),
-              // });
-              // this.logger.log(
-              //   `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] _updateOrder ln:779`,
-              //   _updateOrder
-              // );
-              // ++ TODO verify
-              this.logger.log({
-                memberId,
-                instId: body.instId,
-                market: body.market,
-                order: _updateOrder,
-              });
               this._emitUpdateOrder({
                 memberId,
                 instId: body.instId,
@@ -889,20 +868,6 @@ class ExchangeHub extends Bot {
                   SafeMath.plus(account.locked, locked)
                 ),
               };
-              // this.accountBook.updateByDifference(memberId, _updateAccount);
-              // EventBus.emit(
-              //   Events.account,
-              //   memberId,
-              //   this.accountBook.getDifference(memberId)
-              // );
-              // this.logger.log(
-              //   `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:800`,
-              //   _updateAccount
-              // );
-              this.logger.log({
-                memberId,
-                account: _updateAccount,
-              });
               this._emitUpdateAccount({
                 memberId,
                 account: _updateAccount,
