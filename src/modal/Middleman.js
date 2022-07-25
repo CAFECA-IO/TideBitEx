@@ -138,7 +138,8 @@ class Middleman {
 
   getTrades(market) {
     if (!market) market = this.tickerBook.getCurrentTicker()?.market;
-    return this.tradeBook.getSnapshot(market);
+    let lotSz = this.tickerBook.getCurrentTicker()?.lotSz;
+    return this.tradeBook.getSnapshot(market, lotSz);
   }
 
   async _getTrades(id, limit) {
@@ -175,7 +176,7 @@ class Middleman {
   async _getTicker(market) {
     try {
       const ticker = await this.communicator.ticker(market);
-      this.tickerBook.updateByDifference(market, ticker[market]);
+      if (ticker) this.tickerBook.updateByDifference(market, ticker[market]);
     } catch (error) {
       console.error(`_getTicker error`, error);
     }

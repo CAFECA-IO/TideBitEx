@@ -15,10 +15,13 @@ const TradeBook = require("../libs/Books/TradeBook");
 const TickerBook = require("../libs/Books/TickerBook");
 const OrderBook = require("../libs/Books/OrderBook");
 const AccountBook = require("../libs/Books/AccountBook");
+const ExchangeHubService = require("../libs/services/ExchangeHubServices");
 
 class ExchangeHub extends Bot {
   fetchedOrders = {};
   fetchedOrdersInterval = 1 * 60 * 1000;
+  systemMemberId;
+  updateDatas = [];
   constructor() {
     super();
     this.name = "ExchangeHub";
@@ -46,7 +49,6 @@ class ExchangeHub extends Bot {
   }
 
   async _eventListener() {
-    // ++ TODO TEST
     EventBus.on(Events.account, (memberId, account) => {
       this.logger.log(
         `[${this.constructor.name}] EventBus.on(Events.account)`,
@@ -59,7 +61,6 @@ class ExchangeHub extends Bot {
       });
     });
 
-    // ++ TODO TEST
     EventBus.on(Events.order, (memberId, market, order) => {
       this.logger.log(
         `[${this.constructor.name}] EventBus.on(Events.order)`,
@@ -74,7 +75,6 @@ class ExchangeHub extends Bot {
       });
     });
 
-    // ++ TODO TEST
     EventBus.on(Events.trade, (memberId, market, tradeData) => {
       if (this._isIncludeTideBitMarket(market)) {
         this.logger.log(
@@ -91,7 +91,6 @@ class ExchangeHub extends Bot {
       }
     });
 
-    // ++ TODO TEST
     EventBus.on(Events.trades, (market, tradesData) => {
       this.broadcast(market, {
         type: Events.trades,
@@ -99,13 +98,7 @@ class ExchangeHub extends Bot {
       });
     });
 
-    // depthBooksOnUpdate
-    // ++ TODO TEST
     EventBus.on(Events.update, (market, booksData) => {
-      // this.logger.debug(
-      //   `[${this.name}]_updateBooks booksData`,
-      //   booksData
-      // );
       this.broadcast(market, {
         type: Events.update,
         data: booksData,
@@ -119,13 +112,7 @@ class ExchangeHub extends Bot {
       });
     });
 
-    // tickersOnUpdate
     EventBus.on(Events.tickers, (updateTickers) => {
-      // if (updateTickers["BTC-USDT"])
-      //   this.logger.log(
-      //     `[${this.constructor.name}]_updateTickers updateTickers["BTC-USDT"].last`,
-      //     updateTickers["BTC-USDT"].last
-      //   );
       this.broadcastAllClient({
         type: Events.tickers,
         data: updateTickers,
@@ -134,20 +121,82 @@ class ExchangeHub extends Bot {
 
     EventBus.on(Events.orderDetailUpdate, async (instType, formatOrders) => {
       if (instType === "SPOT") {
+        this.logger.log(
+          ` ------------- [${this.constructor.name}] EventBus.on(Events.orderDetailUpdate [START]---------------`
+        );
         // TODO: using message queue
         for (const formatOrder of formatOrders) {
           if (
             formatOrder.state !== "canceled" /* cancel order */ &&
             formatOrder.accFillSz !== "0" /* create order */
           ) {
-            await this._updateOrderDetail(formatOrder);
+            // await this._updateOrderDetail(formatOrder);
+            await this._syncTransactionDetail(formatOrder);
           }
         }
+        this.logger.log(
+          ` ------------- [${this.constructor.name}] EventBus.on(Events.orderDetailUpdate [END]---------------`
+        );
       }
     });
   }
 
+  /**
+   *
+   * @param {String} memberId
+   * @param {String} instId
+   * @param {String} market ex: ethusdt
+   * @param {Object} order
+   */
+  _emitUpdateOrder({ memberId, instId, market, order }) {
+    this.orderBook.updateByDifference(memberId, instId, {
+      add: [order],
+    });
+    EventBus.emit(Events.order, memberId, market, {
+      market: market,
+      difference: this.orderBook.getDifference(memberId, instId),
+    });
+    this.logger.log(`difference`, order);
+    this.logger.log(
+      `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] _emitUpdateOrder[market:${market}][memberId:${memberId}][instId:${instId}]`,
+      this.orderBook.getDifference(memberId, instId)
+    );
+  }
+  _emitNewTrade({ memberId, instId, market, trade }) {
+    this.tradeBook.updateByDifference(instId, {
+      add: [
+        {
+          ...trade,
+          ts: parseInt(SafeMath.mult(trade.at, "1000")),
+        },
+      ],
+    });
+    EventBus.emit(Events.trade, memberId, market, {
+      market,
+      difference: this.tradeBook.getDifference(instId),
+    });
+    this.logger.log(`difference`, trade);
+    this.logger.log(
+      `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.trade}] _emitNewTrade[market:${market}][memberId:${memberId}][instId:${instId}]`,
+      this.tradeBook.getDifference(instId)
+    );
+  }
+  _emitUpdateAccount({ memberId, account }) {
+    this.accountBook.updateByDifference(memberId, account);
+    EventBus.emit(
+      Events.account,
+      memberId,
+      this.accountBook.getDifference(memberId)
+    );
+    this.logger.log(`difference`, account);
+    this.logger.log(
+      `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _emitUpdateAccount[memberId:${memberId}]`,
+      this.accountBook.getDifference(memberId)
+    );
+  }
+
   init({ config, database, logger, i18n }) {
+    this.systemMemberId = config.peatio.systemMemberId;
     return super
       .init({ config, database, logger, i18n })
       .then(async () => {
@@ -215,15 +264,81 @@ class ExchangeHub extends Bot {
           accountBook: this.accountBook,
           currencies: this.currencies,
           database: this.database,
+          tidebitMarkets: this.tidebitMarkets,
+        });
+        this.exchangeHubService = new ExchangeHubService({
+          database,
+          // connectors: {
+          //   OKEX: this.okexConnector,
+          // },
+          systemMemberId: this.config.peatio.systemMemberId,
+          okexConnector: this.okexConnector,
+          tidebitMarkets: this.tidebitMarkets,
+          logger,
         });
         return this;
       });
+  }
+
+  async _syncTransactionDetail(formatOrder) {
+    this.logger.log(
+      ` ------------- [${this.constructor.name}] _syncTransactionDetail [START]---------------`
+    );
+    const updateData = await this.exchangeHubService.sync(
+      SupportedExchange.OKEX,
+      true,
+      { clOrdId: formatOrder?.clOrdId }
+    );
+    this.logger.log(`updateData length`, updateData?.length);
+    if (updateData) {
+      for (const data of updateData) {
+        const memberId = data.memberId,
+          market = data.market,
+          instId = data.instId,
+          updateOrder = data.updateOrder,
+          newTrade = data.newTrade,
+          updateAskAccount = data.updateAskAccount,
+          updateBidAccount = data.updateBidAccount;
+        if (updateOrder && memberId && instId) {
+          this._emitUpdateOrder({
+            memberId,
+            instId,
+            market,
+            order: updateOrder,
+          });
+        }
+        if (newTrade) {
+          this._emitNewTrade({
+            memberId,
+            instId,
+            market,
+            trade: newTrade,
+          });
+        }
+        if (updateAskAccount) {
+          this._emitUpdateAccount({
+            memberId,
+            account: updateAskAccount,
+          });
+        }
+        if (updateBidAccount) {
+          this._emitUpdateAccount({
+            memberId,
+            account: updateBidAccount,
+          });
+        }
+      }
+    }
+    this.logger.log(
+      ` ------------- [${this.constructor.name}] _syncTransactionDetail [END]---------------`
+    );
   }
 
   async start() {
     await super.start();
     await this.okexConnector.start();
     this._eventListener();
+    this._syncTransactionDetail();
     return this;
   }
 
@@ -361,12 +476,20 @@ class ExchangeHub extends Bot {
 
   async getTicker({ params, query }) {
     const instId = this._findInstId(query.id);
-    this.logger.log(`[${this.constructor.name}] getTicker`, instId);
     const index = this.tidebitMarkets.findIndex(
       (market) => instId === market.instId
     );
+    this.logger.log(
+      `[${this.constructor.name}] getTicker[index:${index}]`,
+      instId
+    );
     if (index !== -1) {
-      switch (this._findSource(instId)) {
+      const source = this._findSource(instId);
+      this.logger.log(
+        `[${this.constructor.name}] getTicker ticketSource`,
+        source
+      );
+      switch (source) {
         case SupportedExchange.OKEX:
           return this.okexConnector.router("getTicker", {
             params,
@@ -404,7 +527,6 @@ class ExchangeHub extends Bot {
       try {
         const okexRes = await this.okexConnector.router("getTickers", {
           query,
-          optional: { mask: this.tidebitMarkets },
         });
         if (okexRes.success) {
           filteredOkexTickers = okexRes.payload;
@@ -563,6 +685,23 @@ class ExchangeHub extends Bot {
   }
   // market api end
   // trade api
+  /**
+   * ++ TODO
+   * 外部 Order 掛單流程調整
+   * 1. DB transaction
+   * 2. 根據 order 單內容更新 account locked 與 balance
+   * 3. 新增 account version
+   * 4. 建立 TideBit order 單
+   * 5. commit transaction
+   * 6. 建立 OKX order 單
+   * 6.1 掛單成功
+   * 6.2 掛單失敗
+   * 6.2.1 DB transaction
+   * 6.2.2 根據 order locked amount 減少 account locked amount 並增加 balance amount
+   * 6.2.3 新增 account_versions 記錄
+   * 6.2.4 更新 order 為 cancel 狀態
+   * 6.2.5 commit transaction
+   */
   async postPlaceOrder({ header, params, query, body, memberId }) {
     if (memberId === -1) {
       return new ResponseFormat({
@@ -675,17 +814,12 @@ class ExchangeHub extends Bot {
                 state_text: "Waiting",
                 volume: body.volume,
               };
-              this.orderBook.updateByDifference(memberId, body.instId, {
-                add: [_updateOrder],
-              });
-              EventBus.emit(Events.order, memberId, body.market, {
+              this._emitUpdateOrder({
+                memberId,
+                instId: body.instId,
                 market: body.market,
-                difference: this.orderBook.getDifference(memberId, body.instId),
+                order: _updateOrder,
               });
-              this.logger.log(
-                `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] _updateOrder ln:616`,
-                _updateOrder
-              );
               let _updateAccount = {
                 balance: SafeMath.plus(account.balance, balance),
                 locked: SafeMath.plus(account.locked, locked),
@@ -697,16 +831,10 @@ class ExchangeHub extends Bot {
                   SafeMath.plus(account.locked, locked)
                 ),
               };
-              this.accountBook.updateByDifference(memberId, _updateAccount);
-              EventBus.emit(
-                Events.account,
+              this._emitUpdateAccount({
                 memberId,
-                this.accountBook.getDifference(memberId)
-              );
-              this.logger.log(
-                `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:425`,
-                _updateAccount
-              );
+                account: _updateAccount,
+              });
             }
           }
           await t.commit();
@@ -720,7 +848,7 @@ class ExchangeHub extends Bot {
           });
         }
       /* !!! HIGH RISK (end) !!! */
-      case SupportedExchange.TIDEBIT: // ++ TODO 待驗證
+      case SupportedExchange.TIDEBIT:
         await t.commit();
         return this.tideBitConnector.router("postPlaceOrder", {
           header,
@@ -737,81 +865,74 @@ class ExchangeHub extends Bot {
 
   // TODO integrate getOrderList and getOrderHistory into one
   async getOrderList({ query, memberId }) {
-    // this.logger.log(
-    //   `[${this.constructor.name} getOrderList] memberId:`,
-    //   memberId
-    //   // `query`,
-    //   // query
-    // );
+    this.logger.log(
+      `-------------[${this.constructor.name} getOrderList]----------`
+    );
+    this.logger.log(` memberId:`, memberId);
     const instId = this._findInstId(query.market);
-    // this.logger.log(`[${this.constructor.name} getOrderList] instId:`, instId);
     const market = this._findMarket(instId);
-    // this.logger.log(`[${this.constructor.name} getOrderList] market:`, market);
-    if (memberId === -1) {
-      // return new ResponseFormat({
-      //   message: "member_id not found",
-      //   code: Codes.MEMBER_ID_NOT_FOUND,
-      // });
-      return new ResponseFormat({
-        message: "getOrderList",
-        payload: null,
-      });
-    }
-    switch (this._findSource(instId)) {
-      case SupportedExchange.OKEX:
-        const res = await this.okexConnector.router("getOrderList", {
-          query: {
-            ...query,
-            instId,
-            // market,
-            memberId,
-          },
-        });
-        const list = res.payload;
-        if (Array.isArray(list)) {
-          const newList = list.filter((order) =>
-            order.clOrdId.includes(`${memberId}m`)
-          ); // 可能發生與brokerId, randomId碰撞
-          res.payload = newList;
-        }
-        return res;
-      case SupportedExchange.TIDEBIT:
-        if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = {};
-        let ts = Date.now();
-        if (
-          !this.fetchedOrders[memberId][instId] ||
-          SafeMath.gt(
-            SafeMath.minus(ts, this.fetchedOrders[memberId][instId]),
-            this.fetchedOrdersInterval
-          )
-        )
-          try {
-            const orders = await this.getOrdersFromDb({
+    const source = this._findSource(instId);
+    if (memberId !== -1) {
+      switch (source) {
+        case SupportedExchange.OKEX:
+          const res = await this.okexConnector.router("getOrderList", {
+            query: {
               ...query,
-              memberId,
               instId,
               market,
-            });
-            this.orderBook.updateAll(memberId, instId, orders);
-            this.fetchedOrders[memberId][instId] = ts;
-          } catch (error) {
-            this.logger.error(error);
-            const message = error.message;
-            return new ResponseFormat({
-              message,
-              code: Codes.API_UNKNOWN_ERROR,
-            });
+              memberId,
+            },
+          });
+          const list = res.payload;
+          if (Array.isArray(list)) {
+            const newList = list.filter((order) =>
+              order.clOrdId.includes(`${memberId}m`)
+            ); // 可能發生與brokerId, randomId碰撞
+            res.payload = newList;
           }
-        return new ResponseFormat({
-          message: "getOrderList",
-          payload: this.orderBook.getSnapshot(memberId, instId, "pending"),
-        });
-      default:
-        return new ResponseFormat({
-          message: "getOrderList",
-          payload: null,
-        });
+          return res;
+        case SupportedExchange.TIDEBIT:
+          if (!this.fetchedOrders[memberId]) this.fetchedOrders[memberId] = {};
+          let ts = Date.now();
+          if (
+            !this.fetchedOrders[memberId][instId] ||
+            SafeMath.gt(
+              SafeMath.minus(ts, this.fetchedOrders[memberId][instId]),
+              this.fetchedOrdersInterval
+            )
+          )
+            try {
+              const orders = await this.getOrdersFromDb({
+                ...query,
+                memberId,
+                instId,
+                market,
+              });
+              this.orderBook.updateAll(memberId, instId, orders);
+              this.fetchedOrders[memberId][instId] = ts;
+            } catch (error) {
+              this.logger.error(error);
+              const message = error.message;
+              return new ResponseFormat({
+                message,
+                code: Codes.API_UNKNOWN_ERROR,
+              });
+            }
+          return new ResponseFormat({
+            message: "getOrderList",
+            payload: this.orderBook.getSnapshot(memberId, instId, "pending"),
+          });
+        default:
+          return new ResponseFormat({
+            message: "getOrderList",
+            payload: null,
+          });
+      }
     }
+    return new ResponseFormat({
+      message: "getOrderList",
+      payload: null,
+    });
   }
 
   async getOrderHistory({ query, memberId }) {
@@ -915,19 +1036,12 @@ class ExchangeHub extends Bot {
       at: parseInt(SafeMath.div(Date.now(), "1000")),
       ts: Date.now(),
     };
-    this.logger.log(
-      `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] updateOrder ln:1092`,
-      _updateOrder
-    );
-    this.orderBook.updateByDifference(memberId, _updateOrder.instId, {
-      add: [_updateOrder],
-    });
-    // ++ TODO: verify function works properly
-    EventBus.emit(Events.order, memberId, _updateOrder.market, {
+    this._emitUpdateOrder({
+      memberId,
+      instId: _updateOrder.instId,
       market: _updateOrder.market,
-      difference: this.orderBook.getDifference(memberId, _updateOrder.instId),
+      order: _updateOrder,
     });
-
     try {
       await this.database.updateOrder(newOrder, { dbTransaction: transacion });
       if (account) {
@@ -941,17 +1055,7 @@ class ExchangeHub extends Bot {
             SafeMath.plus(account.locked, locked)
           ),
         };
-        this.accountBook.updateByDifference(memberId, _updateAccount);
-        EventBus.emit(
-          Events.account,
-          memberId,
-          this.accountBook.getDifference(memberId)
-        );
-        this.logger.log(
-          `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.account}] _updateAccount ln:425`,
-          _updateAccount
-        );
-
+        this._emitUpdateAccount({ memberId, account: _updateAccount });
         await this._updateAccount(
           account,
           transacion,
@@ -1233,7 +1337,10 @@ class ExchangeHub extends Bot {
   }
 
   async getOptions({ query }) {
-    this.logger.debug(`[${this.constructor.name}] getOptions`, this.config.websocket.domain);
+    this.logger.debug(
+      `[${this.constructor.name}] getOptions`,
+      this.config.websocket.domain
+    );
     return Promise.resolve(
       new ResponseFormat({
         message: "getOptions",
@@ -1255,7 +1362,7 @@ class ExchangeHub extends Bot {
     // 3. find and lock account
     // 4. update order state
     // 5. get balance and locked value from order
-    // 6. add trade // -- CAUTION!!! skip now, tradeId use okex tradeId
+    // 6. add trade // -- CAUTION!!! skip now, tradeId use okex tradeId ++ TODO
     // 7. add vouchers
     // 8. add account_version
     // 9. update account balance and locked
@@ -1425,7 +1532,6 @@ class ExchangeHub extends Bot {
         `[TO FRONTEND][${this.constructor.name}][EventBus.emit: ${Events.order}] updateOrder ln:1092`,
         _updateOrder
       );
-      // ++ TODO: verify function works properly
       this.orderBook.updateByDifference(memberId, instId, {
         add: [_updateOrder],
       });
@@ -1450,13 +1556,13 @@ class ExchangeHub extends Bot {
       );
       let _updateAcc = {
         balance: SafeMath.plus(accountAsk.balance, balanceA),
-        locked: SafeMath.plus(accountAsk.balance, lockedA),
+        locked: SafeMath.plus(accountAsk.balance, lockedA), //++ TODO verify => SafeMath.plus(accountAsk.balance, lockedA)
         currency: this.currencies.find(
           (curr) => curr.id === accountAsk.currency
         )?.symbol,
         total: SafeMath.plus(
           SafeMath.plus(accountAsk.balance, balanceA),
-          SafeMath.plus(accountAsk.balance, lockedA)
+          SafeMath.plus(accountAsk.balance, lockedA) //++ TODO verify => SafeMath.plus(accountAsk.balance, lockedA)
         ),
       };
       this.accountBook.updateByDifference(memberId, _updateAcc);

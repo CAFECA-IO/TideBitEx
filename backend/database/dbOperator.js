@@ -38,6 +38,20 @@ class DBOperator {
     ORDER: "Order",
     TRADE: "Trade",
   };
+  EXCHANGE = {
+    OKEX: 10,
+  };
+  // ++ TODO outerTrades status
+  // 0: unproccess
+  // 1: done
+  // 9: ERROR: order is Done but outerTrades is not
+  OUTERTRADE_STATUS = {
+    UNPROCESS: 0,
+    DONE: 1,
+    SYSTEM_ERROR: 9,
+    OTHER_SYSTEM_TRADE: 8,
+    ClORDId_ERROR:7
+  };
 
   constructor() {
     return this;
@@ -109,11 +123,25 @@ class DBOperator {
   async getTrades(quoteCcy, baseCcy) {
     return this.database.getTrades(quoteCcy, baseCcy);
   }
+
   async getVouchers({ memberId, ask, bid }) {
     return this.database.getVouchers({ memberId, ask, bid });
   }
+
   async getVouchersByOrderId(orderId, { dbTransaction }) {
     return this.database.getVouchersByOrderId(orderId, { dbTransaction });
+  }
+
+  async getTradeByTradeFk(tradeFk) {
+    return this.database.getTradeByTradeFk(tradeFk);
+  }
+
+  async getOuterTradesByStatus(exchangeCode, status) {
+    return this.database.getOuterTradesByStatus(exchangeCode, status);
+  }
+
+  async getOuterTradesByDayAfter(exchangeCode, day) {
+    return this.database.getOuterTradesByDayAfter(exchangeCode, day);
   }
 
   /* !!! HIGH RISK (start) !!! */
@@ -197,6 +225,37 @@ class DBOperator {
     );
   }
 
+  async insertOuterTrades(
+    // id, // trade_fk `${EXCHANGE_CODE}${trade.tradeId}`
+    // exchange_code, // EXCHANGE_CODE
+    // update_at,
+    // status, // 0: unprocessed, 1: updateOrders, 2: updateAccounts, 3: insertTrades, 4: updateVouchers, 5: account_version
+    // data,
+    trades,
+    { dbTransaction }
+  ) {
+    console.log(`[DBOperator] insertOuterTrades`);
+    return this.database.insertOuterTrades(trades, { dbTransaction });
+  }
+
+  async insertTrades(trade, { dbTransaction }) {
+    return this.database.insertTrades(
+      trade.price,
+      trade.volume,
+      trade.ask_id,
+      trade.bid_id,
+      trade.trend,
+      trade.currency,
+      trade.created_at,
+      trade.updated_at,
+      trade.ask_member_id,
+      trade.bid_member_id,
+      trade.funds,
+      trade.trade_fk,
+      { dbTransaction }
+    );
+  }
+
   async insertVouchers(
     member_id,
     order_id,
@@ -237,6 +296,14 @@ class DBOperator {
 
   async updateOrder(datas, { dbTransaction }) {
     return this.database.updateOrder(datas, { dbTransaction });
+  }
+
+  async updateOuterTrade(datas, { dbTransaction }) {
+    return this.database.updateOuterTrade(datas, { dbTransaction });
+  }
+
+  async deleteOuterTrade(datas, { dbTransaction }) {
+    return this.database.deleteOuterTrade(datas, { dbTransaction });
   }
   /* !!! HIGH RISK (end) !!! */
 }

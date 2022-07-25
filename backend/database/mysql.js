@@ -218,6 +218,46 @@ class mysql {
     }
   }
 
+  async getOuterTradesByStatus(exchangeCode, status) {
+    const query =
+      "SELECT * FROM `outer_trades` WHERE `outer_trades`.`exchange_code` = ? AND `outer_trades`.`status` = ?;";
+    try {
+      this.logger.log(
+        "getOuterTradesByStatus",
+        query,
+        `[${exchangeCode}, ${status}]`
+      );
+      const [outerTrades] = await this.db.query({
+        query,
+        values: [exchangeCode, status],
+      });
+      return outerTrades;
+    } catch (error) {
+      this.logger.log(error);
+      return [];
+    }
+  }
+
+  async getOuterTradesByDayAfter(exchangeCode, day) {
+    const query =
+      "SELECT * FROM `outer_trades` WHERE `outer_trades`.`exchange_code` = ? AND `outer_trades`.`update_at` > DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY);";
+    try {
+      this.logger.log(
+        "getOuterTradesByDayAfter",
+        query,
+        `[${exchangeCode}, ${day}]`
+      );
+      const [outerTrades] = await this.db.query({
+        query,
+        values: [exchangeCode, day],
+      });
+      return outerTrades;
+    } catch (error) {
+      this.logger.log(error);
+      return [];
+    }
+  }
+
   async getOrder(orderId, { dbTransaction }) {
     const query = "SELECT * FROM `orders` WHERE `orders`.`id` = ?;";
     try {
@@ -258,6 +298,22 @@ class mysql {
       this.logger.log(error);
       if (dbTransaction) throw error;
       return [];
+    }
+  }
+
+  async getTradeByTradeFk(tradeFk) {
+    const query = "SELECT * FROM `trades` WHERE `trade_fk` = ?;";
+    try {
+      this.logger.log("getTradeByTradeFk", query, tradeFk);
+      const [[trade]] = await this.db.query({
+        query,
+        values: [tradeFk],
+      });
+      this.logger.log("getTradeByTradeFk trade", trade);
+      return trade;
+    } catch (error) {
+      this.logger.log(error);
+      return null;
     }
   }
 
@@ -418,6 +474,110 @@ class mysql {
     }
   }
 
+  async insertOuterTrades(trades, { dbTransaction }) {
+    let query =
+        "INSERT IGNORE INTO `outer_trades` (`id`,`exchange_code`,`update_at`,`status`,`data`) VALUES",
+      values = [],
+      index = 0;
+    for (let trade of trades) {
+      query +=
+        index === trades.length - 1 ? " (?, ?, ?, ?, ?);" : " (?, ?, ?, ?, ?),";
+      values.push(trade.tradeId);
+      values.push(trade.exchangeCode);
+      values.push(trade.updatedAt);
+      values.push(trade.status);
+      values.push(trade.data);
+      index++;
+    }
+    try {
+      this.logger.log(
+        "[mysql] insertOuterTrades"
+        // , query, values
+      );
+      await this.db.query(
+        {
+          query,
+          values,
+        },
+        {
+          transaction: dbTransaction,
+        }
+      );
+    } catch (error) {
+      this.logger.error(error);
+      if (dbTransaction) throw error;
+    }
+  }
+
+  async insertTrades(
+    price,
+    volume,
+    ask_id,
+    bid_id,
+    trend,
+    currency,
+    created_at,
+    updated_at,
+    ask_member_id,
+    bid_member_id,
+    funds,
+    trade_fk,
+    { dbTransaction }
+  ) {
+    let result, tradeId;
+    const query =
+      "INSERT INTO `trades` (`id`,`price`,`volume`,`ask_id`,`bid_id`,`trend`,`currency`,`created_at`,`updated_at`,`ask_member_id`,`bid_member_id`,`funds`,`trade_fk`)" +
+      // " OUTPUT Inserted.ID " +
+      " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+    try {
+      this.logger.log(
+        "insertTrades",
+        query,
+        "DEFAULT",
+        price,
+        volume,
+        ask_id,
+        bid_id,
+        trend,
+        currency,
+        created_at,
+        updated_at,
+        ask_member_id,
+        bid_member_id,
+        funds,
+        trade_fk
+      );
+      result = await this.db.query(
+        {
+          query,
+          values: [
+            "DEFAULT",
+            price,
+            volume,
+            ask_id,
+            bid_id,
+            trend,
+            currency,
+            created_at,
+            updated_at,
+            ask_member_id,
+            bid_member_id,
+            funds,
+            trade_fk,
+          ],
+        },
+        {
+          transaction: dbTransaction,
+        }
+      );
+      tradeId = result[0];
+    } catch (error) {
+      this.logger.error(error);
+      if (dbTransaction) throw error;
+    }
+    return tradeId;
+  }
+
   async insertVouchers(
     member_id,
     order_id,
@@ -434,12 +594,13 @@ class mysql {
     created_at,
     { dbTransaction }
   ) {
+    let result;
     const query =
       "INSERT INTO `vouchers` (`id`,`member_id`,`order_id`,`trade_id`,`designated_trading_fee_asset_history_id`,`ask`,`bid`,`price`,`volume`,`value`,`trend`,`ask_fee`,`bid_fee`,`created_at`)" +
       " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
     try {
       this.logger.log(
-        "insertAccountVersion",
+        "insertVouchers",
         query,
         "DEFAULT",
         member_id,
@@ -456,7 +617,7 @@ class mysql {
         bid_fee,
         created_at
       );
-      await this.db.query(
+      result = await this.db.query(
         {
           query,
           values: [
@@ -484,6 +645,7 @@ class mysql {
       this.logger.error(error);
       if (dbTransaction) throw error;
     }
+    return result;
   }
 
   async updateAccount(datas, { dbTransaction }) {
@@ -493,11 +655,7 @@ class mysql {
       delete datas.id;
       const set = Object.keys(datas).map((key) => `\`${key}\` = ${datas[key]}`);
       let query =
-        "UPDATE `accounts` SET " +
-        set.join(", ") +
-        " WHERE " +
-        where +
-        ";";
+        "UPDATE `accounts` SET " + set.join(", ") + " WHERE " + where + ";";
       this.logger.log("updateAccount", query);
       await this.db.query(
         {
@@ -520,11 +678,7 @@ class mysql {
       delete datas.id;
       const set = Object.keys(datas).map((key) => `\`${key}\` = ${datas[key]}`);
       let query =
-        "UPDATE `orders` SET " +
-        set.join(", ") +
-        " WHERE " +
-        where +
-        ";";
+        "UPDATE `orders` SET " + set.join(", ") + " WHERE " + where + ";";
       this.logger.log("updateOrder", query);
       await this.db.query(
         {
@@ -538,6 +692,53 @@ class mysql {
     } catch (error) {
       this.logger.error(error);
       if (dbTransaction) throw error;
+    }
+  }
+
+  async updateOuterTrade(datas, { dbTransaction }) {
+    try {
+      const id = datas.id;
+      const where = "`id` = " + id;
+      delete datas.id;
+      const set = Object.keys(datas).map((key) => `\`${key}\` = ${datas[key]}`);
+      let query =
+        "UPDATE `outer_trades` SET " + set.join(", ") + " WHERE " + where + ";";
+      this.logger.log("updateOuterTrade", query);
+      await this.db.query(
+        {
+          query,
+        },
+        {
+          transaction: dbTransaction,
+          lock: dbTransaction.LOCK.UPDATE,
+        }
+      );
+    } catch (error) {
+      this.logger.error(error);
+      if (dbTransaction) throw error;
+    }
+  }
+
+  async deleteOuterTrade(datas, { dbTransaction }) {
+    const query =
+      "DELETE FROM `outer_trades` WHERE `outer_trades`.`id` = ? AND `outer_trades`.`exchange_code` = ?;";
+    const values = [datas.id, datas.exchange_code];
+    try {
+      const result = await this.db.query(
+        {
+          query,
+          values,
+        }
+        // {
+        //   transaction: dbTransaction,
+        //   lock: dbTransaction.LOCK., // ++ TODO verify
+        // }
+      );
+      this.logger.log(query, values);
+      return result;
+    } catch (error) {
+      this.logger.error(error);
+      return [];
     }
   }
   /* !!! HIGH RISK (end) !!! */
