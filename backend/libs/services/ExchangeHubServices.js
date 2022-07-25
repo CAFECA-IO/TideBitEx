@@ -978,36 +978,6 @@ class ExchangeHubService {
     return updateData;
   }
 
-  // async _insertOuterTrade(outerTrade) {
-  //   this.logger.log(
-  //     `------------- [${this.constructor.name}] _insertOuterTrade -------------`
-  //   );
-  //   /* !!! HIGH RISK (start) !!! */
-  //   let result;
-  //   const t = await this.database.transaction();
-  //   try {
-  //     this.logger.log(`outerTrade`, outerTrade);
-  //     await this.database.insertOuterTrades(
-  //       outerTrade.tradeId, // ++ TODO 之後加上其他交易所 primary ID 是要由 id 及 source 組合
-  //       this.database.EXCHANGE[outerTrade.source.toUpperCase()],
-  //       new Date(parseInt(outerTrade.ts)).toISOString(),
-  //       outerTrade.status,
-  //       JSON.stringify(outerTrade),
-  //       { dbTransaction: t }
-  //     );
-  //     result = true;
-  //     await t.commit();
-  //   } catch (error) {
-  //     this.logger.error(`insertOuterTrades`, error);
-  //     result = false;
-  //     await t.rollback();
-  //   }
-  //   this.logger.log(
-  //     `------------- [${this.constructor.name}] _insertOuterTrade [END] -------------`
-  //   );
-  //   return result;
-  // }
-
   // ++TODO check, rm sql inside forLoop
   async _insertOuterTrades(outerTrades) {
     /* !!! HIGH RISK (start) !!! */
