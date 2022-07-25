@@ -229,7 +229,7 @@ class ExchangeHubService {
       askLoc = SafeMath.plus(askAccount.locked, askLocDiff);
       // ++ TODO 3.5 update accountBook
       updateAskAccount = {
-        balace: askAccBal,
+        balance: askAccBal,
         locked: askLoc,
         currency: market.ask.currency.toUpperCase(),
         total: SafeMath.plus(askAccBal, askLoc),
@@ -270,7 +270,7 @@ class ExchangeHubService {
       bidLoc = SafeMath.plus(bidAccount.locked, bidLocDiff);
       // ++ TODO 4.5 update accountBook
       updateBidAccount = {
-        balace: bidAccBal,
+        balance: bidAccBal,
         locked: bidLoc,
         currency: market.bid.currency.toUpperCase(),
         total: SafeMath.plus(bidAccBal, bidLoc),
@@ -386,7 +386,7 @@ class ExchangeHubService {
       askLoc = SafeMath.plus(askAccount.locked, askLocDiff);
       // ++ TODO 3.5 update accountBook
       updateAskAccount = {
-        balace: askAccBal,
+        balance: askAccBal,
         locked: askLoc,
         currency: market.ask.currency.toUpperCase(),
         total: SafeMath.plus(askAccBal, askLoc),
@@ -434,7 +434,7 @@ class ExchangeHubService {
       bidAccBal = SafeMath.plus(bidAccount.balance, bidAccBalDiff);
       // ++ TODO 4.5 update accountBook
       updateBidAccount = {
-        balace: bidAccBal,
+        balance: bidAccBal,
         locked: bidLoc,
         currency: market.bid.currency.toUpperCase(),
         total: SafeMath.plus(bidAccBal, bidLoc),
