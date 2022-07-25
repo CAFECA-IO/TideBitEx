@@ -31,7 +31,6 @@ class BookBase {
    * @param {Function} compareFunction
    * @returns
    */
-  // ++ TODO: verify function works properly
   _calculateDifference(arrayA, arrayB) {
     try {
       const onlyInLeft = (left, right) =>
@@ -88,7 +87,6 @@ class BookBase {
    * @param {String} str1
    * @param {String} str2
    */
-  // ++ TODO: verify function works properly
   _isEqual(str1, str2) {
     return SafeMath.isNumber(str1) && SafeMath.isNumber(str2)
       ? SafeMath.eq(str1, str2)
@@ -106,7 +104,6 @@ class BookBase {
    * @param {String} instId
    * @returns {Boolean}
    */
-  // ++ TODO: verify function works properly
   updateByDifference(instId, difference) {
     let updateSnapshot;
     try {
@@ -141,7 +138,6 @@ class BookBase {
    * @param {String} instId
    * @returns {Boolean}
    */
-  // ++ TODO: verify function works properly
   updateAll(instId, data) {
     try {
       this._difference[instId] = this._calculateDifference(

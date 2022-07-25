@@ -12,8 +12,6 @@ const SafeMath = require("../SafeMath");
 const SupportedExchange = require("../../constants/SupportedExchange");
 const Utils = require("../Utils");
 const { waterfallPromise } = require("../Utils");
-const { clear } = require("console");
-
 const HEART_BEAT_TIME = 25000;
 
 class OkexConnector extends ConnectorBase {
@@ -24,9 +22,7 @@ class OkexConnector extends ConnectorBase {
   // _tickersTimestamp = 0;
   // _booksTimestamp = 0;
   // _tradesTimestamp = 0;
-  _timer;
-  _lastSyncTime = 0;
-  _syncInterval = 10 * 60 * 1000; // 10mins
+
   tickers = {};
   okexWsChannels = {};
   instIds = [];
@@ -81,7 +77,6 @@ class OkexConnector extends ConnectorBase {
     this.currencies = currencies;
     this.database = database;
     this.tidebitMarkets = tidebitMarkets;
-    // this.sync();
     return this;
   }
   //   {
@@ -122,29 +117,107 @@ class OkexConnector extends ConnectorBase {
   /**
    * @returns {Promise<Trade>}
    */
-  async _tradeFills() {
+  async fetchTradeFillsRecords({ query }) {
+    this.logger.log(`[${this.constructor.name}] fetchTradeFillsRecords`);
+    const { before } = query;
+    let result,
+      arr = [];
+    if (before) arr.push(`before=${before}`);
+    const qs = !!arr.length ? `?${arr.join("&")}` : "";
     const method = "GET";
     const path = "/api/v5/trade/fills";
     const timeString = new Date().toISOString();
     const okAccessSign = await this.okAccessSign({
       timeString,
       method,
-      path: `${path}`,
+      path: `${path}${qs}`,
     });
     try {
       const res = await axios({
         method: method.toLocaleLowerCase(),
-        url: `${this.domain}${path}`,
+        url: `${this.domain}${path}${qs}`,
         headers: this.getHeaders(true, { timeString, okAccessSign }),
       });
       if (res.data && res.data.code !== "0") {
         const message = JSON.stringify(res.data);
         this.logger.trace(message);
       }
-      EventBus.emit(Events.tradesDetailUpdate, res.data.data);
+      const data = res.data.data.map((trade) => ({
+        ...trade,
+        // tradeId: `${this.database.EXCHANGE.OKEX.toString()}${this.tradeId}`,
+        status: this.database.OUTERTRADE_STATUS.UNPROCESS,
+        exchangeCode:
+          this.database.EXCHANGE[SupportedExchange.OKEX.toUpperCase()],
+        updatedAt: new Date(parseInt(trade.ts)).toISOString(),
+        data: JSON.stringify(trade),
+      }));
+      result = new ResponseFormat({
+        message: "tradeFills",
+        payload: data,
+      });
     } catch (error) {
       this.logger.error(error);
+      let message = error.message;
+      if (error.response && error.response.data)
+        message = error.response.data.msg;
+      result = new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
     }
+    return result;
+  }
+
+  async fetchTradeFillsHistoryRecords({ query }) {
+    const { instType, before } = query;
+    this.logger.log(`[${this.constructor.name}] fetchTradeFillsHistoryRecords`);
+    let result,
+      arr = [];
+    const method = "GET";
+    if (instType) arr.push(`instType=${instType}`);
+    if (before) arr.push(`before=${before}`);
+    const path = "/api/v5/trade/fills-history";
+    const qs = !!arr.length ? `?${arr.join("&")}` : "";
+    const timeString = new Date().toISOString();
+    const okAccessSign = await this.okAccessSign({
+      timeString,
+      method,
+      path: `${path}${qs}`,
+    });
+    try {
+      const res = await axios({
+        method: method.toLocaleLowerCase(),
+        url: `${this.domain}${path}${qs}`,
+        headers: this.getHeaders(true, { timeString, okAccessSign }),
+      });
+      if (res.data && res.data.code !== "0") {
+        const message = JSON.stringify(res.data);
+        this.logger.trace(message);
+      }
+      const data = res.data.data.map((trade) => ({
+        ...trade,
+        // tradeId: `${this.database.EXCHANGE.OKEX.toString()}${this.tradeId}`,
+        status: this.database.OUTERTRADE_STATUS.UNPROCESS,
+        exchangeCode:
+          this.database.EXCHANGE[SupportedExchange.OKEX.toUpperCase()],
+        updatedAt: new Date(parseInt(trade.ts)).toISOString(),
+        data: JSON.stringify(trade),
+      }));
+      result = new ResponseFormat({
+        message: "tradeFills",
+        payload: data,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      let message = error.message;
+      if (error.response && error.response.data)
+        message = error.response.data.msg;
+      result = new ResponseFormat({
+        message,
+        code: Codes.API_UNKNOWN_ERROR,
+      });
+    }
+    return result;
   }
 
   async _getOrderHistory(options) {
@@ -232,16 +305,6 @@ class OkexConnector extends ConnectorBase {
       this.logger.log(
         `-------------- [ERROR] sync OrderHistory ---------------`
       );
-    }
-  }
-
-  sync() {
-    const time = Date.now();
-    if (time - this._lastSyncTime > this._syncInterval) {
-      this._tradeFills();
-      this._lastSyncTime = Date.now();
-      clearTimeout(this.timer);
-      this.timer = setTimeout(this.sync, this._syncInterval + 1000);
     }
   }
 
@@ -386,7 +449,7 @@ class OkexConnector extends ConnectorBase {
       const ticker = {};
       ticker[data.instId.replace("-", "").toLowerCase()] =
         this._formateTicker(data);
-      this.logger.log(`[${this.constructor.name}] getTicker`, ticker);
+      // this.logger.log(`[${this.constructor.name}] getTicker`, ticker);
       return new ResponseFormat({
         message: "getTicker",
         payload: ticker,
@@ -999,7 +1062,9 @@ class OkexConnector extends ConnectorBase {
       sz: body.volume,
       px:
         body.ordType === "market"
-          ? (parseFloat(body.price) * 1.1).toString()
+          ? body.kind === "bid"
+            ? (parseFloat(body.price) * 1.1).toString()
+            : (parseFloat(body.price) * 0.9).toString()
           : body.price,
       // reduceOnly: body.reduceOnly,
       // tgtCcy: body.tgtCcy,
@@ -1442,8 +1507,14 @@ class OkexConnector extends ConnectorBase {
     this.okexWsChannels[channel][instType] = instData;
   }
 
+  /**
+ * _updateOrderDetails
+ * @param {*} instType 
+ * @param {*} orderData 
+ */
   _updateOrderDetails(instType, orderData) {
     const formatOrders = [];
+    this.logger.log(`-------------- _updateOrderDetails ---------------`);
     orderData.forEach((data) => {
       if (data.clOrdId.startsWith(this.brokerId)) {
         formatOrders.push({
@@ -1454,7 +1525,8 @@ class OkexConnector extends ConnectorBase {
         });
       }
     });
-
+    this.logger.log(`formatOrders`, formatOrders);
+    this.logger.log(`-------------- [END] _updateOrderDetails ---------------`);
     EventBus.emit(Events.orderDetailUpdate, instType, formatOrders);
   }
 
